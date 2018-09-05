@@ -1,4 +1,4 @@
-package com.inspur.icp.entity;
+package com.inspur.eip.entity;
 
 import lombok.Builder;
 import lombok.Data;

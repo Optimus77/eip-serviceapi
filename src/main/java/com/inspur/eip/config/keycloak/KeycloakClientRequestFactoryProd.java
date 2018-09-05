@@ -1,4 +1,4 @@
-package com.inspur.icp.config.keycloak;
+package com.inspur.eip.config.keycloak;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpEntity;

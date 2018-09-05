@@ -1,4 +1,4 @@
-package com.inspur.icp.config.swagger;
+package com.inspur.eip.config.swagger;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,7 +28,7 @@ public class SwaggerConfig {
     public Docket petApi() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.inspur.icp.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.inspur.eip.controller"))
                 .paths(PathSelectors.any())
                 .build()
                 .apiInfo(apiInfo())

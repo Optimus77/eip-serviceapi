@@ -1,4 +1,4 @@
-package com.inspur.icp.config.keycloak;
+package com.inspur.eip.config.keycloak;
 
 import org.keycloak.adapters.KeycloakConfigResolver;
 import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;

@@ -1,6 +1,6 @@
-package com.inspur.icp.util;
+package com.inspur.eip.util;
 
-import com.inspur.icp.entity.ReturnMsg;
+import com.inspur.eip.entity.ReturnMsg;
 
 public class ReturnMsgUtil {
 

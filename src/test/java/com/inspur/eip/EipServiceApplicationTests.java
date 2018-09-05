@@ -1,4 +1,4 @@
-package com.inspur.icp;
+package com.inspur.eip;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
