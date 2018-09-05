@@ -4,9 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class IcpDemoApplication {
+public class EipServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(IcpDemoApplication.class, args);
+        SpringApplication.run(EipServiceApplication.class, args);
     }
 }
