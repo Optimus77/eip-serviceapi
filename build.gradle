@@ -44,7 +44,8 @@ dependencies {
 	compile('com.inspur.icp:common-util:0.0.1-SNAPSHOT')
     compile('org.pacesys:openstack4j:3.1.0')
     compile('com.alibaba:fastjson:1.2.49')
-	
+    compile group: 'com.google.guava', name: 'guava', version: '26.0-jre'
+
     runtime('org.springframework.boot:spring-boot-devtools')
     runtime('mysql:mysql-connector-java')
     compileOnly('org.projectlombok:lombok')
