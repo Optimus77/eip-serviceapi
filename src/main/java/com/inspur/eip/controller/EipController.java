@@ -22,11 +22,13 @@ public class EipController {
     private EipService eipService;
     private String floatingnetworkId = null;
 
+
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="createEip",notes="create")
     public ResponseEntity<String> createeip(@RequestBody Eip eip) {
         ////Do--dao; MO system;Vo  web
+
         NetFloatingIP floatingIP = eipService.createFloatingIp("region",floatingnetworkId, null, null);
         Eip  eipMo = new Eip();
 
@@ -42,13 +44,6 @@ public class EipController {
         return new ResponseEntity<>(maker,HttpStatus.OK);
     }
 
-
-
-    @GetMapping(value = "/eips{eip_id}")
-    @ApiOperation(value="createeip",notes="create")
-    public ResponseEntity<String> queryeip(@PathVariable("id") String id) {
-        return new ResponseEntity<>(id,HttpStatus.OK);
-    }
 
     @RequestMapping(value = "/eips/{eip_id}", method = RequestMethod.PUT)
     public String updateEip(@RequestParam String id) {
