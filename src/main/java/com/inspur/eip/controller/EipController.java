@@ -29,7 +29,8 @@ public class EipController {
     public ResponseEntity<String> createeip(@RequestBody Eip eip) {
         ////Do--dao; MO system;Vo  web
 
-        NetFloatingIP floatingIP = eipService.createFloatingIp("region",floatingnetworkId, null, null);
+        NetFloatingIP floatingIP = eipService.createFloatingIp("region", floatingnetworkId,
+                null, null);
         Eip  eipMo = new Eip();
 
         eipMo.setFloatingIpv4(floatingIP.getFloatingIpAddress());

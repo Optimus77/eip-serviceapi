@@ -67,6 +67,17 @@ public class EipService {
             throw new ResponseException(message, 500);
         }
     }
+    public synchronized void disassociateFloatingIpFromPort(String region, String netFloatingIpId) {
+
+        osClientV3 = getOsClientV3();
+        NetFloatingIP associateToPort = osClientV3.networking().floatingip().disassociateFromPort(netFloatingIpId);
+        if(associateToPort == null) {
+            String message = String.format("Disassociating floating ip: %s in region: %s failed.",
+                    netFloatingIpId, region);
+            log.warning(message);
+            throw new ResponseException(message, 500);
+        }
+    }
 
     public Boolean deleteFloatingIp(String name, String eipId){
         osClientV3 = getOsClientV3();
