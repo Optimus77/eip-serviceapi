@@ -12,6 +12,7 @@ import org.openstack4j.openstack.OSFactory;
 import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -107,6 +108,16 @@ public class EipService {
     public Optional<Eip> getEipDetail(String eip_id){
         Optional<Eip> eip= eipRepository.findById(eip_id);
         return eip;
+    }
+
+    public Eip updateEipPort(Eip eip){
+
+        return eip;
+    }
+
+    public Eip updateEipBandWidth(Eip eip){
+
+        return eipRepository.save(eip);
     }
 
 }

@@ -3,14 +3,16 @@ package com.inspur.eip.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.ConstantClassField;
 import com.inspur.eip.entity.Eip;
+import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.service.EipService;
 import com.inspur.eip.util.FastjsonUtil;
-import io.swagger.annotations.ApiImplicitParam;
+import com.inspur.icp.common.util.annotation.ICPControllerLog;
+import io.swagger.annotations.*;
 import org.openstack4j.model.network.NetFloatingIP;
+import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,10 +54,7 @@ public class EipController {
     }
 
 
-    @RequestMapping(value = "/eips/{eip_id}", method = RequestMethod.PUT)
-    public String updateEip(@RequestParam String id) {
-        return " " + id;
-    }
+
     @RequestMapping(value = "/eips/{eip_id}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteEip(@RequestParam String id) {
         Boolean result = eipService.deleteFloatingIp("name", id);
@@ -63,6 +62,54 @@ public class EipController {
     }
 
 
+    @PutMapping(value = "/eips/{eip_id}",consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value="update detail of  eip instance", notes="")
+    @Transactional
+    @ICPControllerLog
+    public ResponseEntity updateEip(@PathVariable("eip_id") String eip_id,@RequestBody EipUpdateParamWrapper param) {
+
+        try{
+            Optional<Eip> eip = eipService.getEipDetail(eip_id);
+            if (eip.isPresent()) {
+                if(param.getEipUpdateParam()!=null){
+                    //validate the param of bandwidth
+                    if(param.getEipUpdateParam().getBandWidth()!=null&&param.getEipUpdateParam().getChargeType()!=null){
+                        try {
+                            int bandWidth=Integer.parseInt(param.getEipUpdateParam().getBandWidth());
+                            String chargetype=param.getEipUpdateParam().getChargeType();
+                            Eip eipInstace=eip.get();
+                            eipInstace.setBanWidth(param.getEipUpdateParam().getBandWidth());
+                            //eip.get().set
+                            //
+                            eipService.updateEipBandWidth(eipInstace);
+                        }catch (NumberFormatException e){
+                            return new ResponseEntity("bandwidth must is a number",HttpStatus.INTERNAL_SERVER_ERROR);
+                        }
+                    }
+                    //validate the param of port
+                    if(param.getEipUpdateParam().getPortId()!=null){
+
+                    }
+
+
+                    return new ResponseEntity("",HttpStatus.INTERNAL_SERVER_ERROR);
+
+
+                }else{
+                    return new ResponseEntity("body param is not correct",HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+
+            }else{
+                return new ResponseEntity("can not find the instance of this id :"+eip_id,HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
 
     @GetMapping(value = "/eips/{eip_id}")
     @ApiOperation(value="get detail of  eip instance", notes="")
@@ -85,10 +132,10 @@ public class EipController {
                 resourceset.put("resourcetype",eipEntity.getInstanceType());
                 resourceset.put("resource_id",eipEntity.getInstanceId());
                 js.put("resourceset",resourceset);
-                js.put("chargetype","计费的逻辑？？？？定义的接口有问题？？？");
+                js.put("chargetype","计费的逻辑？？？？");
                 js.put("chargemode","");
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                js.put("create at", formatter.format(eipEntity.getCreateTime()));
+                js.put("create_at", formatter.format(eipEntity.getCreateTime()));
                 JSONObject returnjs =new JSONObject();
                 returnjs.put("eip",js);
                 log.info(js.toString());
