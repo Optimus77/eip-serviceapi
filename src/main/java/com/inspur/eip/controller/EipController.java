@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class EipController {
     @Autowired
     private EipService eipService;
-    private String floatingnetworkId = null;
+    private String floatingnetworkId = "d9c00a35-fea8-4162-9de1-b8100494a11d";
 
 
     @PostMapping(value = "/eips")
@@ -28,9 +28,7 @@ public class EipController {
     @ApiOperation(value="createEip",notes="create")
     public ResponseEntity<String> createeip(@RequestBody Eip eip) {
         ////Do--dao; MO system;Vo  web
-
-        NetFloatingIP floatingIP = eipService.createFloatingIp("region", floatingnetworkId,
-                null, null);
+        NetFloatingIP floatingIP = eipService.createFloatingIp("region", floatingnetworkId, null);
         Eip  eipMo = new Eip();
 
         eipMo.setFloatingIpv4(floatingIP.getFloatingIpAddress());
@@ -51,8 +49,9 @@ public class EipController {
         return " " + id;
     }
     @RequestMapping(value = "/eips/{eip_id}", method = RequestMethod.DELETE)
-    public String deleteEip(@RequestParam String id) {
-        return "" + id;
+    public ResponseEntity<Boolean> deleteEip(@RequestParam String id) {
+        Boolean result = eipService.deleteFloatingIp("name", id);
+        return new ResponseEntity<>(result,HttpStatus.OK);
     }
 
 

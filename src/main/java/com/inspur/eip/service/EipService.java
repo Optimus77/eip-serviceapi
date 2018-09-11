@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 @Service
 public class EipService {
 
-    private static String authUrl = "https://10.110.25.117:5000/v2"; //endpoint Url
+    private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
     private static String user = "vpc";
     private static String password = "123456a?";
     private static String projectId = "65a859f362f749ce95237cbd08c30edf";
@@ -36,8 +36,10 @@ public class EipService {
     }
 
     public synchronized NetFloatingIP createFloatingIp(String region, String networkId,
-                                                       String serverId,String portId) {
+                                                       String portId) {
+        System.out.println("into");
         osClientV3 = getOsClientV3();
+        System.out.println(osClientV3);
         NetFloatingIPBuilder builder = new NeutronFloatingIP.FloatingIPConcreteBuilder();
         builder.floatingNetworkId(networkId);
         if(null != portId) {
@@ -45,11 +47,11 @@ public class EipService {
         }
         NetFloatingIP netFloatingIP = osClientV3.networking().floatingip().create(builder.build());
         if (netFloatingIP != null) {
-            log.info("Allocated Floating ip: " + netFloatingIP.getId() + " To server with Id: " + serverId);
+            log.info("Allocated Floating ip: " + netFloatingIP.getId() + " To server with Id: ");
         } else {
             String message = String.format(
-                    "Cannot create floating ip for server: %s with port: %s under network: %s in region: %s", serverId,
-                    portId, networkId, region);
+                    "Cannot create floating ip under network: %s in region: %s",
+                    networkId, region);
             log.warning(message);
             throw new ResponseException(message, 500);
         }
