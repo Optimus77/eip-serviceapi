@@ -1,5 +1,7 @@
 package com.inspur.eip.service;
 
+import com.inspur.eip.entity.Eip;
+import com.inspur.eip.repository.EipRepository;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.ResponseException;
 import org.openstack4j.core.transport.Config;
@@ -24,7 +26,6 @@ public class EipService {
     private EipRepository eipRepository;
 
 
-    private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
     private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
     private static String user = "vpc";
     private static String password = "123456a?";
