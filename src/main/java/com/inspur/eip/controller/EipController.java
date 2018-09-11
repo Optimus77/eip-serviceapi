@@ -69,36 +69,42 @@ public class EipController {
     @ApiImplicitParam(paramType="path", name = "eip_id", value = "the id of eip", required = true, dataType = "String")
     public ResponseEntity getEipDetail(@PathVariable("eip_id") String eip_id){
 
-        Optional<Eip> eip = eipService.getEipDetail(eip_id);
-        if (eip.isPresent()) {
-            Eip eipEntity=eip.get();
+        try {
+            Optional<Eip> eip = eipService.getEipDetail(eip_id);
+            if (eip.isPresent()) {
+                Eip eipEntity=eip.get();
 
-            JSONObject js =new JSONObject();
-            js.put("eip_id",eipEntity.getId());
-            js.put("status","");//
-            js.put("iptype",eipEntity.getLinkType());//
-            js.put("eip_address",eipEntity.getEipIpv4());//
-            js.put("private_ip_address",eipEntity.getFloatingIpv4());//
-            js.put("bandwidth",Integer.parseInt(eipEntity.getBanWidth()));//
-            JSONObject resourceset=new JSONObject();
-            resourceset.put("resourcetype",eipEntity.getInstanceType());
-            resourceset.put("resource_id",eipEntity.getInstanceId());
-            js.put("resourceset",resourceset);
-            js.put("chargetype","计费的逻辑？？？？定义的接口有问题？？？");
-            js.put("chargemode","");
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            js.put("create at", formatter.format(eipEntity.getCreateTime()));
-            JSONObject returnjs =new JSONObject();
-            returnjs.put("eip",js);
-            log.info(js.toString());
+                JSONObject js =new JSONObject();
+                js.put("eip_id",eipEntity.getId());
+                js.put("status","");//
+                js.put("iptype",eipEntity.getLinkType());//
+                js.put("eip_address",eipEntity.getEipIpv4());//
+                js.put("private_ip_address",eipEntity.getFloatingIpv4());//
+                js.put("bandwidth",Integer.parseInt(eipEntity.getBanWidth()));//
+                JSONObject resourceset=new JSONObject();
+                resourceset.put("resourcetype",eipEntity.getInstanceType());
+                resourceset.put("resource_id",eipEntity.getInstanceId());
+                js.put("resourceset",resourceset);
+                js.put("chargetype","计费的逻辑？？？？定义的接口有问题？？？");
+                js.put("chargemode","");
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                js.put("create at", formatter.format(eipEntity.getCreateTime()));
+                JSONObject returnjs =new JSONObject();
+                returnjs.put("eip",js);
+                log.info(js.toString());
 
 
-            return new ResponseEntity<>(returnjs.toString(),HttpStatus.OK);
-        }else{
-            JSONObject js =new JSONObject();
-            js.put("error","can not find instance use this id"+eip_id);
-            return new ResponseEntity<>(js.toString(),HttpStatus.OK);
+                return new ResponseEntity<>(returnjs.toString(),HttpStatus.OK);
+            }else{
+                JSONObject js =new JSONObject();
+                js.put("error","can not find instance use this id"+eip_id);
+                return new ResponseEntity<>(js.toString(),HttpStatus.OK);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
 
 
     }
