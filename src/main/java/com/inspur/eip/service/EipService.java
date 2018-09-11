@@ -8,15 +8,23 @@ import org.openstack4j.model.network.*;
 import org.openstack4j.model.network.builder.NetFloatingIPBuilder;
 import org.openstack4j.openstack.OSFactory;
 import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 
 @Service
 public class EipService {
 
+
+    @Autowired
+    private EipRepository eipRepository;
+
+
+    private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
     private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
     private static String user = "vpc";
     private static String password = "123456a?";
@@ -92,6 +100,12 @@ public class EipService {
 
         System.out.println(pools);
         return pools;
+    }
+
+
+    public Optional<Eip> getEipDetail(String eip_id){
+        Optional<Eip> eip= eipRepository.findById(eip_id);
+        return eip;
     }
 
 }

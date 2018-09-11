@@ -3,14 +3,17 @@ package com.inspur.eip.entity;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+
+import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
+@Entity
+@Table(name="eip")
 @Getter
 @Setter
-public class Eip {
+public class Eip implements Serializable {
+
     @Id
     @GenericGenerator(name = "system-uuid", strategy = "uuid2")
     @GeneratedValue(generator = "system-uuid")
