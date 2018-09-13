@@ -1,7 +1,10 @@
 package com.inspur.eip.service;
 
+import com.alibaba.fastjson.JSONObject;
+import com.inspur.eip.controller.EipController;
 import com.inspur.eip.entity.Eip;
 import com.inspur.eip.repository.EipRepository;
+import com.inspur.eip.util.CommonUtil;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.ResponseException;
 import org.openstack4j.core.transport.Config;
@@ -14,7 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -22,27 +27,15 @@ import java.util.logging.Logger;
 @Service
 public class EipService {
 
-
     @Autowired
     private EipRepository eipRepository;
 
-
-    private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
-    private static String user = "vpc";
-    private static String password = "123456a?";
-    private static String projectId = "65a859f362f749ce95237cbd08c30edf";
-    private static String userDomainId = "default";
     private OSClientV3 osClientV3;
-    private Config config = Config.newConfig().withSSLVerificationDisabled();
+
     private final static Logger log = Logger.getLogger(EipService.class.getName());
 
     private OSClientV3 getOsClientV3(){
-        return OSFactory.builderV3()
-                .endpoint(authUrl)
-                .credentials(user, password, Identifier.byId(userDomainId))
-                .withConfig(config)
-                .scopeToProject(Identifier.byId(projectId))
-                .authenticate();
+        return CommonUtil.getOsClientV3Util();
     }
 
     public synchronized NetFloatingIP createFloatingIp(String region, String networkId,
@@ -91,6 +84,17 @@ public class EipService {
         }
     }
 
+    public NetFloatingIP getFloatingIpDetail(String netFloatingIpId){
+        osClientV3 = getOsClientV3();
+        Map<String, String> filteringParams = new HashMap<String, String>();
+        filteringParams.put("tenant_id",CommonUtil.getProjectId());
+
+        List<NetFloatingIP> netFloatingIPS= (List<NetFloatingIP>) osClientV3.networking().floatingip().list(filteringParams);
+        log.info(JSONObject.toJSONString(netFloatingIPS));
+        NetFloatingIP netFloatingIP =osClientV3.networking().floatingip().get(netFloatingIPS.get(0).getId());
+        return netFloatingIP;
+    }
+
     public Boolean deleteFloatingIp(String name, String eipId){
         osClientV3 = getOsClientV3();
         return osClientV3.networking().floatingip().delete(eipId).isSuccess();
@@ -99,7 +103,6 @@ public class EipService {
     public List<String> listFloatingIps(){
         OSClientV3 os = getOsClientV3();
         List<String> pools = os.compute().floatingIps().getPoolNames();
-
         System.out.println(pools);
         return pools;
     }
@@ -107,6 +110,10 @@ public class EipService {
 
     public Optional<Eip> getEipDetail(String eip_id){
         Optional<Eip> eip= eipRepository.findById(eip_id);
+        osClientV3 = getOsClientV3();
+
+
+
         return eip;
     }
 
