@@ -10,7 +10,9 @@ import org.openstack4j.openstack.OSFactory;
 import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 
@@ -55,10 +57,11 @@ public class EipService {
             log.warning(message);
             throw new ResponseException(message, 500);
         }
+
         return netFloatingIP;
     }
 
-    public synchronized void associatePortWithFloatingIp(String region, String netFloatingIpId, String portId) {
+    public synchronized Boolean associatePortWithFloatingIp(String region, String netFloatingIpId, String portId) {
 
         osClientV3 = getOsClientV3();
         NetFloatingIP associateToPort = osClientV3.networking().floatingip().associateToPort(netFloatingIpId, portId);
@@ -68,8 +71,9 @@ public class EipService {
             log.warning(message);
             throw new ResponseException(message, 500);
         }
+        return true;
     }
-    public synchronized void disassociateFloatingIpFromPort(String region, String netFloatingIpId) {
+    public synchronized Boolean disassociateFloatingIpFromPort(String region, String netFloatingIpId) {
 
         osClientV3 = getOsClientV3();
         NetFloatingIP associateToPort = osClientV3.networking().floatingip().disassociateFromPort(netFloatingIpId);
@@ -79,6 +83,7 @@ public class EipService {
             log.warning(message);
             throw new ResponseException(message, 500);
         }
+        return true;
     }
 
     public Boolean deleteFloatingIp(String name, String eipId){
@@ -86,12 +91,14 @@ public class EipService {
         return osClientV3.networking().floatingip().delete(eipId).isSuccess();
     }
 
-    public List<String> listFloatingIps(){
-        OSClientV3 os = getOsClientV3();
-        List<String> pools = os.compute().floatingIps().getPoolNames();
+    public List<? extends NetFloatingIP> listFloatingIps(){
+        OSClientV3 osClientV3 = getOsClientV3();
+        Map<String, String> filteringParams = new HashMap<>();
+        filteringParams.put("tenant_id",projectId);
+        return  osClientV3.networking().floatingip().list();
 
-        System.out.println(pools);
-        return pools;
+        //System.out.println(list);
+
     }
 
 }
