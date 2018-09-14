@@ -62,6 +62,18 @@ public class Eip implements Serializable {
     @Column(name="acl_id")
     private String aclId;
 
+    @Column(name="qos_id")
+    private String pipId;
+
+    @Column(name="snat_id")
+    private String snatId;
+
+    @Column(name="dnat_id")
+    private String dnatId;
+
+    @Column(name="dev_id")
+    private String devId;
+
     @Column(name="state",nullable = false)
     private String stat="0";
 
