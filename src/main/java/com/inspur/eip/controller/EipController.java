@@ -135,133 +135,81 @@ public class EipController {
         return new ResponseEntity<>(result,HttpStatus.OK);
     }
 
+    /**
+     * get eip instance detail
+     * @param eip_id the id of eip
+     * @return
+     */
+    //@ICPControllerLog
+    @GetMapping(value = "/eips/{eip_id}")
+    @ApiOperation(value = "get detail of  eip instance", notes = "")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String")
+    })
+    public ResponseEntity getEipDetail(@RequestHeader("authorization")String authorization ,@PathVariable("eip_id") String eip_id){
+        String result="{}";
+        try {
+             log.info("get request head authorization:"+authorization);
+             result=eipService.getEipDetail(eip_id);
 
-    @PutMapping(value = "/eips/{eip_id}",consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value="update detail of  eip instance", notes="update")
-    @Transactional
-    public ResponseEntity updateEip(@PathVariable("eip_id") String eip_id,@RequestBody EipUpdateParamWrapper param) {
-
-        try{
-            Optional<Eip> eip = eipService.getEipDetail(eip_id);
-            if (eip.isPresent()) {
-                Eip eipInstace=eip.get();
-                NetFloatingIP bandingFloatIp= eipService.getFloatingIpDetail(eipInstace.getId());//数据表中没有floatingip的id？？？ 咋办？难道要全查出来筛选？？
-                if(param.getEipUpdateParam()!=null){
-                    //validate the param of bandwidth
-                    if(param.getEipUpdateParam().getBandWidth()!=null&&param.getEipUpdateParam().getChargeType()!=null){
-                        try {
-                            int bandWidth=Integer.parseInt(param.getEipUpdateParam().getBandWidth());
-                            String chargetype=param.getEipUpdateParam().getChargeType();
-                            eipInstace.setBanWidth(param.getEipUpdateParam().getBandWidth());
-                            //eipInstace.set
-
-                        }catch (NumberFormatException e){
-                            return new ResponseEntity("bandwidth must is a number",HttpStatus.INTERNAL_SERVER_ERROR);
-                        }
-                    }
-                    //validate the param of port
-                    if(param.getEipUpdateParam().getPortId()!=null){
-                            eipService.getFloatingIpDetail("ddddddddddddd");
-                            eipInstace.setInstanceId("sssssssssssssxxxxxxxx");
-                    }
-//                    {
-//                        "eip": {
-//                                "eipid": "f588ccfa-8750-4d7c-bf5d-2ede24414706",
-//                                "status": "PENDING_UPDATE",
-//                                "iptype": "5_bgp",
-//                                "eip_address": "161.xx.xx.7",
-//                                "port_id": "f588ccfa-8750-4d7c-bf5d-2ede24414706",
-//                                "bandwidth": 6,
-//                                "chargetype": "PostPaid",
-//                                "create_at": ""2015-07-16 04:10:52""
-//                    }
-//                    }
-
-                    eipService.updateEipBandWidth(eipInstace);
-                    JSONObject js =new JSONObject();
-                    js.put("eip_id",eipInstace.getId());//the id of eip
-                    js.put("status",bandingFloatIp.getStatus());//the floating ip status
-                    js.put("iptype",eipInstace.getLinkType());//
-                    js.put("eip_address",eipInstace.getEipIpv4());//
-                    js.put("private_ip_address",eipInstace.getFloatingIpv4());//
-                    js.put("bandwidth",Integer.parseInt(eipInstace.getBanWidth()));//
-                    js.put("chargetype","计费的逻辑？？？？");
-                    js.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipInstace.getCreateTime()));
-                    JSONObject returnjs =new JSONObject();
-                    returnjs.put("eip",js);
-                    log.info(js.toString());
-
-
-
-                    return new ResponseEntity("",HttpStatus.INTERNAL_SERVER_ERROR);
-
-
-                }else{
-                    return new ResponseEntity("body param is not correct",HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-
-            }else{
-                return new ResponseEntity("can not find the instance of this id :"+eip_id,HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-
-
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+        }finally{
+            return new ResponseEntity(result, HttpStatus.OK);
         }
 
     }
-    @ICPControllerLog
-    @GetMapping(value = "/eips/{eip_id}")
-    @ApiOperation(value="get detail of  eip instance", notes="")
-    @ApiImplicitParam(paramType="path", name = "eip_id", value = "the id of eip", required = true, dataType = "String")
-    public ResponseEntity getEipDetail(@PathVariable("eip_id") String eip_id){
 
+
+    @ICPControllerLog
+    @PutMapping(value = "/eips/{eip_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "update detail of  eip instance", notes = "")
+    @Transactional
+    public ResponseEntity updateEip(@PathVariable("eip_id") String eip_id, @RequestBody EipUpdateParamWrapper param) {
         try {
 
-            Optional<Eip> eip = eipService.getEipDetail(eip_id);
-            if (eip.isPresent()) {
-                Eip eipEntity=eip.get();
-                NetFloatingIP bandingFloatIp= eipService.getFloatingIpDetail(eipEntity.getId());//数据表中没有floatingip的id？？？ 咋办？难道要全查出来筛选？？
-                log.info(bandingFloatIp.toString());
-//                {
-//                    "floatingIpAddress": "10.110.26.4",
-//                        "floatingNetworkId": "d9c00a35-fea8-4162-9de1-b8100494a11d",
-//                        "id": "7d095f59-03cf-4ee9-8c92-80261fde7f81",
-//                        "status": "DOWN",
-//                        "tenantId": "65a859f362f749ce95237cbd08c30edf"
-//                }
-
-                JSONObject js =new JSONObject();
-                js.put("eip_id",eipEntity.getId());//the id of eip
-                js.put("status",bandingFloatIp.getStatus());//the floating ip status
-                js.put("iptype",eipEntity.getLinkType());//
-                js.put("eip_address",eipEntity.getEipIpv4());//
-                js.put("private_ip_address",eipEntity.getFloatingIpv4());//
-                js.put("bandwidth",Integer.parseInt(eipEntity.getBanWidth()));//
-                JSONObject resourceset=new JSONObject();
-                resourceset.put("resourcetype",eipEntity.getInstanceType());
-                resourceset.put("resource_id",eipEntity.getInstanceId());
-                js.put("resourceset",resourceset);
-                js.put("chargetype","计费的逻辑？？？？");
-                js.put("chargemode","");
-                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                js.put("create_at", formatter.format(eipEntity.getCreateTime()));
-                JSONObject returnjs =new JSONObject();
-                returnjs.put("eip",js);
-                log.info(js.toString());
-                return new ResponseEntity<>(returnjs.toString(),HttpStatus.OK);
-            }else{
-                JSONObject js =new JSONObject();
-                js.put("error","can not find instance use this id"+eip_id);
-                return new ResponseEntity<>(js.toString(),HttpStatus.OK);
-            }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+
+        }finally{
+            return new ResponseEntity("", HttpStatus.OK);
         }
 
+    }
 
+    @ICPControllerLog
+    @PutMapping(value = "/eips/{eip_id}/bindwidth", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "update the bindWidth of  eip instance", notes = "")
+    @Transactional
+    public ResponseEntity updateEipBindWidth(@PathVariable("eip_id") String eip_id, @RequestBody EipUpdateParamWrapper param) {
+
+        String result="{}";
+        try {
+            result=eipService.updateEipBandWidth(eip_id,param);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }finally{
+            return new ResponseEntity("", HttpStatus.OK);
+        }
 
     }
+
+    @ICPControllerLog
+    @PutMapping(value = "/eips/{eip_id}/floatingip", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "the eip instance", notes = "")
+    @Transactional
+    public ResponseEntity eipBindFloatingIP(@PathVariable("eip_id") String eip_id, @RequestBody EipUpdateParamWrapper param) {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }finally{
+            return new ResponseEntity("", HttpStatus.OK);
+        }
+
+    }
+
 }

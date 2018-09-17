@@ -2,9 +2,11 @@ package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.Eip;
+import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.entity.EipPool;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
+import com.inspur.eip.repository.EipRestRepository;
 import com.inspur.eip.util.CommonUtil;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.ResponseException;
@@ -14,9 +16,9 @@ import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -33,8 +35,12 @@ public class EipService {
 
     private final static Logger log = Logger.getLogger(EipService.class.getName());
 
-    private OSClientV3 getOsClientV3(){
-        return CommonUtil.getOsClientV3Util();
+    private OSClientV3 getOsClientV3() {
+        try{
+            return CommonUtil.getOsClientV3Util();
+        }catch (Exception e){
+            return null;
+        }
     }
 
     public synchronized EipPool allocateEip(String region, String networkId){
@@ -52,11 +58,13 @@ public class EipService {
 
     public synchronized NetFloatingIP createFloatingIp(String region, String networkId, String portId) {
         //System.out.println("into");
+    public synchronized NetFloatingIP createFloatingIp(String region, String networkId, String portId) {
+        System.out.println("into");
         osClientV3 = getOsClientV3();
         //System.out.println(osClientV3);
         NetFloatingIPBuilder builder = new NeutronFloatingIP.FloatingIPConcreteBuilder();
         builder.floatingNetworkId(networkId);
-        if(null != portId) {
+        if (null != portId) {
             builder.portId(portId);
         }
         NetFloatingIP netFloatingIP = osClientV3.networking().floatingip().create(builder.build());
@@ -98,16 +106,6 @@ public class EipService {
         return true;
     }
 
-    public NetFloatingIP getFloatingIpDetail(String netFloatingIpId){
-        osClientV3 = getOsClientV3();
-        Map<String, String> filteringParams = new HashMap<>();
-        filteringParams.put("tenant_id",CommonUtil.getProjectId());
-
-        List<NetFloatingIP> netFloatingIPS= (List<NetFloatingIP>) osClientV3.networking().floatingip().list(filteringParams);
-        log.info(JSONObject.toJSONString(netFloatingIPS));
-        NetFloatingIP netFloatingIP =osClientV3.networking().floatingip().get(netFloatingIPS.get(0).getId());
-        return netFloatingIP;
-    }
 
     public Boolean deleteFloatingIp(String name, String eipId){
         osClientV3 = getOsClientV3();
@@ -117,30 +115,131 @@ public class EipService {
     public List<? extends NetFloatingIP> listFloatingIps(){
         OSClientV3 osClientV3 = getOsClientV3();
         Map<String, String> filteringParams = new HashMap<>();
-        filteringParams.put("tenant_id",CommonUtil.getProjectId());
+        filteringParams.put("tenant_id",CommonUtil.getTokenInfo().getString("project"));
         return  osClientV3.networking().floatingip().list();
 
         //System.out.println(list);
 
     }
 
+    /**
+     * get detail of the eip
+     * @param eip_id  the id of the eip instance
+     * @return the json result
+     */
+    public String getEipDetail(String eip_id) {
 
-    public Optional<Eip> getEipDetail(String eip_id){
-        Optional<Eip> eip= eipRepository.findById(eip_id);
-        osClientV3 = getOsClientV3();
+        JSONObject returnjs = new JSONObject();
+        try {
+            Optional<Eip> eip = eipRepository.findById(eip_id);
+            if (eip.isPresent()) {
+                Eip eipEntity = eip.get();
 
-        osClientV3.networking().floatingip().get(eip_id);
-        return eip;
+
+                JSONObject eipJSON = new JSONObject();
+                eipJSON.put("eipid", eipEntity.getId());//the id of eip
+                NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getId());
+                if(bandingFloatIp!=null){
+                    log.info(bandingFloatIp.toString());
+                    eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
+                }
+                eipJSON.put("iptype", eipEntity.getLinkType());//
+                eipJSON.put("eip_address", eipEntity.getEipIpv4());//
+                eipJSON.put("private_ip_address", eipEntity.getFloatingIpv4());//
+                eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));//
+                eipJSON.put("chargetype", "THIS IS EMPTY"); //can't find
+                eipJSON.put("chargemode", "THIS IS EMPTY");//cant't find
+                eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
+                JSONObject resourceset = new JSONObject();
+                resourceset.put("resourcetype", eipEntity.getInstanceType());
+                resourceset.put("resource_id", eipEntity.getInstanceId());
+                eipJSON.put("resourceset", resourceset);
+
+
+
+                returnjs.put("eip", eipJSON);
+
+            } else {
+                returnjs.put("error", "can not find instance use this id:" + eip_id+"");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            returnjs.put("error", e.getMessage()+"");
+        }finally{
+            log.info(returnjs.toString());
+            return returnjs.toString();
+        }
+
     }
 
-    public Eip updateEipPort(Eip eip){
+    /**
+     * bandWidth
+     * @param
+     * @return
+     */
+    public String updateEipBandWidth(String id, EipUpdateParamWrapper param) {
 
-        return eip;
+        JSONObject returnjs = new JSONObject();
+        try {
+            Optional<Eip> eip = eipRepository.findById(id);
+            if (eip.isPresent()) {
+                Eip eipEntity = eip.get();
+                if(param.getEipUpdateParam().getBandWidth()!=null && param.getEipUpdateParam().getBandWidth()!=null){
+                    Integer.parseInt(param.getEipUpdateParam().getBandWidth());
+                    log.info("before change："+eipEntity.getBanWidth());
+                    eipEntity.setBanWidth(param.getEipUpdateParam().getBandWidth());
+                    log.info("after  change："+eipEntity.getBanWidth());
+                    eipRepository.save(eipEntity);
+                    JSONObject eipJSON = new JSONObject();
+                    eipJSON.put("eipid", eipEntity.getId());//the id of eip
+                    NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getId());
+                    if(bandingFloatIp!=null){
+                        log.info(bandingFloatIp.toString());
+                        eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
+                    }else{
+                        eipJSON.put("status", "error:can't get it");//the floating ip status
+                    }
+                    eipJSON.put("iptype", eipEntity.getLinkType());//
+                    eipJSON.put("eip_address", eipEntity.getEipIpv4());//
+                    eipJSON.put("port_id", eipEntity.getFloatingIpv4());//
+                    eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));//
+                    eipJSON.put("chargetype", "THIS IS EMPTY"); //can't find
+                    eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
+                    returnjs.put("eip",eipJSON);
+
+                }else{
+                    returnjs.put("error", "need the param bindwidth");
+                }
+            } else {
+                returnjs.put("error", "can not find instance use this id:" +id+"");
+            }
+        }catch (NumberFormatException e){
+            e.printStackTrace();
+            returnjs.put("error", "BandWidth must be a Integer");
+        } catch (Exception e) {
+            e.printStackTrace();
+            returnjs.put("error", e.getMessage()+"");
+        }finally{
+            log.info(returnjs.toString());
+            return returnjs.toString();
+        }
+
     }
 
-    public Eip updateEipBandWidth(Eip eip){
+    /**
+     *
+     *
+     * @return
+     */
+    public String updateEipPort(){
 
-        return eipRepository.save(eip);
+        return "";
+    }
+
+
+    public String updateEipExtend(){
+
+        return "";
     }
 
 }
