@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
-
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -25,7 +24,7 @@ public class FirewallService {
     @Autowired
     private FirewallRepository firewallRepository;
 
-    public String addDnate(String innerip, String extip, String equipid) {
+    public String addDnat(String innerip, String extip, String equipid) {
         String ruleid = null;
 
         //添加弹性IP
@@ -63,7 +62,7 @@ public class FirewallService {
         return ruleid;
     }
 
-    public String addSnate(String innerip, String extip, String equipid) {
+    public String addSnat(String innerip, String extip, String equipid) {
         String ruleid = null;
         //String srcIP = innerip;
         //String destIP = extip;
@@ -113,7 +112,7 @@ public class FirewallService {
         String pipid = null;
 
 
-        Firewall fwBean = firewallRepository.getOne("firewall_id");
+        Firewall fwBean = firewallRepository.getOne(equipid);
         QosServiceImpl qs = new QosServiceImpl(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
         HashMap<String, String> map = new HashMap<>();
         map.put("pipeName", eipid);
@@ -141,23 +140,58 @@ public class FirewallService {
     /**
      * 删除管道
      */
-    public boolean delQos(String pipid, String eipid) {
+    public boolean delQos(String pipid, String devId) {
         try {
             if (StringUtils.isNotEmpty(pipid)) {
-                Firewall fwBean = firewallRepository.getOne("eipid");
+                Firewall fwBean = firewallRepository.getOne(devId);
                 QosServiceImpl qs = new QosServiceImpl(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
                 qs.delQosPipe(pipid);
                 //Todo: update eip entry
                 //eipMapper.updateEipByObjectid(eipid, "");
             }
         } catch (Exception e) {
-            log.info("删除管道失败:"+"弹性IP【"+eipid+"】,pipid【"+pipid+"】"+e.getMessage());
+            log.info("删除管道失败:"+"dev【"+devId+"】,pipid【"+pipid+"】"+e.getMessage());
         }
         return true;
     }
 
+    public boolean delDnat(String ruleid, String devId) {
+        boolean bSuccess = true;
+        if ("offline".equals(ruleid)) {
+            // 离线模式
+            return bSuccess;
+        }
 
-    public boolean delSnate(String ruleid, String eipid) {
+        if (StringUtils.isNotEmpty(ruleid)) {
+            try {
+                RmdSecurityDnatVo vo = new RmdSecurityDnatVo();
+                Firewall accessFirewallBeanByNeid = firewallRepository.getOne(devId);
+                vo.setManageIP(accessFirewallBeanByNeid.getIp());
+                vo.setManagePort(accessFirewallBeanByNeid.getPort());
+                vo.setManageUser(accessFirewallBeanByNeid.getUser());
+                vo.setManagePwd(accessFirewallBeanByNeid.getPasswd());
+
+                vo.setDnatid(ruleid);
+                vo.setVrid("trust-vr");
+                vo.setVrname("trust-vr");
+
+                NATServiceImpl dnatimpl = new NATServiceImpl();
+                ResponseBody body = dnatimpl.delPDnat(vo);
+                if (body.isSuccess() || (body.getException().getMessage().contains("cannot be found")) ) {
+                    // 删除成功
+                    bSuccess = true;
+                } else {
+                    bSuccess = false;
+                    log.warning("删除DNAT失败:"+"设备【"+devId+"】,ruleid【"+ruleid+"】");
+                }
+            } catch (Exception e) {
+                log.info("删除DNAT失败:"+"设备【"+devId+"】,ruleid【"+ruleid+"】"+e.getMessage());
+                bSuccess = false;
+            }
+        }
+        return bSuccess;
+    }
+    public boolean delSnat(String ruleid, String devId) {
         boolean bSuccess = true;
         if ("offline".equals(ruleid)) {
             // 离线模式
@@ -168,7 +202,7 @@ public class FirewallService {
 
                 RmdSecuritySnatVo vo = new RmdSecuritySnatVo();
 
-                Firewall accessFirewallBeanByNeid = firewallRepository.getOne("firewall_id");
+                Firewall accessFirewallBeanByNeid = firewallRepository.getOne(devId);
                 vo.setManageIP(accessFirewallBeanByNeid.getIp());
                 vo.setManagePort(accessFirewallBeanByNeid.getPort());
                 vo.setManageUser(accessFirewallBeanByNeid.getUser());
@@ -181,15 +215,15 @@ public class FirewallService {
                 NATServiceImpl dnatimpl = new NATServiceImpl();
                 ResponseBody body = dnatimpl.delPSnat(vo);
 
-                if ((body.isSuccess()) || (body.getException().getMessage().contains("cannot be found")) ) {
+                if (body.isSuccess() || (body.getException().getMessage().contains("cannot be found"))) {
                     // 删除成功
                     bSuccess = true;
                 } else {
                     bSuccess = false;
-                    log.info("删除SDNAT失败:"+"弹性IP【"+eipid+"】,ruleid【"+ruleid+"】");
+                    log.info("删除SDNAT失败:"+"dev【"+devId+"】,ruleid【"+ruleid+"】");
                 }
             } catch (Exception e) {
-                log.info("删除SDNAT失败:"+"弹性IP【"+eipid+"】,ruleid【"+ruleid+"】"+e.getMessage());
+                log.info("删除SDNAT失败:"+"dev【"+devId+"】,ruleid【"+ruleid+"】"+e.getMessage());
                 bSuccess = false;
             }
         }

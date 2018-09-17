@@ -3,15 +3,14 @@ package com.inspur.eip.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.ConstantClassField;
 import com.inspur.eip.entity.Eip;
+import com.inspur.eip.entity.EipPool;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.service.EipService;
 import com.inspur.eip.service.FirewallService;
-import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.FastjsonUtil;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
-import org.openstack4j.model.network.FloatingIP;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +36,7 @@ public class EipController {
     private final static Logger log = Logger.getLogger(EipController.class.getName());
     @Autowired
     private EipService eipService;
+
     @Autowired
     private FirewallService firewallService;
 
@@ -49,34 +49,71 @@ public class EipController {
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="createEip",notes="create")
-    public ResponseEntity<String> createEip(@RequestBody Eip eip) {
+    public ResponseEntity<String> createEip(@RequestBody Eip eipConfig) {
         ////Do--dao; MO system;Vo  web
-        NetFloatingIP floatingIP = eipService.createFloatingIp("region", floatingnetworkId, null);
-        String snat_rule_id = firewallService.addSnate(eip.getFloatingIpv4(), "get_eip", "dev_id");
-        String pip_id = firewallService.addQos(eip.getFloatingIpv4(), "get_eip", eip.getBanWidth(),"dev_id");
-        Eip  eipMo = new Eip();
+        EipPool eip = eipService.allocateEip("region", "network_id");
+        if(null != eip) {
+            NetFloatingIP floatingIP = eipService.createFloatingIp("region", floatingnetworkId, null);
+            Eip eipMo = new Eip();
 
-        eipMo.setFloatingIpv4(floatingIP.getFloatingIpAddress());
-        eipMo.setFixedIpv4(floatingIP.getFixedIpAddress());
-        eipMo.setEipIpv4("eip_ip_addr");
-        eipMo.setId(floatingIP.getId());
-        eipMo.setBanWidth(eip.getBanWidth());
-        eipMo.setName(eip.getName());
-        eipMo.setVpcId(eip.getVpcId());
-        eipRepository.save(eipMo);
-        return new ResponseEntity<>(FastjsonUtil.toJSONString(eipMo),HttpStatus.OK);
+            eipMo.setFloatingIpv4(floatingIP.getFloatingIpAddress());
+            eipMo.setFixedIpv4(floatingIP.getFixedIpAddress());
+            eipMo.setEipIpv4(eip.getId());
+            eipMo.setDevId(eip.getDevId());
+            eipMo.setId(floatingIP.getId());
+            eipMo.setBanWidth(eipConfig.getBanWidth());
+            eipMo.setName(eipConfig.getName());
+            eipMo.setVpcId(eipConfig.getVpcId());
+            eipRepository.save(eipMo);
+            return new ResponseEntity<>(FastjsonUtil.toJSONString(eipMo), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(FastjsonUtil.toJSONString(eipConfig), HttpStatus.EXPECTATION_FAILED);
     }
     @PutMapping(value = "/ports")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="associatePortWithEip",notes="associate")
     public ResponseEntity<String> associatePortWithEip(String portId, String floatingIpId) {
-        ////Do--dao; MO system;Vo  web
-        Boolean result = eipService.associatePortWithFloatingIp("region", floatingIpId, portId);
-        Eip  eipMo = new Eip();
-
-        return new ResponseEntity<>(FastjsonUtil.toJSONString(eipMo),HttpStatus.OK);
+        Eip eip = eipRepository.getOne(floatingIpId);
+        if(eipService.associatePortWithFloatingIp("region", floatingIpId, portId)){
+            String dnatRuleId = firewallService.addDnat(eip.getFloatingIpv4(), eip.getEipIpv4(), "dev_id");
+            String snatRuleId = firewallService.addSnat(eip.getFloatingIpv4(), eip.getEipIpv4(), "dev_id");
+            String pipId = firewallService.addQos(eip.getFloatingIpv4(), "get_eip", eip.getBanWidth(), "dev_id");
+            eip.setInstanceId(portId);
+            eip.setInstanceType("VM_type"); //Todo: define type
+            eip.setDnatId(dnatRuleId);
+            eip.setSnatId(snatRuleId);
+            eip.setPipId(pipId);
+            eip.setStat("1");
+            eipRepository.save(eip);
+            return new ResponseEntity<>(FastjsonUtil.toJSONString(eip),HttpStatus.OK);
+        }
+        return new ResponseEntity<>(FastjsonUtil.toJSONString(eip),HttpStatus.EXPECTATION_FAILED);
     }
 
+    @PutMapping(value = "/ports")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="disassociatePortWithEip",notes="disassociate")
+    public ResponseEntity<String> disassociatePortWithEip(String floatingIpId) {
+        Eip eip = eipRepository.getOne(floatingIpId);
+        if(eipService.disassociateFloatingIpFromPort("region", floatingIpId)){
+            Boolean result1 = firewallService.delDnat(eip.getDnatId(), eip.getDevId());
+            Boolean result2 = firewallService.delSnat(eip.getDnatId(), eip.getDevId());
+            if(result1 && result2) {
+                if(firewallService.delQos(eip.getPipId(), eip.getDevId())){
+                    eip.setInstanceId(null);
+                    eip.setInstanceType("VM_type"); //Todo: define type
+                    eip.setDnatId(null);
+                    eip.setSnatId(null);
+                    eip.setPipId(null);
+                    eip.setStat("0");
+                    eipRepository.save(eip);
+                    return new ResponseEntity<>(FastjsonUtil.toJSONString(eip), HttpStatus.OK);
+                }
+
+            }
+        }
+        return new ResponseEntity<>(FastjsonUtil.toJSONString(eip),HttpStatus.EXPECTATION_FAILED);
+    }
 
     @GetMapping(value = "/eips")
     @ApiOperation(value="listeip",notes="list")
@@ -100,7 +137,7 @@ public class EipController {
 
 
     @PutMapping(value = "/eips/{eip_id}",consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value="update detail of  eip instance", notes="")
+    @ApiOperation(value="update detail of  eip instance", notes="update")
     @Transactional
     public ResponseEntity updateEip(@PathVariable("eip_id") String eip_id,@RequestBody EipUpdateParamWrapper param) {
 
