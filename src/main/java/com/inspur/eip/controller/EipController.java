@@ -98,81 +98,112 @@ public class EipController {
         return new ResponseEntity<>(result,HttpStatus.OK);
     }
 
+
     /**
      * get eip instance detail
-     * @param eip_id the id of eip
+     * @param eip_id  the id of eip
+     * @param authorization --
+     * @param region
      * @return
      */
-    //@ICPControllerLog
+    @ICPControllerLog
     @GetMapping(value = "/eips/{eip_id}")
     @ApiOperation(value = "get detail of  eip instance", notes = "")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String")
+            @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String")
     })
-    public ResponseEntity getEipDetail(@RequestHeader("authorization")String authorization ,@PathVariable("eip_id") String eip_id){
+    public ResponseEntity getEipDetail(@PathVariable("eip_id") String eip_id,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region){
         String result="{}";
         try {
              log.info("get request head authorization:"+authorization);
              result=eipService.getEipDetail(eip_id);
-
+            return new ResponseEntity(result, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
+            return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }finally{
-            return new ResponseEntity(result, HttpStatus.OK);
+            log.info("execute finish===");
         }
 
     }
 
 
+
     @ICPControllerLog
-    @PutMapping(value = "/eips/{eip_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "update detail of  eip instance", notes = "")
+    @PostMapping(value = "/eips/{eip_id}/port", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "associatePortWithEip", notes = "")
     @Transactional
-    public ResponseEntity updateEip(@PathVariable("eip_id") String eip_id, @RequestBody EipUpdateParamWrapper param) {
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "body",   name = "param", value = "the json param ", required = true, dataType = "String")
+    })
+    public ResponseEntity updateEipBindWidth(@PathVariable("eip_id") String eip_id, @RequestBody EipUpdateParamWrapper param,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region) {
         try {
+            if(param.getEipUpdateParam().getPortId()!=null){
+                String result=eipService.bandPort(eip_id,param.getEipUpdateParam().getPortId());
+                return new ResponseEntity(result, HttpStatus.OK);
+            }else{
+                return new ResponseEntity("{error:\"port_id is not null\"}", HttpStatus.OK);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
-
+            return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }finally{
-            return new ResponseEntity("", HttpStatus.OK);
+
+        }
+
+    }
+
+    @ICPControllerLog
+    @DeleteMapping(value = "/eips/{eip_id}/port", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "unAssociatePortWithEip", notes = "")
+    @Transactional
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "body",   name = "param", value = "the json ", required = true, dataType = "String")
+    })
+    public ResponseEntity eipBindFloatingIP(@PathVariable("eip_id") String eip_id, @RequestBody EipUpdateParamWrapper param,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region) {
+        try {
+            String result=eipService.unBandPort(eip_id);
+            return new ResponseEntity(result, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }finally{
+
         }
 
     }
 
     @ICPControllerLog
     @PutMapping(value = "/eips/{eip_id}/bindwidth", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "update the bindWidth of  eip instance", notes = "")
+    @ApiOperation(value = "update eip bandWidth", notes = "")
     @Transactional
-    public ResponseEntity updateEipBindWidth(@PathVariable("eip_id") String eip_id, @RequestBody EipUpdateParamWrapper param) {
-
-        String result="{}";
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
+            @ApiImplicitParam(paramType = "body",   name = "param", value = "the json ", required = true, dataType = "String")
+    })
+    public ResponseEntity changeEipBandWidht(@PathVariable("eip_id") String eip_id, @RequestBody EipUpdateParamWrapper param,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region) {
         try {
-            result=eipService.updateEipBandWidth(eip_id,param);
+            String result=eipService.updateEipBandWidth(eip_id,param);
+            return new ResponseEntity(result, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
-
+            return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }finally{
-            return new ResponseEntity("", HttpStatus.OK);
+
         }
 
     }
 
-    @ICPControllerLog
-    @PutMapping(value = "/eips/{eip_id}/floatingip", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "the eip instance", notes = "")
-    @Transactional
-    public ResponseEntity eipBindFloatingIP(@PathVariable("eip_id") String eip_id, @RequestBody EipUpdateParamWrapper param) {
-        try {
-
-        } catch (Exception e) {
-            e.printStackTrace();
-
-        }finally{
-            return new ResponseEntity("", HttpStatus.OK);
-        }
-
-    }
 
 }

@@ -32,4 +32,18 @@ public  class EipRestRepository {
     }
 
 
+    public static synchronized NetFloatingIP associatePortWithFloatingIp(String netFloatingIpId, String portId) throws Exception  {
+
+        OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
+        NetFloatingIP associateToPort = osClientV3.networking().floatingip().associateToPort(netFloatingIpId, portId);
+        return associateToPort;
+    }
+
+    public static synchronized Boolean disassociateFloatingIpFromPort( String netFloatingIpId) throws Exception {
+
+        OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
+        NetFloatingIP associateToPort = osClientV3.networking().floatingip().disassociateFromPort(netFloatingIpId);
+        return true;
+    }
+
 }
