@@ -27,10 +27,10 @@ public class Firewall implements Serializable {
     @Column(name="user")
 	private String user;
 
-    @Column(name="passwd")
+    @Column(name="password")
 	private String passwd;
 
-    @Column(name="devtype")
+    @Column(name="dev_type")
 	private String devtype;
 
     @Column(name="param1")

@@ -6,10 +6,10 @@ import lombok.Data;
 @Data
 public class EipUpdateParam {
 
-    @JsonProperty("bandwidth")
+    @JsonProperty("band_width")
     private String bandWidth;
 
-    @JsonProperty("chargetype")
+    @JsonProperty("charge_type")
     private String chargeType;
 
     @JsonProperty("port_id")

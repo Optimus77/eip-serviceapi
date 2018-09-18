@@ -38,81 +38,57 @@ public class EipController {
     private EipService eipService;
 
     @Autowired
-    private FirewallService firewallService;
-
-    @Autowired
     private EipRepository eipRepository;
     //Todo: find the external net id
     private String floatingnetworkId = "d9c00a35-fea8-4162-9de1-b8100494a11d";
 
-
+    @ICPControllerLog
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="createEip",notes="create")
     public ResponseEntity<String> createEip(@RequestBody Eip eipConfig) {
         ////Do--dao; MO system;Vo  web
-        EipPool eip = eipService.allocateEip("region", "network_id");
-        if(null != eip) {
-            NetFloatingIP floatingIP = eipService.createFloatingIp("region", floatingnetworkId, null);
-            Eip eipMo = new Eip();
-
-            eipMo.setFloatingIpv4(floatingIP.getFloatingIpAddress());
-            eipMo.setFixedIpv4(floatingIP.getFixedIpAddress());
-            eipMo.setEipIpv4(eip.getId());
-            eipMo.setDevId(eip.getDevId());
-            eipMo.setId(floatingIP.getId());
-            eipMo.setBanWidth(eipConfig.getBanWidth());
-            eipMo.setName(eipConfig.getName());
-            eipMo.setVpcId(eipConfig.getVpcId());
-            eipRepository.save(eipMo);
-            return new ResponseEntity<>(FastjsonUtil.toJSONString(eipMo), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(FastjsonUtil.toJSONString(eipConfig), HttpStatus.EXPECTATION_FAILED);
-    }
-    @PutMapping(value = "/ports")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="associatePortWithEip",notes="associate")
-    public ResponseEntity<String> associatePortWithEip(String portId, String floatingIpId) {
-        Eip eip = eipRepository.getOne(floatingIpId);
-        if(eipService.associatePortWithFloatingIp("region", floatingIpId, portId)){
-            String dnatRuleId = firewallService.addDnat(eip.getFloatingIpv4(), eip.getEipIpv4(), "dev_id");
-            String snatRuleId = firewallService.addSnat(eip.getFloatingIpv4(), eip.getEipIpv4(), "dev_id");
-            String pipId = firewallService.addQos(eip.getFloatingIpv4(), "get_eip", eip.getBanWidth(), "dev_id");
-            eip.setInstanceId(portId);
-            eip.setInstanceType("VM_type"); //Todo: define type
-            eip.setDnatId(dnatRuleId);
-            eip.setSnatId(snatRuleId);
-            eip.setPipId(pipId);
-            eip.setStat("1");
-            eipRepository.save(eip);
-            return new ResponseEntity<>(FastjsonUtil.toJSONString(eip),HttpStatus.OK);
-        }
-        return new ResponseEntity<>(FastjsonUtil.toJSONString(eip),HttpStatus.EXPECTATION_FAILED);
-    }
-
-    @PutMapping(value = "/ports")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="disassociatePortWithEip",notes="disassociate")
-    public ResponseEntity<String> disassociatePortWithEip(String floatingIpId) {
-        Eip eip = eipRepository.getOne(floatingIpId);
-        if(eipService.disassociateFloatingIpFromPort("region", floatingIpId)){
-            Boolean result1 = firewallService.delDnat(eip.getDnatId(), eip.getDevId());
-            Boolean result2 = firewallService.delSnat(eip.getDnatId(), eip.getDevId());
-            if(result1 && result2) {
-                if(firewallService.delQos(eip.getPipId(), eip.getDevId())){
-                    eip.setInstanceId(null);
-                    eip.setInstanceType("VM_type"); //Todo: define type
-                    eip.setDnatId(null);
-                    eip.setSnatId(null);
-                    eip.setPipId(null);
-                    eip.setStat("0");
-                    eipRepository.save(eip);
-                    return new ResponseEntity<>(FastjsonUtil.toJSONString(eip), HttpStatus.OK);
-                }
-
+        try {
+            Eip eipMo = eipService.createEip(eipConfig, floatingnetworkId, eipConfig.getInstanceId());
+            if(null != eipMo) {
+                return new ResponseEntity<>(FastjsonUtil.toJSONString(eipMo), HttpStatus.OK);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return new ResponseEntity<>(FastjsonUtil.toJSONString(eip),HttpStatus.EXPECTATION_FAILED);
+        return new ResponseEntity<>("Failed to allocate eip.", HttpStatus.EXPECTATION_FAILED);
+    }
+
+    @ICPControllerLog
+    @PutMapping(value = "/eips{eip_id}")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="eipBindPort",notes="associate")
+    @Transactional
+    public ResponseEntity<String> eipBindPort(@PathVariable("eip_id") String eip_id,
+                                                       String portId, String instanceType) {
+        try {
+            if(eipService.associatePortWithEip(eip_id, portId, instanceType)){
+                return new ResponseEntity<>(FastjsonUtil.toJSONString(eip_id), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new ResponseEntity<>(FastjsonUtil.toJSONString(eip_id), HttpStatus.EXPECTATION_FAILED);
+    }
+
+    @ICPControllerLog
+    @PutMapping(value = "/eips{eip_id}")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="eipUnbindPort",notes="disassociate")
+    public ResponseEntity<String> eipUnbindPort(@PathVariable("eip_id") String eip_id) {
+        try {
+            if (eipService.disassociatePortWithEip(eip_id)){
+                return new ResponseEntity<>(FastjsonUtil.toJSONString(eip_id), HttpStatus.OK);
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new ResponseEntity<>(FastjsonUtil.toJSONString(eip_id),HttpStatus.EXPECTATION_FAILED);
     }
 
     @GetMapping(value = "/eips")
@@ -196,20 +172,5 @@ public class EipController {
 
     }
 
-    @ICPControllerLog
-    @PutMapping(value = "/eips/{eip_id}/floatingip", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "the eip instance", notes = "")
-    @Transactional
-    public ResponseEntity eipBindFloatingIP(@PathVariable("eip_id") String eip_id, @RequestBody EipUpdateParamWrapper param) {
-        try {
-
-        } catch (Exception e) {
-            e.printStackTrace();
-
-        }finally{
-            return new ResponseEntity("", HttpStatus.OK);
-        }
-
-    }
 
 }

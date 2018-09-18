@@ -20,10 +20,13 @@ public class EipPool implements Serializable {
     @Column(name ="eip_id",nullable = false, insertable = false, updatable = false)
     private String id;
 
-    @Column(name="dev_id")
-    private String devId;
+    @Column(name="firewall_id")
+    private String fireWallId;
 
     @Column(name="ip")
     private String ip;
+
+    @Column(name="state")
+    private String state; //0:free 1:unbound 2:bound 9:reserve
 
 }

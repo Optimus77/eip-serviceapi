@@ -23,23 +23,20 @@ public class Eip implements Serializable {
     @Column(name="eip_name")
     private String name;
 
-    @Column(name="elastic_ipv4")
-    private String eipIpv4;
+    @Column(name="ip_version")
+    private String ipVersion = "IPv4";
 
-    @Column(name="floating_ipv4")
-    private String floatingIpv4;
+    @Column(name="elastic_ip")
+    private String eip;
 
-    @Column(name="fixed_ipv4")
-    private String fixedIpv4;
+    @Column(name="floating_ip")
+    private String floatingIp;
 
-    @Column(name="elastic_ipv6")
-    private String eipIpv6;
+    @Column(name="fixed_ip")
+    private String fixedIp;
 
-    @Column(name="floating_ipv6")
-    private String floatingIpv6;
-
-    @Column(name="fixed_ipv6")
-    private String fixedIpv6;
+    @Column(name="floating_ip_id")
+    private String floatingIpId;
 
     @Column(name="instance_id")
     private String instanceId;
@@ -71,11 +68,11 @@ public class Eip implements Serializable {
     @Column(name="dnat_id")
     private String dnatId;
 
-    @Column(name="dev_id")
-    private String devId;
+    @Column(name="firewall_id")
+    private String firewallId;
 
     @Column(name="state",nullable = false)
-    private String stat="0";
+    private String state ="0";
 
     @Column(name="create_time" ,nullable = false)
     private Date createTime=new Date();

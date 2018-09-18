@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -30,6 +31,8 @@ public class EipService {
     private EipRepository eipRepository;
     @Autowired
     private EipPoolRepository eipPoolRepository;
+    @Autowired
+    private FirewallService firewallService;
 
     private OSClientV3 osClientV3;
 
@@ -39,29 +42,105 @@ public class EipService {
         try{
             return CommonUtil.getOsClientV3Util();
         }catch (Exception e){
-            return null;
+            throw new ResponseException("Failed to get token.", 401);
         }
     }
 
-    public synchronized EipPool allocateEip(String region, String networkId){
+    private synchronized EipPool allocateEip(String region, String networkId, String firewallId){
 
         List<EipPool> eipList = eipPoolRepository.findAll();
-        for(EipPool eip: eipList){
-            if(eip != null){
-                eipPoolRepository.delete(eip);
-                return eip;
+        for(EipPool eip: eipList) {
+            if (eip != null) {
+                if (eip.getState().equals("0")) {
+                    if (null != firewallId) {
+                        if (eip.getFireWallId().equals(firewallId)) {
+                            eipPoolRepository.delete(eip);
+                            return eip;
+                        }
+                    }
+                }
             }
         }
         return null;
     }
 
 
-    public synchronized NetFloatingIP createFloatingIp(String region, String networkId, String portId) {
-        //System.out.println("into");
-    public synchronized NetFloatingIP createFloatingIp(String region, String networkId, String portId) {
-        System.out.println("into");
+    private Eip findEipEntryById(String eipId){
+        Eip eipEntity = null;
+        Optional<Eip> eip = eipRepository.findById(eipId);
+        if (eip.isPresent()) {
+            eipEntity = eip.get();
+        }
+        return eipEntity;
+    }
+
+    public Eip createEip(Eip eipConfig, String externalNetWorkId, String portId) {
+        Eip eipMo = null;
+        EipPool eip = allocateEip("region", externalNetWorkId, null);
+        if (null != eip) {
+            NetFloatingIP floatingIP = createFloatingIp("region", externalNetWorkId, portId);
+            eipMo = new Eip();
+            eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
+            eipMo.setFixedIp(floatingIP.getFixedIpAddress());
+            eipMo.setEip(eip.getIp());
+            eipMo.setFirewallId(eip.getFireWallId());
+            eipMo.setFloatingIpId(floatingIP.getId());
+            eipMo.setBanWidth(eipConfig.getBanWidth());
+            eipMo.setName(eipConfig.getName());
+            eipMo.setVpcId(eipConfig.getVpcId());
+            eipRepository.save(eipMo);
+
+        }
+        return eipMo;
+    }
+
+    public Boolean associatePortWithEip(String eip_id, String portId, String instanceType) {
+        Eip eip = findEipEntryById(eip_id);
+        if(null !=eip) {
+            if (associatePortWithFloatingIp("region", eip.getFloatingIpId(), portId)) {
+                String dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
+                String snatRuleId = firewallService.addSnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
+                String pipId = firewallService.addQos(eip.getFloatingIp(),
+                        eip.getEip(),
+                        eip.getBanWidth(),
+                        eip.getFirewallId());
+                eip.setInstanceId(portId);
+                eip.setInstanceType(instanceType); //1:ecs 2:cps 3:slb
+                eip.setDnatId(dnatRuleId);
+                eip.setSnatId(snatRuleId);
+                eip.setPipId(pipId);
+                eip.setState("1");
+                eipRepository.save(eip);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Boolean disassociatePortWithEip(String eip_id) {
+        Eip eip = findEipEntryById(eip_id);
+        if(disassociateFloatingIpFromPort("region", eip.getFloatingIpId())){
+            Boolean result1 = firewallService.delDnat(eip.getDnatId(), eip.getFirewallId());
+            Boolean result2 = firewallService.delSnat(eip.getDnatId(), eip.getFirewallId());
+            if(result1 && result2) {
+                if(firewallService.delQos(eip.getPipId(), eip.getFirewallId())){
+                    eip.setInstanceId(null);
+                    eip.setInstanceType(null); //1:ecs 2:cps 3:slb
+                    eip.setDnatId(null);
+                    eip.setSnatId(null);
+                    eip.setPipId(null);
+                    eip.setState("0");
+                    eipRepository.save(eip);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private synchronized NetFloatingIP createFloatingIp(String region, String networkId, String portId) {
         osClientV3 = getOsClientV3();
-        //System.out.println(osClientV3);
+
         NetFloatingIPBuilder builder = new NeutronFloatingIP.FloatingIPConcreteBuilder();
         builder.floatingNetworkId(networkId);
         if (null != portId) {
@@ -81,7 +160,7 @@ public class EipService {
         return netFloatingIP;
     }
 
-    public synchronized Boolean associatePortWithFloatingIp(String region, String netFloatingIpId, String portId) {
+    private synchronized Boolean associatePortWithFloatingIp(String region, String netFloatingIpId, String portId) {
 
         osClientV3 = getOsClientV3();
         NetFloatingIP associateToPort = osClientV3.networking().floatingip().associateToPort(netFloatingIpId, portId);
@@ -93,7 +172,7 @@ public class EipService {
         }
         return true;
     }
-    public synchronized Boolean disassociateFloatingIpFromPort(String region, String netFloatingIpId) {
+    private synchronized Boolean disassociateFloatingIpFromPort(String region, String netFloatingIpId) {
 
         osClientV3 = getOsClientV3();
         NetFloatingIP associateToPort = osClientV3.networking().floatingip().disassociateFromPort(netFloatingIpId);
@@ -144,8 +223,8 @@ public class EipService {
                     eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
                 }
                 eipJSON.put("iptype", eipEntity.getLinkType());//
-                eipJSON.put("eip_address", eipEntity.getEipIpv4());//
-                eipJSON.put("private_ip_address", eipEntity.getFloatingIpv4());//
+                eipJSON.put("eip_address", eipEntity.getEip());//
+                eipJSON.put("private_ip_address", eipEntity.getFloatingIp());//
                 eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));//
                 eipJSON.put("chargetype", "THIS IS EMPTY"); //can't find
                 eipJSON.put("chargemode", "THIS IS EMPTY");//cant't find
@@ -200,8 +279,8 @@ public class EipService {
                         eipJSON.put("status", "error:can't get it");//the floating ip status
                     }
                     eipJSON.put("iptype", eipEntity.getLinkType());//
-                    eipJSON.put("eip_address", eipEntity.getEipIpv4());//
-                    eipJSON.put("port_id", eipEntity.getFloatingIpv4());//
+                    eipJSON.put("eip_address", eipEntity.getEip());//
+                    eipJSON.put("port_id", eipEntity.getFloatingIp());//
                     eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));//
                     eipJSON.put("chargetype", "THIS IS EMPTY"); //can't find
                     eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
