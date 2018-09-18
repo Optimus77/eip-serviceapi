@@ -354,7 +354,7 @@ public class EipService {
                     eipJSON.put("status", "ERROR GET INFO");//the floating ip status
                 }
                 eipJSON.put("iptype", eipEntity.getLinkType());//
-                eipJSON.put("eip_address", eipEntity.getEipIpv4());//
+                eipJSON.put("eip_address", eipEntity.getEip());//
                 eipJSON.put("port_id","portId" ); //
                 eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));//
                 eipJSON.put("chargetype", "THIS IS EMPTY");//cant't find
@@ -417,7 +417,7 @@ public class EipService {
                     eipJSON.put("status", "ERROR GET INFO");//the floating ip status
                 }
                 eipJSON.put("iptype", eipEntity.getLinkType());////TODO
-                eipJSON.put("eip_address", eipEntity.getEipIpv4());////TODO
+                eipJSON.put("eip_address", eipEntity.getEip());////TODO
                 eipJSON.put("port_id","portI " ); //TODO
                 eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));//
                 eipJSON.put("chargetype", "THIS IS EMPTY");////TODO
