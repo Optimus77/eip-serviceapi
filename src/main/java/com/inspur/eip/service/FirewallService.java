@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 
@@ -24,12 +25,21 @@ public class FirewallService {
     @Autowired
     private FirewallRepository firewallRepository;
 
-    public String addDnat(String innerip, String extip, String equipid) {
+    private Firewall getFireWallById(String id){
+        Firewall fireWallEntity = null;
+        Optional<Firewall> firewall = firewallRepository.findById(id);
+        if(firewall.isPresent()){
+            fireWallEntity =  firewall.get();
+        }
+        return fireWallEntity;
+    }
+
+    protected String addDnat(String innerip, String extip, String equipid) {
         String ruleid = null;
 
         //添加弹性IP
         RmdSecurityDnatVo dnatVo = new RmdSecurityDnatVo();
-        Firewall accessFirewallBeanByNeid = firewallRepository.getOne("firewall_id");
+        Firewall accessFirewallBeanByNeid = getFireWallById(equipid);
         dnatVo.setManageIP(accessFirewallBeanByNeid.getIp());
         dnatVo.setManagePort(accessFirewallBeanByNeid.getPort());
         dnatVo.setManageUser(accessFirewallBeanByNeid.getUser());
@@ -62,13 +72,13 @@ public class FirewallService {
         return ruleid;
     }
 
-    public String addSnat(String innerip, String extip, String equipid) {
+    protected String addSnat(String innerip, String extip, String equipid) {
         String ruleid = null;
         //String srcIP = innerip;
         //String destIP = extip;
 
         RmdSecuritySnatVo vo = new RmdSecuritySnatVo();
-        Firewall accessFirewallBeanByNeid = firewallRepository.getOne("firewall_id");
+        Firewall accessFirewallBeanByNeid = getFireWallById(equipid);
 
         vo.setManageIP(accessFirewallBeanByNeid.getIp());
         vo.setManagePort(accessFirewallBeanByNeid.getPort());
@@ -108,11 +118,11 @@ public class FirewallService {
 
 
 
-    public String addQos(String innerip, String eipid, String bandwidth, String equipid) {
+    protected String addQos(String innerip, String eipid, String bandwidth, String equipid) {
         String pipid = null;
 
 
-        Firewall fwBean = firewallRepository.getOne(equipid);
+        Firewall fwBean = getFireWallById(equipid);
         QosServiceImpl qs = new QosServiceImpl(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
         HashMap<String, String> map = new HashMap<>();
         map.put("pipeName", eipid);
@@ -140,10 +150,10 @@ public class FirewallService {
     /**
      * 删除管道
      */
-    public boolean delQos(String pipid, String devId) {
+    protected boolean delQos(String pipid, String devId) {
         try {
             if (StringUtils.isNotEmpty(pipid)) {
-                Firewall fwBean = firewallRepository.getOne(devId);
+                Firewall fwBean = getFireWallById(devId);
                 QosServiceImpl qs = new QosServiceImpl(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
                 qs.delQosPipe(pipid);
                 //Todo: update eip entry
@@ -165,7 +175,7 @@ public class FirewallService {
         if (StringUtils.isNotEmpty(ruleid)) {
             try {
                 RmdSecurityDnatVo vo = new RmdSecurityDnatVo();
-                Firewall accessFirewallBeanByNeid = firewallRepository.getOne(devId);
+                Firewall accessFirewallBeanByNeid = getFireWallById(devId);
                 vo.setManageIP(accessFirewallBeanByNeid.getIp());
                 vo.setManagePort(accessFirewallBeanByNeid.getPort());
                 vo.setManageUser(accessFirewallBeanByNeid.getUser());
@@ -191,7 +201,7 @@ public class FirewallService {
         }
         return bSuccess;
     }
-    public boolean delSnat(String ruleid, String devId) {
+    protected boolean delSnat(String ruleid, String devId) {
         boolean bSuccess = true;
         if ("offline".equals(ruleid)) {
             // 离线模式
@@ -202,7 +212,7 @@ public class FirewallService {
 
                 RmdSecuritySnatVo vo = new RmdSecuritySnatVo();
 
-                Firewall accessFirewallBeanByNeid = firewallRepository.getOne(devId);
+                Firewall accessFirewallBeanByNeid = getFireWallById(devId);
                 vo.setManageIP(accessFirewallBeanByNeid.getIp());
                 vo.setManagePort(accessFirewallBeanByNeid.getPort());
                 vo.setManageUser(accessFirewallBeanByNeid.getUser());

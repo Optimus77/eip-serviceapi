@@ -7,7 +7,6 @@ import com.inspur.eip.service.EipService;
 import com.inspur.eip.util.FastjsonUtil;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
-import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
