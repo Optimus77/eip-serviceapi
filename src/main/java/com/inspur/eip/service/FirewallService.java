@@ -121,7 +121,6 @@ public class FirewallService {
     protected String addQos(String innerip, String eipid, String bandwidth, String equipid) {
         String pipid = null;
 
-
         Firewall fwBean = getFireWallById(equipid);
         QosServiceImpl qs = new QosServiceImpl(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
         HashMap<String, String> map = new HashMap<>();
@@ -144,6 +143,26 @@ public class FirewallService {
             log.warning("QOS添加失败");
         }
         return pipid;
+    }
+
+    /**
+     * update the Qos bindWidth
+     * @param firewallId
+     * @param bindwidth
+     * @return
+     */
+    protected  boolean updateQosBandWidth(String firewallId,String bindwidth){
+
+        Firewall fwBean = getFireWallById(firewallId);
+        QosServiceImpl qs = new QosServiceImpl(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
+        HashMap<String, String> result=qs.updateQosPipe(fwBean.getParam2(),fwBean.getParam3(),bindwidth);
+        log.info(result.toString());
+        if(result.get("success").equals("true")){
+            log.info("updateQosBandWidth: "+firewallId+" --success==bindwidth："+bindwidth);
+        }else{
+            log.info("updateQosBandWidth: "+firewallId+" --fail==bindwidth："+bindwidth);
+        }
+        return Boolean.parseBoolean(result.get("success"));
     }
 
 

@@ -242,31 +242,34 @@ public class EipService {
                 Eip eipEntity = eip.get();
                 if(param.getEipUpdateParam().getBandWidth()!=null && param.getEipUpdateParam().getBandWidth()!=null){
                     Integer.parseInt(param.getEipUpdateParam().getBandWidth());
-
                     String width=param.getEipUpdateParam().getBandWidth();
                     log.info(width);
                     //TODO UpdateQos
-                    log.info("before change："+eipEntity.getBanWidth());
-                    eipEntity.setBanWidth(width);
-                    log.info("after  change："+eipEntity.getBanWidth());
-                    eipRepository.save(eipEntity);
-                    JSONObject eipJSON = new JSONObject();
-                    eipJSON.put("eipid", eipEntity.getId());//the id of eip
-                    NetFloatingIP bandingFloatIp =neutronService.getFloatingIp(eipEntity.getFloatingIpId());
-                    if(bandingFloatIp!=null){
-                        log.info(bandingFloatIp.toString());
-                        eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
+                    boolean updateStatus=firewallService.updateQosBandWidth(eipEntity.getFirewallId(),width);
+                    if(updateStatus){
+                        log.info("before change："+eipEntity.getBanWidth());
+                        eipEntity.setBanWidth(width);
+                        log.info("after  change："+eipEntity.getBanWidth());
+                        eipRepository.save(eipEntity);
+                        JSONObject eipJSON = new JSONObject();
+                        eipJSON.put("eipid", eipEntity.getId());//the id of eip
+                        NetFloatingIP bandingFloatIp =neutronService.getFloatingIp(eipEntity.getFloatingIpId());
+                        if(bandingFloatIp!=null){
+                            log.info(bandingFloatIp.toString());
+                            eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
+                        }else{
+                            eipJSON.put("status", "error:can't get it");//the floating ip status
+                        }
+                        eipJSON.put("iptype", eipEntity.getLinkType());//
+                        eipJSON.put("eip_address", eipEntity.getEip());//
+                        eipJSON.put("port_id", eipEntity.getFloatingIp());//
+                        eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));//
+                        eipJSON.put("chargetype", "THIS IS EMPTY"); //can't find
+                        eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
+                        returnjs.put("eip",eipJSON);
                     }else{
-                        eipJSON.put("status", "error:can't get it");//the floating ip status
+                        returnjs.put("error", "the qos set is not success,please contact the dev");
                     }
-                    eipJSON.put("iptype", eipEntity.getLinkType());//
-                    eipJSON.put("eip_address", eipEntity.getEip());//
-                    eipJSON.put("port_id", eipEntity.getFloatingIp());//
-                    eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));//
-                    eipJSON.put("chargetype", "THIS IS EMPTY"); //can't find
-                    eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
-                    returnjs.put("eip",eipJSON);
-
                 }else{
                     returnjs.put("error", "need the param bindwidth");
                 }
