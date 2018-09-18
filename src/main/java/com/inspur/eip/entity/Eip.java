@@ -23,8 +23,8 @@ public class Eip implements Serializable {
     @Column(name="eip_name")
     private String name;
 
-    @Column(name="ip_version")
-    private String ipVersion = "IPv4";
+    @Column(name="elastic_ipv4")
+    private String eipIpv4;
 
     @Column(name="elastic_ip")
     private String eip;

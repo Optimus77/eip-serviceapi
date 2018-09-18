@@ -214,13 +214,14 @@ public class EipService {
             if (eip.isPresent()) {
                 Eip eipEntity = eip.get();
 
-
                 JSONObject eipJSON = new JSONObject();
                 eipJSON.put("eipid", eipEntity.getId());//the id of eip
-                NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getId());
+                NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getFloatingIpv4Id());
                 if(bandingFloatIp!=null){
                     log.info(bandingFloatIp.toString());
                     eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
+                }else{
+                    eipJSON.put("status", "ERROR GET INFO");//the floating ip status
                 }
                 eipJSON.put("iptype", eipEntity.getLinkType());//
                 eipJSON.put("eip_address", eipEntity.getEip());//
@@ -233,8 +234,6 @@ public class EipService {
                 resourceset.put("resourcetype", eipEntity.getInstanceType());
                 resourceset.put("resource_id", eipEntity.getInstanceId());
                 eipJSON.put("resourceset", resourceset);
-
-
 
                 returnjs.put("eip", eipJSON);
 
@@ -265,13 +264,17 @@ public class EipService {
                 Eip eipEntity = eip.get();
                 if(param.getEipUpdateParam().getBandWidth()!=null && param.getEipUpdateParam().getBandWidth()!=null){
                     Integer.parseInt(param.getEipUpdateParam().getBandWidth());
+
+                    String width=param.getEipUpdateParam().getBandWidth();
+                    log.info(width);
+                    //TODO UpdateQos
                     log.info("before change："+eipEntity.getBanWidth());
-                    eipEntity.setBanWidth(param.getEipUpdateParam().getBandWidth());
+                    eipEntity.setBanWidth(width);
                     log.info("after  change："+eipEntity.getBanWidth());
                     eipRepository.save(eipEntity);
                     JSONObject eipJSON = new JSONObject();
                     eipJSON.put("eipid", eipEntity.getId());//the id of eip
-                    NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getId());
+                    NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getFloatingIpv4Id());
                     if(bandingFloatIp!=null){
                         log.info(bandingFloatIp.toString());
                         eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
@@ -307,18 +310,129 @@ public class EipService {
 
     /**
      *
-     *
+     * @param id
+     * @param portId
      * @return
      */
-    public String updateEipPort(){
 
-        return "";
+    public String bandPort(String id,String portId){
+        JSONObject returnjs = new JSONObject();
+        try {
+            Optional<Eip> eip = eipRepository.findById(id);
+            if (eip.isPresent()) {
+                Eip eipEntity = eip.get();
+                String instanceType = eipEntity.getInstanceType();
+                switch(instanceType){
+                    case "1":
+                        // 1：ecs
+                        EipRestRepository.associatePortWithFloatingIp(eipEntity.getFloatingIpv4Id(),portId);
+                        eipEntity.setInstanceType("1");
+                        eipEntity.setInstanceId(portId);
+                        eipRepository.save(eipEntity);
+                        break;
+                    case "2":
+                        // 2：cps
+                        break;
+                    case "3":
+                        // 3：slb
+                        break;
+                    default:
+                        //default ecs
+                        EipRestRepository.associatePortWithFloatingIp(eipEntity.getFloatingIpv4Id(),portId);
+                        eipEntity.setInstanceType("1");
+                        eipEntity.setInstanceId(portId);
+                        eipRepository.save(eipEntity);
+                        break;
+                }
+                JSONObject eipJSON = new JSONObject();
+                eipJSON.put("eipid", eipEntity.getId());//the id of eip
+                NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getFloatingIpv4Id());
+                if(bandingFloatIp!=null){
+                    log.info(bandingFloatIp.toString());
+                    eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
+                }else{
+                    eipJSON.put("status", "ERROR GET INFO");//the floating ip status
+                }
+                eipJSON.put("iptype", eipEntity.getLinkType());//
+                eipJSON.put("eip_address", eipEntity.getEipIpv4());//
+                eipJSON.put("port_id","portId" ); //
+                eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));//
+                eipJSON.put("chargetype", "THIS IS EMPTY");//cant't find
+                eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
+                returnjs.put("eip", eipJSON);
+            } else {
+                returnjs.put("error", "can not find EIP instance use this id:" + id+"");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            returnjs.put("error", e.getMessage()+"");
+        }finally{
+            log.info(returnjs.toString());
+            return returnjs.toString();
+        }
     }
 
+    /**
+     *
+     * @param id
+     * @return
+     */
+    public String unBandPort(String id){
 
-    public String updateEipExtend(){
-
-        return "";
+        JSONObject returnjs = new JSONObject();
+        try {
+            Optional<Eip> eip = eipRepository.findById(id);
+            if (eip.isPresent()) {
+                Eip eipEntity = eip.get();
+                String instanceType = eipEntity.getInstanceType();
+                switch(instanceType){
+                    case "1":
+                        // 1：ecs
+                        EipRestRepository.disassociateFloatingIpFromPort(eipEntity.getFloatingIpv4Id());
+                        eipEntity.setInstanceType(null);
+                        eipEntity.setInstanceId("");
+                        eipRepository.save(eipEntity);
+                        break;
+                    case "2":
+                        // 2：cps
+                        break;
+                    case "3":
+                        // 3：slb
+                        break;
+                    default:
+                        //default ecs
+                        EipRestRepository.disassociateFloatingIpFromPort(eipEntity.getFloatingIpv4Id());
+                        eipEntity.setInstanceType("");
+                        eipEntity.setInstanceId("");
+                        eipRepository.save(eipEntity);
+                        break;
+                }
+                JSONObject eipJSON = new JSONObject();
+                eipJSON.put("eipid", eipEntity.getId());//the id of eip
+                NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getFloatingIpv4Id());
+                if(bandingFloatIp!=null){
+                    log.info(bandingFloatIp.toString());
+                    eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
+                }else{
+                    eipJSON.put("status", "ERROR GET INFO");//the floating ip status
+                }
+                eipJSON.put("iptype", eipEntity.getLinkType());////TODO
+                eipJSON.put("eip_address", eipEntity.getEipIpv4());////TODO
+                eipJSON.put("port_id","portI " ); //TODO
+                eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));//
+                eipJSON.put("chargetype", "THIS IS EMPTY");////TODO
+                eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
+                returnjs.put("eip", eipJSON);
+            } else {
+                returnjs.put("error", "can not find EIP instance use this id:" + id+"");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            returnjs.put("error", e.getMessage()+"");
+        }finally{
+            log.info(returnjs.toString());
+            return returnjs.toString();
+        }
     }
 
 }
