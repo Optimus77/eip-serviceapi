@@ -216,7 +216,7 @@ public class EipService {
 
                 JSONObject eipJSON = new JSONObject();
                 eipJSON.put("eipid", eipEntity.getId());//the id of eip
-                NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getFloatingIpv4Id());
+                NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getFloatingIpId());
                 if(bandingFloatIp!=null){
                     log.info(bandingFloatIp.toString());
                     eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
@@ -274,7 +274,7 @@ public class EipService {
                     eipRepository.save(eipEntity);
                     JSONObject eipJSON = new JSONObject();
                     eipJSON.put("eipid", eipEntity.getId());//the id of eip
-                    NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getFloatingIpv4Id());
+                    NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getFloatingIpId());
                     if(bandingFloatIp!=null){
                         log.info(bandingFloatIp.toString());
                         eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
@@ -325,7 +325,7 @@ public class EipService {
                 switch(instanceType){
                     case "1":
                         // 1：ecs
-                        EipRestRepository.associatePortWithFloatingIp(eipEntity.getFloatingIpv4Id(),portId);
+                        EipRestRepository.associatePortWithFloatingIp(eipEntity.getFloatingIpId(),portId);
                         eipEntity.setInstanceType("1");
                         eipEntity.setInstanceId(portId);
                         eipRepository.save(eipEntity);
@@ -338,7 +338,7 @@ public class EipService {
                         break;
                     default:
                         //default ecs
-                        EipRestRepository.associatePortWithFloatingIp(eipEntity.getFloatingIpv4Id(),portId);
+                        EipRestRepository.associatePortWithFloatingIp(eipEntity.getFloatingIpId(),portId);
                         eipEntity.setInstanceType("1");
                         eipEntity.setInstanceId(portId);
                         eipRepository.save(eipEntity);
@@ -346,7 +346,7 @@ public class EipService {
                 }
                 JSONObject eipJSON = new JSONObject();
                 eipJSON.put("eipid", eipEntity.getId());//the id of eip
-                NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getFloatingIpv4Id());
+                NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getFloatingIpId());
                 if(bandingFloatIp!=null){
                     log.info(bandingFloatIp.toString());
                     eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
@@ -388,7 +388,7 @@ public class EipService {
                 switch(instanceType){
                     case "1":
                         // 1：ecs
-                        EipRestRepository.disassociateFloatingIpFromPort(eipEntity.getFloatingIpv4Id());
+                        EipRestRepository.disassociateFloatingIpFromPort(eipEntity.getFloatingIpId());
                         eipEntity.setInstanceType(null);
                         eipEntity.setInstanceId("");
                         eipRepository.save(eipEntity);
@@ -401,7 +401,7 @@ public class EipService {
                         break;
                     default:
                         //default ecs
-                        EipRestRepository.disassociateFloatingIpFromPort(eipEntity.getFloatingIpv4Id());
+                        EipRestRepository.disassociateFloatingIpFromPort(eipEntity.getFloatingIpId());
                         eipEntity.setInstanceType("");
                         eipEntity.setInstanceId("");
                         eipRepository.save(eipEntity);
@@ -409,7 +409,7 @@ public class EipService {
                 }
                 JSONObject eipJSON = new JSONObject();
                 eipJSON.put("eipid", eipEntity.getId());//the id of eip
-                NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getFloatingIpv4Id());
+                NetFloatingIP bandingFloatIp =EipRestRepository.getFloatingIp(eipEntity.getFloatingIpId());
                 if(bandingFloatIp!=null){
                     log.info(bandingFloatIp.toString());
                     eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
