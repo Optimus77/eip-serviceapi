@@ -37,7 +37,7 @@ public class Eip implements Serializable {
 
     @Column(name="ip_version")
     private String ipVersion= "IPv4";
-    
+
     @Column(name="floating_ip_id")
     private String floatingIpId;
 
