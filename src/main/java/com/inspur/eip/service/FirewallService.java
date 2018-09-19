@@ -151,11 +151,11 @@ public class FirewallService {
      * @param bindwidth
      * @return
      */
-    protected  boolean updateQosBandWidth(String firewallId,String bindwidth){
+    protected  boolean updateQosBandWidth(String firewallId,String pipId, String pipNmae,String bindwidth){
 
         Firewall fwBean = getFireWallById(firewallId);
         QosServiceImpl qs = new QosServiceImpl(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
-        HashMap<String, String> result=qs.updateQosPipe(fwBean.getParam2(),fwBean.getParam3(),bindwidth);
+        HashMap<String, String> result=qs.updateQosPipe(pipId, pipNmae, bindwidth);
         log.info(result.toString());
         if(result.get("success").equals("true")){
             log.info("updateQosBandWidth: "+firewallId+" --success==bindwidth："+bindwidth);

@@ -245,7 +245,8 @@ public class EipService {
                     String width=param.getEipUpdateParam().getBandWidth();
                     log.info(width);
                     //TODO UpdateQos
-                    boolean updateStatus=firewallService.updateQosBandWidth(eipEntity.getFirewallId(),width);
+                    boolean updateStatus=firewallService.updateQosBandWidth(eipEntity.getFirewallId(),
+                            eipEntity.getPipId(),eipEntity.getId(),width);
                     if(updateStatus){
                         log.info("before change："+eipEntity.getBanWidth());
                         eipEntity.setBanWidth(width);
