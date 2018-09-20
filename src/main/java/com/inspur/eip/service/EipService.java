@@ -7,6 +7,8 @@ import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.entity.EipPool;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
+import com.inspur.icp.common.util.annotation.ICPServiceLog;
+import org.apache.http.HttpStatus;
 import org.openstack4j.model.network.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -185,46 +187,54 @@ public class EipService {
      * @param eip_id  the id of the eip instance
      * @return the json result
      */
-    public String getEipDetail(String eip_id) {
+    @ICPServiceLog
+    public JSONObject getEipDetail(String eip_id) {
 
         JSONObject returnjs = new JSONObject();
         try {
             Optional<Eip> eip = eipRepository.findById(eip_id);
             if (eip.isPresent()) {
                 Eip eipEntity = eip.get();
+                JSONObject eipWrapper=new JSONObject();
+                JSONObject eipInfo = new JSONObject();
 
-                JSONObject eipJSON = new JSONObject();
-                eipJSON.put("eipid", eipEntity.getId());//the id of eip
+                eipInfo.put("eipid", eipEntity.getId());
                 NetFloatingIP bandingFloatIp = neutronService.getFloatingIp(eipEntity.getFloatingIpId());
                 if(bandingFloatIp!=null){
                     log.info(bandingFloatIp.toString());
-                    eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
+                    eipInfo.put("status", bandingFloatIp.getStatus());//the floating ip status
                 }else{
-                    eipJSON.put("status", "ERROR GET INFO");//the floating ip status
+                    eipInfo.put("status", "ERROR GET INFO");//the floating ip status
                 }
-                eipJSON.put("iptype", eipEntity.getLinkType());//
-                eipJSON.put("eip_address", eipEntity.getEip());//
-                eipJSON.put("private_ip_address", eipEntity.getFloatingIp());//
-                eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));//
-                eipJSON.put("chargetype", "THIS IS EMPTY"); //can't find
-                eipJSON.put("chargemode", "THIS IS EMPTY");//cant't find
-                eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
+                eipInfo.put("status",eipEntity.getState());
+                eipInfo.put("iptype", eipEntity.getLinkType());
+                eipInfo.put("eip_address", eipEntity.getEip());
+                eipInfo.put("private_ip_address", eipEntity.getFloatingIp());
+                eipInfo.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
+                eipInfo.put("chargetype", "THIS IS EMPTY");
+                eipInfo.put("chargemode", "THIS IS EMPTY");
+                eipInfo.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
                 JSONObject resourceset = new JSONObject();
                 resourceset.put("resourcetype", eipEntity.getInstanceType());
                 resourceset.put("resource_id", eipEntity.getInstanceId());
-                eipJSON.put("resourceset", resourceset);
+                eipInfo.put("resourceset", resourceset);
+                eipWrapper.put("eip", eipInfo);
 
-                returnjs.put("eip", eipJSON);
-
+                returnjs.put("code", HttpStatus.SC_OK);
+                returnjs.put("data",eipWrapper);
+                returnjs.put("msg", "");
             } else {
-                returnjs.put("error", "can not find instance use this id:" + eip_id+"");
+                returnjs.put("code",HttpStatus.SC_NOT_FOUND);
+                returnjs.put("data",null);
+                returnjs.put("msg", "can not find instance use this id:" + eip_id+"");
             }
+            return returnjs;
         } catch (Exception e) {
             e.printStackTrace();
-            returnjs.put("error", e.getMessage()+"");
-        }finally{
-            log.info(returnjs.toString());
-            return returnjs.toString();
+            returnjs.put("data",e.getMessage());
+            returnjs.put("code", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            returnjs.put("msg", e.getCause());
+            return returnjs;
         }
 
     }

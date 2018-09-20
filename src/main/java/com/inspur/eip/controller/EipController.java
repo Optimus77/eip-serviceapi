@@ -1,12 +1,15 @@
 package com.inspur.eip.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.ConstantClassField;
 import com.inspur.eip.entity.Eip;
 import com.inspur.eip.entity.EipAllocateParam;
 import com.inspur.eip.entity.EipAllocateParamWrapper;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
+import com.inspur.eip.entity.ReturnMsg;
 import com.inspur.eip.service.EipService;
 import com.inspur.eip.util.FastjsonUtil;
+import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
 import org.springframework.http.MediaType;
@@ -86,19 +89,8 @@ public class EipController {
             @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
             @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String")
     })
-    public ResponseEntity getEipDetail(@PathVariable("eip_id") String eip_id,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region){
-        String result="{}";
-        try {
-             log.info("get request head authorization:"+authorization);
-             result=eipService.getEipDetail(eip_id);
-            return new ResponseEntity(result, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }finally{
-            log.info("execute finish===");
-        }
-
+    public JSONObject getEipDetail(@PathVariable("eip_id") String eip_id, @RequestHeader("authorization")String authorization , @RequestHeader("region")String region){
+        return eipService.getEipDetail(eip_id);
     }
 
 
