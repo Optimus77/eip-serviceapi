@@ -53,14 +53,15 @@ public class EipController {
 
     @GetMapping(value = "/eips")
     @ApiOperation(value="listeip",notes="list")
-    public ResponseEntity<String> listEip(String maker,String vpcId) {
-        List<? extends Eip> eips = eipService.listEips(vpcId);
-        List<String> eipresult = new ArrayList<>();
-        for(Eip eip : eips){
-            eipresult.add(eip.getEip());
+    public String listEip(@RequestParam String currentPage ,@RequestParam String limit,@RequestParam String vpcId) {
+        log.info("EipController listEip");
+        if(currentPage==null){
+            currentPage="1";
         }
-
-        return new ResponseEntity<>(eipresult.toString(),HttpStatus.OK);
+        if(limit==null){
+            limit="10";
+        }
+        return  eipService.listEips(vpcId,Integer.parseInt(currentPage),Integer.parseInt(limit));
     }
 
 

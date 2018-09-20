@@ -1,5 +1,6 @@
 package com.inspur.eip.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.Eip;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
@@ -10,6 +11,10 @@ import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.network.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -113,15 +118,57 @@ public class EipService {
         return result;
     }
 
-    public List<Eip> listEips(String vpcId){
-        List<Eip> eips = eipRepository.findAll();
-        List<Eip> findResult = new ArrayList<>();
-        for(Eip eip: eips){
-            if(eip.getVpcId().equals(vpcId)){
-                findResult.add(eip);
+    /**
+     *  list the eip
+     * @param vpcId
+     * @param currentPage  the current page
+     * @param limit  element of per page
+     * @return
+     */
+    public String listEips(String vpcId,int currentPage,int limit){
+        log.info("listEips  service start execute");
+        JSONObject returnjs = new JSONObject();
+
+        try {
+            Sort sort = new Sort(Sort.Direction.DESC, "id");
+            Pageable pageable =new PageRequest(currentPage,limit,sort);
+            Page<Eip> page = eipRepository.findAll(pageable);
+            JSONObject data=new JSONObject();
+            JSONArray eips=new JSONArray();
+            for(Eip eip:page.getContent()){
+                JSONObject eipJson=new JSONObject();
+                eipJson.put("eipid",eip.getId());
+                eipJson.put("status",eip.getState());
+                eipJson.put("iptype",eip.getLinkType());
+                eipJson.put("eip_address",eip.getEip());
+                eipJson.put("private_ip_address",eip.getFixedIp());
+                eipJson.put("bandwidth",eip.getBanWidth());
+                eipJson.put("chargetype","null");
+                eipJson.put("chargemode","null");
+                eipJson.put("create at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
+                JSONObject resourceset=new JSONObject();
+                resourceset.put("resourcetype",eip.getInstanceType());
+                resourceset.put("resource_id",eip.getInstanceId());
+                eipJson.put("resourceset",resourceset);
+                eips.add(eipJson);
             }
+            data.put("eips",eips);
+            data.put("totalPages",page.getTotalPages());
+            data.put("totalElements",page.getTotalElements());
+            data.put("currentPage",currentPage);
+            data.put("currentPagePer",limit);
+            returnjs.put("data",data);
+            returnjs.put("code",HttpStatus.SC_OK);
+            returnjs.put("msg",null);
+            return returnjs.toJSONString();
+        }catch (Exception e){
+            e.printStackTrace();
+            returnjs.put("data",e.getMessage());
+            returnjs.put("code", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            returnjs.put("msg", e.getCause());
+            return returnjs.toJSONString();
         }
-        return findResult;
+
     }
 
     private Boolean associatePortWithEip(Eip eip, String portId, String instanceType) throws Exception{
