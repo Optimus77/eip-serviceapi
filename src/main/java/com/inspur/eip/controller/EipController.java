@@ -42,14 +42,14 @@ public class EipController {
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="allocateEip",notes="create")
-    public ResponseEntity<String> allocateEip(@RequestBody EipAllocateParamWrapper eipConfig) {
-        Eip eipMo = eipService.createEip(eipConfig.getEipAllocateParam(), floatingnetworkId, null);
-        if(null != eipMo) {
-            return new ResponseEntity<>(FastjsonUtil.toJSONString(eipMo), HttpStatus.OK);
+    public JSONObject allocateEip(@RequestBody EipAllocateParamWrapper eipConfig) {
+        try {
+            return eipService.createEip(eipConfig.getEipAllocateParam(), floatingnetworkId, null);
+         } catch (Exception e){
+            e.printStackTrace();
         }
-
-        return new ResponseEntity<>("Failed to allocate eip.", HttpStatus.EXPECTATION_FAILED);
-    }
+        return null;
+     }
 
 
 

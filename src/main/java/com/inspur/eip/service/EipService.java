@@ -63,31 +63,41 @@ public class EipService {
         return eipEntity;
     }
 
-    public Eip createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId) {
+    public JSONObject createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId) throws Exception {
         Eip eipMo = null;
-        try {
-            EipPool eip = allocateEip(eipConfig.getRegion(), externalNetWorkId, null);
-            if (null != eip) {
-                NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(),externalNetWorkId,portId);
-                if(null != floatingIP) {
-                    eipMo = new Eip();
-                    eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
-                    eipMo.setFixedIp(floatingIP.getFixedIpAddress());
-                    eipMo.setEip(eip.getIp());
-                    eipMo.setFirewallId(eip.getFireWallId());
-                    eipMo.setFloatingIpId(floatingIP.getId());
-                    eipMo.setBanWidth(eipConfig.getBanWidth());
-                    //eipMo.setName(eipConfig.get());
-                    //eipMo.setVpcId(eipConfig.getVpcId());
-                    eipRepository.save(eipMo);
-                }else {
-                    log.warning("Failed to create floating ip in external network:"+externalNetWorkId);
-                }
+
+        JSONObject eipWrapper=new JSONObject();
+        JSONObject eipInfo = new JSONObject();
+
+        EipPool eip = allocateEip(eipConfig.getRegion(), externalNetWorkId, null);
+        if (null != eip) {
+            NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(),externalNetWorkId,portId);
+            if(null != floatingIP) {
+                eipMo = new Eip();
+                eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
+                eipMo.setFixedIp(floatingIP.getFixedIpAddress());
+                eipMo.setEip(eip.getIp());
+                eipMo.setFirewallId(eip.getFireWallId());
+                eipMo.setFloatingIpId(floatingIP.getId());
+                eipMo.setBanWidth(eipConfig.getBanWidth());
+                eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
+                eipRepository.save(eipMo);
+
+                eipInfo.put("eipid", eip.getId());
+                eipInfo.put("status", eipMo.getState());//the floating ip status
+                eipInfo.put("iptype", eipMo.getLinkType());
+                eipInfo.put("eip_address", eipMo.getEip());
+                eipInfo.put("bandwidth", Integer.parseInt(eipMo.getBanWidth()));
+                eipInfo.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipMo.getCreateTime()));
+                eipWrapper.put("eip", eipInfo);
+                return eipWrapper;
+            }else {
+                log.warning("Failed to create floating ip in external network:"+externalNetWorkId);
             }
-        }catch (Exception e){
-            e.printStackTrace();
         }
-        return eipMo;
+        eipInfo.put("code", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        eipWrapper.put("eip", eipInfo);
+        return eipWrapper;
     }
 
 
