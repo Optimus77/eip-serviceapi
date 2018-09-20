@@ -3,6 +3,8 @@ package com.inspur.eip.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.ConstantClassField;
 import com.inspur.eip.entity.Eip;
+import com.inspur.eip.entity.EipAllocateParam;
+import com.inspur.eip.entity.EipAllocateParamWrapper;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.entity.ReturnMsg;
 import com.inspur.eip.service.EipService;
@@ -26,7 +28,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value= ConstantClassField.VERSION_REST, produces={"application/json;charset=UTF-8"})
-@Api(value = "eip", description = "eip API")
+@Api(value = "eips", description = "eip API")
 public class EipController {
 
     private final static Logger log = Logger.getLogger(EipController.class.getName());
@@ -39,15 +41,15 @@ public class EipController {
     @ICPControllerLog
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="createEip",notes="create")
-    public ResponseEntity<String> createEip(@RequestBody Eip eipConfig) {
-        Eip eipMo = eipService.createEip(eipConfig, floatingnetworkId, eipConfig.getInstanceId());
-        if(null != eipMo) {
-            return new ResponseEntity<>(FastjsonUtil.toJSONString(eipMo), HttpStatus.OK);
+    @ApiOperation(value="allocateEip",notes="create")
+    public JSONObject allocateEip(@RequestBody EipAllocateParamWrapper eipConfig) {
+        try {
+            return eipService.createEip(eipConfig.getEipAllocateParam(), floatingnetworkId, null);
+         } catch (Exception e){
+            e.printStackTrace();
         }
-
-        return new ResponseEntity<>("Failed to allocate eip.", HttpStatus.EXPECTATION_FAILED);
-    }
+        return null;
+     }
 
 
 
@@ -67,8 +69,8 @@ public class EipController {
 
 
     @RequestMapping(value = "/eips/{eip_id}", method = RequestMethod.DELETE)
-    public ResponseEntity<Boolean> deleteEip(@RequestParam String id) {
-        Boolean result = eipService.deleteEip("name", id);
+    public ResponseEntity<Boolean> deleteEip(@PathVariable("eip_id") String eip_id) {
+        Boolean result = eipService.deleteEip("name", eip_id);
         return new ResponseEntity<>(result,HttpStatus.OK);
     }
 
