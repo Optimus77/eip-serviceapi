@@ -157,7 +157,8 @@ public class FirewallService {
         QosServiceImpl qs = new QosServiceImpl(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
         HashMap<String, String> result=qs.updateQosPipe(pipId, pipNmae, bindwidth);
         log.info(result.toString());
-        if(result.get("success").equals("true")){
+        String successTag="true";
+        if(result.get("success").equals(successTag)){
             log.info("updateQosBandWidth: "+firewallId+" --success==bindwidth："+bindwidth);
         }else{
             log.info("updateQosBandWidth: "+firewallId+" --fail==bindwidth："+bindwidth);

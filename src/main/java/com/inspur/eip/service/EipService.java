@@ -44,7 +44,8 @@ public class EipService {
         List<EipPool> eipList = eipPoolRepository.findAll();
         for(EipPool eip: eipList) {
             if (eip != null) {
-                if (eip.getState().equals("0")) {
+                String eipState="0";
+                if (eip.getState().equals(eipState)) {
                     if (null != firewallId) {
                         if (eip.getFireWallId().equals(firewallId)) {
                             eipPoolRepository.delete(eip);
@@ -142,7 +143,7 @@ public class EipService {
 
         try {
             Sort sort = new Sort(Sort.Direction.DESC, "id");
-            Pageable pageable =new PageRequest(currentPage,limit,sort);
+            Pageable pageable =PageRequest.of(currentPage,limit,sort);
             Page<Eip> page = eipRepository.findAll(pageable);
             JSONObject data=new JSONObject();
             JSONArray eips=new JSONArray();
@@ -241,15 +242,15 @@ public class EipService {
 
     /**
      * get detail of the eip
-     * @param eip_id  the id of the eip instance
+     * @param eipId  the id of the eip instance
      * @return the json result
      */
     @ICPServiceLog
-    public JSONObject getEipDetail(String eip_id) {
+    public JSONObject getEipDetail(String eipId) {
 
         JSONObject returnjs = new JSONObject();
         try {
-            Optional<Eip> eip = eipRepository.findById(eip_id);
+            Optional<Eip> eip = eipRepository.findById(eipId);
             if (eip.isPresent()) {
                 Eip eipEntity = eip.get();
                 JSONObject eipWrapper=new JSONObject();
@@ -283,7 +284,7 @@ public class EipService {
             } else {
                 returnjs.put("code",HttpStatus.SC_NOT_FOUND);
                 returnjs.put("data",null);
-                returnjs.put("msg", "can not find instance use this id:" + eip_id+"");
+                returnjs.put("msg", "can not find instance use this id:" + eipId+"");
             }
             return returnjs;
         } catch (Exception e) {
@@ -353,8 +354,8 @@ public class EipService {
             returnjs.put("error", e.getMessage()+"");
         }finally{
             log.info(returnjs.toString());
-            return returnjs.toString();
         }
+        return returnjs.toString();
 
     }
 
