@@ -2,6 +2,7 @@ package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.Eip;
+import com.inspur.eip.entity.EipAllocateParam;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.entity.EipPool;
 import com.inspur.eip.repository.EipPoolRepository;
@@ -60,12 +61,12 @@ public class EipService {
         return eipEntity;
     }
 
-    public Eip createEip(Eip eipConfig, String externalNetWorkId, String portId) {
+    public Eip createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId) {
         Eip eipMo = null;
         try {
-            EipPool eip = allocateEip("region", externalNetWorkId, null);
+            EipPool eip = allocateEip(eipConfig.getRegion(), externalNetWorkId, null);
             if (null != eip) {
-                NetFloatingIP floatingIP = neutronService.createFloatingIp("region",externalNetWorkId,portId);
+                NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(),externalNetWorkId,portId);
                 if(null != floatingIP) {
                     eipMo = new Eip();
                     eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
@@ -74,8 +75,8 @@ public class EipService {
                     eipMo.setFirewallId(eip.getFireWallId());
                     eipMo.setFloatingIpId(floatingIP.getId());
                     eipMo.setBanWidth(eipConfig.getBanWidth());
-                    eipMo.setName(eipConfig.getName());
-                    eipMo.setVpcId(eipConfig.getVpcId());
+                    //eipMo.setName(eipConfig.get());
+                    //eipMo.setVpcId(eipConfig.getVpcId());
                     eipRepository.save(eipMo);
                 }else {
                     log.warning("Failed to create floating ip in external network:"+externalNetWorkId);
@@ -95,7 +96,7 @@ public class EipService {
             if (null != eipEntity) {
                 result = neutronService.deleteFloatingIp(eipEntity.getName(), eipEntity.getFloatingIpId());
                 if((null != eipEntity.getPipId()) || (null != eipEntity.getDnatId()) || (null!=eipEntity.getSnatId())){
-                    log.warning("Failed to delete eip,Eip is bind to port.");
+                    log.warning("Failed to delete eip,eip is bind to port.");
                     return false;
                 }
                 EipPool eipPoolMo = new EipPool();
