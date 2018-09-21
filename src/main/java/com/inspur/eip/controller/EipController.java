@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @RestController
 @RequestMapping(value= ConstantClassField.VERSION_REST, produces={"application/json;charset=UTF-8"})
 @Api(value = "eips", description = "eip API")
@@ -55,28 +56,29 @@ public class EipController {
 
     @GetMapping(value = "/eips")
     @ApiOperation(value="listeip",notes="list")
-    public ResponseEntity<String> listEip(String maker,String vpcId) {
-        List<? extends Eip> eips = eipService.listEips(vpcId);
-        List<String> eipresult = new ArrayList<>();
-        for(Eip eip : eips){
-            eipresult.add(eip.getEip());
+    public String listEip(@RequestParam String currentPage ,@RequestParam String limit,@RequestParam String vpcId) {
+        log.info("EipController listEip");
+        if(currentPage==null){
+            currentPage="1";
         }
-
-        return new ResponseEntity<>(eipresult.toString(),HttpStatus.OK);
+        if(limit==null){
+            limit="10";
+        }
+        return  eipService.listEips(vpcId,Integer.parseInt(currentPage),Integer.parseInt(limit));
     }
 
 
 
     @RequestMapping(value = "/eips/{eip_id}", method = RequestMethod.DELETE)
-    public ResponseEntity<Boolean> deleteEip(@PathVariable("eip_id") String eip_id) {
-        Boolean result = eipService.deleteEip("name", eip_id);
+    public ResponseEntity<Boolean> deleteEip(@PathVariable("eip_id") String eipId) {
+        Boolean result = eipService.deleteEip("name", eipId);
         return new ResponseEntity<>(result,HttpStatus.OK);
     }
 
 
     /**
      * get eip instance detail
-     * @param eip_id  the id of eip
+     * @param eipId  the id of eip
      * @param authorization --
      * @param region
      * @return
@@ -89,8 +91,8 @@ public class EipController {
             @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
             @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String")
     })
-    public JSONObject getEipDetail(@PathVariable("eip_id") String eip_id, @RequestHeader("authorization")String authorization , @RequestHeader("region")String region){
-        return eipService.getEipDetail(eip_id);
+    public JSONObject getEipDetail(@PathVariable("eip_id") String eipId, @RequestHeader("authorization")String authorization , @RequestHeader("region")String region){
+        return eipService.getEipDetail(eipId);
     }
 
 
@@ -105,10 +107,10 @@ public class EipController {
             @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
             @ApiImplicitParam(paramType = "body",   name = "param", value = "the json param ", required = true, dataType = "String")
     })
-    public ResponseEntity eipBindWithPort(@PathVariable("eip_id") String eip_id, @RequestBody EipUpdateParamWrapper param,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region) {
+    public ResponseEntity eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region) {
 
         if(param.getEipUpdateParam().getPortId()!=null){
-            String result=eipService.eipbindPort(eip_id,param.getEipUpdateParam().getPortId());
+            String result=eipService.eipbindPort(eipId,param.getEipUpdateParam().getPortId());
             return new ResponseEntity(result, HttpStatus.OK);
         }else{
             return new ResponseEntity("{error:\"port_id is not null\"}", HttpStatus.OK);
@@ -126,9 +128,9 @@ public class EipController {
             @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
             @ApiImplicitParam(paramType = "body",   name = "param", value = "the json ", required = true, dataType = "String")
     })
-    public ResponseEntity eipUnbindWithPort(@PathVariable("eip_id") String eip_id, @RequestBody EipUpdateParamWrapper param,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region) {
+    public ResponseEntity eipUnbindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region) {
 
-        String result=eipService.unBindPort(eip_id);
+        String result=eipService.unBindPort(eipId);
         return new ResponseEntity(result, HttpStatus.OK);
 
     }
@@ -141,19 +143,13 @@ public class EipController {
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
             @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
             @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType = "body",   name = "param", value = "the json ", required = true, dataType = "String")
+            //@ApiImplicitParam(paramType = "body",   name = "param", value = "the json ", required = true, dataType = "String")
     })
-    public ResponseEntity changeEipBandWidht(@PathVariable("eip_id") String eip_id, @RequestBody EipUpdateParamWrapper param,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region) {
-        try {
-            String result=eipService.updateEipBandWidth(eip_id,param);
-            return new ResponseEntity(result, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }finally{
-
-        }
-
+    public String changeEipBandWidht(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region) {
+        log.info(eipId);
+        log.info(JSONObject.toJSONString(param));
+        log.info(region);
+        return eipService.updateEipBandWidth(eipId,param);
     }
     //add for test
     @ICPControllerLog

@@ -41,12 +41,16 @@ dependencies {
     compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
     compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
     compile group: 'com.alibaba', name: 'druid-spring-boot-starter', version: '1.1.10'
-	compile('com.inspur.icp:common-util:0.0.2-SNAPSHOT')
+	compile('com.inspur.icp:common-util:0.0.2-SNAPSHOT'){
+        exclude(module: 'servlet-api')
+    }
+
 
     compile('org.pacesys:openstack4j:3.1.0')
     compile('com.alibaba:fastjson:1.2.49')
     compile group: 'com.google.guava', name: 'guava', version: '26.0-jre'
     compile files('src/main/lib/innet-icp-interface-0.1.1.jar')
+    compile 'log4j:log4j:1.2.17'
 
     runtime('org.springframework.boot:spring-boot-devtools')
     runtime('mysql:mysql-connector-java')
