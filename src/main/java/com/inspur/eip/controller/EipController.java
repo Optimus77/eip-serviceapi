@@ -70,9 +70,22 @@ public class EipController {
 
 
     @RequestMapping(value = "/eips/{eip_id}", method = RequestMethod.DELETE)
-    public ResponseEntity<Boolean> deleteEip(@PathVariable("eip_id") String eipId) {
-        Boolean result = eipService.deleteEip("name", eipId);
-        return new ResponseEntity<>(result,HttpStatus.OK);
+    @ICPControllerLog
+    @ApiOperation(value = "deleteEip")
+    public ResponseEntity<String> deleteEip(@PathVariable("eip_id") String id) {
+        //Check the parameters
+        if (id == null || id.length() == 0) {
+            return new ResponseEntity<String>("Id is not empty ", HttpStatus.BAD_REQUEST);
+        }
+        try {
+            log.info("Delete the Eip");
+            Boolean result = eipService.deleteEip("name", id);
+            return new ResponseEntity(result, HttpStatus.OK);
+        } catch (Exception e) {
+            log.info("Delete failed");
+            e.printStackTrace();
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 
@@ -153,7 +166,7 @@ public class EipController {
     }
     //add for test
     @ICPControllerLog
-    @PostMapping(value = "/eips")
+    @PostMapping(value = "/eips/addeipPool")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="addEipPool",notes="add eip")
     public ResponseEntity<String> addEipPool() {

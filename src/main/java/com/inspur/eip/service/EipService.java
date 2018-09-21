@@ -108,26 +108,37 @@ public class EipService {
     }
 
 
-    public Boolean deleteEip(String name, String eipId){
+
+    /**
+     * 1.delete  floatingIp
+     * 2.Determine if Snate and Qos is deleted
+     * 3.delete eip
+     *
+     * @param name
+     * @param eipId
+     * @return
+     */
+
+    public Boolean deleteEip(String name, String eipId) throws Exception {
         Boolean result = false;
-        try {
-            Eip eipEntity = findEipEntryById(eipId);
-            if (null != eipEntity) {
+        Eip eipEntity = findEipEntryById(eipId);
+        if (null != eipEntity) {
+            if ((null != eipEntity.getPipId()) || (null != eipEntity.getDnatId()) || (null != eipEntity.getSnatId())) {
+                log.warning("Failed to delete eip,Eip is bind to port.");
+                return false;
+            } else {
                 result = neutronService.deleteFloatingIp(eipEntity.getName(), eipEntity.getFloatingIpId());
-                if((null != eipEntity.getPipId()) || (null != eipEntity.getDnatId()) || (null!=eipEntity.getSnatId())){
-                    log.warning("Failed to delete eip,eip is bind to port.");
-                    return false;
-                }
                 EipPool eipPoolMo = new EipPool();
                 eipPoolMo.setFireWallId(eipEntity.getFirewallId());
                 eipPoolMo.setIp(eipEntity.getEip());
                 eipPoolMo.setState("0");
                 eipPoolRepository.save(eipPoolMo);
+                eipRepository.deleteById(eipId);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            log.warning("eipid errors");
+            return false;
         }
-
         return result;
     }
 
