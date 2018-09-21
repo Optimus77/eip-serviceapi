@@ -22,6 +22,11 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
+/**
+ * @Auther: jiasirui
+ * @Date: 2018/9/14 09:32
+ * @Description:  the Eip Service Interface
+ */
 
 @Service
 public class EipService {
@@ -90,7 +95,7 @@ public class EipService {
                 eipRepository.save(eipMo);
 
                 eipInfo.put("eipid", eip.getId());
-                eipInfo.put("status", eipMo.getState());//the floating ip status
+                eipInfo.put("status", eipMo.getState());
                 eipInfo.put("iptype", eipMo.getLinkType());
                 eipInfo.put("eip_address", eipMo.getEip());
                 eipInfo.put("bandwidth", Integer.parseInt(eipMo.getBanWidth()));
@@ -194,7 +199,7 @@ public class EipService {
                         eip.getFirewallId());
                 if(null != pipId) {
                     eip.setInstanceId(portId);
-                    eip.setInstanceType(instanceType); //1:ecs 2:cps 3:slb
+                    eip.setInstanceType(instanceType);
                     eip.setDnatId(dnatRuleId);
                     eip.setSnatId(snatRuleId);
                     eip.setPipId(pipId);
@@ -220,7 +225,7 @@ public class EipService {
             if(result1 && result2) {
                 if(firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId())){
                     eipEntity.setInstanceId(null);
-                    eipEntity.setInstanceType(null); //1:ecs 2:cps 3:slb
+                    eipEntity.setInstanceType(null);
                     eipEntity.setDnatId(null);
                     eipEntity.setSnatId(null);
                     eipEntity.setPipId(null);
@@ -260,9 +265,9 @@ public class EipService {
                 NetFloatingIP bandingFloatIp = neutronService.getFloatingIp(eipEntity.getFloatingIpId());
                 if(bandingFloatIp!=null){
                     log.info(bandingFloatIp.toString());
-                    eipInfo.put("status", bandingFloatIp.getStatus());//the floating ip status
+                    eipInfo.put("status", bandingFloatIp.getStatus());
                 }else{
-                    eipInfo.put("status", "ERROR GET INFO");//the floating ip status
+                    eipInfo.put("status", "ERROR GET INFO");
                 }
                 eipInfo.put("status",eipEntity.getState());
                 eipInfo.put("iptype", eipEntity.getLinkType());
@@ -309,7 +314,7 @@ public class EipService {
             Optional<Eip> eip = eipRepository.findById(id);
             if (eip.isPresent()) {
                 Eip eipEntity = eip.get();
-                if(param.getEipUpdateParam().getBandWidth()!=null && param.getEipUpdateParam().getBandWidth()!=null){
+                if(param.getEipUpdateParam().getBandWidth()!=null && param.getEipUpdateParam().getChargeType()!=null){
                     Integer.parseInt(param.getEipUpdateParam().getBandWidth());
                     String width=param.getEipUpdateParam().getBandWidth();
                     log.info(width);
@@ -322,39 +327,54 @@ public class EipService {
                         log.info("after  change："+eipEntity.getBanWidth());
                         eipRepository.save(eipEntity);
                         JSONObject eipJSON = new JSONObject();
-                        eipJSON.put("eipid", eipEntity.getId());//the id of eip
+                        eipJSON.put("eipid", eipEntity.getId());
                         NetFloatingIP bandingFloatIp =neutronService.getFloatingIp(eipEntity.getFloatingIpId());
                         if(bandingFloatIp!=null){
                             log.info(bandingFloatIp.toString());
-                            eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
+                            eipJSON.put("status", bandingFloatIp.getStatus());
                         }else{
-                            eipJSON.put("status", "error:can't get it");//the floating ip status
+                            eipJSON.put("status", "error:can't get it");
                         }
-                        eipJSON.put("iptype", eipEntity.getLinkType());//
-                        eipJSON.put("eip_address", eipEntity.getEip());//
-                        eipJSON.put("port_id", eipEntity.getFloatingIp());//
-                        eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));//
-                        eipJSON.put("chargetype", "THIS IS EMPTY"); //can't find
+                        eipJSON.put("iptype", eipEntity.getLinkType());
+                        eipJSON.put("eip_address", eipEntity.getEip());
+                        eipJSON.put("port_id", eipEntity.getFloatingIp());
+                        eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
+                        eipJSON.put("chargetype", "THIS IS EMPTY");
                         eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
                         returnjs.put("eip",eipJSON);
+
+                        returnjs.put("code",HttpStatus.SC_OK);
+                        returnjs.put("data",new JSONObject().put("data",returnjs));
+                        returnjs.put("msg", "");
+
+
                     }else{
-                        returnjs.put("error", "the qos set is not success,please contact the dev");
+                        returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                        returnjs.put("data",null);
+                        returnjs.put("msg", "the qos set is not success,please contact the dev");
                     }
                 }else{
-                    returnjs.put("error", "need the param bindwidth");
+                    returnjs.put("code",HttpStatus.SC_BAD_REQUEST);
+                    returnjs.put("data",null);
+                    returnjs.put("msg", "need the param bindwidth");
                 }
             } else {
-                returnjs.put("error", "can not find instance use this id:" +id+"");
+                returnjs.put("code",HttpStatus.SC_NOT_FOUND);
+                returnjs.put("data",null);
+                returnjs.put("msg", "can not find instance use this id:" +id+"");
             }
         }catch (NumberFormatException e){
             e.printStackTrace();
-            returnjs.put("error", "BandWidth must be a Integer");
+            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            returnjs.put("data",null);
+            returnjs.put("msg", "BandWidth must be a Integer"+e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
+            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            returnjs.put("data",null);
             returnjs.put("error", e.getMessage()+"");
-        }finally{
-            log.info(returnjs.toString());
         }
+        log.info(returnjs.toString());
         return returnjs.toString();
 
     }
@@ -391,19 +411,19 @@ public class EipService {
                         break;
                 }
                 JSONObject eipJSON = new JSONObject();
-                eipJSON.put("eipid", eipEntity.getId());//the id of eip
+                eipJSON.put("eipid", eipEntity.getId());
                 NetFloatingIP bandingFloatIp =neutronService.getFloatingIp(eipEntity.getFloatingIpId());
                 if(bandingFloatIp!=null){
                     log.info(bandingFloatIp.toString());
-                    eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
+                    eipJSON.put("status", bandingFloatIp.getStatus());
                 }else{
-                    eipJSON.put("status", "ERROR GET INFO");//the floating ip status
+                    eipJSON.put("status", "ERROR GET INFO");
                 }
-                eipJSON.put("iptype", eipEntity.getLinkType());//
-                eipJSON.put("eip_address", eipEntity.getEip());//
-                eipJSON.put("port_id","portId" ); //
-                eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));//
-                eipJSON.put("chargetype", "THIS IS EMPTY");//cant't find
+                eipJSON.put("iptype", eipEntity.getLinkType());
+                eipJSON.put("eip_address", eipEntity.getEip());
+                eipJSON.put("port_id","portId" );
+                eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
+                eipJSON.put("chargetype", "THIS IS EMPTY");
                 eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
                 returnjs.put("eip", eipJSON);
             } else {
@@ -449,19 +469,19 @@ public class EipService {
                         break;
                 }
                 JSONObject eipJSON = new JSONObject();
-                eipJSON.put("eipid", eipEntity.getId());//the id of eip
+                eipJSON.put("eipid", eipEntity.getId());
                 NetFloatingIP bandingFloatIp =neutronService.getFloatingIp(eipEntity.getFloatingIpId());
                 if(bandingFloatIp!=null){
                     log.info(bandingFloatIp.toString());
-                    eipJSON.put("status", bandingFloatIp.getStatus());//the floating ip status
+                    eipJSON.put("status", bandingFloatIp.getStatus());
                 }else{
-                    eipJSON.put("status", "ERROR GET INFO");//the floating ip status
+                    eipJSON.put("status", "ERROR GET INFO");
                 }
-                eipJSON.put("iptype", eipEntity.getLinkType());////TODO
-                eipJSON.put("eip_address", eipEntity.getEip());////TODO
-                eipJSON.put("port_id","portI " ); //TODO
-                eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));//
-                eipJSON.put("chargetype", "THIS IS EMPTY");////TODO
+                eipJSON.put("iptype", eipEntity.getLinkType());
+                eipJSON.put("eip_address", eipEntity.getEip());
+                eipJSON.put("port_id","portI " );
+                eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
+                eipJSON.put("chargetype", "THIS IS EMPTY");
                 eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
                 returnjs.put("eip", eipJSON);
             } else {

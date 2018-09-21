@@ -50,6 +50,7 @@ dependencies {
     compile('com.alibaba:fastjson:1.2.49')
     compile group: 'com.google.guava', name: 'guava', version: '26.0-jre'
     compile files('src/main/lib/innet-icp-interface-0.1.1.jar')
+    compile 'log4j:log4j:1.2.17'
 
     runtime('org.springframework.boot:spring-boot-devtools')
     runtime('mysql:mysql-connector-java')

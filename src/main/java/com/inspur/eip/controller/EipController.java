@@ -143,19 +143,13 @@ public class EipController {
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
             @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
             @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType = "body",   name = "param", value = "the json ", required = true, dataType = "String")
+            //@ApiImplicitParam(paramType = "body",   name = "param", value = "the json ", required = true, dataType = "String")
     })
-    public ResponseEntity changeEipBandWidht(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region) {
-        try {
-            String result=eipService.updateEipBandWidth(eipId,param);
-            return new ResponseEntity(result, HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }finally{
-
-        }
-
+    public String changeEipBandWidht(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region) {
+        log.info(eipId);
+        log.info(JSONObject.toJSONString(param));
+        log.info(region);
+        return eipService.updateEipBandWidth(eipId,param);
     }
 
 
