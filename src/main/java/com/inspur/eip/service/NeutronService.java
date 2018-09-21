@@ -39,7 +39,7 @@ public  class NeutronService {
     protected synchronized NetFloatingIP createFloatingIp(String region, String networkId, String portId) throws Exception   {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
-
+        //osClientV3.networking().router().get().getExternalGatewayInfo().getNetworkId();
         NetFloatingIPBuilder builder = new NeutronFloatingIP.FloatingIPConcreteBuilder();
         builder.floatingNetworkId(networkId);
         if (null != portId) {

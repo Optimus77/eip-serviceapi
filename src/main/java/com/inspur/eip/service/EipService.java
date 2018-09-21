@@ -427,4 +427,13 @@ public class EipService {
         return returnjs.toString();
     }
 
+    public void addEipPool() {
+        for (int i = 0; i < 10; i++) {
+            EipPool eipPoolMo = new EipPool();
+            eipPoolMo.setFireWallId("firewall_id1");
+            eipPoolMo.setIp("1.2.3."+i);
+            eipPoolMo.setState("0");
+            eipPoolRepository.save(eipPoolMo);
+        }
+    }
 }

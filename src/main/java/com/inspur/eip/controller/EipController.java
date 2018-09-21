@@ -41,7 +41,7 @@ public class EipController {
     @ICPControllerLog
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="allocateEip",notes="create")
+    @ApiOperation(value="allocateEip",notes="allocate")
     public JSONObject allocateEip(@RequestBody EipAllocateParamWrapper eipConfig) {
         try {
             return eipService.createEip(eipConfig.getEipAllocateParam(), floatingnetworkId, null);
@@ -155,6 +155,18 @@ public class EipController {
         }
 
     }
-
+    //add for test
+    @ICPControllerLog
+    @PostMapping(value = "/eips")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="addEipPool",notes="add eip")
+    public ResponseEntity<String> addEipPool() {
+        try {
+            eipService.addEipPool();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return new ResponseEntity<>("True", HttpStatus.OK);
+    }
 
 }
