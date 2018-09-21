@@ -44,19 +44,15 @@ public class EipService {
     private final static Logger log = Logger.getLogger(EipService.class.getName());
 
 
-    private synchronized EipPool allocateEip(String region, String networkId, String firewallId){
+    private synchronized EipPool allocateEip(String region, String networkId){
 
         List<EipPool> eipList = eipPoolRepository.findAll();
         for(EipPool eip: eipList) {
             if (eip != null) {
                 String eipState="0";
                 if (eip.getState().equals(eipState)) {
-                    if (null != firewallId) {
-                        if (eip.getFireWallId().equals(firewallId)) {
-                            eipPoolRepository.delete(eip);
-                            return eip;
-                        }
-                    }
+                    eipPoolRepository.delete(eip);
+                    return eip;
                 }
             }
         }
@@ -80,7 +76,7 @@ public class EipService {
         JSONObject eipWrapper=new JSONObject();
         JSONObject eipInfo = new JSONObject();
 
-        EipPool eip = allocateEip(eipConfig.getRegion(), externalNetWorkId, null);
+        EipPool eip = allocateEip(eipConfig.getRegion(), externalNetWorkId);
         if (null != eip) {
             NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(),externalNetWorkId,portId);
             if(null != floatingIP) {
