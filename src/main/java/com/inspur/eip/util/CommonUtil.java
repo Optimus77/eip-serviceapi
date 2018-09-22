@@ -25,6 +25,8 @@ import java.util.logging.Logger;
 
 public class CommonUtil {
 
+    private final static Log log = LogFactory.getLog(CommonUtil.class);
+
     public static String getDate() {
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -34,7 +36,7 @@ public class CommonUtil {
     @Setter
     private static JSONObject KeyClockInfo;
 
-    private final static Log log = LogFactory.getLog(CommonUtil.class);
+
 
     private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
     private static String user = "vpc";

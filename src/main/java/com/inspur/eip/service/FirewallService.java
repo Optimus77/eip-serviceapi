@@ -17,13 +17,12 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 
 @Service
 class FirewallService {
 
-    private final static Log log = LogFactory.getLog(EipService.class);
+    private final static Log log = LogFactory.getLog(FirewallService.class);
     @Autowired
     private FirewallRepository firewallRepository;
 

@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 @Service
 public  class NeutronService {
 
-    private final static Log log = LogFactory.getLog(EipService.class);
+    private final static Log log = LogFactory.getLog(NeutronService.class);
 
 
     /**
