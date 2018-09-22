@@ -7,6 +7,8 @@ import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.service.EipService;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.logging.Logger;
 
 
@@ -25,7 +26,9 @@ import java.util.logging.Logger;
 @Api(value = "eips", description = "eip API")
 public class EipController {
 
-    private final static Logger log = Logger.getLogger(EipController.class.getName());
+    private final static Log log = LogFactory.getLog(EipController.class);
+
+
     @Autowired
     private EipService eipService;
 
@@ -37,6 +40,7 @@ public class EipController {
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="allocateEip",notes="allocate")
     public JSONObject allocateEip(@RequestBody EipAllocateParamWrapper eipConfig) {
+        log.info(eipConfig);
         try {
             return eipService.createEip(eipConfig.getEipAllocateParam(), floatingnetworkId, null);
          } catch (Exception e){
@@ -49,7 +53,7 @@ public class EipController {
 
     @GetMapping(value = "/eips")
     @ApiOperation(value="listeip",notes="list")
-    public String listEip(@RequestParam String currentPage ,@RequestParam String limit) {
+    public String listEip(@RequestParam String currentPage , @RequestParam String limit) {
         log.info("EipController listEip");
         if(currentPage==null){
             currentPage="1";
@@ -105,9 +109,6 @@ public class EipController {
     @Transactional
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
-           // @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
-            //@ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
-           // @ApiImplicitParam(paramType = "body",   name = "param", value = "the json param ", required = true, dataType = "String")
     })
     public ResponseEntity eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param ) {
 
@@ -126,12 +127,8 @@ public class EipController {
     @Transactional
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
-           // @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
-           // @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
-           // @ApiImplicitParam(paramType = "body",   name = "param", value = "the json ", required = true, dataType = "String")
     })
     public ResponseEntity eipUnbindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
-
         String result=eipService.unBindPort(eipId);
         return new ResponseEntity(result, HttpStatus.OK);
 
@@ -143,13 +140,8 @@ public class EipController {
     @Transactional
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
-            //@ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
-            //@ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
-            //@ApiImplicitParam(paramType = "body",   name = "param", value = "the json ", required = true, dataType = "String")
     })
     public String changeEipBandWidht(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
-        log.info(eipId);
-        log.info(JSONObject.toJSONString(param));
         return eipService.updateEipBandWidth(eipId,param);
     }
     //add for test

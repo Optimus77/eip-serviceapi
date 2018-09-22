@@ -9,19 +9,20 @@ import com.inspur.icp.innet.security.inspur.object.policy.RmdPortMapResult;
 import com.inspur.icp.innet.security.inspur.object.policy.RmdSecurityDnatVo;
 import com.inspur.icp.innet.security.inspur.object.policy.RmdSecuritySnatVo;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 
 @Service
 class FirewallService {
 
-    private final static Logger log = Logger.getLogger(FirewallService.class.getName());
+    private final static Log log = LogFactory.getLog(FirewallService.class);
     @Autowired
     private FirewallRepository firewallRepository;
 
@@ -31,7 +32,7 @@ class FirewallService {
         if(firewall.isPresent()){
             fireWallEntity =  firewall.get();
         } else {
-            log.warning("Failed to find the firewall by id:"+ id);
+            log.warn("Failed to find the firewall by id:"+ id);
         }
         return fireWallEntity;
     }
@@ -146,7 +147,7 @@ class FirewallService {
                 }
                 log.info("QOS添加成功");
             } else {
-                log.warning("QOS添加失败");
+                log.warn("QOS添加失败");
             }
         }
         return pipid;
@@ -223,7 +224,7 @@ class FirewallService {
                     bSuccess = true;
                 } else {
                     bSuccess = false;
-                    log.warning("删除DNAT失败:" + "设备【" + devId + "】,ruleid【" + ruleid + "】");
+                    log.warn("删除DNAT失败:" + "设备【" + devId + "】,ruleid【" + ruleid + "】");
                 }
             }
         }
