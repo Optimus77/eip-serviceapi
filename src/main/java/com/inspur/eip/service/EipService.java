@@ -56,7 +56,7 @@ public class EipService {
                 }
             }
         }
-        log.warning("Failed to allocate eip in network"+networkId);
+        log.warning("Failed to allocate eip in network："+networkId);
         return null;
     }
 
@@ -71,7 +71,7 @@ public class EipService {
     }
 
     public JSONObject createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId) throws Exception {
-        Eip eipMo = null;
+        //Eip eipMo;
 
         JSONObject eipWrapper=new JSONObject();
         JSONObject eipInfo = new JSONObject();
@@ -80,13 +80,16 @@ public class EipService {
         if (null != eip) {
             NetFloatingIP floatingIP = neutronService.createFloatingIp(eipConfig.getRegion(),externalNetWorkId,portId);
             if(null != floatingIP) {
-                eipMo = new Eip();
+                Eip eipMo = new Eip();
                 eipMo.setFloatingIp(floatingIP.getFloatingIpAddress());
                 eipMo.setFixedIp(floatingIP.getFixedIpAddress());
                 eipMo.setEip(eip.getIp());
+                eipMo.setState("DOWN");
+                eipMo.setLinkType(eipConfig.getIpType());
                 eipMo.setFirewallId(eip.getFireWallId());
                 eipMo.setFloatingIpId(floatingIP.getId());
                 eipMo.setBanWidth(eipConfig.getBanWidth());
+                //eipMo.set
                 eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
                 eipRepository.save(eipMo);
 
@@ -185,11 +188,15 @@ public class EipService {
     }
 
     private Boolean associatePortWithEip(Eip eip, String portId, String instanceType) throws Exception{
-        if(null != neutronService.associatePortWithFloatingIp(eip.getFloatingIpId(),portId)){
-            String dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
-            String snatRuleId = firewallService.addSnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
+        NetFloatingIP netFloatingIP = neutronService.associatePortWithFloatingIp(eip.getFloatingIpId(),portId);
+        String dnatRuleId = null;
+        String snatRuleId = null;
+        String pipId = null;
+        if(null != netFloatingIP){
+            dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
+            snatRuleId = firewallService.addSnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
             if((null != dnatRuleId) && (null != snatRuleId)){
-                String pipId = firewallService.addQos(eip.getFloatingIp(),
+                pipId = firewallService.addQos(eip.getFloatingIp(),
                         eip.getEip(),
                         eip.getBanWidth(),
                         eip.getFirewallId());
@@ -207,10 +214,21 @@ public class EipService {
                 }
             } else {
                 log.warning("Failed to add snat and dnat in firewall"+eip.getFirewallId());
+
             }
         } else {
             log.warning("Failed to associate port with eip, portId:"+portId);
         }
+        if(null != netFloatingIP){
+            neutronService.disassociateFloatingIpFromPort(netFloatingIP.getFloatingNetworkId());
+        }
+        if(null != snatRuleId){
+            firewallService.delSnat(snatRuleId, eip.getFirewallId());
+        }
+        if(null != dnatRuleId){
+            firewallService.delDnat(dnatRuleId, eip.getFirewallId());
+        }
+
         return false;
     }
 
