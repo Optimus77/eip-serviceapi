@@ -43,7 +43,12 @@ public class EipService {
 
     private final static Logger log = Logger.getLogger(EipService.class.getName());
 
-
+    /**
+     * allocate eip
+     * @param region     region
+     * @param networkId  network id
+     * @return           result
+     */
     private synchronized EipPool allocateEip(String region, String networkId){
 
         List<EipPool> eipList = eipPoolRepository.findAll();
@@ -60,7 +65,11 @@ public class EipService {
         return null;
     }
 
-
+    /**
+     * find eip by id
+     * @param eipId  eip id
+     * @return  eip entity
+     */
     private Eip findEipEntryById(String eipId){
         Eip eipEntity = null;
         Optional<Eip> eip = eipRepository.findById(eipId);
@@ -70,6 +79,14 @@ public class EipService {
         return eipEntity;
     }
 
+    /**
+     * create a eip
+     * @param eipConfig          config
+     * @param externalNetWorkId  external network id
+     * @param portId             port id
+     * @return                   json info of eip
+     * @throws Exception         e
+     */
     public JSONObject createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId) throws Exception {
         //Eip eipMo;
 
@@ -128,7 +145,6 @@ public class EipService {
         if (null != eipEntity) {
             if ((null != eipEntity.getPipId()) || (null != eipEntity.getDnatId()) || (null != eipEntity.getSnatId())) {
                 log.warning("Failed to delete eip,Eip is bind to port.");
-                return false;
             } else {
                 result = neutronService.deleteFloatingIp(eipEntity.getName(), eipEntity.getFloatingIpId());
                 EipPool eipPoolMo = new EipPool();
@@ -140,7 +156,6 @@ public class EipService {
             }
         } else {
             log.warning("eipid errors");
-            return false;
         }
         return result;
     }
@@ -197,11 +212,19 @@ public class EipService {
 
     }
 
+    /**
+     * associate port with eip
+     * @param eip          eip
+     * @param portId       port id
+     * @param instanceType instance type
+     * @return             true or false
+     * @throws Exception   e
+     */
     private Boolean associatePortWithEip(Eip eip, String portId, String instanceType) throws Exception{
         NetFloatingIP netFloatingIP = neutronService.associatePortWithFloatingIp(eip.getFloatingIpId(),portId);
         String dnatRuleId = null;
         String snatRuleId = null;
-        String pipId = null;
+        String pipId;
         if(null != netFloatingIP){
             dnatRuleId = firewallService.addDnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
             snatRuleId = firewallService.addSnat(eip.getFloatingIp(), eip.getEip(), eip.getFirewallId());
@@ -242,6 +265,12 @@ public class EipService {
         return false;
     }
 
+    /**
+     * disassociate port with eip
+     * @param eipEntity    eip entity
+     * @return             reuslt, true or false
+     * @throws Exception   e
+     */
     private Boolean disassociatePortWithEip(Eip eipEntity) throws Exception  {
         if(null != neutronService.disassociateFloatingIpFromPort(eipEntity.getFloatingIpId())){
             Boolean result1 = firewallService.delDnat(eipEntity.getDnatId(), eipEntity.getFirewallId());
@@ -519,6 +548,9 @@ public class EipService {
         return returnjs.toString();
     }
 
+    /**
+     * add eip into eip pool for test
+     */
     public void addEipPool() {
         for (int i = 0; i < 10; i++) {
             EipPool eipPoolMo = new EipPool();
