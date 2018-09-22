@@ -1,11 +1,14 @@
 package com.inspur.eip.util;
 
+import com.inspur.eip.service.EipService;
 import com.inspur.icp.common.util.Base64Util;
 import com.inspur.icp.common.util.HttpClientUtil;
 import com.inspur.icp.common.util.OSClientUtil;
 import com.inspur.icp.common.util.QueryUtil;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.ResponseException;
@@ -31,7 +34,7 @@ public class CommonUtil {
     @Setter
     private static JSONObject KeyClockInfo;
 
-    private final static Logger log = Logger.getLogger(CommonUtil.class.getName());
+    private final static Log log = LogFactory.getLog(CommonUtil.class);
 
     private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
     private static String user = "vpc";

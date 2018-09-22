@@ -1,6 +1,8 @@
 package com.inspur.eip.service;
 
 import com.inspur.eip.util.CommonUtil;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.ResponseException;
 import org.openstack4j.model.network.NetFloatingIP;
@@ -22,7 +24,7 @@ import java.util.logging.Logger;
 @Service
 public  class NeutronService {
 
-    private final Logger log = Logger.getLogger(NeutronService.class.getName());
+    private final static Log log = LogFactory.getLog(EipService.class);
 
 
     /**
@@ -52,7 +54,7 @@ public  class NeutronService {
             String message = String.format(
                     "Cannot create floating ip under network: %s in region: %s",
                     networkId, region);
-            log.warning(message);
+            log.warn(message);
             throw new ResponseException(message, 500);
         }
 
