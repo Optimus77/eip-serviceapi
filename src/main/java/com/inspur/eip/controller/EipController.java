@@ -161,7 +161,6 @@ public class EipController {
     }
     //add for test
     @ICPControllerLog
-    @PostMapping(value = "/eipPool")
     @PostMapping(value = "/eips/addeippool")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="addEipPool",notes="add eip")
