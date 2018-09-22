@@ -17,8 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.logging.Logger;
-
 
 
 @RestController
@@ -50,7 +48,7 @@ public class EipController {
      }
 
 
-
+    @ICPControllerLog
     @GetMapping(value = "/eips")
     @ApiOperation(value="listeip",notes="list")
     public String listEip(@RequestParam String currentPage , @RequestParam String limit) {
@@ -72,7 +70,7 @@ public class EipController {
     public ResponseEntity<String> deleteEip(@PathVariable("eip_id") String id) {
         //Check the parameters
         if (id == null || id.length() == 0) {
-            return new ResponseEntity<String>("Id is not empty ", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Id is not empty ", HttpStatus.BAD_REQUEST);
         }
         try {
             log.info("Delete the Eip");
@@ -81,7 +79,7 @@ public class EipController {
         } catch (Exception e) {
             log.info("Delete failed");
             e.printStackTrace();
-            return new ResponseEntity<String>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -144,7 +142,8 @@ public class EipController {
     public String changeEipBandWidht(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
         return eipService.updateEipBandWidth(eipId,param);
     }
-    //add for test
+
+
     @ICPControllerLog
     @PostMapping(value = "/eips/addeippool")
     @CrossOrigin(origins = "*",maxAge = 3000)

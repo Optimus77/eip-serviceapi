@@ -45,7 +45,7 @@ public class CommonUtil {
     private static String userDomainId = "default";
     private static Config config = Config.newConfig().withSSLVerificationDisabled();
 
-    public static OSClientV3 getOsClientV3(){
+    private static OSClientV3 getOsClientV3(){
         //String token = getKeycloackToken();
         return OSFactory.builderV3()
                 .endpoint(authUrl)

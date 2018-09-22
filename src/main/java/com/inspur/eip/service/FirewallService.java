@@ -155,9 +155,9 @@ class FirewallService {
 
     /**
      * update the Qos bindWidth
-     * @param firewallId
-     * @param bindwidth
-     * @return
+     * @param firewallId  firewall id
+     * @param bindwidth   bind width
+     * @return            result
      */
     boolean updateQosBandWidth(String firewallId,String pipId, String pipNmae,String bindwidth){
 

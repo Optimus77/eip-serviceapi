@@ -44,8 +44,6 @@ public class EipService {
 
     private final static Log log = LogFactory.getLog(EipService.class);
 
-    private final static Logger log = Logger.getLogger(EipService.class.getName());
-
     /**
      * allocate eip
      * @param region     region
@@ -64,7 +62,7 @@ public class EipService {
                 }
             }
         }
-        log.warning("Failed to allocate eip in network："+networkId);
+        log.warn("Failed to allocate eip in network："+networkId);
         return null;
     }
 
@@ -122,7 +120,7 @@ public class EipService {
                 eipWrapper.put("eip", eipInfo);
                 return eipWrapper;
             }else {
-                log.warning("Failed to create floating ip in external network:"+externalNetWorkId);
+                log.warn("Failed to create floating ip in external network:"+externalNetWorkId);
             }
         }
         eipInfo.put("code", HttpStatus.SC_INTERNAL_SERVER_ERROR);
@@ -137,9 +135,9 @@ public class EipService {
      * 2.Determine if Snate and Qos is deleted
      * 3.delete eip
      *
-     * @param name
-     * @param eipId
-     * @return
+     * @param name  name
+     * @param eipId  eip ip
+     * @return       result: true/false
      */
 
     public Boolean deleteEip(String name, String eipId) throws Exception {
@@ -147,7 +145,7 @@ public class EipService {
         Eip eipEntity = findEipEntryById(eipId);
         if (null != eipEntity) {
             if ((null != eipEntity.getPipId()) || (null != eipEntity.getDnatId()) || (null != eipEntity.getSnatId())) {
-                log.warning("Failed to delete eip,Eip is bind to port.");
+                log.warn("Failed to delete eip,Eip is bind to port.");
             } else {
                 result = neutronService.deleteFloatingIp(eipEntity.getName(), eipEntity.getFloatingIpId());
                 EipPool eipPoolMo = new EipPool();
@@ -158,7 +156,7 @@ public class EipService {
                 eipRepository.deleteById(eipId);
             }
         } else {
-            log.warning("eipid errors");
+            log.warn("eipid errors");
         }
         return result;
     }
@@ -167,7 +165,7 @@ public class EipService {
      *  list the eip
      * @param currentPage  the current page
      * @param limit  element of per page
-     * @return
+     * @return       result
      */
     public String listEips(int currentPage,int limit){
         log.info("listEips  service start execute");
@@ -359,9 +357,10 @@ public class EipService {
     }
 
     /**
-     * bandWidth
-     * @param
-     * @return
+     * update eip band width
+     * @param id    id
+     * @param param param
+     * @return      result
      */
     public String updateEipBandWidth(String id, EipUpdateParamWrapper param) {
 
@@ -436,10 +435,10 @@ public class EipService {
     }
 
     /**
-     *
-     * @param id
-     * @param portId
-     * @return
+     * eip bind with port
+     * @param id      id
+     * @param portId  port id
+     * @return        result
      */
 
     public String eipbindPort(String id,String portId){
@@ -453,7 +452,7 @@ public class EipService {
                     case "1":
                         // 1：ecs
                         if(!associatePortWithEip(eipEntity, portId, instanceType)){
-                            log.warning("Failed to associate port with eip:%s."+ id);
+                            log.warn("Failed to associate port with eip:%s."+ id);
                         }
                         break;
                     case "2":
@@ -463,7 +462,7 @@ public class EipService {
                         // 3：slb
                         break;
                     default:
-                        log.warning("Unhandled instance type.");
+                        log.warn("Unhandled instance type.");
                         break;
                 }
                 JSONObject eipJSON = new JSONObject();
@@ -494,9 +493,9 @@ public class EipService {
     }
 
     /**
-     *
-     * @param id
-     * @return
+     * un bind port
+     * @param id    id
+     * @return      result
      */
     public String unBindPort(String id){
 
