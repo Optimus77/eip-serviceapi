@@ -144,12 +144,11 @@ public class EipService {
 
     /**
      *  list the eip
-     * @param vpcId
      * @param currentPage  the current page
      * @param limit  element of per page
      * @return
      */
-    public String listEips(String vpcId,int currentPage,int limit){
+    public String listEips(int currentPage,int limit){
         log.info("listEips  service start execute");
         JSONObject returnjs = new JSONObject();
 

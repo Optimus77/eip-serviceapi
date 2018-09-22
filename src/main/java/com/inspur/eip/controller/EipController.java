@@ -56,7 +56,7 @@ public class EipController {
 
     @GetMapping(value = "/eips")
     @ApiOperation(value="listeip",notes="list")
-    public String listEip(@RequestParam String currentPage ,@RequestParam String limit,@RequestParam String vpcId) {
+    public String listEip(@RequestParam String currentPage ,@RequestParam String limit) {
         log.info("EipController listEip");
         if(currentPage==null){
             currentPage="1";
@@ -64,7 +64,7 @@ public class EipController {
         if(limit==null){
             limit="10";
         }
-        return  eipService.listEips(vpcId,Integer.parseInt(currentPage),Integer.parseInt(limit));
+        return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit));
     }
 
 
@@ -92,8 +92,6 @@ public class EipController {
     /**
      * get eip instance detail
      * @param eipId  the id of eip
-     * @param authorization --
-     * @param region
      * @return
      */
     @ICPControllerLog
@@ -101,10 +99,8 @@ public class EipController {
     @ApiOperation(value = "get detail of  eip instance", notes = "")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String")
     })
-    public JSONObject getEipDetail(@PathVariable("eip_id") String eipId, @RequestHeader("authorization")String authorization , @RequestHeader("region")String region){
+    public JSONObject getEipDetail(@PathVariable("eip_id") String eipId){
         return eipService.getEipDetail(eipId);
     }
 
@@ -116,11 +112,11 @@ public class EipController {
     @Transactional
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType = "body",   name = "param", value = "the json param ", required = true, dataType = "String")
+           // @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
+            //@ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
+           // @ApiImplicitParam(paramType = "body",   name = "param", value = "the json param ", required = true, dataType = "String")
     })
-    public ResponseEntity eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region) {
+    public ResponseEntity eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param ) {
 
         if(param.getEipUpdateParam().getPortId()!=null){
             String result=eipService.eipbindPort(eipId,param.getEipUpdateParam().getPortId());
@@ -137,11 +133,11 @@ public class EipController {
     @Transactional
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType = "body",   name = "param", value = "the json ", required = true, dataType = "String")
+           // @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
+           // @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
+           // @ApiImplicitParam(paramType = "body",   name = "param", value = "the json ", required = true, dataType = "String")
     })
-    public ResponseEntity eipUnbindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region) {
+    public ResponseEntity eipUnbindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
 
         String result=eipService.unBindPort(eipId);
         return new ResponseEntity(result, HttpStatus.OK);
@@ -154,19 +150,18 @@ public class EipController {
     @Transactional
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
-            @ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
+            //@ApiImplicitParam(paramType = "header", name = "authorization", value = "the token from the keycolock", required = true, dataType = "String"),
+            //@ApiImplicitParam(paramType = "header", name = "region", value = "the region ", required = true, dataType = "String"),
             //@ApiImplicitParam(paramType = "body",   name = "param", value = "the json ", required = true, dataType = "String")
     })
-    public String changeEipBandWidht(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param,@RequestHeader("authorization")String authorization ,@RequestHeader("region")String region) {
+    public String changeEipBandWidht(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
         log.info(eipId);
         log.info(JSONObject.toJSONString(param));
-        log.info(region);
         return eipService.updateEipBandWidth(eipId,param);
     }
     //add for test
     @ICPControllerLog
-    @PostMapping(value = "/eips/addeipPool")
+    @PostMapping(value = "/eipPool")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="addEipPool",notes="add eip")
     public ResponseEntity<String> addEipPool() {

@@ -33,25 +33,32 @@ public class CommonUtil {
 
     private final static Logger log = Logger.getLogger(CommonUtil.class.getName());
 
-//    private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
-//    private static String user = "vpc";
-//    private static String password = "123456a?";
-//    private static String projectId = "65a859f362f749ce95237cbd08c30edf";
-//    private static String userDomainId = "default";
-//    private static Config config = Config.newConfig().withSSLVerificationDisabled();
+    private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
+    private static String user = "vpc";
+    private static String password = "123456a?";
+    private static String projectId = "65a859f362f749ce95237cbd08c30edf";
+    private static String userDomainId = "default";
+    private static Config config = Config.newConfig().withSSLVerificationDisabled();
 
-//    public static OSClientV3 getOsClientV3(){
-//        String token = getKeycloackToken();
-//        return OSFactory.builderV3()
-//                .endpoint(authUrl)
-//                .credentials(user, password, Identifier.byId(userDomainId))
-//                .withConfig(config)
-//                .scopeToProject(Identifier.byId(projectId))
-//                .authenticate();
-//    }
+    public static OSClientV3 getOsClientV3(){
+        //String token = getKeycloackToken();
+        return OSFactory.builderV3()
+                .endpoint(authUrl)
+                .credentials(user, password, Identifier.byId(userDomainId))
+                .withConfig(config)
+                .scopeToProject(Identifier.byId(projectId))
+                .authenticate();
+    }
 
 
     public static OSClientV3 getOsClientV3Util() throws Exception {
+
+        //cancle the auth
+        if(1==1){
+            return getOsClientV3();
+        }
+
+
         String token = getKeycloackToken();
         log.info(token);
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
