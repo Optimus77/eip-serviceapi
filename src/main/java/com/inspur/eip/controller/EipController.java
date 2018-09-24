@@ -5,6 +5,7 @@ import com.inspur.eip.config.ConstantClassField;
 import com.inspur.eip.entity.EipAllocateParamWrapper;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.service.EipService;
+import com.inspur.eip.util.annotation.Forword;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
 import org.apache.commons.logging.Log;
@@ -38,6 +39,7 @@ public class EipController {
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="allocateEip",notes="allocate")
+
     public JSONObject allocateEip(@RequestBody EipAllocateParamWrapper eipConfig) {
         log.info(eipConfig);
         try {
@@ -52,6 +54,7 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/eips")
     @ApiOperation(value="listeip",notes="list")
+    @Forword
     public String listEip(@RequestParam String currentPage , @RequestParam String limit) {
         log.info("EipController listEip");
         if(currentPage==null){
@@ -108,14 +111,9 @@ public class EipController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    public ResponseEntity eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param ) {
+    public String eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param ) {
 
-        if(param.getEipUpdateParam().getPortId()!=null){
-            String result=eipService.eipbindPort(eipId,param.getEipUpdateParam().getPortId());
-            return new ResponseEntity(result, HttpStatus.OK);
-        }else{
-            return new ResponseEntity("{error:\"port_id is not null\"}", HttpStatus.OK);
-        }
+        return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),param.getEipUpdateParam().getPortId());
 
     }
 
