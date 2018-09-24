@@ -24,9 +24,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * @Auther: jiasirui
- * @Date: 2018/9/14 09:32
- * @Description:  the Eip Service Interface
+ * @auther: jiasirui
+ * @date: 2018/9/14 09:32
+ * @description:  the Eip Service Interface
  */
 
 @Service
@@ -187,7 +187,7 @@ public class EipService {
                 eipJson.put("bandwidth",eip.getBanWidth());
                 eipJson.put("chargetype","null");
                 eipJson.put("chargemode","null");
-                eipJson.put("create at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
+                eipJson.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
                 JSONObject resourceset=new JSONObject();
                 resourceset.put("resourcetype",eip.getInstanceType());
                 resourceset.put("resource_id",eip.getInstanceId());

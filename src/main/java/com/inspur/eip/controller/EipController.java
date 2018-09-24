@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
+
 @RestController
 @RequestMapping(value= ConstantClassField.VERSION_REST, produces={"application/json;charset=UTF-8"})
 @Api(value = "eips", description = "eip API")
@@ -104,7 +105,6 @@ public class EipController {
     @ICPControllerLog
     @PostMapping(value = "/eips/{eip_id}/port", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "eipBindWithPort", notes = "")
-    @Transactional
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
@@ -122,7 +122,6 @@ public class EipController {
     @ICPControllerLog
     @DeleteMapping(value = "/eips/{eip_id}/port", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "eipUnbinWithPort", notes = "")
-    @Transactional
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
@@ -135,7 +134,6 @@ public class EipController {
     @ICPControllerLog
     @PutMapping(value = "/eips/{eip_id}/bindwidth", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "update eip bandWidth", notes = "")
-    @Transactional
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
