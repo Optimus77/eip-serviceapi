@@ -123,10 +123,8 @@ public class EipController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
     })
-    public ResponseEntity eipUnbindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
-        String result=eipService.unBindPort(eipId);
-        return new ResponseEntity(result, HttpStatus.OK);
-
+    public String eipUnbindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
+        return eipService.unBindPort(eipId);
     }
 
     @ICPControllerLog

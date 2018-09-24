@@ -525,41 +525,55 @@ public class EipService {
                         // 1：ecs
                         if(!disassociatePortWithEip(eipEntity)){
                             log.info("Failed to disassociate port with eip"+id);
+                            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                            returnjs.put("data","{}");
+                            returnjs.put("msg", "can't associate  port with eip"+ id);
+                        }else{
+                            JSONObject eipJSON = new JSONObject();
+                            eipJSON.put("eipid", eipEntity.getId());
+                            eipJSON.put("status", eipEntity.getState());
+                            eipJSON.put("iptype", eipEntity.getLinkType());
+                            eipJSON.put("eip_address", eipEntity.getEip());
+                            eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
+                            eipJSON.put("chargetype", "THIS IS EMPTY");
+                            eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
+                            JSONObject eipjs=new JSONObject();
+                            eipjs.put("eip",eipJSON);
+                            returnjs.put("code",HttpStatus.SC_OK);
+                            returnjs.put("data",eipjs);
+                            returnjs.put("msg", "success");
                         }
                         break;
                     case "2":
                         // 2：cps
+                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "no support cps ");
                         break;
                     case "3":
                         // 3：slb
+                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "no support slb ");
                         break;
                     default:
                         //default ecs
                         log.info("Unhandled instance type.");
+                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "no support instance type. ");
                         break;
                 }
-                JSONObject eipJSON = new JSONObject();
-                eipJSON.put("eipid", eipEntity.getId());
-                NetFloatingIP bandingFloatIp =neutronService.getFloatingIp(eipEntity.getFloatingIpId());
-                if(bandingFloatIp!=null){
-                    log.info(bandingFloatIp.toString());
-                    eipJSON.put("status", bandingFloatIp.getStatus());
-                }else{
-                    eipJSON.put("status", "ERROR GET INFO");
-                }
-                eipJSON.put("iptype", eipEntity.getLinkType());
-                eipJSON.put("eip_address", eipEntity.getEip());
-                eipJSON.put("port_id","portI " );
-                eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
-                eipJSON.put("chargetype", "THIS IS EMPTY");
-                eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
-                returnjs.put("eip", eipJSON);
             } else {
-                returnjs.put("error", "can not find EIP instance use this id:" + id+"");
+                returnjs.put("code",HttpStatus.SC_NOT_FOUND);
+                returnjs.put("data",null);
+                returnjs.put("msg", "can find eip wiht id ："+id);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            returnjs.put("error", e.getMessage()+"");
+            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            returnjs.put("data",null);
+            returnjs.put("msg", e.getMessage()+"");
         }
 
         return returnjs.toString();
