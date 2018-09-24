@@ -5,7 +5,6 @@ import com.inspur.eip.config.ConstantClassField;
 import com.inspur.eip.entity.EipAllocateParamWrapper;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.service.EipService;
-import com.inspur.eip.util.annotation.Forword;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
 import org.apache.commons.logging.Log;
@@ -54,7 +53,7 @@ public class EipController {
     @ICPControllerLog
     @GetMapping(value = "/eips")
     @ApiOperation(value="listeip",notes="list")
-    @Forword
+    //@Forword
     public String listEip(@RequestParam String currentPage , @RequestParam String limit) {
         log.info("EipController listEip");
         if(currentPage==null){
