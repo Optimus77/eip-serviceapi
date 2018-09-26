@@ -25,9 +25,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * @Auther: jiasirui
- * @Date: 2018/9/14 09:32
- * @Description:  the Eip Service Interface
+ * @auther: jiasirui
+ * @date: 2018/9/14 09:32
+ * @description:  the Eip Service Interface
  */
 
 @Service
@@ -190,7 +190,7 @@ public class EipService {
                 eipJson.put("bandwidth",eip.getBanWidth());
                 eipJson.put("chargetype","null");
                 eipJson.put("chargemode","null");
-                eipJson.put("create at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
+                eipJson.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eip.getCreateTime()));
                 JSONObject resourceset=new JSONObject();
                 resourceset.put("resourcetype",eip.getInstanceType());
                 resourceset.put("resource_id",eip.getInstanceId());
@@ -439,7 +439,7 @@ public class EipService {
             e.printStackTrace();
             returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
             returnjs.put("data",null);
-            returnjs.put("error", e.getMessage()+"");
+            returnjs.put("msg", e.getMessage()+"");
         }
         log.info(returnjs.toString());
         return returnjs.toString();
@@ -459,46 +459,61 @@ public class EipService {
             Optional<Eip> eip = eipRepository.findById(id);
             if (eip.isPresent()) {
                 Eip eipEntity = eip.get();
-                String instanceType = eipEntity.getInstanceType();
-                switch(instanceType){
+                switch(type){
                     case "1":
                         // 1：ecs
-                        if(!associatePortWithEip(eipEntity, portId, instanceType)){
-                            log.warn("Failed to associate port with eip:%s."+ id);
+                        if(!associatePortWithEip(eipEntity, portId, type)){
+                            log.info("Failed to associate port with eip:%s."+ id);
+                            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                            returnjs.put("data","{}");
+                            returnjs.put("msg", "can't associate  port with eip"+ id);
+                        }else{
+                            JSONObject eipJSON = new JSONObject();
+                            eipJSON.put("eipid", eipEntity.getId());
+                            eipJSON.put("status", eipEntity.getState());
+                            eipJSON.put("iptype", eipEntity.getLinkType());
+                            eipJSON.put("eip_address", eipEntity.getEip());
+                            eipJSON.put("port_id", portId);
+                            eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
+                            eipJSON.put("chargetype", "THIS IS EMPTY");
+                            eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
+                            JSONObject eipjs=new JSONObject();
+                            eipjs.put("eip",eipJSON);
+;                           returnjs.put("code",HttpStatus.SC_OK);
+                            returnjs.put("data",eipjs);
+                            returnjs.put("msg", "success");
                         }
                         break;
                     case "2":
                         // 2：cps
+                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "no support type param "+type);
                         break;
                     case "3":
                         // 3：slb
+                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "no support type param "+type);
                         break;
                     default:
-                        log.warn("Unhandled instance type.");
+                        log.info("no support type");
+                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "no support type param "+type);
                         break;
                 }
-                JSONObject eipJSON = new JSONObject();
-                eipJSON.put("eipid", eipEntity.getId());
-                NetFloatingIP bandingFloatIp =neutronService.getFloatingIp(eipEntity.getFloatingIpId());
-                if(bandingFloatIp!=null){
-                    log.info(bandingFloatIp.toString());
-                    eipJSON.put("status", bandingFloatIp.getStatus());
-                }else{
-                    eipJSON.put("status", "ERROR GET INFO");
-                }
-                eipJSON.put("iptype", eipEntity.getLinkType());
-                eipJSON.put("eip_address", eipEntity.getEip());
-                eipJSON.put("port_id","portId" );
-                eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
-                eipJSON.put("chargetype", "THIS IS EMPTY");
-                eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
-                returnjs.put("eip", eipJSON);
+
             } else {
-                returnjs.put("error", "can not find EIP instance use this id:" + id+"");
+                returnjs.put("code",HttpStatus.SC_NOT_FOUND);
+                returnjs.put("data",null);
+                returnjs.put("msg", "can find eip wiht id ："+id);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            returnjs.put("error", e.getMessage()+"");
+            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            returnjs.put("data",null);
+            returnjs.put("msg", e.getMessage()+"");
         }
         log.info(returnjs.toString());
         return returnjs.toString();
@@ -523,41 +538,55 @@ public class EipService {
                         // 1：ecs
                         if(!disassociatePortWithEip(eipEntity)){
                             log.info("Failed to disassociate port with eip"+id);
+                            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                            returnjs.put("data","{}");
+                            returnjs.put("msg", "can't associate  port with eip"+ id);
+                        }else{
+                            JSONObject eipJSON = new JSONObject();
+                            eipJSON.put("eipid", eipEntity.getId());
+                            eipJSON.put("status", eipEntity.getState());
+                            eipJSON.put("iptype", eipEntity.getLinkType());
+                            eipJSON.put("eip_address", eipEntity.getEip());
+                            eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
+                            eipJSON.put("chargetype", "THIS IS EMPTY");
+                            eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
+                            JSONObject eipjs=new JSONObject();
+                            eipjs.put("eip",eipJSON);
+                            returnjs.put("code",HttpStatus.SC_OK);
+                            returnjs.put("data",eipjs);
+                            returnjs.put("msg", "success");
                         }
                         break;
                     case "2":
                         // 2：cps
+                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "no support cps ");
                         break;
                     case "3":
                         // 3：slb
+                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "no support slb ");
                         break;
                     default:
                         //default ecs
                         log.info("Unhandled instance type.");
+                        returnjs.put("code",HttpStatus.SC_ACCEPTED);
+                        returnjs.put("data","{}");
+                        returnjs.put("msg", "no support instance type. ");
                         break;
                 }
-                JSONObject eipJSON = new JSONObject();
-                eipJSON.put("eipid", eipEntity.getId());
-                NetFloatingIP bandingFloatIp =neutronService.getFloatingIp(eipEntity.getFloatingIpId());
-                if(bandingFloatIp!=null){
-                    log.info(bandingFloatIp.toString());
-                    eipJSON.put("status", bandingFloatIp.getStatus());
-                }else{
-                    eipJSON.put("status", "ERROR GET INFO");
-                }
-                eipJSON.put("iptype", eipEntity.getLinkType());
-                eipJSON.put("eip_address", eipEntity.getEip());
-                eipJSON.put("port_id","portI " );
-                eipJSON.put("bandwidth", Integer.parseInt(eipEntity.getBanWidth()));
-                eipJSON.put("chargetype", "THIS IS EMPTY");
-                eipJSON.put("create_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(eipEntity.getCreateTime()));
-                returnjs.put("eip", eipJSON);
             } else {
-                returnjs.put("error", "can not find EIP instance use this id:" + id+"");
+                returnjs.put("code",HttpStatus.SC_NOT_FOUND);
+                returnjs.put("data",null);
+                returnjs.put("msg", "can find eip wiht id ："+id);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            returnjs.put("error", e.getMessage()+"");
+            returnjs.put("code",HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            returnjs.put("data",null);
+            returnjs.put("msg", e.getMessage()+"");
         }
 
         return returnjs.toString();
