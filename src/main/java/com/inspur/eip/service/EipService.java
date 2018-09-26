@@ -8,6 +8,7 @@ import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.entity.EipPool;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
+import com.inspur.eip.util.CommonUtil;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -88,6 +89,7 @@ public class EipService {
      * @return                   json info of eip
      * @throws Exception         e
      */
+    @ICPServiceLog
     public JSONObject createEip(EipAllocateParam eipConfig, String externalNetWorkId, String portId) throws Exception {
         //Eip eipMo;
 
@@ -107,6 +109,7 @@ public class EipService {
                 eipMo.setFirewallId(eip.getFireWallId());
                 eipMo.setFloatingIpId(floatingIP.getId());
                 eipMo.setBanWidth(eipConfig.getBanWidth());
+                eipMo.setProjectId(CommonUtil.getProjectId());
                 //eipMo.set
                 eipMo.setSharedBandWidthId(eipConfig.getSharedBandWidthId());
                 eipRepository.save(eipMo);
@@ -139,7 +142,7 @@ public class EipService {
      * @param eipId  eip ip
      * @return       result: true/false
      */
-
+    @ICPServiceLog
     public Boolean deleteEip(String name, String eipId) throws Exception {
         Boolean result = false;
         Eip eipEntity = findEipEntryById(eipId);
@@ -273,29 +276,37 @@ public class EipService {
      * @throws Exception   e
      */
     private Boolean disassociatePortWithEip(Eip eipEntity) throws Exception  {
-        if(null != neutronService.disassociateFloatingIpFromPort(eipEntity.getFloatingIpId())){
-            Boolean result1 = firewallService.delDnat(eipEntity.getDnatId(), eipEntity.getFirewallId());
-            Boolean result2 = firewallService.delSnat(eipEntity.getDnatId(), eipEntity.getFirewallId());
-            if(result1 && result2) {
-                if(firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId())){
-                    eipEntity.setInstanceId(null);
-                    eipEntity.setInstanceType(null);
-                    eipEntity.setDnatId(null);
-                    eipEntity.setSnatId(null);
-                    eipEntity.setPipId(null);
-                    eipEntity.setState("0");
-                    eipRepository.save(eipEntity);
-                    return true;
-                } else {
-                    log.warn("Failed to del qos"+eipEntity.getPipId());
-                }
-            } else {
-                log.warn("Failed to del snat and dnat in firewall"+eipEntity.getFirewallId());
-            }
+        NetFloatingIP netFloatingIP= neutronService.disassociateFloatingIpFromPort(eipEntity.getFloatingIpId());
+        if(null != netFloatingIP) {
+            log.warn("Failed to disassociate port with eip, floatingipid:" + eipEntity.getFloatingIpId());
         } else {
-            log.warn("Failed to disassociate port with eip, floatingipid:"+eipEntity.getFloatingIpId());
+            eipEntity.setInstanceId(null);
+            eipEntity.setInstanceType(null);
         }
-        return false;
+        Boolean delDnatResult = firewallService.delDnat(eipEntity.getDnatId(), eipEntity.getFirewallId());
+        if(!delDnatResult){
+            log.warn("Failed to del dnat in firewall" + eipEntity.getFirewallId());
+        }else{
+            eipEntity.setDnatId(null);
+        }
+        Boolean delSnatResult = firewallService.delSnat(eipEntity.getSnatId(), eipEntity.getFirewallId());
+        if(!delSnatResult) {
+            log.warn("Failed to del snat in firewall" + eipEntity.getFirewallId());
+        }else {
+            eipEntity.setSnatId(null);
+        }
+
+        Boolean delQosResult = firewallService.delQos(eipEntity.getPipId(), eipEntity.getFirewallId());
+        if(!delQosResult) {
+            log.warn("Failed to del qos" + eipEntity.getPipId());
+        } else {
+            eipEntity.setPipId(null);
+        }
+
+        eipEntity.setState("0");
+        eipRepository.save(eipEntity);
+
+        return delDnatResult && delSnatResult && delQosResult && (null == netFloatingIP);
     }
 
 
@@ -362,6 +373,7 @@ public class EipService {
      * @param param param
      * @return      result
      */
+    @ICPServiceLog
     public String updateEipBandWidth(String id, EipUpdateParamWrapper param) {
 
         JSONObject returnjs = new JSONObject();
@@ -440,7 +452,7 @@ public class EipService {
      * @param portId  port id
      * @return        result
      */
-
+    @ICPServiceLog
     public String eipbindPort(String id,String portId){
         JSONObject returnjs = new JSONObject();
         try {
@@ -497,6 +509,7 @@ public class EipService {
      * @param id    id
      * @return      result
      */
+    @ICPServiceLog
     public String unBindPort(String id){
 
         JSONObject returnjs = new JSONObject();

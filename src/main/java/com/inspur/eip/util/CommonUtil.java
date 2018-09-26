@@ -140,6 +140,8 @@ public class CommonUtil {
         }
     }
 
-
+    public static String getProjectId(){
+        return projectId;
+    }
 
 }

@@ -80,4 +80,6 @@ public class Eip implements Serializable {
     @Column(name="update_time")
     private Date updateTime;
 
+    @Column(name="project_id")
+    private String projectId;
 }

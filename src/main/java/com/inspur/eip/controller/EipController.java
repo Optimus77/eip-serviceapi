@@ -5,6 +5,7 @@ import com.inspur.eip.config.ConstantClassField;
 import com.inspur.eip.entity.EipAllocateParamWrapper;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.service.EipService;
+import com.inspur.eip.util.FastjsonUtil;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.*;
 import org.apache.commons.logging.Log;
@@ -75,7 +76,7 @@ public class EipController {
         try {
             log.info("Delete the Eip");
             Boolean result = eipService.deleteEip("name", id);
-            return new ResponseEntity(result, HttpStatus.OK);
+            return new ResponseEntity<>(FastjsonUtil.toJSONString(result), HttpStatus.OK);
         } catch (Exception e) {
             log.info("Delete failed");
             e.printStackTrace();
@@ -112,11 +113,10 @@ public class EipController {
 
         if(param.getEipUpdateParam().getPortId()!=null){
             String result=eipService.eipbindPort(eipId,param.getEipUpdateParam().getPortId());
-            return new ResponseEntity(result, HttpStatus.OK);
+            return new ResponseEntity<>(result, HttpStatus.OK);
         }else{
-            return new ResponseEntity("{error:\"port_id is not null\"}", HttpStatus.OK);
+            return new ResponseEntity<>("{error:\"port_id is not null\"}", HttpStatus.OK);
         }
-
     }
 
     @ICPControllerLog
@@ -128,7 +128,7 @@ public class EipController {
     })
     public ResponseEntity eipUnbindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param) {
         String result=eipService.unBindPort(eipId);
-        return new ResponseEntity(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.OK);
 
     }
 
