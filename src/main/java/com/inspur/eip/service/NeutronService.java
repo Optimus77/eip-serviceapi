@@ -5,6 +5,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.ResponseException;
+import org.openstack4j.model.common.ActionResponse;
+import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.builder.NetFloatingIPBuilder;
 import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
@@ -65,16 +67,19 @@ public  class NeutronService {
         return osClientV3.networking().floatingip().delete(eipId).isSuccess();
     }
 
-    synchronized NetFloatingIP associatePortWithFloatingIp(String netFloatingIpId, String portId) throws Exception  {
+    synchronized ActionResponse associaInstanceWithFloatingIp(String floatingIp, String serverId) throws Exception  {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
-        return osClientV3.networking().floatingip().associateToPort(netFloatingIpId, portId);
+        Server server = osClientV3.compute().servers().get(serverId);
+        return osClientV3.compute().floatingIps().addFloatingIP(server, floatingIp);
     }
 
-    synchronized NetFloatingIP disassociateFloatingIpFromPort( String netFloatingIpId) throws Exception {
+    synchronized ActionResponse disassociateFloatingIpWithFloatingIp( String floatingIp, String serverId)
+            throws Exception {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util();
-        return osClientV3.networking().floatingip().disassociateFromPort(netFloatingIpId);
+        Server server = osClientV3.compute().servers().get(serverId);
+        return  osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
     }
 
 
