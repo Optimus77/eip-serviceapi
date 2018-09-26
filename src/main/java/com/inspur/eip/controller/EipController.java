@@ -111,7 +111,7 @@ public class EipController {
     })
     public String eipBindWithPort(@PathVariable("eip_id") String eipId, @RequestBody EipUpdateParamWrapper param ) {
 
-        return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),param.getEipUpdateParam().getPortId());
+        return eipService.eipbindPort(eipId,param.getEipUpdateParam().getType(),param.getEipUpdateParam().getServerId());
 
     }
 

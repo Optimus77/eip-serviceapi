@@ -454,7 +454,7 @@ public class EipService {
      * @return        result
      */
     @ICPServiceLog
-    public String eipbindPort(String id,String serverId, String type){
+    public String eipbindPort(String id, String type, String serverId){
         JSONObject returnjs = new JSONObject();
         try {
             Optional<Eip> eip = eipRepository.findById(id);
