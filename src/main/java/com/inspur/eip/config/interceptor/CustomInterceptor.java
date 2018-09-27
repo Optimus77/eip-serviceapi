@@ -35,8 +35,7 @@ public class CustomInterceptor implements HandlerInterceptor {
         try {
             properties= PropertiesLoaderUtils.loadAllProperties("constant-config.yml");
             for(Object key:properties.keySet()){
-                System.out.print(key+":");
-                System.out.println(properties.get(key));
+                log.info(key+":"+properties.get(key));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -49,15 +48,15 @@ public class CustomInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
         log.info("CustomInterceptor ==> preHandle method: do request before");
-        Forword forword = ((HandlerMethod) handler).getMethod().getAnnotation(Forword.class);
-        if (forword != null) {
-            log.info("can find @Forword in this uri:" + request.getRequestURI());
-            return doForword(request,response,handler);
-        }else{
-            log.info("can't find @Forword in this uri:"+ request.getRequestURI());
-            log.info("url is not contains eip do nothing");
-            return doForword(request,response,handler);
-        }
+        return doForword(request,response,handler);
+        //Forword forword = ((HandlerMethod) handler).getMethod().getAnnotation(Forword.class);
+//        if (forword != null) {
+//            log.info("can find @Forword in this uri:" + request.getRequestURI());
+//            return doForword(request,response,handler);
+//        }else{
+//            log.info("can't find @Forword in this uri:"+ request.getRequestURI());
+//            log.info("url is not contains eip do nothing");
+//        }
 
     }
 
@@ -81,13 +80,10 @@ public class CustomInterceptor implements HandlerInterceptor {
 
     private boolean doForword(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws URISyntaxException, IOException {
-        log.info("doForword");
         String ip = properties.getProperty("atomapiIp");
         String url = request.getRequestURI();
         url =ip+url;
-        log.info(request.getContextPath());
-        log.info(request.getRequestURL());
-        log.info(request.getQueryString());
+
         String queryString=request.getQueryString();
         if( queryString!=null){
             if(!queryString.isEmpty()){
@@ -96,9 +92,8 @@ public class CustomInterceptor implements HandlerInterceptor {
         }
         String method = request.getMethod();
         Map<String, String[]> param= request.getParameterMap();
-        log.info(url);
-        log.info(param);
-        log.info(method);
+        log.info("doForword--["+method+"]"+request.getRequestURL()+"?"+request.getQueryString()+"  ===>  "+url);
+
 
 
         HttpMethod httpMethod =HttpMethod.resolve(method);
@@ -134,17 +129,21 @@ public class CustomInterceptor implements HandlerInterceptor {
         httpHeaders.add("Cookie", JSON.toJSONString(cookies));
         httpHeaders.add("session",JSON.toJSONString(session));
         //httpHeaders.
-        HttpEntity httpEntity = new HttpEntity(in,httpHeaders);
-        ResponseEntity<String> responseEntity = restTemplate.exchange(url,httpMethod,httpEntity,String.class,param);
-        String body=responseEntity.getBody();
-        if (body!=null){
-            OutputStream stream = response.getOutputStream();
-            stream.write(body.getBytes("UTF-8"));
+        try{
+            HttpEntity httpEntity = new HttpEntity(in,httpHeaders);
+            ResponseEntity<String> responseEntity = restTemplate.exchange(url,httpMethod,httpEntity,String.class,param);
+            String body=responseEntity.getBody();
+            if (body!=null){
+                OutputStream stream = response.getOutputStream();
+                stream.write(body.getBytes("UTF-8"));
+            }
+            if (responseEntity.getStatusCode()!=null){
+                response.setStatus(responseEntity.getStatusCode().value());
+            }
+            response.setContentType("application/json");
+        }catch (Exception e){
+            log.info("foward get a error"+e.getMessage());
         }
-        if (responseEntity.getStatusCode()!=null){
-            response.setStatus(responseEntity.getStatusCode().value());
-        }
-        response.setContentType("application/json");
         return false;
     }
 }

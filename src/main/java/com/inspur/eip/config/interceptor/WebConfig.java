@@ -29,7 +29,7 @@ public class WebConfig implements WebMvcConfigurer {
 
         log.info("***********************addInterceptors***************************************");
         WebMvcConfigurer.super.addInterceptors(registry);
-        registry.addInterceptor(new CustomInterceptor()).addPathPatterns("/**/eips**");//拦截url
+        registry.addInterceptor(new CustomInterceptor()).addPathPatterns("/**");//拦截url
         log.info(registry);
         log.info("***********************addInterceptors***************************************");
     }

@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Entity
-@Table(name="eipPool")
+//@Table(name="eipPool")
 @Getter
 @Setter
 public class EipPool implements Serializable {

@@ -11,7 +11,6 @@ import io.swagger.annotations.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +33,8 @@ public class EipController {
 
     //Todo: find the external net id
     private String floatingnetworkId = "d9c00a35-fea8-4162-9de1-b8100494a11d";
+
+
 
     @ICPControllerLog
     @PostMapping(value = "/eips")

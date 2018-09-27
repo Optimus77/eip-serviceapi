@@ -8,7 +8,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
-@Table(name="firewall")
+//@Table(name="firewall")
 @Getter
 @Setter
 public class Firewall implements Serializable {
