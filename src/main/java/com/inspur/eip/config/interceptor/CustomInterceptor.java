@@ -3,8 +3,10 @@ package com.inspur.eip.config.interceptor;
 
 import com.alibaba.fastjson.JSON;
 import com.inspur.eip.config.interceptor.annotation.Forword;
+import com.inspur.eip.config.pool.http.clientImpl.HttpConnectionManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
@@ -21,10 +23,14 @@ import java.net.URISyntaxException;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 
 public class CustomInterceptor implements HandlerInterceptor {
+
+    @Autowired
+    HttpConnectionManager httpPoolManager;
 
     private final static Log log = LogFactory.getLog(CustomInterceptor.class);
 
@@ -48,7 +54,8 @@ public class CustomInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
         log.info("CustomInterceptor ==> preHandle method: do request before");
-        return doForword(request,response,handler);
+        return true;
+        //return doForword(request,response,handler);
         //Forword forword = ((HandlerMethod) handler).getMethod().getAnnotation(Forword.class);
 //        if (forword != null) {
 //            log.info("can find @Forword in this uri:" + request.getRequestURI());
@@ -125,22 +132,26 @@ public class CustomInterceptor implements HandlerInterceptor {
         httpHeaders.setContentType(APPLICATION_JSON_UTF8);
         Cookie[] cookies= request.getCookies();
         HttpSession session = request.getSession();
-        String servername= request.getServerName();
         httpHeaders.add("Cookie", JSON.toJSONString(cookies));
         httpHeaders.add("session",JSON.toJSONString(session));
         //httpHeaders.
         try{
             HttpEntity httpEntity = new HttpEntity(in,httpHeaders);
             ResponseEntity<String> responseEntity = restTemplate.exchange(url,httpMethod,httpEntity,String.class,param);
-            String body=responseEntity.getBody();
+            HttpHeaders header=responseEntity.getHeaders();
+            String     body=responseEntity.getBody();
+            //log.info(body);
             if (body!=null){
                 OutputStream stream = response.getOutputStream();
                 stream.write(body.getBytes("UTF-8"));
             }
-            if (responseEntity.getStatusCode()!=null){
-                response.setStatus(responseEntity.getStatusCode().value());
+            for (String key:header.keySet()){
+                //log.info(key+"================"+header.get(key));
+                String content=header.get(key).toString();
+                //log.info(content.substring(1,content.length()-1));
+                response.setHeader(key,content.substring(1,content.length()-1));
             }
-            response.setContentType("application/json");
+
         }catch (Exception e){
             log.info("foward get a error"+e.getMessage());
         }
