@@ -1,9 +1,17 @@
 package com.inspur.eip.config.proxy;
 
+import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.interceptor.CustomInterceptor;
+import com.inspur.eip.config.proxy.httppool.HttpClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,18 +27,17 @@ import java.util.Properties;
  * @description:
  */
 @Configuration
-public class FowardProxy  implements EnvironmentAware {
+public class FowardProxy   {
 
 
-    private final static Log log = LogFactory.getLog(FowardProxy.class);
+
+    private static Log log = LogFactory.getLog(FowardProxy.class);
 
     private static Properties properties = new Properties();
     static{
+        log.info("FowardProxy get properties");
         try {
-            properties= PropertiesLoaderUtils.loadAllProperties("test.yml");
-            for(Object key:properties.keySet()){
-                log.info(key+":"+properties.get(key));
-            }
+            properties= PropertiesLoaderUtils.loadAllProperties("constant-config.yml");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -38,14 +45,15 @@ public class FowardProxy  implements EnvironmentAware {
 
     @Bean
     public ServletRegistrationBean servletRegistrationBean(){
-        ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(new ProxyServlet(), properties.getProperty("servlet_url"));
+        log.info("-------ServletRegistrationBean start------------------------");
+
+        ProxyServlet proxyServlet=new ProxyServlet();
+        ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(proxyServlet, properties.getProperty("servlet_url"));
         servletRegistrationBean.addInitParameter(ProxyServlet.P_TARGET_URI, properties.getProperty("target_url"));
-        servletRegistrationBean.addInitParameter(ProxyServlet.P_LOG, properties.getProperty("logging_enabled", "true"));
+        servletRegistrationBean.addInitParameter(ProxyServlet.P_LOG, properties.getProperty("logging_enabled"));
         return servletRegistrationBean;
     }
 
-    @Override
-    public void setEnvironment(Environment environment) {
 
-    }
+
 }
