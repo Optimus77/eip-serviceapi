@@ -3,7 +3,6 @@ package com.inspur.eip.config.interceptor;
 
 import com.alibaba.fastjson.JSON;
 import com.inspur.eip.config.interceptor.annotation.Forword;
-import com.inspur.eip.config.pool.http.clientImpl.HttpConnectionManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +28,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 
 public class CustomInterceptor implements HandlerInterceptor {
 
-    @Autowired
-    HttpConnectionManager httpPoolManager;
 
     private final static Log log = LogFactory.getLog(CustomInterceptor.class);
 
@@ -53,7 +50,7 @@ public class CustomInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
-        log.info("CustomInterceptor ==> preHandle method: do request before");
+        log.debug("CustomInterceptor ==> preHandle method: do request before");
         return true;
         //return doForword(request,response,handler);
         //Forword forword = ((HandlerMethod) handler).getMethod().getAnnotation(Forword.class);
@@ -73,7 +70,7 @@ public class CustomInterceptor implements HandlerInterceptor {
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
                            ModelAndView modelAndView) throws Exception {
-        log.info("CustomInterceptor ==> postHandle method: do request after");
+        log.debug("CustomInterceptor ==> postHandle method: do request after");
     }
 
     /**
@@ -82,7 +79,7 @@ public class CustomInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
             throws Exception {
-        log.info("CustomInterceptor ==> afterCompletion method: do request finshed");
+        log.debug("CustomInterceptor ==> afterCompletion method: do request finshed");
     }
 
     private boolean doForword(HttpServletRequest request, HttpServletResponse response, Object handler)
@@ -99,7 +96,7 @@ public class CustomInterceptor implements HandlerInterceptor {
         }
         String method = request.getMethod();
         Map<String, String[]> param= request.getParameterMap();
-        log.info("doForword--["+method+"]"+request.getRequestURL()+"?"+request.getQueryString()+"  ===>  "+url);
+        log.debug("doForword--["+method+"]"+request.getRequestURL()+"?"+request.getQueryString()+"  ===>  "+url);
 
 
 
@@ -120,7 +117,15 @@ public class CustomInterceptor implements HandlerInterceptor {
         }catch (Exception e){
             e.printStackTrace();
         }finally {
-            streamReader.close();
+            if(streamReader!=null){
+                try{
+                    streamReader.close();
+
+                }catch (Exception e){
+                    log.error("close streamReader fail");
+                    e.printStackTrace();
+                }
+            }
         }
         HttpHeaders httpHeaders =new HttpHeaders();
         Enumeration em = request.getHeaderNames();

@@ -1,2 +1,7 @@
 atomapiIp: http://eip-autom.10.110.25.123.xip.io
 #atomapiIp: http://127.0.0.1:8088
+proxy:
+  servlet_url: /*
+  logging_enabled: true
+  #target_url: http://localhost:8088/bss
+  target_url:  http://eip-autom.10.110.25.123.xip.io/bss

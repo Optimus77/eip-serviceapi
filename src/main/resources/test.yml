@@ -1,4 +1,0 @@
-proxy:
-    servlet_url: /*
-    #target_url: http://localhost:8088/bss
-    target_url:  http://eip-autom.10.110.25.123.xip.io/bss
