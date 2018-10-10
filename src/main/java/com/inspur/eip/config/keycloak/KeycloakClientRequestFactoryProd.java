@@ -198,16 +198,21 @@ public class KeycloakClientRequestFactoryProd extends KeycloakClientRequestFacto
             e.printStackTrace();
         } finally {
             try {
-                httpResponse.close();
+                if(httpResponse!=null){
+                    httpResponse.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {  //关闭连接、释放资源
+                if (closeableHttpClient!=null){
+                    closeableHttpClient.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        try {  //关闭连接、释放资源    
-            closeableHttpClient.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
         return response;
     }
 }
