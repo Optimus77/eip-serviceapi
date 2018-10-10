@@ -118,10 +118,8 @@ public class ProxyServlet extends HttpServlet {
      * The parameter name for the target (destination) URI to proxy to.
      */
     protected static final String P_TARGET_URI = "targetUri";
-    protected static final String ATTR_TARGET_URI =
-            ProxyServlet.class.getSimpleName() + ".targetUri";
-    protected static final String ATTR_TARGET_HOST =
-            ProxyServlet.class.getSimpleName() + ".targetHost";
+    protected static final String ATTR_TARGET_URI = ProxyServlet.class.getSimpleName() + ".targetUri";
+    protected static final String ATTR_TARGET_HOST = ProxyServlet.class.getSimpleName() + ".targetHost";
 
     /* MISC */
 
@@ -152,6 +150,36 @@ public class ProxyServlet extends HttpServlet {
     @Getter
     @Setter
     private HttpClient closeablProxyClient;
+
+    protected static final BitSet asciiQueryChars;
+
+    static {
+        char[] c_unreserved = "_-!.~'()*".toCharArray();//plus alphanum
+        char[] c_punct = ",;:$&+=".toCharArray();
+        char[] c_reserved = "?/[]@".toCharArray();//plus punct
+
+        asciiQueryChars = new BitSet(128);
+        for (char c = 'a'; c <= 'z'; c++) {
+            asciiQueryChars.set((int) c);
+        }
+        for (char c = 'A'; c <= 'Z'; c++) {
+            asciiQueryChars.set((int) c);
+        }
+
+        for (char c = '0'; c <= '9'; c++) {
+            asciiQueryChars.set((int) c);
+        }
+        for (char c : c_unreserved) {
+            asciiQueryChars.set((int) c);
+        }
+        for (char c : c_punct) {
+            asciiQueryChars.set((int) c);
+        }
+        for (char c : c_reserved) {
+            asciiQueryChars.set((int) c);
+        }
+        asciiQueryChars.set((int) '%');//leave existing percent escapes in place
+    }
 
     @Override
     public String getServletInfo() {
@@ -763,40 +791,6 @@ public class ProxyServlet extends HttpServlet {
         return outBuf != null ? outBuf : in;
     }
 
-    protected static final BitSet asciiQueryChars;
 
-    static {
-        char[] c_unreserved = "_-!.~'()*".toCharArray();//plus alphanum
-        char[] c_punct = ",;:$&+=".toCharArray();
-        char[] c_reserved = "?/[]@".toCharArray();//plus punct
-
-        asciiQueryChars = new BitSet(128);
-        for (char c = 'a'; c <= 'z'; c++) {
-            asciiQueryChars.set((int) c);
-        }
-
-        for (char c = 'A'; c <= 'Z'; c++) {
-            asciiQueryChars.set((int) c);
-        }
-
-        for (char c = '0'; c <= '9'; c++) {
-            asciiQueryChars.set((int) c);
-        }
-
-        for (char c : c_unreserved) {
-            asciiQueryChars.set((int) c);
-        }
-
-        for (char c : c_punct) {
-            asciiQueryChars.set((int) c);
-        }
-
-        for (char c : c_reserved) {
-            asciiQueryChars.set((int) c);
-        }
-
-
-        asciiQueryChars.set((int) '%');//leave existing percent escapes in place
-    }
 
 }
