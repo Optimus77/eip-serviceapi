@@ -43,12 +43,11 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.HttpCookie;
 import java.net.URI;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Formatter;
 
@@ -326,11 +325,13 @@ public class ProxyServlet extends HttpServlet {
         // Make the Request
         //note: we won't transfer the protocol version because I'm not sure it would truly be compatible
         String method = servletRequest.getMethod();
+        log.info("===========["+method.toUpperCase()+"]");
         String proxyRequestUri = rewriteUrlFromRequest(servletRequest);
         HttpRequest proxyRequest;
         //spec: RFC 2616, sec 4.3: either of these two headers signal that there is a message body.
         if (servletRequest.getHeader(HttpHeaders.CONTENT_LENGTH) != null ||
                 servletRequest.getHeader(HttpHeaders.TRANSFER_ENCODING) != null) {
+            log.info("===[BODY]ContentLength"+getContentLength(servletRequest));
             proxyRequest = newProxyRequestWithEntity(method, proxyRequestUri, servletRequest);
         } else {
             proxyRequest = new BasicHttpRequest(method, proxyRequestUri);
@@ -339,6 +340,7 @@ public class ProxyServlet extends HttpServlet {
         copyRequestHeaders(servletRequest, proxyRequest);
 
         setXForwardedForHeader(servletRequest, proxyRequest);
+
 
         HttpResponse proxyResponse = null;
         try {
@@ -350,7 +352,6 @@ public class ProxyServlet extends HttpServlet {
             // Pass the response code. This method with the "reason phrase" is deprecated but it's the
             //   only way to pass the reason along too.
             int statusCode = proxyResponse.getStatusLine().getStatusCode();
-            log.info("return statusCode :"+statusCode);
             //noinspection deprecation
             servletResponse.setStatus(statusCode, proxyResponse.getStatusLine().getReasonPhrase());
 
@@ -373,6 +374,7 @@ public class ProxyServlet extends HttpServlet {
             handleRequestException(proxyRequest, e);
         } finally {
             // make sure the entire entity was consumed, so the connection is released
+
             if (proxyResponse != null) {
                 EntityUtils.consumeQuietly(proxyResponse.getEntity());
             }
@@ -502,6 +504,7 @@ public class ProxyServlet extends HttpServlet {
             } else if (!doPreserveCookies && headerName.equalsIgnoreCase(org.apache.http.cookie.SM.COOKIE)) {
                 headerValue = getRealCookie(headerValue);
             }
+            log.info("[request header]"+headerName+"==>"+headerValue);
             proxyRequest.addHeader(headerName, headerValue);
         }
     }
@@ -515,10 +518,12 @@ public class ProxyServlet extends HttpServlet {
             if (existingForHeader != null) {
                 forHeader = existingForHeader + ", " + forHeader;
             }
+            log.info("[forward header ]"+forHeaderName+"=getRemoteAddr=>"+forHeader);
             proxyRequest.setHeader(forHeaderName, forHeader);
 
             String protoHeaderName = "X-Forwarded-Proto";
             String protoHeader = servletRequest.getScheme();
+            log.info("[forward header ]"+forHeaderName+"=getScheme=>"+forHeader);
             proxyRequest.setHeader(protoHeaderName, protoHeader);
         }
     }
@@ -531,6 +536,12 @@ public class ProxyServlet extends HttpServlet {
         for (Header header : proxyResponse.getAllHeaders()) {
             copyResponseHeader(servletRequest, servletResponse, header);
         }
+        if(doLog){
+            for(String headername:servletResponse.getHeaderNames()){
+                log.info("[real response header]"+headername+"==>"+servletResponse.getHeader(headername));
+            }
+        }
+
     }
 
     /**
@@ -539,11 +550,15 @@ public class ProxyServlet extends HttpServlet {
      */
     protected void copyResponseHeader(HttpServletRequest servletRequest,
                                       HttpServletResponse servletResponse, Header header) {
+
         String headerName = header.getName();
+        String headerValue = header.getValue();
+        log.info("[response header]"+headerName+"==>"+headerValue);
+
         if (hopByHopHeaders.containsHeader(headerName)) {
             return;
         }
-        String headerValue = header.getValue();
+
         if (headerName.equalsIgnoreCase(org.apache.http.cookie.SM.SET_COOKIE) ||
                 headerName.equalsIgnoreCase(org.apache.http.cookie.SM.SET_COOKIE2)) {
             copyProxyCookie(servletRequest, servletResponse, headerValue);
@@ -624,6 +639,7 @@ public class ProxyServlet extends HttpServlet {
             OutputStream servletOutputStream = servletResponse.getOutputStream();
             entity.writeTo(servletOutputStream);
         }
+
     }
 
     /**
