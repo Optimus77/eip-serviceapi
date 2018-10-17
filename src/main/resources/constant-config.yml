@@ -1,4 +1,4 @@
 proxy:
   servlet_url: /*
   logging_enabled: true
-  target_url:  http://eipdebug.devops.inspur.com/bss
+  target_url:  http://app-6rbjdqvt-instance-jbjt7nk2.boss-test.devops.inspur.com/bss
