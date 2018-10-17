@@ -1,0 +1,4 @@
+proxy:
+  servlet_url: /*
+  logging_enabled: true
+  target_url:  http://eipdebug.devops.inspur.com/bss
