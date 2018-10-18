@@ -1,4 +1,4 @@
 proxy:
   servlet_url: /*
   logging_enabled: true
-  target_url:  http://eipautomtest.10.110.25.123.xip.io/bss
+  target_url:  http:/eipautomtest.devops.inspur.com/bss
