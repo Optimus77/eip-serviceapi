@@ -1,4 +1,0 @@
-proxy:
-  servlet_url: /*
-  logging_enabled: true
-  target_url:  http://eip-autom.10.110.25.123.xip.io/bss
