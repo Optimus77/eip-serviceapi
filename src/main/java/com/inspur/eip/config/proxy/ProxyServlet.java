@@ -18,8 +18,6 @@ package com.inspur.eip.config.proxy;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.CookieSpecs;
@@ -27,13 +25,14 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.AbortableHttpRequest;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.HeaderGroup;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -47,7 +46,6 @@ import java.io.*;
 import java.net.HttpCookie;
 import java.net.URI;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Formatter;
 
@@ -71,7 +69,7 @@ public class ProxyServlet extends HttpServlet {
 
 
     /* INIT PARAMETER NAME CONSTANTS */
-    private static Log log = LogFactory.getLog(ProxyServlet.class);
+    private static Logger log = LoggerFactory.getLogger(ProxyServlet.class);
 
     /**
      * A boolean parameter name to enable logging of input and target URLs to the servlet log.
