@@ -4,7 +4,7 @@ server:
     uri-encoding: UTF-8
   port: 8080
   servlet:
-    context-path: /bss
+    context-path: /eip
 # 环境 dev|prod
 spring:
   profiles:
