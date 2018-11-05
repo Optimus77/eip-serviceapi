@@ -2,11 +2,6 @@ package com.inspur.eip.entity;
 
 import lombok.Data;
 
-/**
- * @author: jiasirui
- * @date: 2018/10/24 22:37
- * @description:
- */
 @Data
 public class EipOrderProductItem {
 

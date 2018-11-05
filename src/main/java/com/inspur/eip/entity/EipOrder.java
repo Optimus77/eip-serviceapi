@@ -5,23 +5,19 @@ import lombok.Data;
 
 import java.util.List;
 
-/**
- * @author: jiasirui
- * @date: 2018/10/24 22:28
- * @description:
- */
 @Data
 public class EipOrder {
 
     private String userId;
-    private String productLineCode="EIP";
+    private String token;
+    private String orderRoute = "EIP";
     private String setCount = "1";
     private String consoleOrderFlowId;
-    private List   flowIdList;
     private String billType = "monthly";
     private String duration;
     private String durationUnit = "M";
     private String orderWhat = "formal";
+    private String orderSource = "console";
     private String orderType = "new";
     private String serviceStartTime;
     private String serviceEndTime;
