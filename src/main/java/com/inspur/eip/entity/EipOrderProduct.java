@@ -17,6 +17,5 @@ public class EipOrderProduct {
     private String instanceCount = "1";
     private String instanceId;
     private String instanceStatus;
-//    private String createTime;
     private List<EipOrderProductItem> itemList;
 }

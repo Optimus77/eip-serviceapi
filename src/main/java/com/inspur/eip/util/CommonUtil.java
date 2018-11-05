@@ -1,6 +1,7 @@
 package com.inspur.eip.util;
 
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.Setter;
 
@@ -10,7 +11,9 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 
 public class CommonUtil {
@@ -36,7 +39,7 @@ public class CommonUtil {
     private static String projectId = "140785795de64945b02363661eb9e769";
     private static String userDomainId = "default";
     private static String region="RegionOne";
-    private static String region1="cn-north-3a";
+    private static String region1="cn-north-3";
 
 
 
@@ -56,10 +59,12 @@ public class CommonUtil {
         if(null != requestAttributes) {
             HttpServletRequest request = requestAttributes.getRequest();
             String keyCloackToken = request.getHeader("authorization");
-            log.info(keyCloackToken);
+
             if (keyCloackToken == null) {
+                log.error("Failed to get token,request:{}",request);
                 return null;
             } else {
+                log.info("Get token:{}",keyCloackToken);
                 return keyCloackToken;
             }
         }
@@ -89,7 +94,34 @@ public class CommonUtil {
 
     }
 
-    public static String getUserId(){
-        return "useridnotfound";
+    public static String getUserId()throws KeycloakTokenException {
+
+        String token = getKeycloackToken();
+        if(null == token){
+            throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
+        }else{
+            JSONObject jsonObject = decodeUserInfo(token);
+            String sub = (String) jsonObject.get("sub");
+            if(sub!=null){
+                log.info("getUserId:{}", sub);
+                return sub;
+            }else{
+                throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
+            }
+        }
+    }
+
+    public static JSONObject decodeUserInfo(String keycloakToken) {
+        Base64.Decoder decoder = Base64.getDecoder();
+        // keycloak 的 token 被 '.' 分隔符分成了三段，其中第二段包含了用户信息，也就是 targetStr
+        String targetStr = keycloakToken.substring((keycloakToken.indexOf(".") + 1), keycloakToken.lastIndexOf("."));
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = JSON.parseObject(new String(decoder.decode(targetStr)));
+            new JSONObject();
+        } catch (NullPointerException e) {
+            log.error("null userInfo");
+        }
+        return jsonObject;
     }
 }

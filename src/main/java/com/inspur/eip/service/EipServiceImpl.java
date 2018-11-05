@@ -126,6 +126,7 @@ public class EipServiceImpl  {
         }catch (Exception e){
             e.printStackTrace();
         }
+        eipOrder.setToken(CommonUtil.getKeycloackToken());
         eipOrder.setConsoleOrderFlowId(UUID.randomUUID().toString());
         List<EipOrderProduct> orders = new ArrayList<>();
         orders.add(eipOrderProduct);
