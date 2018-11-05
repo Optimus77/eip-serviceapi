@@ -38,27 +38,20 @@ public class BillFilter implements Filter {
         HttpServletResponse response=(HttpServletResponse)servletResponse;
         String method =  req.getMethod();
         if(method.equals("POST")  && req.getPathInfo().equals("/v2.0/eips")){
-            log.info("get create eip order. ");
             String requestBody = ReadAsChars(req);
-            eipService.createOrder(requestBody);
+            log.info("get create eip order:{}.",requestBody);
+            JSONObject result = eipService.createOrder(requestBody);
 
-            JSONObject result=new JSONObject();
-            result.put("code","200");
-            result.put("message", "order submited");
-            result.put("data",null);
-            response.setStatus(HttpStatus.SC_BAD_REQUEST);
+            response.setStatus(HttpStatus.SC_ACCEPTED);
             response.setContentType("application/json");
+
             response.getWriter().write(result.toJSONString());
         }else if(method.equals("DELETE")  && req.getPathInfo().startsWith("/v2.0/eips/")){
-            log.info("get delete eip order. ");
             String eipId = req.getPathInfo().substring("/v2.0/eips/".length());
-            eipService.deleteEipOrder(eipId);
+            log.info("get delete eip order,eipId:{}. ",eipId);
+            JSONObject result = eipService.deleteEipOrder(eipId);
 
-            JSONObject result=new JSONObject();
-            result.put("code","200");
-            result.put("message", "order submited");
-            result.put("data",null);
-            response.setStatus(HttpStatus.SC_BAD_REQUEST);
+            response.setStatus(HttpStatus.SC_ACCEPTED);
             response.setContentType("application/json");
             response.getWriter().write(result.toJSONString());
         } else {

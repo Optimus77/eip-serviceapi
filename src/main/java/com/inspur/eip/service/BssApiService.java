@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 
 import com.inspur.eip.entity.EipOrder;
 import com.inspur.eip.entity.EipQuota;
+import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HsConstants;
 import com.inspur.eip.util.HttpUtil;
 import org.apache.http.HttpResponse;
@@ -12,10 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -43,25 +41,11 @@ public class BssApiService {
         }
     }
 
-    private static String getKeycloackToken() {
-        ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if(null != requestAttributes) {
-            HttpServletRequest request = requestAttributes.getRequest();
-            String keyCloackToken = request.getHeader("authorization");
-            log.info(keyCloackToken);
-            if (keyCloackToken == null) {
-                return null;
-            } else {
-                return keyCloackToken;
-            }
-        }
-        return null;
-    }
 
     private  Map<String,String> getHeader(){
         Map<String,String> header=new HashMap<String,String>();
         header.put("requestId",UUID.randomUUID().toString());
-        header.put("Authorization",getKeycloackToken());
+        header.put("Authorization", CommonUtil.getKeycloackToken());
         header.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
         header.put(HsConstants.HILLTONE_LANGUAGE, HsConstants.LANG);
         return header;
@@ -84,10 +68,11 @@ public class BssApiService {
     private   String ordercreate;
     public JSONObject createOrder(EipOrder order)  {
         String url=ordercreate+"/order/confirm";
-        log.info(url);
+
         Map<String,String> header= getHeader();
         String orderStr=JSONObject.toJSONString(order);
-        log.info("body str {}",orderStr);
+        log.info("Send order to url:{}, body:{}",url, orderStr);
+
         HttpResponse response=HttpUtil.post(url,header,orderStr);
         return handlerResopnse(response);
     }

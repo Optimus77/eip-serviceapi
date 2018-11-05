@@ -28,11 +28,13 @@ public class EipServiceImpl  {
     public final static Logger log = LoggerFactory.getLogger(EipServiceImpl.class);
 
 
-    //1.2.8	订单提交接口
+    /**
+     *  create a order
+     * @param eipAllocateJson eip allocat json
+     */
+    public JSONObject createOrder(String eipAllocateJson) {
 
-    public void createOrder(String eipAllocateJson) {
-        log.info("input:{}", eipAllocateJson);
-
+        JSONObject result;
         try{
             JSONObject eipAllocateParam = JSON.parseObject(eipAllocateJson);
             JSONObject eip = eipAllocateParam.getJSONObject("eip");
@@ -44,11 +46,16 @@ public class EipServiceImpl  {
 
             order.setConsoleCustomization(eipAllocateParam);
 
-            JSONObject result=bssApiService.createOrder(order);
-            log.info(result.toString());
+            result=bssApiService.createOrder(order);
+            log.info("create order result:{}",result.toString());
+            return  result;
         }catch (Exception e){
             e.printStackTrace();
+            result=new JSONObject();
+            result.put("code","106.999500");
+            result.put("msg",e.getMessage());
         }
+        return  result;
     }
 
     /**
@@ -56,7 +63,8 @@ public class EipServiceImpl  {
      * @param eipId eipid
      * @return return
      */
-    public void deleteEipOrder(String eipId) {
+    public JSONObject deleteEipOrder(String eipId) {
+        JSONObject result;
         try{
 
             EipOrder order = getOrderByEipParam(0, null, null, null, eipId);
@@ -65,11 +73,16 @@ public class EipServiceImpl  {
             jsonObject.put("eipId", eipId);
             order.setConsoleCustomization(jsonObject);
 
-            JSONObject result=bssApiService.createOrder(order);
-            log.info(result.toString());
+            result=bssApiService.createOrder(order);
+            log.info("delete eip order result:{}",result.toString());
+            return  result;
         }catch (Exception e){
             e.printStackTrace();
+            result=new JSONObject();
+            result.put("code","106.999500");
+            result.put("msg",e.getMessage());
         }
+        return result;
     }
 
 

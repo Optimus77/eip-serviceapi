@@ -11,7 +11,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
@@ -64,12 +63,13 @@ public class CommonUtil {
                 log.error("Failed to get token,request:{}",request);
                 return null;
             } else {
-                log.info("Get token:{}",keyCloackToken);
+                log.debug("Get token:{}",keyCloackToken);
                 return keyCloackToken;
             }
         }
         return null;
     }
+
 
     /**
      * get the region info from httpHeader;
