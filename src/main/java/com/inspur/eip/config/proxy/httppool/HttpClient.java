@@ -1,15 +1,14 @@
 package com.inspur.eip.config.proxy.httppool;
 
-    import org.apache.commons.logging.Log;
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-    import org.apache.http.client.config.RequestConfig;
-    import org.apache.http.impl.client.CloseableHttpClient;
-    import org.apache.http.impl.client.HttpClientBuilder;
-    import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-    import org.springframework.beans.factory.annotation.Qualifier;
-    import org.springframework.beans.factory.annotation.Value;
-    import org.springframework.context.annotation.Bean;
-    import org.springframework.context.annotation.Configuration;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author: jiasirui

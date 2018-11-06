@@ -324,12 +324,16 @@ public class ProxyServlet extends HttpServlet {
         //note: we won't transfer the protocol version because I'm not sure it would truly be compatible
         String method = servletRequest.getMethod();
         log.info("===========["+method.toUpperCase()+"]");
-        String proxyRequestUri = rewriteUrlFromRequest(servletRequest);
+
+        //if allocateEip or delete eip or update bandwidth create order
+        String proxyRequestUri;
+        proxyRequestUri = rewriteUrlFromRequest(servletRequest);
+
         HttpRequest proxyRequest;
         //spec: RFC 2616, sec 4.3: either of these two headers signal that there is a message body.
         if (servletRequest.getHeader(HttpHeaders.CONTENT_LENGTH) != null ||
                 servletRequest.getHeader(HttpHeaders.TRANSFER_ENCODING) != null) {
-            log.info("===[BODY]ContentLength"+getContentLength(servletRequest));
+            log.info("===[BODY]ContentLength" + getContentLength(servletRequest));
             proxyRequest = newProxyRequestWithEntity(method, proxyRequestUri, servletRequest);
         } else {
             proxyRequest = new BasicHttpRequest(method, proxyRequestUri);
