@@ -1,4 +1,4 @@
 proxy:
   servlet_url: /*
   logging_enabled: true
-  target_url:  http://eip-atom.cn-north-3.devops.inspur.com/eip
+  target_url:  http://eipatomtest.devops.inspur.com/eip
