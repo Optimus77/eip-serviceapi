@@ -103,11 +103,11 @@ public class EipServiceImpl  {
             EipQuota quota=new EipQuota();
             quota.setProductLineCode("EIP");
             quota.setRegion(CommonUtil.getReginInfo());
-            quota.setProductTypeCode(null);
+            quota.setProductTypeCode("EIP");
             quota.setUserId(CommonUtil.getUserId());
             result =bssApiService.getQuota(quota);
             log.info("Get quota.result:{}", result.toJSONString());
-            if(result.getString("code").equals("0")){
+            if(null != result && result.getString("code").equals("0")){
                 JSONArray qutoResult =result.getJSONObject("result").getJSONArray("quotaList");
                 for(int i=0; i< qutoResult.size(); i++) {
                     JSONObject jb = qutoResult.getJSONObject(i);
