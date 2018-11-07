@@ -126,7 +126,7 @@ public class EipServiceImpl  {
 
         EipOrderProductItem chargeMode = new EipOrderProductItem();
         ipTypeItem.setCode("chargemode");
-        ipTypeItem.setName("计费模式");
+        ipTypeItem.setName("chargemode");
         ipTypeItem.setValue("Bandwidth");
         ipTypeItem.setType("billingItem");
 
