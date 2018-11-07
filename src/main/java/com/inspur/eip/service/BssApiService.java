@@ -67,7 +67,7 @@ public class BssApiService {
     @Value("${bssURL.ordercreate}")
     private   String ordercreate;
     public JSONObject createOrder(EipOrder order)  {
-        String url=ordercreate+"/order/confirm";
+        String url=ordercreate;
 
         Map<String,String> header= getHeader();
         String orderStr=JSONObject.toJSONString(order);
