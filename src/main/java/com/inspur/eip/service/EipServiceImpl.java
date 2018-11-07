@@ -139,6 +139,7 @@ public class EipServiceImpl  {
         eipOrderProduct.setRegion(region);
         eipOrderProduct.setAvailableZone("");
         eipOrderProduct.setInstanceId(eipId);
+        eipOrderProduct.setInstanceId("");
 
         EipOrder eipOrder = new EipOrder();
         try {
