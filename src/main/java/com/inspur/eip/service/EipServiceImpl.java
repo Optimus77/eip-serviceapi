@@ -107,7 +107,7 @@ public class EipServiceImpl  {
             quota.setUserId(CommonUtil.getUserId());
             result =bssApiService.getQuota(quota);
             log.info("Get quota.result:{}", result.toJSONString());
-            if(null != result && result.getString("code").equals("0")){
+            if(null!= result.getString("code") && result.getString("code").equals("0")){
                 JSONArray qutoResult =result.getJSONObject("result").getJSONArray("quotaList");
                 for(int i=0; i< qutoResult.size(); i++) {
                     JSONObject jb = qutoResult.getJSONObject(i);
