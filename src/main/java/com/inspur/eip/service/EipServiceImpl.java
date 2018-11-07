@@ -36,6 +36,8 @@ public class EipServiceImpl  {
 
         JSONObject result;
         try{
+            //bssApiService.getUserBalance();
+
             JSONObject eipAllocateParam = JSON.parseObject(eipAllocateJson);
             JSONObject eip = eipAllocateParam.getJSONObject("eip");
 
@@ -113,22 +115,22 @@ public class EipServiceImpl  {
         List<EipOrderProductItem> itemList = new ArrayList<>();
         EipOrderProductItem bandWidthItem = new EipOrderProductItem();
         bandWidthItem.setCode("net");
-        bandWidthItem.setName("bandwidth");
+        bandWidthItem.setName("带宽");
         bandWidthItem.setUnit("M");
         bandWidthItem.setValue(String.valueOf(bandWidth));
         bandWidthItem.setType("billingItem");
 
         EipOrderProductItem ipTypeItem = new EipOrderProductItem();
         ipTypeItem.setCode("provider");
-        ipTypeItem.setName(ipType);
+        ipTypeItem.setName("BGP网络");
         ipTypeItem.setValue("BGP");
         ipTypeItem.setType("impactFactor");
 
         EipOrderProductItem chargeMode = new EipOrderProductItem();
-        ipTypeItem.setCode("chargemode");
-        ipTypeItem.setName("chargemode");
-        ipTypeItem.setValue("Bandwidth");
-        ipTypeItem.setType("billingItem");
+        chargeMode.setCode("chargemode");
+        chargeMode.setName("计费方式");
+        chargeMode.setValue("Bandwidth");
+        chargeMode.setType("billingItem");
 
         itemList.add(bandWidthItem);
         itemList.add(ipTypeItem);
