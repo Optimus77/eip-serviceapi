@@ -124,8 +124,15 @@ public class EipServiceImpl  {
         ipTypeItem.setValue("BGP");
         ipTypeItem.setType("impactFactor");
 
+        EipOrderProductItem chargeMode = new EipOrderProductItem();
+        ipTypeItem.setCode("chargemode");
+        ipTypeItem.setName("计费模式");
+        ipTypeItem.setValue("Bandwidth");
+        ipTypeItem.setType("billingItem");
+
         itemList.add(bandWidthItem);
         itemList.add(ipTypeItem);
+        itemList.add(chargeMode);
 
         EipOrderProduct eipOrderProduct = new EipOrderProduct();
         eipOrderProduct.setItemList(itemList);
