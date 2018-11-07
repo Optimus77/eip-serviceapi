@@ -1,6 +1,7 @@
 package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import com.inspur.eip.entity.EipOrder;
@@ -36,21 +37,27 @@ public class EipServiceImpl  {
 
         JSONObject result;
         try{
-            //bssApiService.getUserBalance();
 
-            JSONObject eipAllocateParam = JSON.parseObject(eipAllocateJson);
-            JSONObject eip = eipAllocateParam.getJSONObject("eip");
+            int left = getQuota();
+            if(left > 0) {
+                JSONObject eipAllocateParam = JSON.parseObject(eipAllocateJson);
+                JSONObject eip = eipAllocateParam.getJSONObject("eip");
 
-            EipOrder order = getOrderByEipParam(eip.getInteger("bandwidth"),
-                    eip.getString("iptype"),
-                    eip.getString("region"),
-                    eip.getString("purchasetime"), null);
+                EipOrder order = getOrderByEipParam(eip.getInteger("bandwidth"),
+                        eip.getString("iptype"),
+                        eip.getString("region"),
+                        eip.getString("purchasetime"), null);
 
-            order.setConsoleCustomization(eipAllocateParam);
+                order.setConsoleCustomization(eipAllocateParam);
 
-            result=bssApiService.createOrder(order);
-            log.info("create order result:{}",result.toString());
-            return  result;
+                result = bssApiService.createOrder(order);
+                log.info("create order result:{}", result.toString());
+                return result;
+            }else{
+                result=new JSONObject();
+                result.put("code","106.999500");
+                result.put("msg", "quota limited, user can not create eip.");
+            }
         }catch (Exception e){
             e.printStackTrace();
             result=new JSONObject();
@@ -90,23 +97,30 @@ public class EipServiceImpl  {
 
 
     //1.2.13	查询用户配额的接口
-    public ResponseEntity getQuota(){
+    public int getQuota(){
+        JSONObject result;
         try{
             EipQuota quota=new EipQuota();
             quota.setProductLineCode("EIP");
             quota.setRegion(CommonUtil.getReginInfo());
             quota.setProductTypeCode(null);
             quota.setUserId(CommonUtil.getUserId());
-            JSONObject result=bssApiService.getQuota(quota);
-            if(result.getBoolean("success")){
-                return new ResponseEntity<>(HttpStatus.OK);
-            }else{
-                return new ResponseEntity<>(ReturnMsgUtil.error(400, "error"), HttpStatus.INTERNAL_SERVER_ERROR);
+            result =bssApiService.getQuota(quota);
+            log.info("Get quota.result:{}", result.toJSONString());
+            if(result.getString("code").equals("0")){
+                JSONArray qutoResult =result.getJSONObject("result").getJSONArray("quotaList");
+                for(int i=0; i< qutoResult.size(); i++) {
+                    JSONObject jb = qutoResult.getJSONObject(i);
+                    if(jb.get("productLineCode").equals("EIP") ){
+                        return Integer.valueOf(jb.getString("leftNumber"));
+                    }
+                }
             }
+            log.error("Failed to get quota.result:{}", result.toJSONString());
         }catch (Exception e){
-            return new ResponseEntity<>(ReturnMsgUtil.error(500,e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+           log.error("Failed to get quota.result", e);
         }
-
+        return 1;
     }
 
 

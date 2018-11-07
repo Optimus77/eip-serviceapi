@@ -55,7 +55,7 @@ public class BssApiService {
     @Value("${bssURL.userBalanceURL}")
     private   String userBalanceURL;
     public JSONObject getUserBalance(String userid){
-        String  uri=userBalanceURL+"/account/"+userid+"/balance";
+        String  uri=userBalanceURL+"/crm/quota";
         log.info(uri);
         Map<String,String> header= getHeader();
         HttpResponse response= HttpUtil.get(uri,header);
@@ -83,8 +83,8 @@ public class BssApiService {
     private   String quotaUrl;
     public JSONObject getQuota(EipQuota quota){
         JSONObject result=new JSONObject();
-        //String  uri=quotaUrl+"/crm/quota"+?userId="+quota.getUserId()+"&region="+quota.getRegion()+"&productLineCode="+quota.getProductLineCode()+"&productTypeCode="+quota.getProductTypeCode();
-        String  uri="http://117.50.44.72:7300/mock/5bbda32758c3ee17c7086191/crm/quota";
+        String  uri=quotaUrl;
+        uri=quotaUrl+"?userId="+quota.getUserId()+"&region="+quota.getRegion()+"&productLineCode="+quota.getProductLineCode()+"&productTypeCode="+quota.getProductTypeCode();
         log.info(uri);
         Map<String,String> header= getHeader();
         HttpResponse response= HttpUtil.get(uri,header);
@@ -106,7 +106,7 @@ public class BssApiService {
                 in.close();
                 JSONObject returnInfo=JSONObject.parseObject(sb.toString());
                 log.info("BSS RETURN ==>{}",returnInfo);
-                if(returnInfo.containsKey("code")){
+                if(null != returnInfo && returnInfo.containsKey("code")){
                     if(returnInfo.getInteger("code")==0){
                         result.put("success",true);
                         result.put("data",returnInfo.get("result"));
