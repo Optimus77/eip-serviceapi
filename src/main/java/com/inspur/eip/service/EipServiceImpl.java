@@ -105,13 +105,14 @@ public class EipServiceImpl  {
             quota.setRegion(CommonUtil.getReginInfo());
             quota.setProductTypeCode("EIP");
             quota.setUserId(CommonUtil.getUserId());
+
             result =bssApiService.getQuota(quota);
-            log.info("Get quota.result:{}", result.toJSONString());
-            if(null!= result.getString("code") && result.getString("code").equals("0")){
-                JSONArray qutoResult =result.getJSONObject("result").getJSONArray("quotaList");
+            if(null!= result.getBoolean("success") && result.getBoolean("success")){
+                JSONArray qutoResult =result.getJSONObject("data").getJSONArray("quotaList");
                 for(int i=0; i< qutoResult.size(); i++) {
                     JSONObject jb = qutoResult.getJSONObject(i);
                     if(jb.get("productLineCode").equals("EIP") ){
+                        log.info("Get quota success, number:{}", jb.getString("leftNumber"));
                         return Integer.valueOf(jb.getString("leftNumber"));
                     }
                 }
@@ -120,7 +121,7 @@ public class EipServiceImpl  {
         }catch (Exception e){
            log.error("Failed to get quota.result", e);
         }
-        return 1;
+        return 0;
     }
 
 

@@ -84,7 +84,8 @@ public class BssApiService {
     public JSONObject getQuota(EipQuota quota){
         JSONObject result=new JSONObject();
         String  uri=quotaUrl;
-        uri=quotaUrl+"?userId="+quota.getUserId()+"&region="+quota.getRegion()+"&productLineCode="+quota.getProductLineCode()+"&productTypeCode="+quota.getProductTypeCode();
+        uri=quotaUrl+"?userId="+quota.getUserId()+"&region="+quota.getRegion()+"&productLineCode="
+                +quota.getProductLineCode()+"&productTypeCode="+quota.getProductTypeCode()+"&quotaType=amount";
         log.info(uri);
         Map<String,String> header= getHeader();
         HttpResponse response= HttpUtil.get(uri,header);

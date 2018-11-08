@@ -8,4 +8,5 @@ public class EipQuota {
     private String region;
     private String productLineCode;
     private String productTypeCode;
+    private String quotaType;
 }
