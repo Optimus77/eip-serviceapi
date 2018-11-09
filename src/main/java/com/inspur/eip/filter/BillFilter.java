@@ -76,7 +76,7 @@ public class BillFilter implements Filter {
                 sb.append(str);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("ReadAsChars exception", e);
         }
         return sb.toString();
     }

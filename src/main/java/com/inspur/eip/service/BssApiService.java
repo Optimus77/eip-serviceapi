@@ -82,9 +82,8 @@ public class BssApiService {
     @Value("${bssURL.quotaUrl}")
     private   String quotaUrl;
     public JSONObject getQuota(EipQuota quota){
-        JSONObject result=new JSONObject();
-        String  uri=quotaUrl;
-        uri=quotaUrl+"?userId="+quota.getUserId()+"&region="+quota.getRegion()+"&productLineCode="
+
+        String  uri =quotaUrl+"?userId="+quota.getUserId()+"&region="+quota.getRegion()+"&productLineCode="
                 +quota.getProductLineCode()+"&productTypeCode="+quota.getProductTypeCode()+"&quotaType=amount";
         log.info(uri);
         Map<String,String> header= getHeader();
@@ -120,7 +119,7 @@ public class BssApiService {
                     result.put("data",returnInfo);
                 }
             }catch(Exception e){
-                e.printStackTrace();
+                log.error("Recieve resopnse exeception", e);
                 result.put("success",false);
                 result.put("data",e.getMessage());
             }

@@ -9,12 +9,9 @@ import com.inspur.eip.entity.EipOrderProduct;
 import com.inspur.eip.entity.EipOrderProductItem;
 import com.inspur.eip.entity.EipQuota;
 import com.inspur.eip.util.CommonUtil;
-import com.inspur.eip.util.ReturnMsgUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -46,12 +43,12 @@ public class EipServiceImpl  {
                 EipOrder order = getOrderByEipParam(eip.getInteger("bandwidth"),
                         eip.getString("iptype"),
                         eip.getString("region"),
-                        eip.getString("purchasetime"), null);
+                        eip.getString("duration"), null);
 
                 order.setConsoleCustomization(eipAllocateParam);
 
                 result = bssApiService.createOrder(order);
-                log.info("create order result:{}", result.toString());
+                log.info("create order result:{}", result);
                 return result;
             }else{
                 result=new JSONObject();
@@ -83,10 +80,10 @@ public class EipServiceImpl  {
             order.setConsoleCustomization(jsonObject);
 
             result=bssApiService.createOrder(order);
-            log.info("delete eip order result:{}",result.toString());
+            log.info("delete eip order result:{}",result);
             return  result;
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("Exception when deleteEipOrder", e);
             result=new JSONObject();
             result.put("code","106.999500");
             result.put("msg",e.getMessage());
@@ -125,7 +122,7 @@ public class EipServiceImpl  {
     }
 
 
-    private EipOrder getOrderByEipParam(int bandWidth, String ipType, String region, String purchasetime, String eipId) {
+    private EipOrder getOrderByEipParam(int bandWidth, String ipType, String region, String duration, String eipId) {
 
         List<EipOrderProductItem> itemList = new ArrayList<>();
         EipOrderProductItem bandWidthItem = new EipOrderProductItem();
@@ -162,13 +159,13 @@ public class EipServiceImpl  {
         try {
             eipOrder.setUserId(CommonUtil.getUserId());
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("Exception when get user id in getOrderByEipParam.", e);
         }
         eipOrder.setToken(CommonUtil.getKeycloackToken());
         eipOrder.setConsoleOrderFlowId(UUID.randomUUID().toString());
         List<EipOrderProduct> orders = new ArrayList<>();
         orders.add(eipOrderProduct);
-        eipOrder.setDuration(purchasetime);
+        eipOrder.setDuration(duration);
         eipOrder.setProductList(orders);
 
         return eipOrder;
