@@ -46,7 +46,7 @@ public class BssApiService {
         Map<String,String> header=new HashMap<String,String>();
         //header.put("requestId",UUID.randomUUID().toString());
         header.put(HsConstants.AUTHORIZATION, CommonUtil.getKeycloackToken());
-        header.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
+        header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
         //header.put(HsConstants.HILLTONE_LANGUAGE, HsConstants.LANG);
         return header;
     }
