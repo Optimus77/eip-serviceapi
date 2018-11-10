@@ -64,7 +64,7 @@ public class CommonUtil {
                 return null;
             } else {
                 log.debug("Get token:{}",keyCloackToken);
-                return keyCloackToken.split(" ")[1];
+                return keyCloackToken;
             }
         }
         return null;
