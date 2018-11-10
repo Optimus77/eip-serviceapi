@@ -144,9 +144,24 @@ public class EipServiceImpl  {
         chargeMode.setValue("Bandwidth");
         chargeMode.setType("billingItem");
 
+        EipOrderProductItem trasfer = new EipOrderProductItem();
+        chargeMode.setCode("transfer");
+        chargeMode.setName("流量");
+        chargeMode.setValue("0");
+        chargeMode.setType("billingItem");
+
+        EipOrderProductItem ip = new EipOrderProductItem();
+        chargeMode.setCode("IP");
+        chargeMode.setName("IP费用");
+        chargeMode.setValue("1");
+        chargeMode.setType("billingItem");
+        chargeMode.setUnit("个");
+
         itemList.add(bandWidthItem);
         itemList.add(ipTypeItem);
         itemList.add(chargeMode);
+        itemList.add(ip);
+        itemList.add(trasfer);
 
         EipOrderProduct eipOrderProduct = new EipOrderProduct();
         eipOrderProduct.setItemList(itemList);
