@@ -45,19 +45,12 @@ public class BssApiService {
     private  Map<String,String> getHeader(){
         Map<String,String> header=new HashMap<String,String>();
         header.put("requestId",UUID.randomUUID().toString());
-        header.put(HsConstants.AUTHORIZATION, "Bearer "+CommonUtil.getKeycloackToken());
-        header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
-        header.put(HsConstants.HILLTONE_LANGUAGE, HsConstants.LANG);
-        return header;
-    }
-    private  Map<String,String> getorderHeader(){
-        Map<String,String> header=new HashMap<String,String>();
-        header.put("requestId",UUID.randomUUID().toString());
         header.put(HsConstants.AUTHORIZATION, CommonUtil.getKeycloackToken());
         header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
         header.put(HsConstants.HILLTONE_LANGUAGE, HsConstants.LANG);
         return header;
     }
+ 
 
     //1.2.1 查询当前用户余额
     @Value("${bssURL.userBalanceURL}")
@@ -77,7 +70,7 @@ public class BssApiService {
     public JSONObject createOrder(EipOrder order)  {
         String url=ordercreate;
 
-        Map<String,String> header= getorderHeader();
+        Map<String,String> header= getHeader();
         String orderStr=JSONObject.toJSONString(order);
         log.info("Send order to url:{}, body:{}",url, orderStr);
 
