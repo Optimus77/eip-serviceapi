@@ -77,7 +77,7 @@ public class BssApiService {
     public JSONObject createOrder(EipOrder order)  {
         String url=ordercreate;
 
-        Map<String,String> header= getHeader();
+        Map<String,String> header= getorderHeader();
         String orderStr=JSONObject.toJSONString(order);
         log.info("Send order to url:{}, body:{}",url, orderStr);
 
