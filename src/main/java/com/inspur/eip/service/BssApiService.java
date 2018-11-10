@@ -44,10 +44,18 @@ public class BssApiService {
 
     private  Map<String,String> getHeader(){
         Map<String,String> header=new HashMap<String,String>();
-        //header.put("requestId",UUID.randomUUID().toString());
+        header.put("requestId",UUID.randomUUID().toString());
+        header.put(HsConstants.AUTHORIZATION, "Bearer "+CommonUtil.getKeycloackToken());
+        header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
+        header.put(HsConstants.HILLTONE_LANGUAGE, HsConstants.LANG);
+        return header;
+    }
+    private  Map<String,String> getorderHeader(){
+        Map<String,String> header=new HashMap<String,String>();
+        header.put("requestId",UUID.randomUUID().toString());
         header.put(HsConstants.AUTHORIZATION, CommonUtil.getKeycloackToken());
         header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
-        //header.put(HsConstants.HILLTONE_LANGUAGE, HsConstants.LANG);
+        header.put(HsConstants.HILLTONE_LANGUAGE, HsConstants.LANG);
         return header;
     }
 
