@@ -45,7 +45,7 @@ public class BssApiService {
     private  Map<String,String> getHeader(){
         Map<String,String> header=new HashMap<String,String>();
         header.put("requestId",UUID.randomUUID().toString());
-        header.put("Authorization", CommonUtil.getKeycloackToken());
+        header.put(HsConstants.AUTHORIZATION, CommonUtil.getKeycloackToken());
         header.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
         header.put(HsConstants.HILLTONE_LANGUAGE, HsConstants.LANG);
         return header;
@@ -108,23 +108,23 @@ public class BssApiService {
                 log.info("BSS RETURN ==>{}",returnInfo);
                 if(null != returnInfo && returnInfo.containsKey("code")){
                     if(returnInfo.getInteger("code")==0){
-                        result.put("success",true);
+                        result.put(HsConstants.SUCCESS,true);
                         result.put("data",returnInfo.get("result"));
                     }else{
-                        result.put("success",false);
+                        result.put(HsConstants.SUCCESS,false);
                         result.put("data",returnInfo);
                     }
                 }else{
-                    result.put("success",false);
+                    result.put(HsConstants.SUCCESS,false);
                     result.put("data",returnInfo);
                 }
             }catch(Exception e){
                 log.error("Recieve resopnse exeception", e);
-                result.put("success",false);
+                result.put(HsConstants.SUCCESS,false);
                 result.put("data",e.getMessage());
             }
         }else{
-            result.put("success",false);
+            result.put(HsConstants.SUCCESS,false);
             result.put("data",sb.toString());
         }
         return result;

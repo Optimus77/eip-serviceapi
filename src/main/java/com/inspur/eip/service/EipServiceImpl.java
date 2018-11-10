@@ -9,6 +9,7 @@ import com.inspur.eip.entity.EipOrderProduct;
 import com.inspur.eip.entity.EipOrderProductItem;
 import com.inspur.eip.entity.EipQuota;
 import com.inspur.eip.util.CommonUtil;
+import com.inspur.eip.util.HsConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,10 +41,10 @@ public class EipServiceImpl  {
                 JSONObject eipAllocateParam = JSON.parseObject(eipAllocateJson);
                 JSONObject eip = eipAllocateParam.getJSONObject("eip");
 
-                EipOrder order = getOrderByEipParam(eip.getInteger("bandwidth"),
-                        eip.getString("iptype"),
-                        eip.getString("region"),
-                        eip.getString("duration"), null);
+                EipOrder order = getOrderByEipParam(eip.getInteger(HsConstants.BANDWIDTH),
+                        eip.getString(HsConstants.IPTYPE),
+                        eip.getString(HsConstants.REGION),
+                        eip.getString(HsConstants.DURATION), "");
 
                 order.setConsoleCustomization(eipAllocateParam);
 
@@ -56,7 +57,7 @@ public class EipServiceImpl  {
                 result.put("msg", "quota limited, user can not create eip.");
             }
         }catch (Exception e){
-            e.printStackTrace();
+            log.info("createOrder exception", e);
             result=new JSONObject();
             result.put("code","106.999500");
             result.put("msg",e.getMessage());
@@ -73,8 +74,8 @@ public class EipServiceImpl  {
         JSONObject result;
         try{
 
-            EipOrder order = getOrderByEipParam(0, null, null, null, eipId);
-            order.setOrderType("unsubscribe");
+            EipOrder order = getOrderByEipParam(0, "", "", "", eipId);
+            order.setOrderType(HsConstants.UNSUBSCRIBE);
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("eipId", eipId);
             order.setConsoleCustomization(jsonObject);
@@ -98,13 +99,13 @@ public class EipServiceImpl  {
         JSONObject result;
         try{
             EipQuota quota=new EipQuota();
-            quota.setProductLineCode("EIP");
+            quota.setProductLineCode(HsConstants.EIP);
             quota.setRegion(CommonUtil.getReginInfo());
-            quota.setProductTypeCode("EIP");
+            quota.setProductTypeCode(HsConstants.EIP);
             quota.setUserId(CommonUtil.getUserId());
 
             result =bssApiService.getQuota(quota);
-            if(null!= result.getBoolean("success") && result.getBoolean("success")){
+            if(null!= result.getBoolean(HsConstants.SUCCESS) && result.getBoolean(HsConstants.SUCCESS)){
                 JSONArray qutoResult =result.getJSONObject("data").getJSONArray("quotaList");
                 for(int i=0; i< qutoResult.size(); i++) {
                     JSONObject jb = qutoResult.getJSONObject(i);
@@ -126,40 +127,35 @@ public class EipServiceImpl  {
 
         List<EipOrderProductItem> itemList = new ArrayList<>();
         EipOrderProductItem bandWidthItem = new EipOrderProductItem();
-        bandWidthItem.setCode("net");
+        bandWidthItem.setCode(HsConstants.BANDWIDTH);
         bandWidthItem.setName("带宽");
-        bandWidthItem.setUnit("M");
+        bandWidthItem.setUnit(HsConstants.M);
         bandWidthItem.setValue(String.valueOf(bandWidth));
-        bandWidthItem.setType("billingItem");
+        bandWidthItem.setType(HsConstants.BILLINGITEM);
 
         EipOrderProductItem ipTypeItem = new EipOrderProductItem();
-        ipTypeItem.setCode("provider");
-        ipTypeItem.setName("BGP网络");
-        ipTypeItem.setValue("BGP");
-        ipTypeItem.setType("impactFactor");
-
-        EipOrderProductItem chargeMode = new EipOrderProductItem();
-        chargeMode.setCode("chargemode");
-        chargeMode.setName("计费方式");
-        chargeMode.setValue("Bandwidth");
-        chargeMode.setType("billingItem");
+        ipTypeItem.setCode(HsConstants.PROVIDER);
+        ipTypeItem.setName("线路");
+        ipTypeItem.setValue(HsConstants.BGP);
+        ipTypeItem.setUnit("");
+        ipTypeItem.setType(HsConstants.IMPACTFACTOR);
 
         EipOrderProductItem trasfer = new EipOrderProductItem();
-        chargeMode.setCode("transfer");
-        chargeMode.setName("流量");
-        chargeMode.setValue("0");
-        chargeMode.setType("billingItem");
+        trasfer.setCode(HsConstants.TRANSFER);
+        trasfer.setName("流量");
+        trasfer.setUnit("Gb");
+        trasfer.setValue("0");
+        trasfer.setType(HsConstants.BILLINGITEM);
 
         EipOrderProductItem ip = new EipOrderProductItem();
-        chargeMode.setCode("IP");
-        chargeMode.setName("IP费用");
-        chargeMode.setValue("1");
-        chargeMode.setType("billingItem");
-        chargeMode.setUnit("个");
+        ip.setCode("IP");
+        ip.setName("IP费用");
+        ip.setValue("1");
+        ip.setType(HsConstants.BILLINGITEM);
+        ip.setUnit("个");
 
         itemList.add(bandWidthItem);
         itemList.add(ipTypeItem);
-        itemList.add(chargeMode);
         itemList.add(ip);
         itemList.add(trasfer);
 
@@ -168,7 +164,6 @@ public class EipServiceImpl  {
         eipOrderProduct.setRegion(region);
         eipOrderProduct.setAvailableZone("");
         eipOrderProduct.setInstanceId(eipId);
-        eipOrderProduct.setInstanceId("");
 
         EipOrder eipOrder = new EipOrder();
         try {
