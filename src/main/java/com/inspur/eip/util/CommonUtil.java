@@ -63,8 +63,8 @@ public class CommonUtil {
                 log.error("Failed to get token,request:{}",request);
                 return null;
             } else {
-                log.debug("Get token:{}",keyCloackToken.split(" ")[1]);
-                return keyCloackToken;
+                log.debug("Get token:{}",keyCloackToken);
+                return keyCloackToken.split(" ")[1];
             }
         }
         return null;
