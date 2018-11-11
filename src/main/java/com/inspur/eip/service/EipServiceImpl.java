@@ -172,9 +172,9 @@ public class EipServiceImpl  {
             log.error("Exception when get user id in getOrderByEipParam.", e);
         }
         String bearerToken = CommonUtil.getKeycloackToken();
-        //if(bearerToken.startsWith("Bearer ")){
-        //    bearerToken = bearerToken.split(" ")[1];
-        //}
+        if(bearerToken.startsWith("Bearer ")){
+            bearerToken = bearerToken.split(" ")[1];
+        }
         eipOrder.setToken(bearerToken);
         eipOrder.setConsoleOrderFlowId(UUID.randomUUID().toString());
         List<EipOrderProduct> orders = new ArrayList<>();
