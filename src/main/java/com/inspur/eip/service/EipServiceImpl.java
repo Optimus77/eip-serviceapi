@@ -73,8 +73,8 @@ public class EipServiceImpl  {
     public JSONObject deleteEipOrder(String eipId) {
         JSONObject result;
         try{
-
-            EipOrder order = getOrderByEipParam(1, "", "", "", eipId);
+            //Todo: get the param region and bandwidth
+            EipOrder order = getOrderByEipParam(1, "", "cn-north-3", "", eipId);
             order.setOrderType(HsConstants.UNSUBSCRIBE);
             order.setBillType("hourlySettlement");
             JSONObject jsonObject = new JSONObject();
