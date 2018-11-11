@@ -76,6 +76,7 @@ public class EipServiceImpl  {
 
             EipOrder order = getOrderByEipParam(0, "", "", "", eipId);
             order.setOrderType(HsConstants.UNSUBSCRIBE);
+            order.setBillType("hourlySettlement");
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("eipId", eipId);
             order.setConsoleCustomization(jsonObject);
