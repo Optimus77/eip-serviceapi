@@ -44,7 +44,9 @@ public class EipServiceImpl  {
                 EipOrder order = getOrderByEipParam(eip.getInteger(HsConstants.BANDWIDTH),
                         eip.getString(HsConstants.IPTYPE),
                         eip.getString(HsConstants.REGION),
-                        eip.getString(HsConstants.DURATION), "");
+                        eip.getString(HsConstants.DURATION), 
+                        eip.getString("billType"),
+                        "");
 
                 order.setConsoleCustomization(eipAllocateParam);
 
@@ -74,7 +76,8 @@ public class EipServiceImpl  {
         JSONObject result;
         try{
             //Todo: get the param region and bandwidth
-            EipOrder order = getOrderByEipParam(1, "", "cn-north-3", "", eipId);
+            EipOrder order = getOrderByEipParam(1, "", "cn-north-3", "", 
+            "hourlySettlement",eipId);
             order.setOrderType(HsConstants.UNSUBSCRIBE);
             order.setBillType("hourlySettlement");
             JSONObject jsonObject = new JSONObject();
@@ -124,7 +127,7 @@ public class EipServiceImpl  {
     }
 
 
-    private EipOrder getOrderByEipParam(int bandWidth, String ipType, String region, String duration, String eipId) {
+    private EipOrder getOrderByEipParam(int bandWidth, String ipType, String region, String duration, String billType, String eipId) {
 
         List<EipOrderProductItem> itemList = new ArrayList<>();
         EipOrderProductItem bandWidthItem = new EipOrderProductItem();
@@ -181,6 +184,7 @@ public class EipServiceImpl  {
         List<EipOrderProduct> orders = new ArrayList<>();
         orders.add(eipOrderProduct);
         eipOrder.setDuration(duration);
+        eipOrder.setBillType(billType);
         eipOrder.setProductList(orders);
 
         return eipOrder;
