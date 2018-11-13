@@ -10,9 +10,12 @@ import com.inspur.eip.entity.EipOrderProductItem;
 import com.inspur.eip.entity.EipQuota;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HsConstants;
+import com.inspur.eip.util.HttpUtil;
+import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -75,9 +78,15 @@ public class EipServiceImpl  {
     public JSONObject deleteEipOrder(String eipId) {
         JSONObject result;
         try{
-            //Todo: get the param region and bandwidth
-            EipOrder order = getOrderByEipParam(1, "", "cn-north-3", "", 
-            "hourlySettlement",eipId);
+            JSONObject eipEntity = getEipEntityById(eipId);
+            JSONObject eip = eipEntity.getJSONObject("eip");
+            String region = eip.getString("region");
+            Integer bandwidth = eip.getInteger("bandwidth");
+            String duration = eip.getString("duration");
+            String ipType = eip.getString("iptype");
+            String billType = eip.getString("billType");
+
+            EipOrder order = getOrderByEipParam(bandwidth, ipType, region, duration,billType, eipId);
             order.setOrderType(HsConstants.UNSUBSCRIBE);
             order.setBillType("hourlySettlement");
             JSONObject jsonObject = new JSONObject();
@@ -188,6 +197,16 @@ public class EipServiceImpl  {
         eipOrder.setProductList(orders);
 
         return eipOrder;
+    }
+
+    @Value("${bssURL.eipAtom}")
+    private   String eipAtomUrl;
+    private JSONObject getEipEntityById(String eipId){
+
+        String  uri =eipAtomUrl+eipId;
+        log.info(uri);
+        HttpResponse response= HttpUtil.get(uri,null);
+        return  CommonUtil.handlerResopnse(response);
     }
 
 }

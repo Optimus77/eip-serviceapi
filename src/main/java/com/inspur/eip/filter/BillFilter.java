@@ -3,6 +3,7 @@ package com.inspur.eip.filter;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.service.EipServiceImpl;
+import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HsConstants;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
@@ -13,7 +14,6 @@ import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
 import java.io.IOException;
 
 
@@ -39,7 +39,7 @@ public class BillFilter implements Filter {
         HttpServletResponse response=(HttpServletResponse)servletResponse;
         String method =  req.getMethod();
         if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equals("/v2.0/eips")){
-            String requestBody = ReadAsChars(req);
+            String requestBody = CommonUtil.readRequestAsChars(req);
             log.info("get create eip order:{}.",requestBody);
             JSONObject result = eipService.createOrder(requestBody);
 
@@ -66,19 +66,4 @@ public class BillFilter implements Filter {
 
     }
 
-
-    public static String ReadAsChars(HttpServletRequest request) {
-
-        StringBuilder sb = new StringBuilder("");
-        try {
-            BufferedReader br = request.getReader();
-            String str;
-            while ((str = br.readLine()) != null) {
-                sb.append(str);
-            }
-        } catch (IOException e) {
-            log.error("ReadAsChars exception", e);
-        }
-        return sb.toString();
-    }
 }

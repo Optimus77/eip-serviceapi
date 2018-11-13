@@ -11,8 +11,10 @@ import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 
 public class HttpUtil {
 
@@ -29,8 +31,22 @@ public class HttpUtil {
 
     }
 
+
+
+    private static Map<String,String> getHeader(){
+        Map<String,String> header=new HashMap<String,String>();
+        header.put("requestId", UUID.randomUUID().toString());
+        header.put(HsConstants.AUTHORIZATION, CommonUtil.getKeycloackToken());
+        header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
+        return header;
+    }
+
     public static HttpResponse get(String url, Map<String,String > header){
         HttpGet httpGet = new HttpGet(url.toString());
+
+        if(null == header){
+            header = getHeader();
+        }
 
         Iterator<Map.Entry<String, String>> it = header.entrySet().iterator();
         while (it.hasNext()) {
@@ -48,6 +64,11 @@ public class HttpUtil {
 
     public static HttpResponse post(String url, Map<String,String > header, String body ) {
         HttpClient client;
+
+        if(null == header){
+            header = getHeader();
+        }
+
         try {
             client = getCloseableHttpClient();
             HttpPost httpPost = new HttpPost(url.toString());
