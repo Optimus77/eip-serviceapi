@@ -41,25 +41,17 @@ public class BssApiService {
         }
     }
 
-
-    private  Map<String,String> getHeader(){
-        Map<String,String> header=new HashMap<String,String>();
-        header.put("requestId",UUID.randomUUID().toString());
-        header.put("Authorization", CommonUtil.getKeycloackToken());
-        header.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
-        header.put(HsConstants.HILLTONE_LANGUAGE, HsConstants.LANG);
-        return header;
-    }
+ 
 
     //1.2.1 查询当前用户余额
     @Value("${bssURL.userBalanceURL}")
     private   String userBalanceURL;
     public JSONObject getUserBalance(String userid){
-        String  uri=userBalanceURL+"/account/"+userid+"/balance";
+        String  uri=userBalanceURL+"/crm/quota";
         log.info(uri);
-        Map<String,String> header= getHeader();
-        HttpResponse response= HttpUtil.get(uri,header);
-        return handlerResopnse(response);
+
+        HttpResponse response= HttpUtil.get(uri,null);
+        return CommonUtil.handlerResopnse(response);
     }
 
 
@@ -67,14 +59,13 @@ public class BssApiService {
     @Value("${bssURL.ordercreate}")
     private   String ordercreate;
     public JSONObject createOrder(EipOrder order)  {
-        String url=ordercreate+"/order/confirm";
+        String url=ordercreate;
 
-        Map<String,String> header= getHeader();
         String orderStr=JSONObject.toJSONString(order);
         log.info("Send order to url:{}, body:{}",url, orderStr);
 
-        HttpResponse response=HttpUtil.post(url,header,orderStr);
-        return handlerResopnse(response);
+        HttpResponse response=HttpUtil.post(url,null,orderStr);
+        return CommonUtil.handlerResopnse(response);
     }
 
 
@@ -82,54 +73,16 @@ public class BssApiService {
     @Value("${bssURL.quotaUrl}")
     private   String quotaUrl;
     public JSONObject getQuota(EipQuota quota){
-        JSONObject result=new JSONObject();
-        //String  uri=quotaUrl+"/crm/quota"+?userId="+quota.getUserId()+"&region="+quota.getRegion()+"&productLineCode="+quota.getProductLineCode()+"&productTypeCode="+quota.getProductTypeCode();
-        String  uri="http://117.50.44.72:7300/mock/5bbda32758c3ee17c7086191/crm/quota";
+
+        String  uri =quotaUrl+"?userId="+quota.getUserId()+"&region="+quota.getRegion()+"&productLineCode="
+                +quota.getProductLineCode()+"&productTypeCode="+quota.getProductTypeCode()+"&quotaType=amount";
         log.info(uri);
-        Map<String,String> header= getHeader();
-        HttpResponse response= HttpUtil.get(uri,header);
-        return handlerResopnse(response);
+
+        HttpResponse response= HttpUtil.get(uri,null);
+        return CommonUtil.handlerResopnse(response);
     }
 
 
-    private JSONObject handlerResopnse(HttpResponse response){
-        JSONObject result=new JSONObject();
-        StringBuffer sb= new StringBuffer("");
-        if(response!=null){
-            BufferedReader in=null;
-            try{
-                in = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-                String line = "";
-                while ((line = in.readLine()) != null) {
-                    sb.append(line);
-                }
-                in.close();
-                JSONObject returnInfo=JSONObject.parseObject(sb.toString());
-                log.info("BSS RETURN ==>{}",returnInfo);
-                if(returnInfo.containsKey("code")){
-                    if(returnInfo.getInteger("code")==0){
-                        result.put("success",true);
-                        result.put("data",returnInfo.get("result"));
-                    }else{
-                        result.put("success",false);
-                        result.put("data",returnInfo);
-                    }
-                }else{
-                    result.put("success",false);
-                    result.put("data",returnInfo);
-                }
-            }catch(Exception e){
-                e.printStackTrace();
-                result.put("success",false);
-                result.put("data",e.getMessage());
-            }
-        }else{
-            result.put("success",false);
-            result.put("data",sb.toString());
-        }
-        return result;
-    }
-    
 
 
 

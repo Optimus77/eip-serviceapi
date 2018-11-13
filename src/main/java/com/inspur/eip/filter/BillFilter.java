@@ -3,6 +3,8 @@ package com.inspur.eip.filter;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.service.EipServiceImpl;
+import com.inspur.eip.util.CommonUtil;
+import com.inspur.eip.util.HsConstants;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +14,6 @@ import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
 import java.io.IOException;
 
 
@@ -37,22 +38,22 @@ public class BillFilter implements Filter {
         HttpServletRequest req= (HttpServletRequest)servletRequest;
         HttpServletResponse response=(HttpServletResponse)servletResponse;
         String method =  req.getMethod();
-        if(method.equals("POST")  && req.getPathInfo().equals("/v2.0/eips")){
-            String requestBody = ReadAsChars(req);
+        if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equals("/v2.0/eips")){
+            String requestBody = CommonUtil.readRequestAsChars(req);
             log.info("get create eip order:{}.",requestBody);
             JSONObject result = eipService.createOrder(requestBody);
 
             response.setStatus(HttpStatus.SC_ACCEPTED);
-            response.setContentType("application/json");
+            response.setContentType(HsConstants.APPLICATION_JSON);
 
             response.getWriter().write(result.toJSONString());
-        }else if(method.equals("DELETE")  && req.getPathInfo().startsWith("/v2.0/eips/")){
+        }else if(method.equalsIgnoreCase(HsConstants.DELETE)  && req.getPathInfo().startsWith("/v2.0/eips/")){
             String eipId = req.getPathInfo().substring("/v2.0/eips/".length());
             log.info("get delete eip order,eipId:{}. ",eipId);
             JSONObject result = eipService.deleteEipOrder(eipId);
 
             response.setStatus(HttpStatus.SC_ACCEPTED);
-            response.setContentType("application/json");
+            response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
         } else {
             filterChain.doFilter(servletRequest, servletResponse);
@@ -65,19 +66,4 @@ public class BillFilter implements Filter {
 
     }
 
-
-    public static String ReadAsChars(HttpServletRequest request) {
-
-        StringBuilder sb = new StringBuilder("");
-        try {
-            BufferedReader br = request.getReader();
-            String str;
-            while ((str = br.readLine()) != null) {
-                sb.append(str);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return sb.toString();
-    }
 }

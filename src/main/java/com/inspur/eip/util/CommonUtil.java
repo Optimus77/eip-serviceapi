@@ -5,12 +5,16 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.Setter;
 
+import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
@@ -123,5 +127,48 @@ public class CommonUtil {
             log.error("null userInfo");
         }
         return jsonObject;
+    }
+
+
+
+    public static String readRequestAsChars(HttpServletRequest request) {
+
+        StringBuilder sb = new StringBuilder("");
+        try {
+            BufferedReader br = request.getReader();
+            String str;
+            while ((str = br.readLine()) != null) {
+                sb.append(str);
+            }
+        } catch (IOException e) {
+            log.error("ReadAsChars exception", e);
+        }
+        return sb.toString();
+    }
+
+
+    public static JSONObject handlerResopnse(HttpResponse response){
+
+        StringBuffer sb= new StringBuffer();
+        if(response!=null) {
+            BufferedReader in;
+            try {
+                in = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+                String line = "";
+                while ((line = in.readLine()) != null) {
+                    sb.append(line);
+                }
+                in.close();
+                JSONObject returnInfo = JSONObject.parseObject(sb.toString());
+                log.info("BSS RETURN ==>{}", returnInfo);
+                return returnInfo;
+            }catch (Exception e){
+                log.error("handlerResopnse exception:", e);
+            }
+        }
+        JSONObject result=new JSONObject();
+        result.put(HsConstants.SUCCESS,false);
+        result.put("message","no return from.");
+        return result;
     }
 }
