@@ -100,7 +100,7 @@ public class EipServiceImpl  {
         try{
             JSONObject eipEntity = getEipEntityById(eipId);
             JSONObject eip = eipEntity.getJSONObject("eip");
-            String region = eip.getString("region");
+//            String region = eip.getString("region");
             Integer bandwidth = eip.getInteger("bandwidth");
             String duration = eip.getString("duration");
             String ipType = eip.getString("iptype");
