@@ -3,6 +3,7 @@ package com.inspur.eip.service;
 import com.alibaba.fastjson.JSONObject;
 
 import com.inspur.eip.entity.EipOrder;
+import com.inspur.eip.entity.EipOrderResult;
 import com.inspur.eip.entity.EipQuota;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HsConstants;
@@ -76,13 +77,24 @@ public class BssApiService {
 
         String  uri =quotaUrl+"?userId="+quota.getUserId()+"&region="+quota.getRegion()+"&productLineCode="
                 +quota.getProductLineCode()+"&productTypeCode="+quota.getProductTypeCode()+"&quotaType=amount";
-        log.info(uri);
+        log.info("Get quota: {}",uri);
 
         HttpResponse response= HttpUtil.get(uri,null);
         return CommonUtil.handlerResopnse(response);
     }
 
+    //1.2.8 订单返回给控制台的消息
+    @Value("${bssURL.returnMq}")
+    private   String returnMq;
+    public JSONObject resultReturnMq(EipOrderResult orderResult)  {
+        String url=returnMq;
+        log.info(url);
 
+        String orderStr=JSONObject.toJSONString(orderResult);
+        log.info("return mq body str {}",orderStr);
+        HttpResponse response=HttpUtil.post(url,null,orderStr);
+        return CommonUtil.handlerResopnse(response);
+    }
 
 
 

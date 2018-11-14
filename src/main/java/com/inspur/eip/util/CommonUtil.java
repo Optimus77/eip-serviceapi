@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import lombok.Setter;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -151,6 +152,7 @@ public class CommonUtil {
 
         StringBuffer sb= new StringBuffer();
         if(response!=null) {
+            StatusLine status = response.getStatusLine();
             BufferedReader in;
             try {
                 in = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
@@ -161,6 +163,7 @@ public class CommonUtil {
                 in.close();
                 JSONObject returnInfo = JSONObject.parseObject(sb.toString());
                 log.info("BSS RETURN ==>{}", returnInfo);
+                returnInfo.put("statusCode", status.getStatusCode());
                 return returnInfo;
             }catch (Exception e){
                 log.error("handlerResopnse exception:", e);
