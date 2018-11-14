@@ -1,7 +1,9 @@
 package com.inspur.eip.filter;
 
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.inspur.eip.entity.EipReciveOrder;
 import com.inspur.eip.service.EipServiceImpl;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HsConstants;
@@ -45,9 +47,8 @@ public class BillFilter implements Filter {
 
             response.setStatus(HttpStatus.SC_ACCEPTED);
             response.setContentType(HsConstants.APPLICATION_JSON);
-
             response.getWriter().write(result.toJSONString());
-        }else if(method.equalsIgnoreCase(HsConstants.DELETE)  && req.getPathInfo().startsWith("/v2.0/eips/")){
+        }else if(method.equalsIgnoreCase(HsConstants.DELETE)  && req.getPathInfo().startsWith("/v2.0/eips/") ){
             String eipId = req.getPathInfo().substring("/v2.0/eips/".length());
             log.info("get delete eip order,eipId:{}. ",eipId);
             JSONObject result = eipService.deleteEipOrder(eipId);
@@ -55,7 +56,26 @@ public class BillFilter implements Filter {
             response.setStatus(HttpStatus.SC_ACCEPTED);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
-        } else {
+        }else if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equals("/v2.0/order")) {
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("get create eip order:{}.", requestBody);
+            EipReciveOrder eipReciveOrder =  JSON.parseObject(requestBody, EipReciveOrder.class);
+            JSONObject result = eipService.onReciveOrderResult(eipReciveOrder);
+
+            response.setStatus(HttpStatus.SC_ACCEPTED);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+        }else if(method.equalsIgnoreCase(HsConstants.DELETE)  && req.getPathInfo().startsWith("/v2.0/order")) {
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("get delete eip order:{}.", requestBody);
+            EipReciveOrder eipReciveOrder =  JSON.parseObject(requestBody, EipReciveOrder.class);
+            JSONObject result = eipService.onReciveDeleteOrderResult(eipReciveOrder);
+
+            response.setStatus(HttpStatus.SC_ACCEPTED);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+
+        }else {
             filterChain.doFilter(servletRequest, servletResponse);
         }
     }

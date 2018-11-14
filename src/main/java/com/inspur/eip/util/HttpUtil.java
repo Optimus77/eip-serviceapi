@@ -2,6 +2,7 @@ package com.inspur.eip.util;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -90,6 +91,26 @@ public class HttpUtil {
 
     }
 
+    public static HttpResponse delete(String url, Map<String,String > header){
+        HttpDelete httpDelete = new HttpDelete(url.toString());
 
+        if(null == header){
+            header = getHeader();
+        }
+
+        Iterator<Map.Entry<String, String>> it = header.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, String> entry = it.next();
+            httpDelete.setHeader(entry.getKey(),entry.getValue());
+        }
+        try {
+            HttpResponse httpResponse = getCloseableHttpClient().execute(httpDelete);
+
+            return httpResponse;
+        } catch (Exception e) {
+            log.error("http get error:",e);
+        }
+        return null;
+    }
 
 }
