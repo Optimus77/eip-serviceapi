@@ -80,13 +80,13 @@ public class EipServiceImpl  {
         try{
             JSONObject eipEntity = getEipEntityById(eipId);
             JSONObject eip = eipEntity.getJSONObject("eip");
-            String region = eip.getString("region");
+//            String region = eip.getString("region");
             Integer bandwidth = eip.getInteger("bandwidth");
             String duration = eip.getString("duration");
             String ipType = eip.getString("iptype");
             String billType = eip.getString("billType");
 
-            EipOrder order = getOrderByEipParam(bandwidth, ipType, region, duration,billType, eipId);
+            EipOrder order = getOrderByEipParam(bandwidth, ipType, "cn-north-3", duration,billType, eipId);
             order.setOrderType(HsConstants.UNSUBSCRIBE);
             order.setBillType("hourlySettlement");
             JSONObject jsonObject = new JSONObject();
