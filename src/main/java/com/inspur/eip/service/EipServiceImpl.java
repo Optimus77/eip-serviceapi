@@ -30,7 +30,7 @@ public class EipServiceImpl  {
     //1.2.8 订单接口POST
     @Value("${bssURL.eipAtom}")
     private   String eipAtomUrl;
-    private JSONObject atomCreateEip(EipAllocateParam eipConfig)  {
+    private JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig)  {
         String url=eipAtomUrl;
 
         String orderStr=JSONObject.toJSONString(eipConfig);
@@ -40,7 +40,7 @@ public class EipServiceImpl  {
         return CommonUtil.handlerResopnse(response);
     }
     private JSONObject atomDeleteEip(String  eipId)  {
-        String url=eipAtomUrl+eipId;
+        String url=eipAtomUrl+"/"+eipId;
 
         log.info("Send order to url:{}, eipId:{}",url, eipId);
 
@@ -137,7 +137,9 @@ public class EipServiceImpl  {
                 ReturnMsg returnMsg = preCheckParam(eipConfig);
                 if(returnMsg.getCode().equals(ReturnStatus.SC_OK)){
                     //post request to atom
-                    JSONObject result = atomCreateEip(eipConfig);
+                    EipAllocateParamWrapper eipAllocateParamWrapper = new EipAllocateParamWrapper();
+                    eipAllocateParamWrapper.setEip(eipConfig);
+                    JSONObject result = atomCreateEip(eipAllocateParamWrapper);
                     //if(result.get)
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
                     return result;
@@ -217,7 +219,7 @@ public class EipServiceImpl  {
             eipAllocateParam.setRegion(eipOrderProduct.getRegion());
             List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
             for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
-                if(eipOrderProductItem.getCode().equals("bandwidth") &&
+                if(eipOrderProductItem.getCode().equalsIgnoreCase("bandwidth") &&
                         eipOrderProductItem.getUnit().equals(HsConstants.M)){
                     eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
                 }else if(eipOrderProductItem.getCode().equals(HsConstants.PROVIDER) &&
@@ -235,7 +237,7 @@ public class EipServiceImpl  {
         if(param.getBandwidth() > 2000){
             errorMsg = "value must be 1-2000.";
         }
-        if(!param.getChargemode().equals(HsConstants.BANDWIDTH) &&
+        if(!param.getChargemode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
                 !param.getChargemode().equals(HsConstants.SHAREDBANDWIDTH)){
             errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
         }
