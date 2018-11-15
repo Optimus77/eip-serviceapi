@@ -386,7 +386,7 @@ public class EipServiceImpl  {
 
     private JSONObject getEipEntityById(String eipId){
 
-        String  uri =eipAtomUrl+eipId;
+        String  uri =eipAtomUrl+"/"+eipId;
         log.info(uri);
         HttpResponse response= HttpUtil.get(uri,null);
         return  CommonUtil.handlerResopnse(response);
