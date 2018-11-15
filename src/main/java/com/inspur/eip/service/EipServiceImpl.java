@@ -4,13 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.inspur.eip.entity.*;
 import com.inspur.eip.util.*;
 import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -126,7 +124,7 @@ public class EipServiceImpl  {
     }
 
 
-    public JSONObject onReciveOrderResult(EipReciveOrder eipOrder) {
+    public JSONObject onReciveCreateOrderResult(EipReciveOrder eipOrder) {
 
         String code;
         String msg;
@@ -171,7 +169,7 @@ public class EipServiceImpl  {
         String eipId = "0";
         try {
             EipOrder retrunMsg =  eipOrder.getReturnConsoleMessage();
-            if(eipOrder.getOrderStatus().equals("createSuccess")  ||
+            if(eipOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)  ||
                     retrunMsg.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
                 //Todo: find the eipid
                 List<EipOrderProduct> eipOrderProducts = retrunMsg.getProductList();
@@ -181,11 +179,8 @@ public class EipServiceImpl  {
                 JSONObject delResult = atomDeleteEip(eipId);
 
                 if (delResult.getInteger("statusCode") != HttpStatus.OK.value()){
-
-
                     //Return message to the front des
                     //returnsWebsocket(eipId,eipOrder,"delete");
-
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"success"));
                     return delResult;
                 }else {

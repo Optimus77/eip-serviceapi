@@ -60,7 +60,7 @@ public class BillFilter implements Filter {
             String requestBody = CommonUtil.readRequestAsChars(req);
             log.info("get create eip order:{}.", requestBody);
             EipReciveOrder eipReciveOrder =  JSON.parseObject(requestBody, EipReciveOrder.class);
-            JSONObject result = eipService.onReciveOrderResult(eipReciveOrder);
+            JSONObject result = eipService.onReciveCreateOrderResult(eipReciveOrder);
 
             response.setStatus(HttpStatus.SC_ACCEPTED);
             response.setContentType(HsConstants.APPLICATION_JSON);

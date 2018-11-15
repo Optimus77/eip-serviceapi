@@ -6,6 +6,7 @@ public class HsConstants {
 	public static final String VRID = "1";
 	public static final String LANG = "zh_CN";
     public static final String PAYSUCCESS = "paySuccess";
+	public static final String CREATESUCCESS = "createSuccess";
     public static final String HOURLYSETTLEMENT = "hourlySettlement";
     public static final String MONTHLY = "monthly";
     public static final String EIP = "EIP";
