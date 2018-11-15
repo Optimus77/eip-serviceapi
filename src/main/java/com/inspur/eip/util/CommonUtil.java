@@ -162,7 +162,7 @@ public class CommonUtil {
                 }
                 in.close();
                 JSONObject returnInfo = JSONObject.parseObject(sb.toString());
-                log.info("BSS RETURN ==>{}", returnInfo);
+                log.info("RETURN ==>{}", returnInfo);
                 returnInfo.put("statusCode", status.getStatusCode());
                 return returnInfo;
             }catch (Exception e){

@@ -63,7 +63,7 @@ public class BillFilter implements Filter {
             EipReciveOrder eipReciveOrder =  JSON.parseObject(requestBody, EipReciveOrder.class);
             JSONObject result = eipService.onReciveCreateOrderResult(eipReciveOrder);
             //todo
-            response.setStatus(HttpStatus.SC_ACCEPTED);
+            response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
         }else if(method.equalsIgnoreCase(HsConstants.DELETE)  && req.getPathInfo().startsWith("/v2.0/order")) {
@@ -72,7 +72,7 @@ public class BillFilter implements Filter {
             EipReciveOrder eipReciveOrder =  JSON.parseObject(requestBody, EipReciveOrder.class);
             JSONObject result = eipService.onReciveDeleteOrderResult(eipReciveOrder);
 
-            response.setStatus(HttpStatus.SC_ACCEPTED);
+            response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
 

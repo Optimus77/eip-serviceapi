@@ -139,10 +139,13 @@ public class EipServiceImpl  {
                     //post request to atom
                     EipAllocateParamWrapper eipAllocateParamWrapper = new EipAllocateParamWrapper();
                     eipAllocateParamWrapper.setEip(eipConfig);
-                    JSONObject result = atomCreateEip(eipAllocateParamWrapper);
-                    //if(result.get)
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
-                    return result;
+                    JSONObject createRet = atomCreateEip(eipAllocateParamWrapper);
+                    String retStr = HsConstants.SUCCESS;
+                    if(createRet.getInteger("statusCode") != HttpStatus.OK.value()) {
+                        retStr = HsConstants.FAIL;
+                    }
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "", retStr));
+                    return createRet;
                 } else {
                     code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
                     msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
@@ -180,10 +183,10 @@ public class EipServiceImpl  {
                 }
                 JSONObject delResult = atomDeleteEip(eipId);
 
-                if (delResult.getInteger("statusCode") != HttpStatus.OK.value()){
+                if (delResult.getInteger("statusCode") == HttpStatus.OK.value()){
                     //Return message to the front des
                     //returnsWebsocket(eipId,eipOrder,"delete");
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,"success"));
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,HsConstants.SUCCESS));
                     return delResult;
                 }else {
                     msg = delResult.getString("statusCode");
