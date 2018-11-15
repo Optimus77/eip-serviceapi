@@ -25,7 +25,8 @@ public class HsConstants {
     public static final String UNSUBSCRIBE = "unsubscribe";
     public static final String SUCCESS = "success";
     public static final String DELETE = "DELETE";
-    public static final String POST = "post";
+    public static final String POST = "POST";
+	public static final String PUT = "PUT";
     public static final String AUTHORIZATION = "Authorization";
 
 	public static final String HILLTONE_LANGUAGE = "Hillstone-language";

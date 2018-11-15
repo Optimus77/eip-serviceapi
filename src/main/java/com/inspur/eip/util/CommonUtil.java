@@ -148,6 +148,23 @@ public class CommonUtil {
     }
 
 
+    public static String getUsername()throws KeycloakTokenException {
+
+        String token = getKeycloackToken();
+        if(null == token){
+            throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
+        }else{
+            JSONObject jsonObject = decodeUserInfo(token);
+            String username = (String) jsonObject.get("preferred_username");
+            if(username!=null){
+                log.info("getUsername:{}", username);
+                return username;
+            }else{
+                throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
+            }
+        }
+    }
+
     public static JSONObject handlerResopnse(HttpResponse response){
 
         StringBuffer sb= new StringBuffer();

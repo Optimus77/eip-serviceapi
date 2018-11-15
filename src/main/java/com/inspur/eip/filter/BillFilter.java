@@ -75,7 +75,16 @@ public class BillFilter implements Filter {
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
+        }else if(method.equalsIgnoreCase(HsConstants.PUT)  && req.getPathInfo().startsWith("/v2.0/order") &&
+                req.getPathInfo().length() == "/v2.0/order/ff232e65-43bb-4ba4-ad43-f891cab7ce0a".length()) {
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("get delete eip order:{}.", requestBody);
+            EipReciveOrder eipReciveOrder =  JSON.parseObject(requestBody, EipReciveOrder.class);
+            JSONObject result = eipService.onReciveUpdateOrder(null,eipReciveOrder);
 
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
         }else {
             filterChain.doFilter(servletRequest, servletResponse);
         }
