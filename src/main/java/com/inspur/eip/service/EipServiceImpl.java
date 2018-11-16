@@ -109,6 +109,9 @@ public class EipServiceImpl  {
         try{
             JSONObject eipEntity = getEipEntityById(eipId);
             JSONObject eip = eipEntity.getJSONObject("eip");
+            if(null == eip){
+                return eipEntity;
+            }
 //            String region = eip.getString("region");
             Integer bandwidth = eip.getInteger("bandwidth");
             String duration = eip.getString("duration");
@@ -350,7 +353,7 @@ public class EipServiceImpl  {
 
             result =bssApiService.getQuota(quota);
             if(result.getInteger("statusCode") != HttpStatus.OK.value()){
-                log.info("Get quota failed， StatusCode:{}", result.getInteger("statusCode"));
+                log.info("Get quota failed StatusCode:{}", result.getInteger("statusCode"));
             }
             if(null!= result.getString("code") && result.getString("code").equals("0")){
                 JSONArray qutoResult =result.getJSONObject("result").getJSONArray("quotaList");
