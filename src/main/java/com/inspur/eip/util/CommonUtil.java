@@ -183,6 +183,7 @@ public class CommonUtil {
                 JSONObject returnInfo;
                 if(status.getStatusCode() == HttpStatus.SC_OK) {
                     returnInfo = JSONObject.parseObject(sb.toString());
+                    returnInfo.put("statusCode", HttpStatus.SC_OK);
                 }else{
                     returnInfo = new JSONObject();
                     returnInfo.put("statusCode", status.getStatusCode());
