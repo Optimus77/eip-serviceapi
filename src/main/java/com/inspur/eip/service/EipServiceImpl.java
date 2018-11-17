@@ -27,7 +27,7 @@ public class EipServiceImpl  {
 
     public final static Logger log = LoggerFactory.getLogger(EipServiceImpl.class);
 
-    @Value("${bssURL.pushMq}")
+    @Value("${bssURL.webSocket}")
     private String pushMq;
 
     //1.2.8 订单接口POST

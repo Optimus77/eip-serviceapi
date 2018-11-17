@@ -12,11 +12,9 @@ spring:
 
 
 bssURL:
-  host: "117.73.2.105"
-  port:  8081
   ignoSSL: true
-  ordercreate: http://117.73.2.105:8086/order/submitpay #  //1.2.8 订单接口POST
+  submitPay: http://117.73.2.105:8086/order/submitpay #  //1.2.8 订单接口POST
   quotaUrl:    http://117.73.2.105:8083/crm/quota #//1.2.11	查询用户配额的接口
   returnMq:    http://commonatomapi.devops.inspur.com/common/productreturn
-  pushMq:      http://tenantconservice.devops.inspur.com/console/websocket/sendMessage
+  webSocket:   http://tenantconservice.devops.inspur.com/console/websocket/sendMessage
   eipAtom:     http://eip-atom.cn-north-3.devops.inspur.com/eip/v2.0/eips/
