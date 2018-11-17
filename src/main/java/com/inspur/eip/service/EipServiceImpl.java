@@ -34,7 +34,7 @@ public class EipServiceImpl  {
     @Value("${bssURL.eipAtom}")
     private   String eipAtomUrl;
     private JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig)  {
-        String url=eipAtomUrl + "/atom";
+        String url=eipAtomUrl + "atom";
 
         String orderStr=JSONObject.toJSONString(eipConfig);
         log.info("Send order to url:{}, body:{}",url, orderStr);
@@ -43,7 +43,7 @@ public class EipServiceImpl  {
         return CommonUtil.handlerResopnse(response);
     }
     private JSONObject atomDeleteEip(String  eipId)  {
-        String url=eipAtomUrl+"/atom/"+eipId;
+        String url=eipAtomUrl+"atom/"+eipId;
 
         log.info("Send order to url:{}, eipId:{}",url, eipId);
 
@@ -51,7 +51,7 @@ public class EipServiceImpl  {
         return CommonUtil.handlerResopnse(response);
     }
     private JSONObject atomUpdateEip(String  eipId, EipAllocateParam eipUpdate )  {
-        String url=eipAtomUrl+"/atom/"+eipId;
+        String url=eipAtomUrl+"atom/"+eipId;
         String orderStr=JSONObject.toJSONString(eipUpdate);
         log.info("Send order to url:{}, eipId:{},body:{}",url, eipId, orderStr);
 
@@ -148,8 +148,8 @@ public class EipServiceImpl  {
             if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
                     retrunMsg.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
                 EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
-                ReturnMsg returnMsg = preCheckParam(eipConfig);
-                if(returnMsg.getCode().equals(ReturnStatus.SC_OK)){
+                ReturnMsg checkRet = preCheckParam(eipConfig);
+                if(checkRet.getCode().equals(ReturnStatus.SC_OK)){
                     //post request to atom
                     EipAllocateParamWrapper eipAllocateParamWrapper = new EipAllocateParamWrapper();
                     eipAllocateParamWrapper.setEip(eipConfig);
@@ -157,15 +157,16 @@ public class EipServiceImpl  {
                     String retStr = HsConstants.SUCCESS;
                     if(createRet.getInteger("statusCode") != HttpStatus.OK.value()) {
                         retStr = HsConstants.FAIL;
+                    }else{
+                        JSONObject eipEntity = createRet.getJSONObject("eip");
+                        log.info("create eip result:{}", eipEntity.toJSONString());
+                        returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"create");
                     }
-                    JSONObject eipEntity = createRet.getJSONObject("eip");
-                    log.info("create eip result:{}", eipEntity.toJSONString());
-                    returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"create");
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "", retStr));
                     return createRet;
                 } else {
                     code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
-                    msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
+                    msg = checkRet.getMessage();
                     log.error(msg);
                 }
             }else {
@@ -282,7 +283,7 @@ public class EipServiceImpl  {
         return eipAllocateParam;
     }
     private ReturnMsg preCheckParam(EipAllocateParam param){
-        String errorMsg = "success";
+        String errorMsg = " ";
         if(param.getBandwidth() > 2000){
             errorMsg = "value must be 1-2000.";
         }
@@ -302,7 +303,7 @@ public class EipServiceImpl  {
                 !tp.equals("5_union") && !tp.equals("BGP")){
             errorMsg = errorMsg +"Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
         }
-        if(errorMsg.equals("success")) {
+        if(errorMsg.equals(" ")) {
             log.info(errorMsg);
             return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
         }else {
