@@ -269,7 +269,7 @@ public class ProxyServlet extends HttpServlet {
             log.info("---get the clientBuilder from bean---"+clientBuilder);
             return clientBuilder.build();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Exception when get getCloseableHttpClientFromBean.", e);
             log.info("---get the clientBuilder user default---");
             proxyClient = createHttpClient(buildRequestConfig());
             return proxyClient;
@@ -323,13 +323,17 @@ public class ProxyServlet extends HttpServlet {
         // Make the Request
         //note: we won't transfer the protocol version because I'm not sure it would truly be compatible
         String method = servletRequest.getMethod();
-        log.info("===========["+method.toUpperCase()+"]");
-        String proxyRequestUri = rewriteUrlFromRequest(servletRequest);
+        log.info("==========={}=============", method.toUpperCase());
+
+        //if allocateEip or delete eip or update bandwidth create order
+        String proxyRequestUri;
+        proxyRequestUri = rewriteUrlFromRequest(servletRequest);
+
         HttpRequest proxyRequest;
         //spec: RFC 2616, sec 4.3: either of these two headers signal that there is a message body.
         if (servletRequest.getHeader(HttpHeaders.CONTENT_LENGTH) != null ||
                 servletRequest.getHeader(HttpHeaders.TRANSFER_ENCODING) != null) {
-            log.info("===[BODY]ContentLength"+getContentLength(servletRequest));
+            log.info("===[BODY]ContentLength {}",getContentLength(servletRequest));
             proxyRequest = newProxyRequestWithEntity(method, proxyRequestUri, servletRequest);
         } else {
             proxyRequest = new BasicHttpRequest(method, proxyRequestUri);
@@ -502,7 +506,7 @@ public class ProxyServlet extends HttpServlet {
             } else if (!doPreserveCookies && headerName.equalsIgnoreCase(org.apache.http.cookie.SM.COOKIE)) {
                 headerValue = getRealCookie(headerValue);
             }
-            log.info("[request header]"+headerName+"==>"+headerValue);
+            log.debug("[request header]{}==>{}",headerName,headerValue);
             proxyRequest.addHeader(headerName, headerValue);
         }
     }
@@ -536,7 +540,7 @@ public class ProxyServlet extends HttpServlet {
         }
         if(doLog){
             for(String headername:servletResponse.getHeaderNames()){
-                log.info("[real response header]"+headername+"==>"+servletResponse.getHeader(headername));
+                log.debug("[real response header]{}==>{}",headername,servletResponse.getHeader(headername));
             }
         }
 
@@ -551,7 +555,7 @@ public class ProxyServlet extends HttpServlet {
 
         String headerName = header.getName();
         String headerValue = header.getValue();
-        log.info("[response header]"+headerName+"==>"+headerValue);
+        log.debug("[response header]{}==>{}.", headerName,headerValue);
 
         if (hopByHopHeaders.containsHeader(headerName)) {
             return;
