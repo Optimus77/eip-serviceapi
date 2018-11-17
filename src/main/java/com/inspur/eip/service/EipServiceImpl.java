@@ -303,7 +303,7 @@ public class EipServiceImpl  {
                 !tp.equals("5_union") && !tp.equals("BGP")){
             errorMsg = errorMsg +"Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
         }
-        if(errorMsg.equals("success")) {
+        if(errorMsg.equals(" ")) {
             log.info(errorMsg);
             return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
         }else {
