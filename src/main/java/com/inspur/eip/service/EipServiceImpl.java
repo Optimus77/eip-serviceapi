@@ -157,10 +157,13 @@ public class EipServiceImpl  {
                     String retStr = HsConstants.SUCCESS;
                     if(createRet.getInteger("statusCode") != HttpStatus.OK.value()) {
                         retStr = HsConstants.FAIL;
+                        log.info("create eip failed, return code:{}", createRet.getInteger("statusCode"));
+                    }else {
+                        JSONObject eipEntity = createRet.getJSONObject("eip");
+                        log.info("create eip result:{}", eipEntity.toJSONString());
+                        returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"create");
                     }
-                    JSONObject eipEntity = createRet.getJSONObject("eip");
-                    log.info("create eip result:{}", eipEntity.toJSONString());
-                    returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"create");
+
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "", retStr));
                     return createRet;
                 } else {
