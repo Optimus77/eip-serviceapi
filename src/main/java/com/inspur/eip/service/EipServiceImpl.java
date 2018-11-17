@@ -148,8 +148,8 @@ public class EipServiceImpl  {
             if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
                     retrunMsg.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
                 EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
-                ReturnMsg returnMsg = preCheckParam(eipConfig);
-                if(returnMsg.getCode().equals(ReturnStatus.SC_OK)){
+                ReturnMsg checkRet = preCheckParam(eipConfig);
+                if(checkRet.getCode().equals(ReturnStatus.SC_OK)){
                     //post request to atom
                     EipAllocateParamWrapper eipAllocateParamWrapper = new EipAllocateParamWrapper();
                     eipAllocateParamWrapper.setEip(eipConfig);
