@@ -166,7 +166,7 @@ public class EipServiceImpl  {
                     return createRet;
                 } else {
                     code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
-                    msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
+                    msg = checkRet.getMessage();
                     log.error(msg);
                 }
             }else {
