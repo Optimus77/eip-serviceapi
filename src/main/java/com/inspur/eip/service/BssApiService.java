@@ -6,20 +6,12 @@ import com.inspur.eip.entity.EipOrder;
 import com.inspur.eip.entity.EipOrderResult;
 import com.inspur.eip.entity.EipQuota;
 import com.inspur.eip.util.CommonUtil;
-import com.inspur.eip.util.HsConstants;
 import com.inspur.eip.util.HttpUtil;
 import org.apache.http.HttpResponse;
-import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 @Service
 public class BssApiService {
