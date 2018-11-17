@@ -18,13 +18,9 @@ public class BssApiService {
 
     private final static Logger log = LoggerFactory.getLogger(BssApiService.class);
 
-    @Value("${bssURL.ignoSSL}")
-    private   boolean ignoSSL;
-
-
 
     //1.2.8 订单接口POST
-    @Value("${bssURL.submitPay}")
+    @Value("${bssurl.submitPay}")
     private   String ordercreate;
     public JSONObject createOrder(EipOrder order)  {
         String url=ordercreate;
@@ -38,7 +34,7 @@ public class BssApiService {
 
 
     //1.2.11	查询用户配额的接口 URL: http://117.73.2.105:8083/crm/quota
-    @Value("${bssURL.quotaUrl}")
+    @Value("${bssurl.quotaUrl}")
     private   String quotaUrl;
     public JSONObject getQuota(EipQuota quota){
 
@@ -51,7 +47,7 @@ public class BssApiService {
     }
 
     //1.2.8 订单返回给控制台的消息
-    @Value("${bssURL.returnMq}")
+    @Value("${mq.returnMq}")
     private   String returnMq;
     public JSONObject resultReturnMq(EipOrderResult orderResult)  {
         String url=returnMq;
