@@ -34,7 +34,7 @@ public class EipServiceImpl  {
     @Value("${bssURL.eipAtom}")
     private   String eipAtomUrl;
     private JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig)  {
-        String url=eipAtomUrl + "/atom";
+        String url=eipAtomUrl + "atom";
 
         String orderStr=JSONObject.toJSONString(eipConfig);
         log.info("Send order to url:{}, body:{}",url, orderStr);
@@ -43,7 +43,7 @@ public class EipServiceImpl  {
         return CommonUtil.handlerResopnse(response);
     }
     private JSONObject atomDeleteEip(String  eipId)  {
-        String url=eipAtomUrl+"/atom/"+eipId;
+        String url=eipAtomUrl+"atom/"+eipId;
 
         log.info("Send order to url:{}, eipId:{}",url, eipId);
 
@@ -51,7 +51,7 @@ public class EipServiceImpl  {
         return CommonUtil.handlerResopnse(response);
     }
     private JSONObject atomUpdateEip(String  eipId, EipAllocateParam eipUpdate )  {
-        String url=eipAtomUrl+"/atom/"+eipId;
+        String url=eipAtomUrl+"atom/"+eipId;
         String orderStr=JSONObject.toJSONString(eipUpdate);
         log.info("Send order to url:{}, eipId:{},body:{}",url, eipId, orderStr);
 
