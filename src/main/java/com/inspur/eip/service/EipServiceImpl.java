@@ -283,7 +283,7 @@ public class EipServiceImpl  {
         return eipAllocateParam;
     }
     private ReturnMsg preCheckParam(EipAllocateParam param){
-        String errorMsg = "success";
+        String errorMsg = " ";
         if(param.getBandwidth() > 2000){
             errorMsg = "value must be 1-2000.";
         }
