@@ -82,7 +82,7 @@ public class EipServiceImpl  {
 
                 order.setConsoleCustomization(eipAllocateParam);
 
-                result = bssApiService.createOrder(order);
+                result = bssApiService.postOrder(order);
                 log.info("Send create order result:{}", result);
                 return result;
             }else{
@@ -120,12 +120,12 @@ public class EipServiceImpl  {
 
             EipOrder order = getOrderByEipParam(bandwidth, ipType, "cn-north-3", duration,billType, eipId);
             order.setOrderType(HsConstants.UNSUBSCRIBE);
-            order.setBillType("hourlySettlement");
+
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("eipId", eipId);
             order.setConsoleCustomization(jsonObject);
 
-            result=bssApiService.createOrder(order);
+            result=bssApiService.postOrder(order);
             log.info("delete eip order result:{}",result);
             return  result;
         }catch (Exception e){
