@@ -30,6 +30,8 @@ public class EipServiceImpl  {
     @Value("${mq.webSocket}")
     private String pushMq;
 
+    private static final String STATUSCODE = "statusCode";
+
     //1.2.8 订单接口POST
     @Value("${eipAtom}")
     private   String eipAtomUrl;
@@ -87,13 +89,13 @@ public class EipServiceImpl  {
                 return result;
             }else{
                 result=new JSONObject();
-                result.put("code","106.999500");
+                result.put("code",ReturnStatus.SC_INTERNAL_SERVER_ERROR);
                 result.put("msg", "quota limited, user can not create eip.");
             }
         }catch (Exception e){
             log.info("createOrder exception", e);
             result=new JSONObject();
-            result.put("code","106.999500");
+            result.put("code",ReturnStatus.SC_INTERNAL_SERVER_ERROR);
             result.put("msg",e.getMessage());
         }
         return  result;
@@ -112,7 +114,6 @@ public class EipServiceImpl  {
             if(null == eip){
                 return eipEntity;
             }
-//            String region = eip.getString("region");
             Integer bandwidth = eip.getInteger("bandwidth");
             String duration = eip.getString("duration");
             String ipType = eip.getString("iptype");
@@ -131,7 +132,7 @@ public class EipServiceImpl  {
         }catch (Exception e){
             log.error("Exception when deleteEipOrder", e);
             result=new JSONObject();
-            result.put("code","106.999500");
+            result.put("code",ReturnStatus.SC_INTERNAL_SERVER_ERROR);
             result.put("msg",e.getMessage());
         }
         return result;
@@ -155,9 +156,9 @@ public class EipServiceImpl  {
                     eipAllocateParamWrapper.setEip(eipConfig);
                     JSONObject createRet = atomCreateEip(eipAllocateParamWrapper);
                     String retStr = HsConstants.SUCCESS;
-                    if(createRet.getInteger("statusCode") != HttpStatus.OK.value()) {
+                    if(createRet.getInteger(STATUSCODE) != HttpStatus.OK.value()) {
                         retStr = HsConstants.FAIL;
-                        log.info("create eip failed, return code:{}", createRet.getInteger("statusCode"));
+                        log.info("create eip failed, return code:{}", createRet.getInteger(STATUSCODE));
                     }else{
                         JSONObject eipEntity = createRet.getJSONObject("eip");
                         log.info("create eip result:{}", eipEntity.toJSONString());
@@ -202,13 +203,13 @@ public class EipServiceImpl  {
                 }
                 JSONObject delResult = atomDeleteEip(eipId);
 
-                if (delResult.getInteger("statusCode") == HttpStatus.OK.value()){
+                if (delResult.getInteger(STATUSCODE) == HttpStatus.OK.value()){
                     //Return message to the front des
                     returnsWebsocket(eipId,eipOrder,"delete");
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,HsConstants.SUCCESS));
                     return delResult;
                 }else {
-                    msg = delResult.getString("statusCode");
+                    msg = delResult.getString(STATUSCODE);
                     code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 }
             }else{
@@ -234,7 +235,7 @@ public class EipServiceImpl  {
         try {
             EipAllocateParam eipUpdate = getEipConfigByOrder(eipOrder);
             JSONObject delResult = atomUpdateEip(eipId, eipUpdate);
-            if (delResult.getInteger("statusCode") == HttpStatus.OK.value()){
+            if (delResult.getInteger(STATUSCODE) == HttpStatus.OK.value()){
                 log.info("renew eip:{} , add duration:{}",eipId, eipUpdate.getDuration());
                 //Return message to the front des
                 returnsWebsocket(eipId,eipOrder,"renew");
@@ -354,8 +355,8 @@ public class EipServiceImpl  {
             quota.setUserId(CommonUtil.getUserId());
 
             result =bssApiService.getQuota(quota);
-            if(result.getInteger("statusCode") != HttpStatus.OK.value()){
-                log.info("Get quota failed StatusCode:{}", result.getInteger("statusCode"));
+            if(result.getInteger(STATUSCODE) != HttpStatus.OK.value()){
+                log.info("Get quota failed StatusCode:{}", result.getInteger(STATUSCODE));
             }
             if(null!= result.getString("code") && result.getString("code").equals("0")){
                 JSONArray qutoResult =result.getJSONObject("result").getJSONArray("quotaList");
