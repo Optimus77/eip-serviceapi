@@ -87,7 +87,7 @@ public class EipServiceImpl  {
                 return result;
             }else{
                 result=new JSONObject();
-                result.put("code","106.999500");
+                result.put("code",ReturnStatus.SC_INTERNAL_SERVER_ERROR);
                 result.put("msg", "quota limited, user can not create eip.");
             }
         }catch (Exception e){
@@ -140,10 +140,10 @@ public class EipServiceImpl  {
         String code;
         String msg;
         try {
-            log.info("Recive order:{}", JSONObject.toJSONString(eipOrder));
-            EipOrder retrunMsg =  eipOrder.getReturnConsoleMessage();
+            log.info("Recive create order:{}", JSONObject.toJSONString(eipOrder));
+            EipOrder message =  eipOrder.getReturnConsoleMessage();
             if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
-                    retrunMsg.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                    message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
                 EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
                 ReturnMsg returnMsg = preCheckParam(eipConfig);
                 if(returnMsg.getCode().equals(ReturnStatus.SC_OK)){
@@ -156,7 +156,7 @@ public class EipServiceImpl  {
                         retStr = HsConstants.FAIL;
                     }
                     JSONObject eipEntity = createRet.getJSONObject("eip");
-                    log.info("create eip result:{}", eipEntity.toJSONString());
+                    log.info("create order result:{}", eipEntity.toJSONString());
                     returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"create");
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "", retStr));
                     return createRet;
@@ -183,28 +183,33 @@ public class EipServiceImpl  {
         return result;
     }
     public JSONObject onReciveDeleteOrderResult( EipReciveOrder eipOrder) {
-        String msg;
-        String code;
+        String msg ="";
+        String code ="";
         String eipId = "0";
         try {
-            EipOrder retrunMsg =  eipOrder.getReturnConsoleMessage();
+            log.info("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
+            EipOrder message =  eipOrder.getReturnConsoleMessage();
             if(eipOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)  ||
-                    retrunMsg.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                //Todo: find the eipid
-                List<EipOrderProduct> eipOrderProducts = retrunMsg.getProductList();
-                for(EipOrderProduct eipOrderProduct: eipOrderProducts){
-                    eipId = eipOrderProduct.getInstanceId();
-                }
-                JSONObject delResult = atomDeleteEip(eipId);
+                    message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
 
-                if (delResult.getInteger("statusCode") == HttpStatus.OK.value()){
-                    //Return message to the front des
-                    returnsWebsocket(eipId,eipOrder,"delete");
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,HsConstants.SUCCESS));
-                    return delResult;
-                }else {
-                    msg = delResult.getString("statusCode");
-                    code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+                EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
+                ReturnMsg returnMsg = preCheckParam(eipConfig);
+                if(returnMsg.getCode().equals(ReturnStatus.SC_OK)) {
+                    List<EipOrderProduct> eipOrderProducts = message.getProductList();
+                    for (EipOrderProduct eipOrderProduct : eipOrderProducts) {
+                        eipId = eipOrderProduct.getInstanceId();
+                    }
+                    JSONObject delResult = atomDeleteEip(eipId);
+
+                    if (delResult.getInteger("statusCode") == HttpStatus.OK.value()) {
+                        //Return message to the front des
+                        returnsWebsocket(eipId, eipOrder, "delete");
+                        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
+                        return delResult;
+                    } else {
+                        msg = delResult.getString("statusCode");
+                        code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+                    }
                 }
             }else{
                 msg = "Failed to delete eip,failed to create delete. orderStatus: "+eipOrder.getOrderStatus();
@@ -227,17 +232,39 @@ public class EipServiceImpl  {
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
 
         try {
-            EipAllocateParam eipUpdate = getEipConfigByOrder(eipOrder);
-            JSONObject delResult = atomUpdateEip(eipId, eipUpdate);
-            if (delResult.getInteger("statusCode") == HttpStatus.OK.value()){
-                log.info("renew eip:{} , add duration:{}",eipId, eipUpdate.getDuration());
-                //Return message to the front des
-                returnsWebsocket(eipId,eipOrder,"renew");
-                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, "success"));
-                return delResult;
-            }else{
-                msg = "Atom update error.";
-                log.error(msg);
+            log.info("Recive update order:{}", JSONObject.toJSONString(eipOrder));
+            EipOrder message =  eipOrder.getReturnConsoleMessage();
+            if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
+                    message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                EipAllocateParam eipUpdate = getEipConfigByOrder(eipOrder);
+                ReturnMsg returnMsg = preCheckParam(eipUpdate);
+                if (returnMsg.getCode().equals(ReturnStatus.SC_OK)){
+                    JSONObject updateRet = atomUpdateEip(eipId, eipUpdate);
+                    String retStr = HsConstants.SUCCESS;
+                    if (updateRet.getInteger("statusCode") != HttpStatus.OK.value()){
+                        retStr = HsConstants.FAIL;
+                    }
+                    JSONObject eipEntity = updateRet.getJSONObject("eip");
+                    log.info("update order result :{}",eipEntity.toJSONString());
+                    returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"update");
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder,"",retStr));
+                    return updateRet;
+                }else {
+                    code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
+                    msg = "Failed to update floating ip in external network" + eipUpdate.getRegion();
+                    log.error(msg);
+                }
+                JSONObject delResult = atomUpdateEip(eipId, eipUpdate);
+                if (delResult.getInteger("statusCode") == HttpStatus.OK.value()) {
+                    log.info("renew eip:{} , add duration:{}", eipId, eipUpdate.getDuration());
+                    //Return message to the front des
+                    returnsWebsocket(eipId, eipOrder, "renew");
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, "success"));
+                    return delResult;
+                } else {
+                    msg = "Atom update error.";
+                    log.error(msg);
+                }
             }
         }catch (Exception e){
             log.error("Exception in update eip", e);
