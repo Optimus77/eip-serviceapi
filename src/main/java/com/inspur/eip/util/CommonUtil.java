@@ -107,12 +107,17 @@ public class CommonUtil {
             throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
         }else{
             JSONObject jsonObject = decodeUserInfo(token);
-            String sub = (String) jsonObject.get("sub");
-            if(sub!=null){
-                log.info("getUserId:{}", sub);
-                return sub;
-            }else{
-                throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
+            if (jsonObject !=null){
+                String sub = (String) jsonObject.get("sub");
+                if (sub != null) {
+                    log.info("getUserId:{}", sub);
+                    return sub;
+                } else {
+                    throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
+                }
+            }else {
+                log.info("jsonObject is null");
+                throw new KeycloakTokenException("400-Bad request:can't get jsonObject info from header,please check");
             }
         }
     }
@@ -156,12 +161,17 @@ public class CommonUtil {
             throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
         }else{
             JSONObject jsonObject = decodeUserInfo(token);
-            String username = (String) jsonObject.get("preferred_username");
+            if (jsonObject != null) {
+                String username = (String) jsonObject.get("preferred_username");
             if(username!=null){
                 log.info("getUsername:{}", username);
                 return username;
             }else{
                 throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
+            }
+            }else {
+                log.info("jsonObject is null");
+                throw new KeycloakTokenException("400-Bad request:can't get jsonObject info from header,please check");
             }
         }
     }
