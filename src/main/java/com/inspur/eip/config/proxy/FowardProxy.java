@@ -28,7 +28,7 @@ public class FowardProxy   {
     static{
         log.info("FowardProxy get properties");
         try {
-            properties= PropertiesLoaderUtils.loadAllProperties("constant-config.yml");
+            properties= PropertiesLoaderUtils.loadAllProperties("application.yml");
         } catch (IOException e) {
             e.printStackTrace();
         }

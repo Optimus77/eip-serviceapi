@@ -37,7 +37,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-@Profile(value = "prod")
+//@Profile(value = "prod")
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class KeycloakClientRequestFactoryProd extends KeycloakClientRequestFactory implements ClientHttpRequestFactory {

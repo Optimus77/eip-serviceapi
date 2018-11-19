@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import lombok.Setter;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,12 +107,17 @@ public class CommonUtil {
             throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
         }else{
             JSONObject jsonObject = decodeUserInfo(token);
-            String sub = (String) jsonObject.get("sub");
-            if(sub!=null){
-                log.info("getUserId:{}", sub);
-                return sub;
-            }else{
-                throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
+            if (jsonObject !=null){
+                String sub = (String) jsonObject.get("sub");
+                if (sub != null) {
+                    log.info("getUserId:{}", sub);
+                    return sub;
+                } else {
+                    throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
+                }
+            }else {
+                log.info("jsonObject is null");
+                throw new KeycloakTokenException("400-Bad request:can't get jsonObject info from header,please check");
             }
         }
     }
@@ -155,12 +161,17 @@ public class CommonUtil {
             throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
         }else{
             JSONObject jsonObject = decodeUserInfo(token);
-            String username = (String) jsonObject.get("preferred_username");
+            if (jsonObject != null) {
+                String username = (String) jsonObject.get("preferred_username");
             if(username!=null){
                 log.info("getUsername:{}", username);
                 return username;
             }else{
                 throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
+            }
+            }else {
+                log.info("jsonObject is null");
+                throw new KeycloakTokenException("400-Bad request:can't get jsonObject info from header,please check");
             }
         }
     }
@@ -170,6 +181,7 @@ public class CommonUtil {
         StringBuffer sb= new StringBuffer();
         if(response!=null) {
             StatusLine status = response.getStatusLine();
+
             BufferedReader in;
             try {
                 in = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
@@ -178,9 +190,16 @@ public class CommonUtil {
                     sb.append(line);
                 }
                 in.close();
-                JSONObject returnInfo = JSONObject.parseObject(sb.toString());
+                JSONObject returnInfo;
+                if(status.getStatusCode() == HttpStatus.SC_OK) {
+                    returnInfo = JSONObject.parseObject(sb.toString());
+                    returnInfo.put("statusCode", HttpStatus.SC_OK);
+                }else{
+                    returnInfo = new JSONObject();
+                    returnInfo.put("statusCode", status.getStatusCode());
+                }
+
                 log.info("RETURN ==>{}", returnInfo);
-                returnInfo.put("statusCode", status.getStatusCode());
                 return returnInfo;
             }catch (Exception e){
                 log.error("handlerResopnse exception:", e);

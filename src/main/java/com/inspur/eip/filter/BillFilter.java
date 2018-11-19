@@ -7,10 +7,12 @@ import com.inspur.eip.entity.EipReciveOrder;
 import com.inspur.eip.service.EipServiceImpl;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HsConstants;
+import com.inspur.eip.util.ReturnStatus;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
@@ -18,7 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-
+@Order(2)
 @WebFilter
 public class BillFilter implements Filter {
 
@@ -40,6 +42,30 @@ public class BillFilter implements Filter {
         HttpServletRequest req= (HttpServletRequest)servletRequest;
         HttpServletResponse response=(HttpServletResponse)servletResponse;
         String method =  req.getMethod();
+        if(!req.getRequestURI().startsWith(req.getContextPath()+HsConstants.VERSION_REST)) {
+            log.info("version is not 2.0 ");
+            JSONObject result = new JSONObject();
+            result.put("code", ReturnStatus.SC_FORBIDDEN);
+            result.put("message", "version error.");
+            result.put("data", null);
+            response.setStatus(HttpStatus.SC_BAD_REQUEST);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+            return;
+        }
+
+        if (req.getHeader("authorization") == null) {
+            log.info("get authorization is null ");
+            JSONObject result = new JSONObject();
+            result.put("code", ReturnStatus.SC_FORBIDDEN);
+            result.put("message", "keclock is null.");
+            result.put("data", null);
+            response.setStatus(HttpStatus.SC_BAD_REQUEST);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+            return;
+        }
+
         if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equals("/v2.0/eips")){
             String requestBody = CommonUtil.readRequestAsChars(req);
             log.info("get create eip order:{}.",requestBody);
