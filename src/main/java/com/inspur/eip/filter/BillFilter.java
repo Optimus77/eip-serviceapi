@@ -55,7 +55,7 @@ public class BillFilter implements Filter {
             return;
         }
 
-        if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equals("/v2.0/eips")){
+        if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equals("/v1/eips")){
             String requestBody = CommonUtil.readRequestAsChars(req);
             log.info("get create eip order:{}.",requestBody);
             JSONObject result = eipService.createOrder(requestBody);
@@ -63,8 +63,8 @@ public class BillFilter implements Filter {
             response.setStatus(HttpStatus.SC_ACCEPTED);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
-        }else if(method.equalsIgnoreCase(HsConstants.DELETE)  && req.getPathInfo().startsWith("/v2.0/eips/") &&
-                 req.getPathInfo().length() == "/v2.0/eips/ff232e65-43bb-4ba4-ad43-f891cab7ce0a".length()){
+        }else if(method.equalsIgnoreCase(HsConstants.DELETE)  && req.getPathInfo().startsWith("/v1/eips/") &&
+                 req.getPathInfo().length() == "/v1/eips/ff232e65-43bb-4ba4-ad43-f891cab7ce0a".length()){
             String eipId = req.getPathInfo().substring("/v2.0/eips/".length());
             log.info("get delete eip order,eipId:{}. ",eipId);
             JSONObject result = eipService.deleteEipOrder(eipId);
