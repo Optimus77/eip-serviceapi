@@ -34,7 +34,7 @@ public class EipServiceImpl  {
     @Value("${eipAtom}")
     private   String eipAtomUrl;
     private JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig)  {
-        String url=eipAtomUrl + "atom";
+        String url=eipAtomUrl ;
 
         String orderStr=JSONObject.toJSONString(eipConfig);
         log.info("Send order to url:{}, body:{}",url, orderStr);
@@ -42,23 +42,25 @@ public class EipServiceImpl  {
         HttpResponse response=HttpUtil.post(url,null,orderStr);
         return CommonUtil.handlerResopnse(response);
     }
+
     private JSONObject atomDeleteEip(String  eipId)  {
-        String url=eipAtomUrl+"atom/"+eipId;
+        String url=eipAtomUrl +eipId;
 
         log.info("Send order to url:{}, eipId:{}",url, eipId);
 
         HttpResponse response=HttpUtil.delete(url,null);
         return CommonUtil.handlerResopnse(response);
     }
-    private JSONObject atomUpdateEip(String  eipId, EipAllocateParam eipUpdate )  {
-        String url=eipAtomUrl+"atom/"+eipId;
-        String orderStr=JSONObject.toJSONString(eipUpdate);
-        log.info("Send order to url:{}, eipId:{},body:{}",url, eipId, orderStr);
 
-        HttpResponse response=HttpUtil.put(url,null, orderStr);
+    private JSONObject atomUpdateEip(String eipId,EipAllocateParam eipConfig)  {
+        String url=eipAtomUrl+eipId +"/renew";
+
+        String orderStr=JSONObject.toJSONString(eipConfig);
+        log.info("Send order to url:{}, body:{}",url, orderStr);
+
+        HttpResponse response=HttpUtil.post(url,null,orderStr);
         return CommonUtil.handlerResopnse(response);
     }
-
     /**
      *  create a order
      * @param eipAllocateJson eip allocat json
@@ -236,6 +238,7 @@ public class EipServiceImpl  {
         result.put("msg", msg);
         return result;
     }
+
     public JSONObject onReciveUpdateOrder(String eipId, EipReciveOrder eipOrder) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
@@ -246,34 +249,18 @@ public class EipServiceImpl  {
             if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
                     message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
                 EipAllocateParam eipUpdate = getEipConfigByOrder(eipOrder);
-                ReturnMsg returnMsg = preCheckParam(eipUpdate);
-                if (returnMsg.getCode().equals(ReturnStatus.SC_OK)){
-                    JSONObject updateRet = atomUpdateEip(eipId, eipUpdate);
-                    String retStr = HsConstants.SUCCESS;
-                    if (updateRet.getInteger("statusCode") != HttpStatus.OK.value()){
-                        retStr = HsConstants.FAIL;
-                    }
-                    JSONObject eipEntity = updateRet.getJSONObject("eip");
-                    log.info("update order result :{}",eipEntity.toJSONString());
-                    returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"update");
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder,"",retStr));
-                    return updateRet;
-                }else {
-                    code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
-                    msg = "Failed to update floating ip in external network" + eipUpdate.getRegion();
-                    log.error(msg);
+
+                JSONObject updateRet = atomUpdateEip(eipId, eipUpdate);
+                String retStr = HsConstants.SUCCESS;
+                if (updateRet.getInteger("statusCode") != HttpStatus.OK.value()){
+                    retStr = HsConstants.FAIL;
                 }
-                JSONObject delResult = atomUpdateEip(eipId, eipUpdate);
-                if (delResult.getInteger("statusCode") == HttpStatus.OK.value()) {
-                    log.info("renew eip:{} , add duration:{}", eipId, eipUpdate.getDuration());
-                    //Return message to the front des
-                    returnsWebsocket(eipId, eipOrder, "renew");
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, "success"));
-                    return delResult;
-                } else {
-                    msg = "Atom update error.";
-                    log.error(msg);
-                }
+                JSONObject eipEntity = updateRet.getJSONObject("eip");
+                log.info("renew order result :{}",eipEntity.toJSONString());
+                returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"update");
+                bssApiService.resultReturnMq(getEipOrderResult(eipOrder,"",retStr));
+                return updateRet;
+
             }
         }catch (Exception e){
             log.error("Exception in update eip", e);
@@ -286,7 +273,6 @@ public class EipServiceImpl  {
         result.put("msg", msg);
         return result;
     }
-
 
     private  EipAllocateParam getEipConfigByOrder(EipReciveOrder eipOrder){
         EipAllocateParam eipAllocateParam = new EipAllocateParam();
@@ -301,6 +287,7 @@ public class EipServiceImpl  {
             }
             eipAllocateParam.setRegion(eipOrderProduct.getRegion());
             List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
+
             for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
                 if(eipOrderProductItem.getCode().equalsIgnoreCase("bandwidth") &&
                         eipOrderProductItem.getUnit().equals(HsConstants.M)){

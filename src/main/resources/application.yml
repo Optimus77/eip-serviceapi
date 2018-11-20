@@ -4,7 +4,7 @@ server:
     uri-encoding: UTF-8
   port: 8080
   servlet:
-    context-path: /
+    context-path: /vpc/eip
 
 springfox:
   documentation:
@@ -50,7 +50,8 @@ bssurl:
 mq:
   returnMq:    http://commonatomapi.devops.inspur.com/common/productreturn
   webSocket:   http://tenantconservice.devops.inspur.com/console/websocket/v1/messages
-eipAtom:     http://eip-atom.cn-north-3.devops.inspur.com/eip/v2.0/eips/
+
+eipAtom:     http://eip-atom.cn-north-3.devops.inspur.com/eip/v1/eips/
 
 proxy:
   servlet_url: /*

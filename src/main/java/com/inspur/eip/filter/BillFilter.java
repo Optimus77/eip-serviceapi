@@ -65,14 +65,14 @@ public class BillFilter implements Filter {
             response.getWriter().write(result.toJSONString());
         }else if(method.equalsIgnoreCase(HsConstants.DELETE)  && req.getPathInfo().startsWith("/v1/eips/") &&
                  req.getPathInfo().length() == "/v1/eips/ff232e65-43bb-4ba4-ad43-f891cab7ce0a".length()){
-            String eipId = req.getPathInfo().substring("/v2.0/eips/".length());
+            String eipId = req.getPathInfo().substring("/v1/eips/".length());
             log.info("get delete eip order,eipId:{}. ",eipId);
             JSONObject result = eipService.deleteEipOrder(eipId);
 
             response.setStatus(HttpStatus.SC_ACCEPTED);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
-        }else if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equals("/v1/order")) {
+        }else if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equals("/v1/orders")) {
             String requestBody = CommonUtil.readRequestAsChars(req);
             log.info("get create eip order:{}.", requestBody);
             EipReciveOrder eipReciveOrder =  JSON.parseObject(requestBody, EipReciveOrder.class);
@@ -81,7 +81,7 @@ public class BillFilter implements Filter {
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
-        }else if(method.equalsIgnoreCase(HsConstants.DELETE)  && req.getPathInfo().startsWith("/v1/order")) {
+        }else if(method.equalsIgnoreCase(HsConstants.DELETE)  && req.getPathInfo().startsWith("/v1/orders")) {
             String requestBody = CommonUtil.readRequestAsChars(req);
             log.info("get delete eip order:{}.", requestBody);
             EipReciveOrder eipReciveOrder =  JSON.parseObject(requestBody, EipReciveOrder.class);
@@ -90,18 +90,18 @@ public class BillFilter implements Filter {
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
-        }else if(method.equalsIgnoreCase(HsConstants.PUT)  && req.getPathInfo().startsWith("/v1/order") &&
-                req.getPathInfo().length() == "/v1/order/ff232e65-43bb-4ba4-ad43-f891cab7ce0a".length()) {
+        }else if(method.equalsIgnoreCase(HsConstants.PUT)  && req.getPathInfo().startsWith("/v1/orders") &&
+                req.getPathInfo().length() == "/v1/orders/ff232e65-43bb-4ba4-ad43-f891cab7ce0a".length()) {
             String requestBody = CommonUtil.readRequestAsChars(req);
+            String eipId = req.getPathInfo().substring("/v1/orders/".length());
             log.info("get delete eip order:{}.", requestBody);
-            EipReciveOrder eipReciveOrder =  JSON.parseObject(requestBody, EipReciveOrder.class);
-            JSONObject result = eipService.onReciveUpdateOrder(null,eipReciveOrder);
+            EipReciveOrder eipReciveOrder = JSON.parseObject(requestBody, EipReciveOrder.class);
+            JSONObject result = eipService.onReciveUpdateOrder(eipId, eipReciveOrder);
 
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
         }else {
-            log.info("not find the patch url, method:{}, getPathInfo:{}.", method,  req.getPathInfo());
             filterChain.doFilter(servletRequest, servletResponse);
         }
     }
