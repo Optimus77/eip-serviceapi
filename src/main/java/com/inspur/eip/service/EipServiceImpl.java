@@ -215,6 +215,10 @@ public class EipServiceImpl  {
                         msg = delResult.getString("statusCode");
                         code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                     }
+                } else {
+                    code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
+                    msg = returnMsg.getMessage();
+                    log.error(msg);
                 }
             }else{
                 msg = "Failed to delete eip,failed to create delete. orderStatus: "+eipOrder.getOrderStatus();
@@ -273,6 +277,7 @@ public class EipServiceImpl  {
             }
         }catch (Exception e){
             log.error("Exception in update eip", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
         bssApiService.resultReturnMq(getEipOrderResult(eipOrder,eipId,HsConstants.FAIL));
