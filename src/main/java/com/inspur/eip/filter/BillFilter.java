@@ -101,6 +101,7 @@ public class BillFilter implements Filter {
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
         }else {
+            log.info("not find the patch url, method:{}, getPathInfo:{}.", method,  req.getPathInfo());
             filterChain.doFilter(servletRequest, servletResponse);
         }
     }
