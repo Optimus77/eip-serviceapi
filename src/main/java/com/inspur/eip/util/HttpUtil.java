@@ -5,6 +5,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
@@ -111,6 +112,35 @@ public class HttpUtil {
             log.error("http get error:",e);
         }
         return null;
+    }
+
+    public static HttpResponse put(String url, Map<String,String > header, String body ) {
+        HttpClient client;
+
+        if(null == header){
+            header = getHeader();
+        }
+
+        try {
+
+            client = getCloseableHttpClient();
+            HttpPut httpPut = new HttpPut(url.toString());
+            Iterator<Map.Entry<String, String>> it = header.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<String, String> entry = it.next();
+                httpPut.setHeader(entry.getKey(),entry.getValue());
+            }
+            log.debug("request line:put-{} " ,httpPut.getRequestLine());
+            StringEntity entity = new StringEntity(body, HTTP.UTF_8);
+            entity.setContentType("application/json");
+            entity.setContentEncoding("UTF-8");
+            httpPut.setEntity(entity);
+            return client.execute(httpPut);
+        } catch (Exception e) {
+            log.error("IO Exception when post.{}",e.getMessage());
+            return null;
+        }
+
     }
 
 }

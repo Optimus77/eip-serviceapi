@@ -5,7 +5,9 @@ public class HsConstants {
 	public static final String VSYS = "0";
 	public static final String VRID = "1";
 	public static final String LANG = "zh_CN";
+    public static final String VERSION_REST = "/v2.0";
     public static final String PAYSUCCESS = "paySuccess";
+	public static final String CREATESUCCESS = "createSuccess";
     public static final String HOURLYSETTLEMENT = "hourlySettlement";
     public static final String MONTHLY = "monthly";
     public static final String EIP = "EIP";
@@ -24,7 +26,8 @@ public class HsConstants {
     public static final String UNSUBSCRIBE = "unsubscribe";
     public static final String SUCCESS = "success";
     public static final String DELETE = "DELETE";
-    public static final String POST = "post";
+    public static final String POST = "POST";
+	public static final String PUT = "PUT";
     public static final String AUTHORIZATION = "Authorization";
 
 	public static final String HILLTONE_LANGUAGE = "Hillstone-language";

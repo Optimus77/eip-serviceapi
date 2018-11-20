@@ -12,7 +12,7 @@ public interface ReturnStatus {
     String SC_PARAM_UNKONWERROR = "106.997400";
     String SC_RESOURCE_ERROR    = "106.994400";
     String SC_RESOURCE_NOTENOUGH = "106.993400";
-    String EIP_BIND_HAS_BAND     ="106.991.400";
+    String EIP_BIND_HAS_BAND     ="106.991400";
 
     String SC_NOT_FOUND                  = "106.994404";
     String SC_OPENSTACK_FIP_UNAVAILABLE  = "106.101404";

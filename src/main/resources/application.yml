@@ -4,21 +4,58 @@ server:
     uri-encoding: UTF-8
   port: 8080
   servlet:
-    context-path: /eip
-# 环境 dev|prod
-spring:
-  profiles:
-    active: dev
+    context-path: /vpc/eip
+
+springfox:
+  documentation:
+    swagger:
+      v2:
+        path: /api-docs
+
+# KeyCloak
+keycloak:
+  enabled: true
+  disable-trust-manager: true
+  auth-server-url: http://10.110.22.13/auth
+  realm: picp
+  public-client: false
+  credentials:
+    secret: 060ae88a-bb7c-4fec-abdd-3c482cc184ac
+  resource: bss-server
+  ssl-required: none
+  bearer-only: true
+  cors: true
+  cors-max-age: 1728000
+  cors-allowed-headers: Authorization, Origin, X-Requested-With, Content-Type, X-Custom-Header
+  cors-allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+
+# Logback
+logging:
+  config: classpath:logback.xml
+
+http:
+  #最大连接数
+  maxTotal: 100
+  defaultMaxPerRoute: 20
+  connectTimeout: 1000
+  connectionRequestTimeout: 500
+  socketTimeout: 10000
+  statleConnectionCheckEnabled: true
 
 
-bssURL:
-  host: "117.73.2.105"
-  port:  8081
+bssurl:
   ignoSSL: true
-  userBalanceURL: http://117.73.2.105:8081  #查询用户账户余额
-  avliableProductList: http://117.50.44.72:7300  #//1.2.6	查询用户可购买的产品列表
-  ordercreate: http://117.73.2.105:8086/order/submitpay #  //1.2.8 订单接口POST
-  orderprice:  http://117.73.2.105:8085 #//1.2.7 算费接口
+  submitPay: http://117.73.2.105:8086/order/submitpay #  //1.2.8 订单接口POST
   quotaUrl:    http://117.73.2.105:8083/crm/quota #//1.2.11	查询用户配额的接口
+mq:
   returnMq:    http://commonatomapi.devops.inspur.com/common/productreturn
-  eipAtom:     http://eip-atom.cn-north-3.devops.inspur.com/eip/v2.0/eips/
+  webSocket:   http://tenantconservice.devops.inspur.com/console/websocket/v1/messages
+
+eipAtom:     http://eip-atom.cn-north-3.devops.inspur.com/eip/v1/eips/
+
+proxy:
+  servlet_url: /*
+  logging_enabled: true
+  target_url:  http://eip-atom.cn-north-3.devops.inspur.com/eip
+#  target_url:  http://127.0.0.1:8088/eip
+

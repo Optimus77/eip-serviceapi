@@ -1,4 +1,0 @@
-proxy:
-  servlet_url: /*
-  logging_enabled: true
-  target_url:  http://eipatomtest.devops.inspur.com/eip
