@@ -4,7 +4,7 @@ server:
     uri-encoding: UTF-8
   port: 8080
   servlet:
-    context-path: /vpc/eip
+    context-path: /eip
 
 springfox:
   documentation:
@@ -57,5 +57,5 @@ proxy:
   servlet_url: /*
   logging_enabled: true
   target_url:  http://eip-atom.cn-north-3.devops.inspur.com/eip
-#  target_url:  http://127.0.0.1:8088/eip
+# target_url:  http://127.0.0.1:8088/eip
 
