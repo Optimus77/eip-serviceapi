@@ -30,6 +30,8 @@ public class EipServiceImpl  {
     @Value("${mq.webSocket}")
     private String pushMq;
 
+o    private static final String STATUSCODE = "statusCode";
+
     //1.2.8 订单接口POST
     @Value("${eipAtom}")
     private   String eipAtomUrl;
@@ -74,6 +76,7 @@ public class EipServiceImpl  {
             if(left > 0) {
                 JSONObject eipAllocateParam = JSON.parseObject(eipAllocateJson);
                 JSONObject eip = eipAllocateParam.getJSONObject("eip");
+
                 if(null != eip) {
                     EipOrder order = getOrderByEipParam(eip.getInteger(HsConstants.BANDWIDTH),
                             eip.getString(HsConstants.IPTYPE),
@@ -92,7 +95,7 @@ public class EipServiceImpl  {
         }catch (Exception e){
             log.info("createOrder exception", e);
             result=new JSONObject();
-            result.put("code","106.999500");
+            result.put("code",ReturnStatus.SC_INTERNAL_SERVER_ERROR);
             result.put("msg",e.getMessage());
             return result;
         }
@@ -117,6 +120,7 @@ public class EipServiceImpl  {
             if(null == eip){
                 return eipEntity;
             }
+
 //            String region = eip.getString("region");
             String region = "cn-north-3";
             Integer bandwidth = eip.getInteger(HsConstants.BANDWIDTH);
@@ -137,7 +141,7 @@ public class EipServiceImpl  {
         }catch (Exception e){
             log.error("Exception when deleteEipOrder", e);
             result=new JSONObject();
-            result.put("code","106.999500");
+            result.put("code",ReturnStatus.SC_INTERNAL_SERVER_ERROR);
             result.put("msg",e.getMessage());
         }
         return result;
@@ -161,9 +165,9 @@ public class EipServiceImpl  {
                     eipAllocateParamWrapper.setEip(eipConfig);
                     JSONObject createRet = atomCreateEip(eipAllocateParamWrapper);
                     String retStr = HsConstants.SUCCESS;
-                    if(createRet.getInteger("statusCode") != HttpStatus.OK.value()) {
+                    if(createRet.getInteger(STATUSCODE) != HttpStatus.OK.value()) {
                         retStr = HsConstants.FAIL;
-                        log.info("create eip failed, return code:{}", createRet.getInteger("statusCode"));
+                        log.info("create eip failed, return code:{}", createRet.getInteger(STATUSCODE));
                     }else{
                         JSONObject eipEntity = createRet.getJSONObject("eip");
                         log.info("create eip result:{}", eipEntity.toJSONString());
@@ -248,6 +252,7 @@ public class EipServiceImpl  {
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
 
         try {
+
             log.info("Recive update order:{}", JSONObject.toJSONString(eipOrder));
             EipOrder message =  eipOrder.getReturnConsoleMessage();
             if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
@@ -264,7 +269,6 @@ public class EipServiceImpl  {
                 returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"update");
                 bssApiService.resultReturnMq(getEipOrderResult(eipOrder,"",retStr));
                 return updateRet;
-
             }
         }catch (Exception e){
             log.error("Exception in update eip", e);
@@ -377,8 +381,8 @@ public class EipServiceImpl  {
             quota.setUserId(CommonUtil.getUserId());
 
             result =bssApiService.getQuota(quota);
-            if(result.getInteger("statusCode") != HttpStatus.OK.value()){
-                log.info("Get quota failed StatusCode:{}", result.getInteger("statusCode"));
+            if(result.getInteger(STATUSCODE) != HttpStatus.OK.value()){
+                log.info("Get quota failed StatusCode:{}", result.getInteger(STATUSCODE));
             }
             if(null!= result.getString("code") && result.getString("code").equals("0")){
                 JSONArray qutoResult =result.getJSONObject("result").getJSONArray("quotaList");
