@@ -22,7 +22,7 @@ public class BssApiService {
     //1.2.8 订单接口POST
     @Value("${bssurl.submitPay}")
     private   String ordercreate;
-    public JSONObject createOrder(EipOrder order)  {
+    public JSONObject postOrder(EipOrder order)  {
         String url=ordercreate;
 
         String orderStr=JSONObject.toJSONString(order);

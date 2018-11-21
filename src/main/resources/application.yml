@@ -49,8 +49,9 @@ bssurl:
   quotaUrl:    http://117.73.2.105:8083/crm/quota #//1.2.11	查询用户配额的接口
 mq:
   returnMq:    http://commonatomapi.devops.inspur.com/common/productreturn
-  webSocket:   http://tenantconservice.devops.inspur.com/console/websocket/sendMessage
-eipAtom:     http://eip-atom.cn-north-3.devops.inspur.com/eip/v2.0/eips/
+  webSocket:   http://tenantconservice.devops.inspur.com/console/websocket/v1/messages
+
+eipAtom:     http://eip-atom.cn-north-3.devops.inspur.com/eip/v1/eips/
 
 proxy:
   servlet_url: /*
