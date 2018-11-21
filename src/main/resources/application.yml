@@ -20,7 +20,7 @@ keycloak:
   realm: picp
   public-client: false
   credentials:
-    secret: eccabee1-d908-4ca4-8f69-301dd2cc8ae2
+    secret: be97c023-1ad2-485f-b83d-d4a64af76758
   resource: bss-server
   ssl-required: none
   bearer-only: true
