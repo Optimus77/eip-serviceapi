@@ -30,7 +30,7 @@ public class EipServiceImpl  {
     @Value("${mq.webSocket}")
     private String pushMq;
 
-o    private static final String STATUSCODE = "statusCode";
+    private static final String STATUSCODE = "statusCode";
 
     //1.2.8 订单接口POST
     @Value("${eipAtom}")
@@ -208,27 +208,22 @@ o    private static final String STATUSCODE = "statusCode";
                     message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
 
                 EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
-                ReturnMsg returnMsg = preCheckParam(eipConfig);
-                if(returnMsg.getCode().equals(ReturnStatus.SC_OK)) {
-                    List<EipOrderProduct> eipOrderProducts = message.getProductList();
-                    for (EipOrderProduct eipOrderProduct : eipOrderProducts) {
-                        eipId = eipOrderProduct.getInstanceId();
-                    }
-                    JSONObject delResult = atomDeleteEip(eipId);
 
-                    if (delResult.getInteger("statusCode") == HttpStatus.OK.value()) {
-                        //Return message to the front des
-                        returnsWebsocket(eipId, eipOrder, "delete");
-                        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
-                        return delResult;
-                    } else {
-                        msg = delResult.getString("statusCode");
-                        code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-                    }
+
+                List<EipOrderProduct> eipOrderProducts = message.getProductList();
+                for (EipOrderProduct eipOrderProduct : eipOrderProducts) {
+                    eipId = eipOrderProduct.getInstanceId();
+                }
+                JSONObject delResult = atomDeleteEip(eipId);
+
+                if (delResult.getInteger("statusCode") == HttpStatus.OK.value()) {
+                    //Return message to the front des
+                    returnsWebsocket(eipId, eipOrder, "delete");
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
+                    return delResult;
                 } else {
-                    code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
-                    msg = returnMsg.getMessage();
-                    log.error(msg);
+                    msg = delResult.getString("statusCode");
+                    code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 }
             }else{
                 msg = "Failed to delete eip,failed to create delete. orderStatus: "+eipOrder.getOrderStatus();
