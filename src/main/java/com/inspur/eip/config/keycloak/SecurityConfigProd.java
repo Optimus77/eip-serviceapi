@@ -86,6 +86,8 @@ public class SecurityConfigProd extends KeycloakWebSecurityConfigurerAdapter {
         http.authorizeRequests()
                 .antMatchers("/**/*swagger*/**").permitAll()
                 .antMatchers("/api-docs").permitAll()
+                .antMatchers("/**").hasRole("USER")
+                .antMatchers("/user").hasRole("ROOT")
                 .anyRequest().permitAll();
         http.csrf().disable();// gaochuanji 20180330
     }

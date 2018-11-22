@@ -12,7 +12,7 @@ public class EipServiceApplication  {
 
     public static void main(String[] args) {
         SpringApplication.run(EipServiceApplication.class, args);
-        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_THREADLOCAL);
+//        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_THREADLOCAL);
     }
 
 
