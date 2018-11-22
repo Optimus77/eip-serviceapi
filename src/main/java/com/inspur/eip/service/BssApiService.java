@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.EipOrder;
 import com.inspur.eip.entity.EipOrderResult;
 import com.inspur.eip.entity.EipQuota;
+import com.inspur.eip.entity.EipSoftDownOrder;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HttpUtil;
 import org.apache.http.HttpResponse;
@@ -51,6 +52,18 @@ public class BssApiService {
     private   String returnMq;
     public JSONObject resultReturnMq(EipOrderResult orderResult)  {
         String url=returnMq;
+        log.info(url);
+
+        String orderStr=JSONObject.toJSONString(orderResult);
+        log.info("return mq body str {}",orderStr);
+        HttpResponse response=HttpUtil.post(url,null,orderStr);
+        return CommonUtil.handlerResopnse(response);
+    }
+
+    @Value("${mq.returnNotify}")
+    private   String returnNotify;
+    public JSONObject resultReturnNotify(EipSoftDownOrder orderResult)  {
+        String url=returnNotify;
         log.info(url);
 
         String orderStr=JSONObject.toJSONString(orderResult);

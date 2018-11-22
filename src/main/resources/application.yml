@@ -53,7 +53,7 @@ mq:
   webSocket:   http://tenantconservice.devops.inspur.com/console/websocket/v1/messages
 
 eipAtom:     http://eip-atom.cn-north-3.devops.inspur.com/eip/v1/eips/
-#eipAtom:     http://127.0.0.1:8088/eip/v1/eips/
+
 proxy:
   servlet_url: /*
   logging_enabled: true
