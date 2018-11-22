@@ -48,11 +48,12 @@ bssurl:
   submitPay: http://117.73.2.105:8086/order/submitpay #  //1.2.8 订单接口POST
   quotaUrl:    http://117.73.2.105:8083/crm/quota #//1.2.11	查询用户配额的接口
 mq:
-  returnMq:    http://commonatomapi.devops.inspur.com/common/productreturn
+  returnMq:    http://common-atom.console.svc.cluster.local:8080/common/productreturn
+  returnNotify: http://common-atom.console.svc.cluster.local:8080/common/productnotify
   webSocket:   http://tenantconservice.devops.inspur.com/console/websocket/v1/messages
 
 eipAtom:     http://eip-atom.cn-north-3.devops.inspur.com/eip/v1/eips/
-
+#eipAtom:     http://127.0.0.1:8088/eip/v1/eips/
 proxy:
   servlet_url: /*
   logging_enabled: true
