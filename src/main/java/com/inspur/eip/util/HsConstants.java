@@ -29,7 +29,7 @@ public class HsConstants {
     public static final String POST = "POST";
 	public static final String PUT = "PUT";
     public static final String AUTHORIZATION = "Authorization";
-
+	public static final String BILLTYPE = "billType";
 	public static final String HILLTONE_LANGUAGE = "Hillstone-language";
 	public static final String HTTP = "http://";
 	public static final String HTTPS = "https://";
