@@ -74,30 +74,33 @@ public class EipServiceImpl  {
             if(left > 0) {
                 JSONObject eipAllocateParam = JSON.parseObject(eipAllocateJson);
                 JSONObject eip = eipAllocateParam.getJSONObject("eip");
+                if(null != eip) {
+                    EipOrder order = getOrderByEipParam(eip.getInteger(HsConstants.BANDWIDTH),
+                            eip.getString(HsConstants.IPTYPE),
+                            eip.getString(HsConstants.REGION),
+                            eip.getString(HsConstants.DURATION),
+                            eip.getString(HsConstants.BILLTYPE),
+                            "");
 
-                EipOrder order = getOrderByEipParam(eip.getInteger(HsConstants.BANDWIDTH),
-                        eip.getString(HsConstants.IPTYPE),
-                        eip.getString(HsConstants.REGION),
-                        eip.getString(HsConstants.DURATION), 
-                        eip.getString("billType"),
-                        "");
+                    order.setConsoleCustomization(eipAllocateParam);
 
-                order.setConsoleCustomization(eipAllocateParam);
-
-                result = bssApiService.postOrder(order);
-                log.info("Send create order result:{}", result);
-                return result;
-            }else{
-                result=new JSONObject();
-                result.put("code",ReturnStatus.SC_INTERNAL_SERVER_ERROR);
-                result.put("msg", "quota limited, user can not create eip.");
+                    result = bssApiService.postOrder(order);
+                    log.info("Send create order result:{}", result);
+                    return result;
+                }
             }
         }catch (Exception e){
             log.info("createOrder exception", e);
             result=new JSONObject();
             result.put("code","106.999500");
             result.put("msg",e.getMessage());
+            return result;
         }
+
+        result=new JSONObject();
+        result.put("code",ReturnStatus.SC_INTERNAL_SERVER_ERROR);
+        result.put("msg", "quota limited, user can not create eip.");
+
         return  result;
     }
 
@@ -115,12 +118,13 @@ public class EipServiceImpl  {
                 return eipEntity;
             }
 //            String region = eip.getString("region");
-            Integer bandwidth = eip.getInteger("bandwidth");
-            String duration = eip.getString("duration");
-            String ipType = eip.getString("iptype");
-            String billType = eip.getString("billType");
+            String region = "cn-north-3";
+            Integer bandwidth = eip.getInteger(HsConstants.BANDWIDTH);
+            String duration = eip.getString(HsConstants.DURATION);
+            String ipType = eip.getString(HsConstants.IPTYPE);
+            String billType = eip.getString(HsConstants.BILLTYPE);
 
-            EipOrder order = getOrderByEipParam(bandwidth, ipType, "cn-north-3", duration,billType, eipId);
+            EipOrder order = getOrderByEipParam(bandwidth, ipType, region, duration,billType, eipId);
             order.setOrderType(HsConstants.UNSUBSCRIBE);
 
             JSONObject jsonObject = new JSONObject();
@@ -157,12 +161,12 @@ public class EipServiceImpl  {
                     eipAllocateParamWrapper.setEip(eipConfig);
                     JSONObject createRet = atomCreateEip(eipAllocateParamWrapper);
                     String retStr = HsConstants.SUCCESS;
-                    if(createRet.getInteger("statusCode") != HttpStatus.OK.value()) {
+                    if(createRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.OK.value()) {
                         retStr = HsConstants.FAIL;
-                        log.info("create eip failed, return code:{}", createRet.getInteger("statusCode"));
+                        log.info("create eip failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     }else{
                         JSONObject eipEntity = createRet.getJSONObject("eip");
-                        log.info("create eip result:{}", eipEntity.toJSONString());
+                        log.info("create eip result:{}", eipEntity);
                         returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"create");
                     }
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "", retStr));
@@ -200,27 +204,21 @@ public class EipServiceImpl  {
                     message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
 
                 EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
-                ReturnMsg returnMsg = preCheckParam(eipConfig);
-                if(returnMsg.getCode().equals(ReturnStatus.SC_OK)) {
-                    List<EipOrderProduct> eipOrderProducts = message.getProductList();
-                    for (EipOrderProduct eipOrderProduct : eipOrderProducts) {
-                        eipId = eipOrderProduct.getInstanceId();
-                    }
-                    JSONObject delResult = atomDeleteEip(eipId);
 
-                    if (delResult.getInteger("statusCode") == HttpStatus.OK.value()) {
-                        //Return message to the front des
-                        returnsWebsocket(eipId, eipOrder, "delete");
-                        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
-                        return delResult;
-                    } else {
-                        msg = delResult.getString("statusCode");
-                        code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-                    }
+                List<EipOrderProduct> eipOrderProducts = message.getProductList();
+                for (EipOrderProduct eipOrderProduct : eipOrderProducts) {
+                    eipId = eipOrderProduct.getInstanceId();
+                }
+                JSONObject delResult = atomDeleteEip(eipId);
+
+                if (delResult.getInteger(HsConstants.STATUSCODE) == HttpStatus.OK.value()) {
+                    //Return message to the front des
+                    returnsWebsocket(eipId, eipOrder, "delete");
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
+                    return delResult;
                 } else {
-                    code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
-                    msg = returnMsg.getMessage();
-                    log.error(msg);
+                    msg = delResult.getString(HsConstants.STATUSCODE);
+                    code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 }
             }else{
                 msg = "Failed to delete eip,failed to create delete. orderStatus: "+eipOrder.getOrderStatus();
@@ -252,11 +250,11 @@ public class EipServiceImpl  {
 
                 JSONObject updateRet = atomUpdateEip(eipId, eipUpdate);
                 String retStr = HsConstants.SUCCESS;
-                if (updateRet.getInteger("statusCode") != HttpStatus.OK.value()){
+                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.OK.value()){
                     retStr = HsConstants.FAIL;
                 }
                 JSONObject eipEntity = updateRet.getJSONObject("eip");
-                log.info("renew order result :{}",eipEntity.toJSONString());
+                log.info("renew order result :{}",eipEntity);
                 returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"update");
                 bssApiService.resultReturnMq(getEipOrderResult(eipOrder,"",retStr));
                 return updateRet;
@@ -268,6 +266,55 @@ public class EipServiceImpl  {
             msg = e.getMessage()+"";
         }
         bssApiService.resultReturnMq(getEipOrderResult(eipOrder,eipId,HsConstants.FAIL));
+        JSONObject result = new JSONObject();
+        result.put("code", code);
+        result.put("msg", msg);
+        return result;
+    }
+
+
+    public JSONObject onReciveSoftDownOrder(EipSoftDownOrder eipOrder) {
+        String msg = "";
+        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+        JSONObject updateRet = null;
+        try {
+            log.info("Recive soft down order:{}", JSONObject.toJSONString(eipOrder));
+            List<EipSoftDownInstance> instanceList =  eipOrder.getInstanceList();
+            for(EipSoftDownInstance eipSoftDownInstance: instanceList){
+                String operateType =  eipSoftDownInstance.getOperateType();
+                String instanceStatus;
+                if("delete".equalsIgnoreCase(operateType)) {
+                    updateRet = atomDeleteEip(eipSoftDownInstance.getInstanceId());
+                    instanceStatus = "DELETED";
+                }else if("stopServer".equalsIgnoreCase(operateType)) {
+                    EipAllocateParam updateParam = new EipAllocateParam();
+                    updateParam.setDuration("0");
+                    instanceStatus = "DOWN";
+                    updateRet = atomUpdateEip(eipSoftDownInstance.getInstanceId(), updateParam);
+                }else{
+                    continue;
+                }
+
+                String retStr = HsConstants.SUCCESS;
+                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.OK.value()){
+                    retStr = HsConstants.FAIL;
+                    instanceStatus = "ACTIVE";
+                }
+                eipSoftDownInstance.setResult(retStr);
+                eipSoftDownInstance.setInstanceStatus(instanceStatus);
+                eipSoftDownInstance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+                log.info("Soft down result:{}", updateRet);
+            }
+            if(null != updateRet) {
+                bssApiService.resultReturnNotify(eipOrder);
+                return updateRet;
+            }
+        }catch (Exception e){
+            log.error("Exception in update eip", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        bssApiService.resultReturnNotify(eipOrder);
         JSONObject result = new JSONObject();
         result.put("code", code);
         result.put("msg", msg);
