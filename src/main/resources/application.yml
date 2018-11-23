@@ -52,7 +52,7 @@ mq:
   returnMq:    http://common-atom.console.svc.cluster.local:8080/common/productreturn
 #monthly k8s服务名
   returnNotify: http://common-atom.console.svc.cluster.local:8080/common/productnotify
-  webSocket:   http://tenantconservice.devops.inspur.com/console/websocket/v1/messages
+  webSocket:   http://api.devops.inspur.com/console/websocket/v1/messages
 
 eipAtom:     http://eip-atom.cn-north-3.devops.inspur.com/eip/v1/eips/
 
