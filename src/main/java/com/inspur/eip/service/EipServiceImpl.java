@@ -30,8 +30,6 @@ public class EipServiceImpl  {
     @Value("${mq.webSocket}")
     private String pushMq;
 
-    private static final String STATUSCODE = "statusCode";
-
     //1.2.8 订单接口POST
     @Value("${eipAtom}")
     private   String eipAtomUrl;
@@ -76,26 +74,38 @@ public class EipServiceImpl  {
             if(left > 0) {
                 JSONObject eipAllocateParam = JSON.parseObject(eipAllocateJson);
                 JSONObject eip = eipAllocateParam.getJSONObject("eip");
-
                 if(null != eip) {
-                    EipOrder order = getOrderByEipParam(eip.getInteger(HsConstants.BANDWIDTH),
-                            eip.getString(HsConstants.IPTYPE),
-                            eip.getString(HsConstants.REGION),
-                            eip.getString(HsConstants.DURATION),
-                            eip.getString(HsConstants.BILLTYPE),
-                            "");
+                    EipAllocateParamWrapper eipConfig  = JSONObject.parseObject(eip.toJSONString(),
+                            EipAllocateParamWrapper.class);
+                    ReturnMsg checkRet = preCheckParam(eipConfig.getEip());
+                    if(checkRet.getCode().equals(ReturnStatus.SC_OK)) {
+                        EipOrder order = getOrderByEipParam(eip.getInteger(HsConstants.BANDWIDTH),
+                                eip.getString(HsConstants.IPTYPE),
+                                eip.getString(HsConstants.REGION),
+                                eip.getString(HsConstants.DURATION),
+                                eip.getString(HsConstants.BILLTYPE),
+                                "");
 
-                    order.setConsoleCustomization(eipAllocateParam);
+                        order.setConsoleCustomization(eipAllocateParam);
 
-                    result = bssApiService.postOrder(order);
-                    log.info("Send create order result:{}", result);
-                    return result;
+                        result = bssApiService.postOrder(order);
+                        log.info("Send create order result:{}", result);
+                        return result;
+                    }else{
+                        String code = ReturnStatus.SC_PARAM_ERROR;
+                        String msg = checkRet.getMessage();
+                        log.error(msg);
+                        result=new JSONObject();
+                        result.put("code",code);
+                        result.put("msg",msg);
+                        return result;
+                    }
                 }
             }
         }catch (Exception e){
             log.info("createOrder exception", e);
             result=new JSONObject();
-            result.put("code",ReturnStatus.SC_INTERNAL_SERVER_ERROR);
+            result.put("code","106.999500");
             result.put("msg",e.getMessage());
             return result;
         }
@@ -120,7 +130,6 @@ public class EipServiceImpl  {
             if(null == eip){
                 return eipEntity;
             }
-
 //            String region = eip.getString("region");
             String region = "cn-north-3";
             Integer bandwidth = eip.getInteger(HsConstants.BANDWIDTH);
@@ -141,7 +150,7 @@ public class EipServiceImpl  {
         }catch (Exception e){
             log.error("Exception when deleteEipOrder", e);
             result=new JSONObject();
-            result.put("code",ReturnStatus.SC_INTERNAL_SERVER_ERROR);
+            result.put("code","106.999500");
             result.put("msg",e.getMessage());
         }
         return result;
@@ -165,18 +174,18 @@ public class EipServiceImpl  {
                     eipAllocateParamWrapper.setEip(eipConfig);
                     JSONObject createRet = atomCreateEip(eipAllocateParamWrapper);
                     String retStr = HsConstants.SUCCESS;
-                    if(createRet.getInteger(STATUSCODE) != HttpStatus.OK.value()) {
+                    if(createRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.OK.value()) {
                         retStr = HsConstants.FAIL;
-                        log.info("create eip failed, return code:{}", createRet.getInteger(STATUSCODE));
+                        log.info("create eip failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     }else{
                         JSONObject eipEntity = createRet.getJSONObject("eip");
-                        log.info("create eip result:{}", eipEntity.toJSONString());
+                        log.info("create eip result:{}", eipEntity);
                         returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"create");
                     }
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "", retStr));
                     return createRet;
                 } else {
-                    code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
+                    code = ReturnStatus.SC_PARAM_ERROR;;
                     msg = checkRet.getMessage();
                     log.error(msg);
                 }
@@ -209,20 +218,19 @@ public class EipServiceImpl  {
 
                 EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
 
-
                 List<EipOrderProduct> eipOrderProducts = message.getProductList();
                 for (EipOrderProduct eipOrderProduct : eipOrderProducts) {
                     eipId = eipOrderProduct.getInstanceId();
                 }
                 JSONObject delResult = atomDeleteEip(eipId);
 
-                if (delResult.getInteger("statusCode") == HttpStatus.OK.value()) {
+                if (delResult.getInteger(HsConstants.STATUSCODE) == HttpStatus.OK.value()) {
                     //Return message to the front des
                     returnsWebsocket(eipId, eipOrder, "delete");
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
                     return delResult;
                 } else {
-                    msg = delResult.getString("statusCode");
+                    msg = delResult.getString(HsConstants.STATUSCODE);
                     code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 }
             }else{
@@ -247,7 +255,6 @@ public class EipServiceImpl  {
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
 
         try {
-
             log.info("Recive update order:{}", JSONObject.toJSONString(eipOrder));
             EipOrder message =  eipOrder.getReturnConsoleMessage();
             if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
@@ -256,14 +263,15 @@ public class EipServiceImpl  {
 
                 JSONObject updateRet = atomUpdateEip(eipId, eipUpdate);
                 String retStr = HsConstants.SUCCESS;
-                if (updateRet.getInteger("statusCode") != HttpStatus.OK.value()){
+                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.OK.value()){
                     retStr = HsConstants.FAIL;
                 }
                 JSONObject eipEntity = updateRet.getJSONObject("eip");
-                log.info("renew order result :{}",eipEntity.toJSONString());
+                log.info("renew order result :{}",eipEntity);
                 returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"update");
                 bssApiService.resultReturnMq(getEipOrderResult(eipOrder,"",retStr));
                 return updateRet;
+
             }
         }catch (Exception e){
             log.error("Exception in update eip", e);
@@ -271,6 +279,55 @@ public class EipServiceImpl  {
             msg = e.getMessage()+"";
         }
         bssApiService.resultReturnMq(getEipOrderResult(eipOrder,eipId,HsConstants.FAIL));
+        JSONObject result = new JSONObject();
+        result.put("code", code);
+        result.put("msg", msg);
+        return result;
+    }
+
+
+    public JSONObject onReciveSoftDownOrder(EipSoftDownOrder eipOrder) {
+        String msg = "";
+        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+        JSONObject updateRet = null;
+        try {
+            log.info("Recive soft down order:{}", JSONObject.toJSONString(eipOrder));
+            List<EipSoftDownInstance> instanceList =  eipOrder.getInstanceList();
+            for(EipSoftDownInstance eipSoftDownInstance: instanceList){
+                String operateType =  eipSoftDownInstance.getOperateType();
+                String instanceStatus;
+                if("delete".equalsIgnoreCase(operateType)) {
+                    updateRet = atomDeleteEip(eipSoftDownInstance.getInstanceId());
+                    instanceStatus = "DELETED";
+                }else if("stopServer".equalsIgnoreCase(operateType)) {
+                    EipAllocateParam updateParam = new EipAllocateParam();
+                    updateParam.setDuration("0");
+                    instanceStatus = "DOWN";
+                    updateRet = atomUpdateEip(eipSoftDownInstance.getInstanceId(), updateParam);
+                }else{
+                    continue;
+                }
+
+                String retStr = HsConstants.SUCCESS;
+                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.OK.value()){
+                    retStr = HsConstants.FAIL;
+                    instanceStatus = "ACTIVE";
+                }
+                eipSoftDownInstance.setResult(retStr);
+                eipSoftDownInstance.setInstanceStatus(instanceStatus);
+                eipSoftDownInstance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+                log.info("Soft down result:{}", updateRet);
+            }
+            if(null != updateRet) {
+                bssApiService.resultReturnNotify(eipOrder);
+                return updateRet;
+            }
+        }catch (Exception e){
+            log.error("Exception in update eip", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        bssApiService.resultReturnNotify(eipOrder);
         JSONObject result = new JSONObject();
         result.put("code", code);
         result.put("msg", msg);
@@ -307,24 +364,35 @@ public class EipServiceImpl  {
     }
     private ReturnMsg preCheckParam(EipAllocateParam param){
         String errorMsg = " ";
-        if(param.getBandwidth() > 2000){
+        if(null == param){
+            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
+        }
+        if((0== param.getBandwidth()) || (param.getBandwidth() > 2000)){
             errorMsg = "value must be 1-2000.";
         }
-        if(!param.getChargemode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
-                !param.getChargemode().equals(HsConstants.SHAREDBANDWIDTH)){
-            errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
+        if(null != param.getChargemode()) {
+            if (!param.getChargemode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
+                    !param.getChargemode().equals(HsConstants.SHAREDBANDWIDTH)) {
+                errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
+            }
         }
 
-        if(!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)){
-            errorMsg = errorMsg + "Only monthly,hourlySettlement is allowed. ";
+        if(null != param.getBillType()) {
+            if (!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                errorMsg = errorMsg + "Only monthly,hourlySettlement is allowed. ";
+            }
         }
         if(param.getRegion().isEmpty()){
             errorMsg = errorMsg + "can not be blank.";
         }
         String tp = param.getIptype();
-        if(!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") &&
-                !tp.equals("5_union") && !tp.equals("BGP")){
-            errorMsg = errorMsg +"Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
+        if(null != tp) {
+            if (!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") &&
+                    !tp.equals("5_union") && !tp.equals("BGP")) {
+                errorMsg = errorMsg + "Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
+            }
+        }else{
+            errorMsg = errorMsg + "Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
         }
         if(errorMsg.equals(" ")) {
             log.info(errorMsg);
@@ -376,8 +444,8 @@ public class EipServiceImpl  {
             quota.setUserId(CommonUtil.getUserId());
 
             result =bssApiService.getQuota(quota);
-            if(result.getInteger(STATUSCODE) != HttpStatus.OK.value()){
-                log.info("Get quota failed StatusCode:{}", result.getInteger(STATUSCODE));
+            if(result.getInteger("statusCode") != HttpStatus.OK.value()){
+                log.info("Get quota failed StatusCode:{}", result.getInteger("statusCode"));
             }
             if(null!= result.getString("code") && result.getString("code").equals("0")){
                 JSONArray qutoResult =result.getJSONObject("result").getJSONArray("quotaList");
