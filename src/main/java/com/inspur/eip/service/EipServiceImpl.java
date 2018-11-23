@@ -364,24 +364,35 @@ public class EipServiceImpl  {
     }
     private ReturnMsg preCheckParam(EipAllocateParam param){
         String errorMsg = " ";
-        if(param.getBandwidth() > 2000){
+        if(null == param){
+            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
+        }
+        if((0== param.getBandwidth()) || (param.getBandwidth() > 2000)){
             errorMsg = "value must be 1-2000.";
         }
-        if(!param.getChargemode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
-                !param.getChargemode().equals(HsConstants.SHAREDBANDWIDTH)){
-            errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
+        if(null != param.getChargemode()) {
+            if (!param.getChargemode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
+                    !param.getChargemode().equals(HsConstants.SHAREDBANDWIDTH)) {
+                errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
+            }
         }
 
-        if(!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)){
-            errorMsg = errorMsg + "Only monthly,hourlySettlement is allowed. ";
+        if(null != param.getBillType()) {
+            if (!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                errorMsg = errorMsg + "Only monthly,hourlySettlement is allowed. ";
+            }
         }
         if(param.getRegion().isEmpty()){
             errorMsg = errorMsg + "can not be blank.";
         }
         String tp = param.getIptype();
-        if(!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") &&
-                !tp.equals("5_union") && !tp.equals("BGP")){
-            errorMsg = errorMsg +"Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
+        if(null != tp) {
+            if (!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") &&
+                    !tp.equals("5_union") && !tp.equals("BGP")) {
+                errorMsg = errorMsg + "Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
+            }
+        }else{
+            errorMsg = errorMsg + "Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
         }
         if(errorMsg.equals(" ")) {
             log.info(errorMsg);
