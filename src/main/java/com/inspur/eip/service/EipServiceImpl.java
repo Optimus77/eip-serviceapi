@@ -75,18 +75,31 @@ public class EipServiceImpl  {
                 JSONObject eipAllocateParam = JSON.parseObject(eipAllocateJson);
                 JSONObject eip = eipAllocateParam.getJSONObject("eip");
                 if(null != eip) {
-                    EipOrder order = getOrderByEipParam(eip.getInteger(HsConstants.BANDWIDTH),
-                            eip.getString(HsConstants.IPTYPE),
-                            eip.getString(HsConstants.REGION),
-                            eip.getString(HsConstants.DURATION),
-                            eip.getString(HsConstants.BILLTYPE),
-                            "");
+                    EipAllocateParamWrapper eipConfig  = JSONObject.parseObject(eip.toJSONString(),
+                            EipAllocateParamWrapper.class);
+                    ReturnMsg checkRet = preCheckParam(eipConfig.getEip());
+                    if(checkRet.getCode().equals(ReturnStatus.SC_OK)) {
+                        EipOrder order = getOrderByEipParam(eip.getInteger(HsConstants.BANDWIDTH),
+                                eip.getString(HsConstants.IPTYPE),
+                                eip.getString(HsConstants.REGION),
+                                eip.getString(HsConstants.DURATION),
+                                eip.getString(HsConstants.BILLTYPE),
+                                "");
 
-                    order.setConsoleCustomization(eipAllocateParam);
+                        order.setConsoleCustomization(eipAllocateParam);
 
-                    result = bssApiService.postOrder(order);
-                    log.info("Send create order result:{}", result);
-                    return result;
+                        result = bssApiService.postOrder(order);
+                        log.info("Send create order result:{}", result);
+                        return result;
+                    }else{
+                        String code = ReturnStatus.SC_PARAM_ERROR;
+                        String msg = checkRet.getMessage();
+                        log.error(msg);
+                        result=new JSONObject();
+                        result.put("code",code);
+                        result.put("msg",msg);
+                        return result;
+                    }
                 }
             }
         }catch (Exception e){
@@ -172,7 +185,7 @@ public class EipServiceImpl  {
                     bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "", retStr));
                     return createRet;
                 } else {
-                    code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
+                    code = ReturnStatus.SC_PARAM_ERROR;;
                     msg = checkRet.getMessage();
                     log.error(msg);
                 }
