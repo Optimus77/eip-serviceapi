@@ -89,7 +89,7 @@ public class SecurityConfigProd extends KeycloakWebSecurityConfigurerAdapter {
                 .antMatchers("/api-docs").permitAll()
                 .antMatchers("/**").hasRole("USER")
                 .antMatchers("/user").hasRole("ROOT")
-                .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()     //对Preflight这个请求做出相应的处理
+//                .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()     //对Preflight这个请求做出相应的处理
                 .anyRequest().permitAll();
         http.csrf().disable();// gaochuanji 20180330
     }
