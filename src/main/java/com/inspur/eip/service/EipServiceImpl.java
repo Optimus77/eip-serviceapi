@@ -88,7 +88,6 @@ public class EipServiceImpl  {
                         order.setConsoleCustomization(eipAllocateParam);
 
                         result = bssApiService.postOrder(order);
-                        log.info("Send create order result:{}", result);
                         return result;
                     }else{
                         String code = ReturnStatus.SC_PARAM_ERROR;
