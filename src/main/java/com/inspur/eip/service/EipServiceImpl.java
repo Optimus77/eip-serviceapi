@@ -75,9 +75,8 @@ public class EipServiceImpl  {
                 JSONObject eipAllocateParam = JSON.parseObject(eipAllocateJson);
                 JSONObject eip = eipAllocateParam.getJSONObject("eip");
                 if(null != eip) {
-                    EipAllocateParamWrapper eipConfig  = JSONObject.parseObject(eip.toJSONString(),
-                            EipAllocateParamWrapper.class);
-                    ReturnMsg checkRet = preCheckParam(eipConfig.getEip());
+                    EipAllocateParam eipConfig  = JSONObject.parseObject(eip.toJSONString(), EipAllocateParam.class);
+                    ReturnMsg checkRet = preCheckParam(eipConfig);
                     if(checkRet.getCode().equals(ReturnStatus.SC_OK)) {
                         EipOrder order = getOrderByEipParam(eip.getInteger(HsConstants.BANDWIDTH),
                                 eip.getString(HsConstants.IPTYPE),
