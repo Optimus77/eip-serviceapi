@@ -40,6 +40,11 @@ dependencies {
     compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
     compile('com.alibaba:fastjson:1.2.49')
 
+    compile('com.inspur.icp:common-util:0.0.2-SNAPSHOT') {
+        exclude(module: 'servlet-api')
+    }
+    compile('com.inspur.cloudframework:common-utils:0.2.0-SNAPSHOT')
+
     runtime('org.springframework.boot:spring-boot-devtools')
     compileOnly('org.projectlombok:lombok')
     testCompile('org.springframework.boot:spring-boot-starter-test')

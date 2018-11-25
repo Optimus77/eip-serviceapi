@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -32,14 +33,19 @@ public class EipServiceImpl  {
 
     //1.2.8 订单接口POST
     @Value("${eipAtom}")
-    private   String eipAtomUrl;
-    private JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig)  {
-        String url=eipAtomUrl ;
+    private String eipAtomUrl;
 
-        String orderStr=JSONObject.toJSONString(eipConfig);
-        log.info("Send order to url:{}, body:{}",url, orderStr);
+    // EipAtomControllerUrl
+    @Value("${eipConUrl}")
+    private String eipConUrl;
 
-        HttpResponse response=HttpUtil.post(url,null,orderStr);
+    private JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig) {
+        String url = eipAtomUrl;
+
+        String orderStr = JSONObject.toJSONString(eipConfig);
+        log.info("Send order to url:{}, body:{}", url, orderStr);
+
+        HttpResponse response = HttpUtil.post(url, null, orderStr);
         return CommonUtil.handlerResopnse(response);
     }
 
@@ -207,9 +213,10 @@ public class EipServiceImpl  {
         result.put("msg", msg);
         return result;
     }
-    public JSONObject onReciveDeleteOrderResult( EipReciveOrder eipOrder) {
-        String msg ="";
-        String code ="";
+
+    public JSONObject onReciveDeleteOrderResult(EipReciveOrder eipOrder) {
+        String msg = "";
+        String code = "";
         String eipId = "0";
         try {
             log.info("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
@@ -566,4 +573,71 @@ public class EipServiceImpl  {
         }
     }
 
+    /**
+     * get Eip List
+     * @param currentPage
+     * @param limit
+     * @param status
+     * @return
+     */
+    public ResponseEntity listEips(int currentPage, int limit, String status) {
+
+        HttpResponse response = null;
+        try {
+//            post request ：eg
+
+//            Map<String,Object> map = new ConcurrentHashMap(3);
+//            map.put("currentPage",String.valueOf(currentPage));
+//            map.put("limit",String.valueOf(limit));
+//            map.put("status",String.valueOf(status));
+//            JSONObject json = new JSONObject(map);
+            String reqUrl = eipConUrl + "?currentPage=" + currentPage + "&limit=" + limit + "&status=" + status;
+            response = HttpUtil.get(reqUrl, null);
+            if (response != null){
+                return new ResponseEntity<>(ReturnMsgUtil.success(response),HttpStatus.OK);
+            }else {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,"Cannot get response"),HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            log.error("Wrong get: listEips + ", e.fillInStackTrace());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * get Servers List
+     * @param region
+     * @return
+     */
+    public ResponseEntity getServerList(String region) {
+        HttpResponse response = null;
+        try {
+            String reqUrl = eipConUrl + "?region=" + region;
+            response = HttpUtil.get(reqUrl, null);
+            if (response != null){
+                return new ResponseEntity<>(ReturnMsgUtil.success(response),HttpStatus.OK);
+            }else {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,"Cannot get response"),HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            log.error(" Wrong get :getServerList + ",e.fillInStackTrace());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity getEipDetail(String eipId){
+        HttpResponse response = null;
+        try {
+            String reqUrl = eipConUrl +"?eipId="+eipId;
+            response = HttpUtil.get(reqUrl,null);
+            if (response != null){
+                return new ResponseEntity<>(ReturnMsgUtil.success(response),HttpStatus.OK);
+            }else {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,"Cannot get response"),HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            log.error("Wrong get :getEipDetail + ",e.fillInStackTrace());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
