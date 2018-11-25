@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -32,14 +33,16 @@ public class EipServiceImpl  {
 
     //1.2.8 订单接口POST
     @Value("${eipAtom}")
-    private   String eipAtomUrl;
-    private JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig)  {
-        String url=eipAtomUrl ;
+    private String eipAtomUrl;
 
-        String orderStr=JSONObject.toJSONString(eipConfig);
-        log.info("Send order to url:{}, body:{}",url, orderStr);
 
-        HttpResponse response=HttpUtil.post(url,null,orderStr);
+    private JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig) {
+        String url = eipAtomUrl;
+
+        String orderStr = JSONObject.toJSONString(eipConfig);
+        log.info("Send order to url:{}, body:{}", url, orderStr);
+
+        HttpResponse response = HttpUtil.post(url, null, orderStr);
         return CommonUtil.handlerResopnse(response);
     }
 
@@ -207,9 +210,10 @@ public class EipServiceImpl  {
         result.put("msg", msg);
         return result;
     }
-    public JSONObject onReciveDeleteOrderResult( EipReciveOrder eipOrder) {
-        String msg ="";
-        String code ="";
+
+    public JSONObject onReciveDeleteOrderResult(EipReciveOrder eipOrder) {
+        String msg = "";
+        String code = "";
         String eipId = "0";
         try {
             log.info("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
