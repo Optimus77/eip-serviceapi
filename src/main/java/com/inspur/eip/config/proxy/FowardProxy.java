@@ -8,10 +8,7 @@ import org.springframework.boot.web.servlet.ServletRegistrationBean;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
 
-import java.io.IOException;
-import java.util.Properties;
 
 /**
  * @author: jiasirui
@@ -38,6 +35,7 @@ public class FowardProxy   {
         log.info("-------ServletRegistrationBean start------------------------");
 
         ProxyServlet proxyServlet=new ProxyServlet();
+        log.info("=========set url: target:"+servletUrl+" : "+targetUrl);
         ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(proxyServlet, servletUrl);
         servletRegistrationBean.addInitParameter(ProxyServlet.P_TARGET_URI, targetUrl);
         servletRegistrationBean.addInitParameter(ProxyServlet.P_LOG, loggingEnabled);
