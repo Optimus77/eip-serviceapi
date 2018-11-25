@@ -157,9 +157,9 @@ public class ProxyServlet extends HttpServlet {
 
 
     protected String getTargetUri(HttpServletRequest servletRequest) {
-        log.info("====In proxy get url"+(String) servletRequest.getAttribute(ATTR_TARGET_URI));
-        return "http://eip-atom.network.svc.cluster.local:8080/eip";
-        //return (String) servletRequest.getAttribute(ATTR_TARGET_URI);
+//        log.info("====In proxy get url"+(String) servletRequest.getAttribute(ATTR_TARGET_URI));
+//        return "http://eip-atom.network.svc.cluster.local:8080/eip";
+          return (String) servletRequest.getAttribute(ATTR_TARGET_URI);
     }
 
     protected HttpHost getTargetHost(HttpServletRequest servletRequest) {
