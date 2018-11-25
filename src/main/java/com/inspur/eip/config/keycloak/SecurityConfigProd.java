@@ -19,7 +19,6 @@ import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
-import org.springframework.web.cors.CorsUtils;
 
 //@Profile(value = "prod")
 @KeycloakConfiguration
@@ -87,9 +86,6 @@ public class SecurityConfigProd extends KeycloakWebSecurityConfigurerAdapter {
         http.authorizeRequests()
                 .antMatchers("/**/*swagger*/**").permitAll()
                 .antMatchers("/api-docs").permitAll()
-                .antMatchers("/**").hasRole("USER")
-                .antMatchers("/user").hasRole("ROOT")
-//                .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()     //对Preflight这个请求做出相应的处理
                 .anyRequest().permitAll();
         http.csrf().disable();// gaochuanji 20180330
     }

@@ -16,6 +16,7 @@ import org.keycloak.adapters.springsecurity.client.KeycloakClientRequestFactory;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.security.core.Authentication;
@@ -52,7 +53,7 @@ public class KeycloakClientRequestFactoryProd extends KeycloakClientRequestFacto
             tokenString = context.getTokenString();
         } else {
             Map<String, String> params = new HashMap<>();
-            params.put("grant_type", "client_credentials");//password
+            params.put("grant_type", "client_credentials");
             params.put("client_id", clientId);
             params.put("client_secret", clientSecret);
             Map res = httpPostForm(getTokenUrl(), params, null, "utf-8");
