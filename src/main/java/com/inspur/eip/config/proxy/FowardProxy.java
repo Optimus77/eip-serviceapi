@@ -3,6 +3,7 @@ package com.inspur.eip.config.proxy;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 
 import org.springframework.context.annotation.Bean;
@@ -21,27 +22,25 @@ import java.util.Properties;
 public class FowardProxy   {
 
 
+    @Value("${proxy.servlet_url}")
+    private String servletUrl;
+
+    @Value("${proxy.target_url}")
+    private String targetUrl;
+
+    @Value("${proxy.logging_enabled}")
+    private String loggingEnabled;
 
     private static Log log = LogFactory.getLog(FowardProxy.class);
-
-    private static Properties properties = new Properties();
-    static{
-        log.info("FowardProxy get properties");
-        try {
-            properties= PropertiesLoaderUtils.loadAllProperties("application.yml");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     @Bean
     public ServletRegistrationBean servletRegistrationBean(){
         log.info("-------ServletRegistrationBean start------------------------");
 
         ProxyServlet proxyServlet=new ProxyServlet();
-        ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(proxyServlet, properties.getProperty("servlet_url"));
-        servletRegistrationBean.addInitParameter(ProxyServlet.P_TARGET_URI, properties.getProperty("target_url"));
-        servletRegistrationBean.addInitParameter(ProxyServlet.P_LOG, properties.getProperty("logging_enabled"));
+        ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(proxyServlet, servletUrl);
+        servletRegistrationBean.addInitParameter(ProxyServlet.P_TARGET_URI, targetUrl);
+        servletRegistrationBean.addInitParameter(ProxyServlet.P_LOG, loggingEnabled);
         return servletRegistrationBean;
     }
 
