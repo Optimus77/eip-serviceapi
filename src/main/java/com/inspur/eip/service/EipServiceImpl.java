@@ -75,9 +75,8 @@ public class EipServiceImpl  {
                 JSONObject eipAllocateParam = JSON.parseObject(eipAllocateJson);
                 JSONObject eip = eipAllocateParam.getJSONObject("eip");
                 if(null != eip) {
-                    EipAllocateParamWrapper eipConfig  = JSONObject.parseObject(eip.toJSONString(),
-                            EipAllocateParamWrapper.class);
-                    ReturnMsg checkRet = preCheckParam(eipConfig.getEip());
+                    EipAllocateParam eipConfig  = JSONObject.parseObject(eip.toJSONString(), EipAllocateParam.class);
+                    ReturnMsg checkRet = preCheckParam(eipConfig);
                     if(checkRet.getCode().equals(ReturnStatus.SC_OK)) {
                         EipOrder order = getOrderByEipParam(eip.getInteger(HsConstants.BANDWIDTH),
                                 eip.getString(HsConstants.IPTYPE),
@@ -89,7 +88,6 @@ public class EipServiceImpl  {
                         order.setConsoleCustomization(eipAllocateParam);
 
                         result = bssApiService.postOrder(order);
-                        log.info("Send create order result:{}", result);
                         return result;
                     }else{
                         String code = ReturnStatus.SC_PARAM_ERROR;
@@ -174,15 +172,18 @@ public class EipServiceImpl  {
                     eipAllocateParamWrapper.setEip(eipConfig);
                     JSONObject createRet = atomCreateEip(eipAllocateParamWrapper);
                     String retStr = HsConstants.SUCCESS;
+                    String eipId;
                     if(createRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.OK.value()) {
                         retStr = HsConstants.FAIL;
+                        eipId = "";
                         log.info("create eip failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     }else{
                         JSONObject eipEntity = createRet.getJSONObject("eip");
                         log.info("create eip result:{}", eipEntity);
+                        eipId = eipEntity.getString("eipid");
                         returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"create");
                     }
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "", retStr));
+                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, retStr));
                     return createRet;
                 } else {
                     code = ReturnStatus.SC_PARAM_ERROR;;
