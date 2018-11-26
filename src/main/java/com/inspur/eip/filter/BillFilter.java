@@ -39,7 +39,7 @@ public class BillFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)throws IOException, ServletException {
-        log.info("===BillFilter doFilter===");
+        log.info("=====================================================================");
         HttpServletRequest req= (HttpServletRequest)servletRequest;
         HttpServletResponse response=(HttpServletResponse)servletResponse;
         String method =  req.getMethod();
@@ -91,11 +91,11 @@ public class BillFilter implements Filter {
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
-        }else if(method.equalsIgnoreCase(HsConstants.PUT)  && req.getPathInfo().startsWith(orderUri) &&
+        }else if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().startsWith(orderUri) &&
                 req.getPathInfo().length() == "/v1/orders/ff232e65-43bb-4ba4-ad43-f891cab7ce0a".length()) {
             String requestBody = CommonUtil.readRequestAsChars(req);
             String eipId = req.getPathInfo().substring("/v1/orders/".length());
-            log.info("get delete eip order:{}.", requestBody);
+            log.info("get update eip order:{}.", requestBody);
             EipReciveOrder eipReciveOrder = JSON.parseObject(requestBody, EipReciveOrder.class);
             JSONObject result = eipService.onReciveUpdateOrder(eipId, eipReciveOrder);
 

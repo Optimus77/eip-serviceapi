@@ -35,10 +35,6 @@ public class EipServiceImpl  {
     @Value("${eipAtom}")
     private String eipAtomUrl;
 
-    // EipAtomControllerUrl
-    @Value("${eipConUrl}")
-    private String eipConUrl;
-
     private JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig) {
         String url = eipAtomUrl;
 
@@ -573,71 +569,4 @@ public class EipServiceImpl  {
         }
     }
 
-    /**
-     * get Eip List
-     * @param currentPage
-     * @param limit
-     * @param status
-     * @return
-     */
-    public ResponseEntity listEips(int currentPage, int limit, String status) {
-
-        HttpResponse response = null;
-        try {
-//            post request ：eg
-
-//            Map<String,Object> map = new ConcurrentHashMap(3);
-//            map.put("currentPage",String.valueOf(currentPage));
-//            map.put("limit",String.valueOf(limit));
-//            map.put("status",String.valueOf(status));
-//            JSONObject json = new JSONObject(map);
-            String reqUrl = eipConUrl + "?currentPage=" + currentPage + "&limit=" + limit + "&status=" + status;
-            response = HttpUtil.get(reqUrl, null);
-            if (response != null){
-                return new ResponseEntity<>(ReturnMsgUtil.success(response),HttpStatus.OK);
-            }else {
-                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,"Cannot get response"),HttpStatus.NOT_FOUND);
-            }
-        } catch (Exception e) {
-            log.error("Wrong get: listEips + ", e.fillInStackTrace());
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    /**
-     * get Servers List
-     * @param region
-     * @return
-     */
-    public ResponseEntity getServerList(String region) {
-        HttpResponse response = null;
-        try {
-            String reqUrl = eipConUrl + "?region=" + region;
-            response = HttpUtil.get(reqUrl, null);
-            if (response != null){
-                return new ResponseEntity<>(ReturnMsgUtil.success(response),HttpStatus.OK);
-            }else {
-                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,"Cannot get response"),HttpStatus.NOT_FOUND);
-            }
-        } catch (Exception e) {
-            log.error(" Wrong get :getServerList + ",e.fillInStackTrace());
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    public ResponseEntity getEipDetail(String eipId){
-        HttpResponse response = null;
-        try {
-            String reqUrl = eipConUrl +"?eipId="+eipId;
-            response = HttpUtil.get(reqUrl,null);
-            if (response != null){
-                return new ResponseEntity<>(ReturnMsgUtil.success(response),HttpStatus.OK);
-            }else {
-                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,"Cannot get response"),HttpStatus.NOT_FOUND);
-            }
-        } catch (Exception e) {
-            log.error("Wrong get :getEipDetail + ",e.fillInStackTrace());
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 }
