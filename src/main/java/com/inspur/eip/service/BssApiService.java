@@ -57,7 +57,7 @@ public class BssApiService {
 
         String orderStr=JSONObject.toJSONString(orderResult);
         log.info("return mq body str {}",orderStr);
-        String response= HttpsClientUtil.doPostJson(url,orderStr);
+        String response= HttpsClientUtil.doPostJson(url,null,orderStr);
         log.info("Mq return:{}", response);
     }
 
@@ -69,7 +69,7 @@ public class BssApiService {
 
         String orderStr=JSONObject.toJSONString(orderResult);
         log.info("return mq body str {}",orderStr);
-        String response=HttpsClientUtil.doPostJson(url,orderStr);
+        String response=HttpsClientUtil.doPostJson(url,null,orderStr);
         log.info("Notify return:{}", response);
     }
 

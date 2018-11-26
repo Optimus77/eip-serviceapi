@@ -555,10 +555,7 @@ public class EipServiceImpl  {
                 log.info(url);
                 String orderStr=JSONObject.toJSONString(sendMQEIP);
                 log.info("return mq body str {}",orderStr);
-                Map<String,String> headers = new HashMap<>();
-                headers.put("Authorization", CommonUtil.getKeycloackToken());
-                headers.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
-                String response = HttpsClientUtil.doPostJson(url,orderStr);
+                String response = HttpsClientUtil.doPostJson(url,null,orderStr);
                 if(null != response) {
                     log.info("response:{}", response);
                 }else {
