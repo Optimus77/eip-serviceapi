@@ -558,10 +558,9 @@ public class EipServiceImpl  {
                 Map<String,String> headers = new HashMap<>();
                 headers.put("Authorization", CommonUtil.getKeycloackToken());
                 headers.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
-                HttpResponse response = HttpUtil.post(url,headers,orderStr);
+                String response = HttpsClientUtil.doPostJson(url,orderStr);
                 if(null != response) {
-                    log.info(response.getEntity().toString());
-                    log.info(String.valueOf(response.getStatusLine().getStatusCode()));
+                    log.info("response:{}", response);
                 }else {
                     log.error("***********Websocket return null message************.");
                 }
