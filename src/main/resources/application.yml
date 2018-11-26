@@ -12,6 +12,9 @@ springfox:
       v2:
         path: /api-docs
 
+error:
+  code: 106
+
 # KeyCloak
 keycloak:
   enabled: true

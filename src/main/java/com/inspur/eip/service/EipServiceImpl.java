@@ -35,7 +35,6 @@ public class EipServiceImpl  {
     @Value("${eipAtom}")
     private String eipAtomUrl;
 
-
     private JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig) {
         String url = eipAtomUrl;
 

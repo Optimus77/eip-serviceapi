@@ -32,10 +32,9 @@ public class FowardProxy   {
 
     @Bean
     public ServletRegistrationBean servletRegistrationBean(){
-        log.info("-------ServletRegistrationBean start------------------------");
+        log.info("-------ServletRegistrationBean start, set url:"+servletUrl+ "target:" +targetUrl);
 
         ProxyServlet proxyServlet=new ProxyServlet();
-        log.info("=========set url: target:"+servletUrl+" : "+targetUrl);
         ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(proxyServlet, servletUrl);
         servletRegistrationBean.addInitParameter(ProxyServlet.P_TARGET_URI, targetUrl);
         servletRegistrationBean.addInitParameter(ProxyServlet.P_LOG, loggingEnabled);

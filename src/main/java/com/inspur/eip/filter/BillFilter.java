@@ -39,7 +39,7 @@ public class BillFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)throws IOException, ServletException {
-        log.info("===BillFilter doFilter===");
+        log.info("=====================================================================");
         HttpServletRequest req= (HttpServletRequest)servletRequest;
         HttpServletResponse response=(HttpServletResponse)servletResponse;
         String method =  req.getMethod();
