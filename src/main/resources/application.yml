@@ -52,9 +52,9 @@ bssurl:
   quotaUrl:    http://117.73.2.105:8083/crm/quota #//1.2.11	查询用户配额的接口
 mq:
 #hourlySettlement k8s服务
-  returnMq:    http://common-atom.console.svc.cluster.local:8080/common/productreturn
+  returnMq:     https://api.devops.inspur.com/mq/v1/messages/productreturn
 #monthly k8s服务名
-  returnNotify: http://common-atom.console.svc.cluster.local:8080/common/productnotify
+  returnNotify:  https://api.devops.inspur.com/mq/v1/messages/productnotify
   webSocket:   http://api.devops.inspur.com/console/websocket/v1/messages
 
 eipAtom:     http://eip-atom.cn-north-3.devops.inspur.com/eip/v1/eips/
