@@ -5,8 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.EipOrder;
 import com.inspur.eip.entity.EipOrderResult;
 import com.inspur.eip.entity.EipQuota;
+import com.inspur.eip.entity.EipSoftDownOrder;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HttpUtil;
+import com.inspur.eip.util.HttpsClientUtil;
 import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,14 +51,26 @@ public class BssApiService {
     //1.2.8 订单返回给控制台的消息
     @Value("${mq.returnMq}")
     private   String returnMq;
-    public JSONObject resultReturnMq(EipOrderResult orderResult)  {
+    public void resultReturnMq(EipOrderResult orderResult)  {
         String url=returnMq;
         log.info(url);
 
         String orderStr=JSONObject.toJSONString(orderResult);
         log.info("return mq body str {}",orderStr);
-        HttpResponse response=HttpUtil.post(url,null,orderStr);
-        return CommonUtil.handlerResopnse(response);
+        String response= HttpsClientUtil.doPostJson(url,null,orderStr);
+        log.info("Mq return:{}", response);
+    }
+
+    @Value("${mq.returnNotify}")
+    private   String returnNotify;
+    public void resultReturnNotify(EipSoftDownOrder orderResult)  {
+        String url=returnNotify;
+        log.info(url);
+
+        String orderStr=JSONObject.toJSONString(orderResult);
+        log.info("return mq body str {}",orderStr);
+        String response=HttpsClientUtil.doPostJson(url,null,orderStr);
+        log.info("Notify return:{}", response);
     }
 
 
