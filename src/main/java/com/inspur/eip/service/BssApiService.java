@@ -28,7 +28,7 @@ public class BssApiService {
         String url=ordercreate;
 
         String orderStr=JSONObject.toJSONString(order);
-        log.info("Send order to url:{}, body:{}",url, orderStr);
+        log.info("SubmitPay url:{}, body:{}",url, orderStr);
 
         HttpResponse response=HttpUtil.post(url,null,orderStr);
         return CommonUtil.handlerResopnse(response);
@@ -53,10 +53,8 @@ public class BssApiService {
     private   String returnMq;
     public void resultReturnMq(EipOrderResult orderResult)  {
         String url=returnMq;
-        log.info(url);
-
         String orderStr=JSONObject.toJSONString(orderResult);
-        log.info("return mq body str {}",orderStr);
+        log.info("ReturnMq Url:{} body:{}",url,orderStr);
         String response= HttpsClientUtil.doPostJson(url,null,orderStr);
         log.info("Mq return:{}", response);
     }
@@ -65,10 +63,8 @@ public class BssApiService {
     private   String returnNotify;
     public void resultReturnNotify(EipSoftDownOrder orderResult)  {
         String url=returnNotify;
-        log.info(url);
-
         String orderStr=JSONObject.toJSONString(orderResult);
-        log.info("return mq body str {}",orderStr);
+        log.info("ReturnNotify Url:{} body:{}",url,orderStr);
         String response=HttpsClientUtil.doPostJson(url,null,orderStr);
         log.info("Notify return:{}", response);
     }
