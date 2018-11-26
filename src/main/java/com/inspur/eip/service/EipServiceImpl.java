@@ -559,8 +559,12 @@ public class EipServiceImpl  {
                 headers.put("Authorization", CommonUtil.getKeycloackToken());
                 headers.put(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
                 HttpResponse response = HttpUtil.post(url,headers,orderStr);
-                log.info(response.getEntity().toString());
-                log.info(String.valueOf(response.getStatusLine().getStatusCode()));
+                if(null != response) {
+                    log.info(response.getEntity().toString());
+                    log.info(String.valueOf(response.getStatusLine().getStatusCode()));
+                }else {
+                    log.error("***********Websocket return null message************.");
+                }
             } catch (KeycloakTokenException e) {
                 e.printStackTrace();
             }
