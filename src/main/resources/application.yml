@@ -1,0 +1,70 @@
+# Tomcat
+server:
+  tomcat:
+    uri-encoding: UTF-8
+  port: 8080
+  servlet:
+    context-path: /eip
+
+springfox:
+  documentation:
+    swagger:
+      v2:
+        path: /api-docs
+
+error:
+  code: 106
+
+# KeyCloak
+keycloak:
+  enabled: true
+  disable-trust-manager: true
+  auth-server-url: https://iopdev.10.110.25.123.xip.io/auth
+  realm: picp
+  public-client: false
+  credentials:
+    secret: a2d9a847-0030-42e1-af1c-910ee471cb34
+  resource: iaas-server
+  ssl-required: none
+  bearer-only: true
+  cors: true
+  cors-max-age: 1728000
+  cors-allowed-headers: Authorization, Origin, X-Requested-With, Content-Type, X-Custom-Header
+  cors-allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+
+# Logback
+logging:
+  config: classpath:logback.xml
+
+http:
+  #最大连接数
+  maxTotal: 100
+  defaultMaxPerRoute: 20
+  connectTimeout: 1000
+  connectionRequestTimeout: 500
+  socketTimeout: 10000
+  statleConnectionCheckEnabled: true
+
+
+bssurl:
+  ignoSSL: true
+  submitPay: http://117.73.2.105:8086/order/submitpay #  //1.2.8 订单接口POST
+  quotaUrl:    http://117.73.2.105:8083/crm/quota #//1.2.11	查询用户配额的接口
+mq:
+#hourlySettlement k8s服务
+  returnMq:     https://api.devops.inspur.com/mq/v1/messages/productreturn
+#monthly k8s服务名
+  returnNotify:  https://api.devops.inspur.com/mq/v1/messages/productnotify
+  webSocket:   http://api.devops.inspur.com/console/websocket/v1/messages
+
+eipAtom:     http://eip-atom.cn-north-3.devops.inspur.com/eip/v1/eips/
+
+eipConUrl:     http://eip-atom.cn-north-3.devops.inspur.com/
+
+proxy:
+  servlet_url: /*
+  logging_enabled: true
+  target_url:  http://eip-atom.cn-north-3.devops.inspur.com/eip
+#  target_url:  http://127.0.0.1:8088/eip
+
+
