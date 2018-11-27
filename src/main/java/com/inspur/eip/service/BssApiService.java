@@ -6,20 +6,27 @@ import com.inspur.eip.entity.EipOrder;
 import com.inspur.eip.entity.EipOrderResult;
 import com.inspur.eip.entity.EipQuota;
 import com.inspur.eip.entity.EipSoftDownOrder;
-import com.inspur.eip.util.CommonUtil;
-import com.inspur.eip.util.HttpUtil;
-import com.inspur.eip.util.HttpsClientUtil;
+import com.inspur.eip.util.*;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class BssApiService {
 
     private final static Logger log = LoggerFactory.getLogger(BssApiService.class);
 
+    @Autowired
+    private ClientTokenUtil clientTokenUtil;
 
     //1.2.8 订单接口POST
     @Value("${bssurl.submitPay}")
@@ -28,7 +35,7 @@ public class BssApiService {
         String url=ordercreate;
 
         String orderStr=JSONObject.toJSONString(order);
-        log.info("Send order to url:{}, body:{}",url, orderStr);
+        log.info("SubmitPay url:{}, body:{}",url, orderStr);
 
         HttpResponse response=HttpUtil.post(url,null,orderStr);
         return CommonUtil.handlerResopnse(response);
@@ -51,26 +58,44 @@ public class BssApiService {
     //1.2.8 订单返回给控制台的消息
     @Value("${mq.returnMq}")
     private   String returnMq;
-    public void resultReturnMq(EipOrderResult orderResult)  {
+    public ReturnResult resultReturnMq(EipOrderResult orderResult)   {
         String url=returnMq;
-        log.info(url);
-
         String orderStr=JSONObject.toJSONString(orderResult);
-        log.info("return mq body str {}",orderStr);
-        String response= HttpsClientUtil.doPostJson(url,null,orderStr);
-        log.info("Mq return:{}", response);
+        try {
+            Map<String, String> header = new HashMap<String, String>();
+            header.put("requestId", UUID.randomUUID().toString());
+            header.put(HsConstants.AUTHORIZATION, "bearer "+ clientTokenUtil.getAdminToken().trim());
+            header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
+
+            log.info("ReturnMq Url:{} body:{}", url, orderStr);
+            ReturnResult response = HttpsClientUtil.doPostJson(url, header, orderStr);
+            log.info("Mq return:{}", response.getMessage());
+            return response;
+        }catch (Exception e){
+            log.error("In return mq, get token exception:{}", e);
+        }
+        return ReturnResult.actionFailed("Return mq failed ", HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
     @Value("${mq.returnNotify}")
     private   String returnNotify;
-    public void resultReturnNotify(EipSoftDownOrder orderResult)  {
+    public ReturnResult resultReturnNotify(EipSoftDownOrder orderResult)  {
         String url=returnNotify;
-        log.info(url);
+        try {
+            Map<String, String> header = new HashMap<String, String>();
+            header.put("requestId", UUID.randomUUID().toString());
+            header.put(HsConstants.AUTHORIZATION, clientTokenUtil.getAdminToken());
+            header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
 
-        String orderStr=JSONObject.toJSONString(orderResult);
-        log.info("return mq body str {}",orderStr);
-        String response=HttpsClientUtil.doPostJson(url,null,orderStr);
-        log.info("Notify return:{}", response);
+            String orderStr = JSONObject.toJSONString(orderResult);
+            log.info("ReturnNotify Url:{} body:{}", url, orderStr);
+            ReturnResult response = HttpsClientUtil.doPostJson(url, null, orderStr);
+            log.info("Notify return:{}", response.getMessage());
+            return response;
+        }catch (Exception e){
+            log.error("In return from notify mq, get token exception:{}", e);
+        }
+        return ReturnResult.actionFailed("Notify failed ", HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
 
