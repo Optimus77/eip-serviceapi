@@ -70,6 +70,7 @@ public class BssApiService {
             log.info("ReturnMq Url:{} body:{}", url, orderStr);
             ReturnResult response = HttpsClientUtil.doPostJson(url, header, orderStr);
             log.info("Mq return:{}", response.getMessage());
+            return response;
         }catch (Exception e){
             log.error("In return mq, get token exception:{}", e);
         }
