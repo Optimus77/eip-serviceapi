@@ -52,7 +52,7 @@ public class ReturnResult implements Serializable  {
      * @return true if the action was successful
      */
     public boolean isSuccess() {
-        return message == null;
+        return code == 200;
     }
 
     /**

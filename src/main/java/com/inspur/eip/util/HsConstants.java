@@ -35,6 +35,7 @@ public class HsConstants {
 	public static final String HTTP = "http://";
 	public static final String HTTPS = "https://";
 	public static final String APPLICATION_JSON = "application/json";
+	public static final String KEYCLOAK_TOKEN_SUBPATH = "/realms/picp/protocol/openid-connect/token";
 	public static final String CONTENT_TYPE_TEXT_JSON = "text/json";
 	public static final String FROM_ROOT_SYS = "fromrootvsys=true;";
 	public static final String REST_GET = "?isDynamic=0&";
