@@ -12,6 +12,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,8 @@ public class BssApiService {
 
     private final static Logger log = LoggerFactory.getLogger(BssApiService.class);
 
+    @Autowired
+    private ClientTokenUtil clientTokenUtil;
 
     //1.2.8 订单接口POST
     @Value("${bssurl.submitPay}")
@@ -61,7 +64,6 @@ public class BssApiService {
         try {
             Map<String, String> header = new HashMap<String, String>();
             header.put("requestId", UUID.randomUUID().toString());
-            ClientTokenUtil clientTokenUtil = new ClientTokenUtil();
             header.put(HsConstants.AUTHORIZATION, clientTokenUtil.getAdminToken());
             header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
 
@@ -81,7 +83,6 @@ public class BssApiService {
         try {
             Map<String, String> header = new HashMap<String, String>();
             header.put("requestId", UUID.randomUUID().toString());
-            ClientTokenUtil clientTokenUtil = new ClientTokenUtil();
             header.put(HsConstants.AUTHORIZATION, clientTokenUtil.getAdminToken());
             header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
 
