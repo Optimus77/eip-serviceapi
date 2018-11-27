@@ -9,6 +9,7 @@ import com.inspur.eip.entity.EipSoftDownOrder;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HttpUtil;
 import com.inspur.eip.util.HttpsClientUtil;
+import com.inspur.eip.util.ReturnResult;
 import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,22 +52,24 @@ public class BssApiService {
     //1.2.8 订单返回给控制台的消息
     @Value("${mq.returnMq}")
     private   String returnMq;
-    public void resultReturnMq(EipOrderResult orderResult)  {
+    public ReturnResult resultReturnMq(EipOrderResult orderResult)  {
         String url=returnMq;
         String orderStr=JSONObject.toJSONString(orderResult);
         log.info("ReturnMq Url:{} body:{}",url,orderStr);
-        String response= HttpsClientUtil.doPostJson(url,null,orderStr);
-        log.info("Mq return:{}", response);
+        ReturnResult response= HttpsClientUtil.doPostJson(url,null,orderStr);
+        log.info("Mq return:{}", response.getMessage());
+        return response;
     }
 
     @Value("${mq.returnNotify}")
     private   String returnNotify;
-    public void resultReturnNotify(EipSoftDownOrder orderResult)  {
+    public ReturnResult resultReturnNotify(EipSoftDownOrder orderResult)  {
         String url=returnNotify;
         String orderStr=JSONObject.toJSONString(orderResult);
         log.info("ReturnNotify Url:{} body:{}",url,orderStr);
-        String response=HttpsClientUtil.doPostJson(url,null,orderStr);
-        log.info("Notify return:{}", response);
+        ReturnResult response=HttpsClientUtil.doPostJson(url,null,orderStr);
+        log.info("Notify return:{}", response.getMessage());
+        return response;
     }
 
 

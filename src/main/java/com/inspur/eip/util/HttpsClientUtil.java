@@ -16,6 +16,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -139,7 +140,7 @@ public class HttpsClientUtil {
 
 
 	    
-	public static String doPostJson(String url, Map<String, String> header, String json) {
+	public static ReturnResult doPostJson(String url, Map<String, String> header, String json) {
 
 		// 创建Httpclient对象
 		CloseableHttpClient httpClient = getHttpsClient();
@@ -164,7 +165,9 @@ public class HttpsClientUtil {
 			// 执行http请求
 			response = httpClient.execute(httpPost);
 			log.info("response status code: " + response.getStatusLine().getStatusCode());
+
 			resultString = EntityUtils.toString(response.getEntity(), "utf-8");
+			return ReturnResult.actionResult(resultString, response.getStatusLine().getStatusCode());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -175,8 +178,7 @@ public class HttpsClientUtil {
 				e.printStackTrace();
 			}
 		}
-
-		return resultString;
+        return ReturnResult.actionFailed("Exception", HttpStatus.SC_INTERNAL_SERVER_ERROR);
 	}
 
 	private static Map<String,String> getHeader(){

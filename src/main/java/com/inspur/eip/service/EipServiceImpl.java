@@ -161,6 +161,8 @@ public class EipServiceImpl  {
 
         String code;
         String msg;
+        String   eipId = "";
+        JSONObject createRet = null;
         try {
             log.info("Recive create order:{}", JSONObject.toJSONString(eipOrder));
             EipOrder message =  eipOrder.getReturnConsoleMessage();
@@ -172,12 +174,11 @@ public class EipServiceImpl  {
                     //post request to atom
                     EipAllocateParamWrapper eipAllocateParamWrapper = new EipAllocateParamWrapper();
                     eipAllocateParamWrapper.setEip(eipConfig);
-                    JSONObject createRet = atomCreateEip(eipAllocateParamWrapper);
+                    createRet = atomCreateEip(eipAllocateParamWrapper);
                     String retStr = HsConstants.SUCCESS;
-                    String eipId;
+
                     if(createRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.OK.value()) {
                         retStr = HsConstants.FAIL;
-                        eipId = "";
                         log.info("create eip failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     }else{
                         JSONObject eipEntity = createRet.getJSONObject("eip");
@@ -185,7 +186,12 @@ public class EipServiceImpl  {
                         eipId = eipEntity.getString("eipid");
                         returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"create");
                     }
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, retStr));
+                    ReturnResult returnResult = bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, retStr));
+                    if(!returnResult.isSuccess() &&
+                            (createRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.OK.value())) {
+                        log.error("Delete the allocate eip just now for mq message error, id:{}", eipId);
+                        atomDeleteEip(eipId);
+                    }
                     return createRet;
                 } else {
                     code = ReturnStatus.SC_PARAM_ERROR;;
@@ -207,6 +213,10 @@ public class EipServiceImpl  {
         JSONObject result = new JSONObject();
         result.put("code", code);
         result.put("msg", msg);
+        if((null != createRet) && (createRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.OK.value())) {
+            log.error("Delete the allocate eip just now for mq message error, id:{}", eipId);
+            atomDeleteEip(eipId);
+        }
         return result;
     }
 
@@ -555,12 +565,9 @@ public class EipServiceImpl  {
                 log.info(url);
                 String orderStr=JSONObject.toJSONString(sendMQEIP);
                 log.info("return mq body str {}",orderStr);
-                String response = HttpsClientUtil.doPostJson(url,null,orderStr);
-                if(null != response) {
-                    log.info("response:{}", response);
-                }else {
-                    log.error("***********Websocket return null message************.");
-                }
+                ReturnResult response = HttpsClientUtil.doPostJson(url,null,orderStr);
+                log.info("response:{}", response.getMessage());
+
             } catch (KeycloakTokenException e) {
                 e.printStackTrace();
             }
