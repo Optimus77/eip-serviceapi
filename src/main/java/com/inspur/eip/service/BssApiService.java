@@ -64,7 +64,7 @@ public class BssApiService {
         try {
             Map<String, String> header = new HashMap<String, String>();
             header.put("requestId", UUID.randomUUID().toString());
-            header.put(HsConstants.AUTHORIZATION, clientTokenUtil.getAdminToken());
+            header.put(HsConstants.AUTHORIZATION, "bearer "+ clientTokenUtil.getAdminToken().trim());
             header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
 
             log.info("ReturnMq Url:{} body:{}", url, orderStr);
