@@ -101,6 +101,7 @@ public class ClientTokenUtil {
             restTemplate = new RestTemplate(requestFactory);
 
         String url = authServerUrl + HsConstants.KEYCLOAK_TOKEN_SUBPATH;
+        log.info("get admin token Url:{}", url);
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Content-Type", "application/x-www-form-urlencoded");
         MultiValueMap<String, Object> postParameters = new LinkedMultiValueMap<>();
@@ -110,7 +111,7 @@ public class ClientTokenUtil {
         postParameters.add("response_type", "code id_token");
         HttpEntity httpEntity = new HttpEntity<>(postParameters, httpHeaders);
         ResponseEntity responseEntity = restTemplate.postForEntity(url, httpEntity, String.class, realm);
-        if (responseEntity.getStatusCode() != HttpStatus.OK || null == responseEntity.getBody()) {
+        if ((null == responseEntity) || responseEntity.getStatusCode() != HttpStatus.OK || null == responseEntity.getBody()) {
             log.error(this.getClass().getName() + ".getAdminToken():" + "get admin token fail!");
             throw new KeycloakTokenException("Get token error exception.");
         }
