@@ -48,17 +48,16 @@ http:
 
 bssurl:
   ignoSSL: true
-  submitPay: http://117.73.2.105:8086/order/submitpay #  //1.2.8 订单接口POST
-  quotaUrl:    http://117.73.2.105:8083/crm/quota #//1.2.11	查询用户配额的接口
+  submitPay: https://117.73.2.105:8086/order/submitpay #  //1.2.8 订单接口POST
+  quotaUrl:    https://117.73.2.105:8083/crm/quota #//1.2.11	查询用户配额的接口
 mq:
 #hourlySettlement k8s服务
   returnMq:     https://api.devops.inspur.com/mq/v1/messages/productreturn
 #monthly k8s服务名
   returnNotify:  https://api.devops.inspur.com/mq/v1/messages/productnotify
-  webSocket:   http://api.devops.inspur.com/console/websocket/v1/messages
+  webSocket:   https://api.devops.inspur.com/console/websocket/v1/messages
 
 eipAtom:     http://eip-atom.cn-north-3.devops.inspur.com/eip/v1/eips/
-
 eipConUrl:     http://eip-atom.cn-north-3.devops.inspur.com/
 
 proxy:
