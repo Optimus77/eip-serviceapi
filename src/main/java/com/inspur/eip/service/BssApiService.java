@@ -31,28 +31,35 @@ public class BssApiService {
     //1.2.8 订单接口POST
     @Value("${bssurl.submitPay}")
     private   String ordercreate;
-    public JSONObject postOrder(EipOrder order)  {
+    public ReturnResult postOrder(EipOrder order)  {
         String url=ordercreate;
+        ReturnResult response;
 
         String orderStr=JSONObject.toJSONString(order);
         log.info("SubmitPay url:{}, body:{}",url, orderStr);
-
-        HttpResponse response=HttpUtil.post(url,null,orderStr);
-        return CommonUtil.handlerResopnse(response);
+        if(url.trim().startsWith("https://")) {
+            response = HttpsClientUtil.doPostJson(url,null, orderStr);
+            return response;
+        }else{
+            log.error("Not support http connection in submitpay.");
+        }
+        return ReturnResult.actionFailed("Error when post sbmitpay request",
+                HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
 
     //1.2.11	查询用户配额的接口 URL: http://117.73.2.105:8083/crm/quota
     @Value("${bssurl.quotaUrl}")
     private   String quotaUrl;
-    public JSONObject getQuota(EipQuota quota){
+    public ReturnResult getQuota(EipQuota quota){
 
         String  uri =quotaUrl+"?userId="+quota.getUserId()+"&region="+quota.getRegion()+"&productLineCode="
                 +quota.getProductLineCode()+"&productTypeCode="+quota.getProductTypeCode()+"&quotaType=amount";
         log.info("Get quota: {}",uri);
 
-        HttpResponse response= HttpUtil.get(uri,null);
-        return CommonUtil.handlerResopnse(response);
+        //HttpResponse response= HttpUtil.get(uri,null);
+        ReturnResult response= HttpsClientUtil.doGet(uri);
+        return response;
     }
 
     //1.2.8 订单返回给控制台的消息

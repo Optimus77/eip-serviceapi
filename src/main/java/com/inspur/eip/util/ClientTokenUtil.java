@@ -101,7 +101,7 @@ public class ClientTokenUtil {
             restTemplate = new RestTemplate(requestFactory);
 
         String url = authServerUrl + HsConstants.KEYCLOAK_TOKEN_SUBPATH;
-        log.info("get admin token Url:{}, realm:{}, secret:{},client:{}", url, realm,secret,client);
+
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Content-Type", "application/x-www-form-urlencoded");
         MultiValueMap<String, Object> postParameters = new LinkedMultiValueMap<>();
