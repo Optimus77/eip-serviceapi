@@ -6,14 +6,11 @@ import com.alibaba.fastjson.JSONObject;
 
 import com.inspur.eip.entity.*;
 import com.inspur.eip.util.*;
-import org.apache.http.HttpResponse;
-import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -37,7 +34,7 @@ public class EipServiceImpl  {
 
     private JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig) {
         String url = eipAtomUrl;
-        HttpResponse response = null;
+        ReturnResult response = null;
         try {
             String orderStr = JSONObject.toJSONString(eipConfig);
             log.info("Send order to url:{}, body:{}", url, orderStr);
@@ -50,7 +47,7 @@ public class EipServiceImpl  {
 
     private JSONObject atomDeleteEip(String  eipId)  {
         String url=eipAtomUrl +eipId;
-        HttpResponse response = null;
+        ReturnResult response = null;
         try {
             log.info("Send order to url:{}, eipId:{}", url, eipId);
             response = HttpUtil.delete(url, null);
@@ -62,7 +59,7 @@ public class EipServiceImpl  {
 
     private JSONObject atomUpdateEip(String eipId,EipAllocateParam eipConfig)  {
         String url=eipAtomUrl+eipId +"/renew";
-        HttpResponse response = null;
+        ReturnResult response = null;
         try {
 
             String orderStr = JSONObject.toJSONString(eipConfig);
@@ -78,7 +75,7 @@ public class EipServiceImpl  {
     private JSONObject getEipEntityById(String eipId){
 
         String  uri =eipAtomUrl+eipId;
-        HttpResponse response = null;
+        ReturnResult response = null;
         try {
             log.info(uri);
             response = HttpUtil.get(uri, null);
@@ -572,9 +569,9 @@ public class EipServiceImpl  {
                 String url=pushMq;
                 log.info(url);
                 String orderStr=JSONObject.toJSONString(sendMQEIP);
-                log.info("websocket return: {} {}", url, orderStr);
-                HttpResponse response = HttpsClientUtil.doPostJson(url,null,orderStr);
-
+                log.info("websocket send return: {} {}", url, orderStr);
+                ReturnResult response = HttpsClientUtil.doPostJson(url,null,orderStr);
+                log.info("websocket respons:{}", response.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -49,12 +49,11 @@ public class HttpsClientUtil {
 
 	static boolean ignoreSSL = Boolean.TRUE;
 
-	public static HttpResponse doGet(String url, Map<String, String> param) throws  EipException{
+	public static ReturnResult doGet(String url, Map<String, String> param) throws  EipException{
 
 		// 创建Httpclient对象
 		CloseableHttpClient httpclient = getHttpsClient();
 
-		String resultString = "";
 		CloseableHttpResponse response = null;
 		try {
 			// 创建uri
@@ -73,7 +72,9 @@ public class HttpsClientUtil {
 
 			// 执行请求
 			response = httpclient.execute(httpGet);
-			return response;
+            String resultString = EntityUtils.toString(response.getEntity(), "utf-8");
+            log.info("return:{}", resultString);
+            return ReturnResult.actionResult(resultString, response.getStatusLine().getStatusCode());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -89,17 +90,16 @@ public class HttpsClientUtil {
 		throw new EipException("Post request throw https error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
 	}
 
-	public static HttpResponse doGet(String url) throws EipException {
+	public static ReturnResult doGet(String url) throws EipException {
 
 		return doGet(url, null);
 	}
 
-	public static HttpResponse doPost(String url, Map<String, String> param) throws  EipException{
+	public static ReturnResult doPost(String url, Map<String, String> param) throws  EipException{
 
 		// 创建Httpclient对象
 		CloseableHttpClient httpClient = getHttpsClient();
 		CloseableHttpResponse response = null;
-		String resultString = "";
 		try {
 			// 创建Http Post请求
 			HttpPost httpPost = new HttpPost(url);
@@ -116,7 +116,9 @@ public class HttpsClientUtil {
 			// 执行http请求
 			response = httpClient.execute(httpPost);
 			log.info("response status code: " + response.getStatusLine().getStatusCode());
-			return response;
+            String resultString = EntityUtils.toString(response.getEntity(), "utf-8");
+            log.info("return:{}", resultString);
+            return ReturnResult.actionResult(resultString, response.getStatusLine().getStatusCode());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -134,19 +136,18 @@ public class HttpsClientUtil {
 	}
 	   
 
-	public static HttpResponse doPost(String url) throws EipException{
+	public static ReturnResult doPost(String url) throws EipException{
 
 		return doPost(url, null);
 	}
 
 
 	    
-	public static HttpResponse doPostJson(String url, Map<String, String> header, String json) throws EipException {
+	public static ReturnResult doPostJson(String url, Map<String, String> header, String json) throws EipException {
 
 		// 创建Httpclient对象
 		CloseableHttpClient httpClient = getHttpsClient();
 		CloseableHttpResponse response = null;
-		String resultString = "";
 		try {
 			// 创建Http Post请求
 			HttpPost httpPost = new HttpPost(url);
@@ -166,7 +167,9 @@ public class HttpsClientUtil {
 			// 执行http请求
 			response = httpClient.execute(httpPost);
 			log.info("response status code: " + response.getStatusLine().getStatusCode());
-			return response;
+            String resultString = EntityUtils.toString(response.getEntity(), "utf-8");
+            log.info("return:{}", resultString);
+            return ReturnResult.actionResult(resultString, response.getStatusLine().getStatusCode());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
