@@ -48,7 +48,7 @@ public class HttpsClientUtil {
 
 	static boolean ignoreSSL = Boolean.TRUE;
 
-	public static String doGet(String url, Map<String, String> param) {
+	public static ReturnResult doGet(String url, Map<String, String> param) {
 
 		// 创建Httpclient对象
 		CloseableHttpClient httpclient = getHttpsClient();
@@ -58,11 +58,13 @@ public class HttpsClientUtil {
 		try {
 			// 创建uri
 			URIBuilder builder = new URIBuilder(url);
-			if (param != null) {
-				for (String key : param.keySet()) {
-					builder.addParameter(key, param.get(key));
-				}
+			if(param == null){
+				param = getHeader();
 			}
+			for (String key : param.keySet()) {
+				builder.addParameter(key, param.get(key));
+			}
+
 			URI uri = builder.build();
 
 			// 创建http GET请求
@@ -71,10 +73,10 @@ public class HttpsClientUtil {
 			// 执行请求
 			response = httpclient.execute(httpGet);
 			log.info("response status code: " + response.getStatusLine().getStatusCode());
-			// 判断返回状态是否为200
-			if (response.getStatusLine().getStatusCode() == 200) {
-				resultString = EntityUtils.toString(response.getEntity(), "UTF-8");
-			}
+
+			resultString = EntityUtils.toString(response.getEntity(), "UTF-8");
+
+			return ReturnResult.actionResult(resultString, response.getStatusLine().getStatusCode());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -87,10 +89,10 @@ public class HttpsClientUtil {
 				e.printStackTrace();
 			}
 		}
-		return resultString;
+		return ReturnResult.actionFailed("Exception in get request.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
 	}
 
-	public static String doGet(String url) {
+	public static ReturnResult doGet(String url) {
 
 		return doGet(url, null);
 	}
@@ -122,10 +124,13 @@ public class HttpsClientUtil {
 			e.printStackTrace();
 		} finally {
 			try {
-				response.close();
+				if (response != null) {
+					response.close();
+				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+
 			}
 		}
 
@@ -172,13 +177,15 @@ public class HttpsClientUtil {
 			e.printStackTrace();
 		} finally {
 			try {
-				response.close();
+				if (response != null){
+					response.close();
+				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-        return ReturnResult.actionFailed("Exception", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        return ReturnResult.actionFailed("Exception in post request.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
 	}
 
 	private static Map<String,String> getHeader(){
