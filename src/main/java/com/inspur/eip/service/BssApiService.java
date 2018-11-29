@@ -34,7 +34,7 @@ public class BssApiService {
     private   String ordercreate;
     public ReturnResult postOrder(EipOrder order)  {
         String url=ordercreate;
-        HttpResponse response;
+        ReturnResult response;
         try {
             String orderStr = JSONObject.toJSONString(order);
             log.info("SubmitPay url:{}, body:{}", url, orderStr);
@@ -43,11 +43,7 @@ public class BssApiService {
             } else {
                 response = HttpUtil.post(url, null, orderStr);
             }
-            if(null != response) {
-                String resultString = EntityUtils.toString(response.getEntity(), "utf-8");
-                log.info("SubmitPay return:{}", resultString);
-                return ReturnResult.actionResult(resultString, response.getStatusLine().getStatusCode());
-            }
+            return  response;
         }catch (Exception e){
             log.error("In submitpay order, get token exception:{}", e);
         }
@@ -65,17 +61,13 @@ public class BssApiService {
             log.info("Get quota: {}", uri);
 
             //HttpResponse response= HttpUtil.get(uri,null);
-            HttpResponse response;
+            ReturnResult response;
             if((quotaUrl.startsWith("https://")) ||(quotaUrl.startsWith("HTTPS://"))){
                 response = HttpsClientUtil.doGet(uri);
             }else{
                 response = HttpUtil.get(uri, null);
             }
-            if(null != response) {
-                String resultString = EntityUtils.toString(response.getEntity(), "utf-8");
-                log.info("Quota return:{}", resultString);
-                return ReturnResult.actionResult(resultString, response.getStatusLine().getStatusCode());
-            }
+            return response;
         }catch (Exception e){
             log.error("In quota query, get token exception:{}", e);
         }
@@ -95,10 +87,8 @@ public class BssApiService {
             header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
 
             log.info("ReturnMq Url:{} body:{}", url, orderStr);
-            HttpResponse response = HttpsClientUtil.doPostJson(url, header, orderStr);
-            String resultString = EntityUtils.toString(response.getEntity(), "utf-8");
-            log.info("Mq return:{}", resultString);
-            return ReturnResult.actionResult(resultString, response.getStatusLine().getStatusCode());
+            ReturnResult response = HttpsClientUtil.doPostJson(url, header, orderStr);
+            return response;
         }catch (Exception e){
             log.error("In return mq, get token exception:{}", e);
         }
@@ -117,10 +107,8 @@ public class BssApiService {
 
             String orderStr = JSONObject.toJSONString(orderResult);
             log.info("ReturnNotify Url:{} body:{}", url, orderStr);
-            HttpResponse response = HttpsClientUtil.doPostJson(url, null, orderStr);
-            String resultString = EntityUtils.toString(response.getEntity(), "utf-8");
-            log.info("Notify return:{}", resultString);
-			return ReturnResult.actionResult(resultString, response.getStatusLine().getStatusCode());
+            ReturnResult response = HttpsClientUtil.doPostJson(url, null, orderStr);
+            return response;
         }catch (Exception e){
             log.error("In return from notify mq, get token exception:{}", e);
         }

@@ -11,6 +11,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +45,7 @@ public class HttpUtil {
         return header;
     }
 
-    public static HttpResponse get(String url, Map<String,String > header) throws Exception{
+    public static ReturnResult get(String url, Map<String,String > header) throws Exception{
         HttpGet httpGet = new HttpGet(url.toString());
 
         if(null == header){
@@ -58,14 +59,16 @@ public class HttpUtil {
         }
         try {
             HttpResponse httpResponse = getCloseableHttpClient().execute(httpGet);
-            return httpResponse;
+            String resultString = EntityUtils.toString(httpResponse.getEntity(), "utf-8");
+            log.info("return:{}", resultString);
+            return ReturnResult.actionResult(resultString, httpResponse.getStatusLine().getStatusCode());
         } catch (Exception e) {
             log.error("http get error:",e);
         }
         throw new EipException("Get request use http error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
-    public static HttpResponse post(String url, Map<String,String > header, String body ) throws Exception {
+    public static ReturnResult post(String url, Map<String,String > header, String body ) throws Exception {
         HttpClient client;
 
         if(null == header){
@@ -85,14 +88,17 @@ public class HttpUtil {
             entity.setContentType("application/json");
             entity.setContentEncoding("UTF-8");
             httpPost.setEntity(entity);
-            return client.execute(httpPost);
+            HttpResponse httpResponse = client.execute(httpPost);
+            String resultString = EntityUtils.toString(httpResponse.getEntity(), "utf-8");
+            log.info("return:{}", resultString);
+            return ReturnResult.actionResult(resultString, httpResponse.getStatusLine().getStatusCode());
         } catch (Exception e) {
             log.error("IO Exception when post.{}",e.getMessage());
         }
         throw new EipException("Post request throw https error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
-    public static HttpResponse delete(String url, Map<String,String > header){
+    public static ReturnResult delete(String url, Map<String,String > header) throws Exception{
         HttpDelete httpDelete = new HttpDelete(url.toString());
 
         if(null == header){
@@ -106,15 +112,16 @@ public class HttpUtil {
         }
         try {
             HttpResponse httpResponse = getCloseableHttpClient().execute(httpDelete);
-
-            return httpResponse;
+            String resultString = EntityUtils.toString(httpResponse.getEntity(), "utf-8");
+            log.info("return:{}", resultString);
+            return ReturnResult.actionResult(resultString, httpResponse.getStatusLine().getStatusCode());
         } catch (Exception e) {
             log.error("http get error:",e);
         }
-        return null;
+        throw new EipException("Post request throw https error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
-    public static HttpResponse put(String url, Map<String,String > header, String body ) {
+    public static ReturnResult put(String url, Map<String,String > header, String body ) {
         HttpClient client;
 
         if(null == header){
@@ -135,7 +142,11 @@ public class HttpUtil {
             entity.setContentType("application/json");
             entity.setContentEncoding("UTF-8");
             httpPut.setEntity(entity);
-            return client.execute(httpPut);
+            HttpResponse httpResponse = client.execute(httpPut);
+            String resultString = EntityUtils.toString(httpResponse.getEntity(), "utf-8");
+            log.info("return:{}", resultString);
+            return ReturnResult.actionResult(resultString, httpResponse.getStatusLine().getStatusCode());
+
         } catch (Exception e) {
             log.error("IO Exception when post.{}",e.getMessage());
             return null;

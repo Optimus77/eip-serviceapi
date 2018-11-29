@@ -175,27 +175,18 @@ public class CommonUtil {
         }
     }
 
-    public static JSONObject handlerResopnse(HttpResponse response){
+    public static JSONObject handlerResopnse(ReturnResult response){
 
-        StringBuffer sb= new StringBuffer();
         if(response!=null) {
-            StatusLine status = response.getStatusLine();
 
-            BufferedReader in;
             try {
-                in = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-                String line = "";
-                while ((line = in.readLine()) != null) {
-                    sb.append(line);
-                }
-                in.close();
                 JSONObject returnInfo;
-                if(status.getStatusCode() == HttpStatus.SC_OK) {
-                    returnInfo = JSONObject.parseObject(sb.toString());
+                if(response.getCode() == HttpStatus.SC_OK) {
+                    returnInfo = JSONObject.parseObject(response.getMessage());
                     returnInfo.put("statusCode", HttpStatus.SC_OK);
                 }else{
                     returnInfo = new JSONObject();
-                    returnInfo.put("statusCode", status.getStatusCode());
+                    returnInfo.put("statusCode", response.getCode());
                 }
 
                 log.info("RETURN ==>{}", returnInfo);
