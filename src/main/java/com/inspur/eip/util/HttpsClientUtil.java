@@ -16,6 +16,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -48,7 +49,7 @@ public class HttpsClientUtil {
 
 	static boolean ignoreSSL = Boolean.TRUE;
 
-	public static String doGet(String url, Map<String, String> param) {
+	public static HttpResponse doGet(String url, Map<String, String> param) throws  EipException{
 
 		// 创建Httpclient对象
 		CloseableHttpClient httpclient = getHttpsClient();
@@ -58,11 +59,13 @@ public class HttpsClientUtil {
 		try {
 			// 创建uri
 			URIBuilder builder = new URIBuilder(url);
-			if (param != null) {
-				for (String key : param.keySet()) {
-					builder.addParameter(key, param.get(key));
-				}
+			if(param == null){
+				param = getHeader();
 			}
+			for (String key : param.keySet()) {
+				builder.addParameter(key, param.get(key));
+			}
+
 			URI uri = builder.build();
 
 			// 创建http GET请求
@@ -70,11 +73,7 @@ public class HttpsClientUtil {
 
 			// 执行请求
 			response = httpclient.execute(httpGet);
-			log.info("response status code: " + response.getStatusLine().getStatusCode());
-			// 判断返回状态是否为200
-			if (response.getStatusLine().getStatusCode() == 200) {
-				resultString = EntityUtils.toString(response.getEntity(), "UTF-8");
-			}
+			return response;
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -87,15 +86,15 @@ public class HttpsClientUtil {
 				e.printStackTrace();
 			}
 		}
-		return resultString;
+		throw new EipException("Post request throw https error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
 	}
 
-	public static String doGet(String url) {
+	public static HttpResponse doGet(String url) throws EipException {
 
 		return doGet(url, null);
 	}
 
-	public static String doPost(String url, Map<String, String> param) {
+	public static HttpResponse doPost(String url, Map<String, String> param) throws  EipException{
 
 		// 创建Httpclient对象
 		CloseableHttpClient httpClient = getHttpsClient();
@@ -117,30 +116,32 @@ public class HttpsClientUtil {
 			// 执行http请求
 			response = httpClient.execute(httpPost);
 			log.info("response status code: " + response.getStatusLine().getStatusCode());
-			resultString = EntityUtils.toString(response.getEntity(), "utf-8");
+			return response;
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
 			try {
-				response.close();
+				if (response != null) {
+					response.close();
+				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+
 			}
 		}
-
-		return resultString;
+		throw new EipException("Post request throw https error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
 	}
 	   
 
-	public static String doPost(String url) {
+	public static HttpResponse doPost(String url) throws EipException{
 
 		return doPost(url, null);
 	}
 
 
 	    
-	public static ReturnResult doPostJson(String url, Map<String, String> header, String json) {
+	public static HttpResponse doPostJson(String url, Map<String, String> header, String json) throws EipException {
 
 		// 创建Httpclient对象
 		CloseableHttpClient httpClient = getHttpsClient();
@@ -165,20 +166,20 @@ public class HttpsClientUtil {
 			// 执行http请求
 			response = httpClient.execute(httpPost);
 			log.info("response status code: " + response.getStatusLine().getStatusCode());
-
-			resultString = EntityUtils.toString(response.getEntity(), "utf-8");
-			return ReturnResult.actionResult(resultString, response.getStatusLine().getStatusCode());
+			return response;
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
 			try {
-				response.close();
+				if (response != null){
+					response.close();
+				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-        return ReturnResult.actionFailed("Exception", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+		throw new EipException("Post request throw https error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
 	}
 
 	private static Map<String,String> getHeader(){
@@ -189,14 +190,6 @@ public class HttpsClientUtil {
 		return header;
 	}
 
-    /**
-     * get HttpsClient
-     *
-     * @return org.apache.http.impl.client.CloseableHttpClient
-     * @Exception
-     * @auther: zhang_xiaoyu
-     * @date: 2018/9/13 19:09
-     */
     public static CloseableHttpClient getHttpsClient() {
 
         CloseableHttpClient httpClient;
