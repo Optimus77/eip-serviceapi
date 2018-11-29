@@ -97,7 +97,6 @@ public class CommonUtil {
 //            throw new Exception("get region error");
 //        }
         return region1;
-
     }
 
     public static String getUserId()throws KeycloakTokenException {
@@ -207,7 +206,7 @@ public class CommonUtil {
         }
         JSONObject result=new JSONObject();
         result.put(HsConstants.SUCCESS,false);
-        result.put("message","no return from.");
+        result.put("message","Can not get return result.");
         return result;
     }
 }

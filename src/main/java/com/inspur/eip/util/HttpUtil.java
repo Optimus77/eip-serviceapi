@@ -1,6 +1,7 @@
 package com.inspur.eip.util;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -43,7 +44,7 @@ public class HttpUtil {
         return header;
     }
 
-    public static HttpResponse get(String url, Map<String,String > header){
+    public static HttpResponse get(String url, Map<String,String > header) throws Exception{
         HttpGet httpGet = new HttpGet(url.toString());
 
         if(null == header){
@@ -61,10 +62,10 @@ public class HttpUtil {
         } catch (Exception e) {
             log.error("http get error:",e);
         }
-        return null;
+        throw new EipException("Get request use http error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
-    public static HttpResponse post(String url, Map<String,String > header, String body ) {
+    public static HttpResponse post(String url, Map<String,String > header, String body ) throws Exception {
         HttpClient client;
 
         if(null == header){
@@ -87,9 +88,8 @@ public class HttpUtil {
             return client.execute(httpPost);
         } catch (Exception e) {
             log.error("IO Exception when post.{}",e.getMessage());
-            return null;
         }
-
+        throw new EipException("Post request throw https error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
     public static HttpResponse delete(String url, Map<String,String > header){

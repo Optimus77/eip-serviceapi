@@ -37,31 +37,55 @@ public class EipServiceImpl  {
 
     private JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig) {
         String url = eipAtomUrl;
-
-        String orderStr = JSONObject.toJSONString(eipConfig);
-        log.info("Send order to url:{}, body:{}", url, orderStr);
-
-        HttpResponse response = HttpUtil.post(url, null, orderStr);
+        HttpResponse response = null;
+        try {
+            String orderStr = JSONObject.toJSONString(eipConfig);
+            log.info("Send order to url:{}, body:{}", url, orderStr);
+            response = HttpUtil.post(url, null, orderStr);
+        }catch (Exception e){
+            log.error("Create eip exception", e);
+        }
         return CommonUtil.handlerResopnse(response);
     }
 
     private JSONObject atomDeleteEip(String  eipId)  {
         String url=eipAtomUrl +eipId;
-
-        log.info("Send order to url:{}, eipId:{}",url, eipId);
-
-        HttpResponse response=HttpUtil.delete(url,null);
+        HttpResponse response = null;
+        try {
+            log.info("Send order to url:{}, eipId:{}", url, eipId);
+            response = HttpUtil.delete(url, null);
+        }catch (Exception e){
+            log.error("Atom delete eip exception", e);
+        }
         return CommonUtil.handlerResopnse(response);
     }
 
     private JSONObject atomUpdateEip(String eipId,EipAllocateParam eipConfig)  {
         String url=eipAtomUrl+eipId +"/renew";
+        HttpResponse response = null;
+        try {
 
-        String orderStr=JSONObject.toJSONString(eipConfig);
-        log.info("Send order to url:{}, body:{}",url, orderStr);
+            String orderStr = JSONObject.toJSONString(eipConfig);
+            log.info("Send order to url:{}, body:{}", url, orderStr);
 
-        HttpResponse response=HttpUtil.post(url,null,orderStr);
+            response = HttpUtil.post(url, null, orderStr);
+        }catch (Exception e){
+            log.error("Update eip exception", e);
+        }
         return CommonUtil.handlerResopnse(response);
+    }
+
+    private JSONObject getEipEntityById(String eipId){
+
+        String  uri =eipAtomUrl+eipId;
+        HttpResponse response = null;
+        try {
+            log.info(uri);
+            response = HttpUtil.get(uri, null);
+        }catch (Exception e){
+            log.error("Get eip by id exception", e);
+        }
+        return  CommonUtil.handlerResopnse(response);
     }
     /**
      *  create a order
@@ -184,7 +208,7 @@ public class EipServiceImpl  {
                     }
                     return createRet;
                 } else {
-                    code = ReturnStatus.SC_PARAM_ERROR;;
+                    code = ReturnStatus.SC_PARAM_ERROR;
                     msg = checkRet.getMessage();
                     log.error(msg);
                 }
@@ -519,7 +543,7 @@ public class EipServiceImpl  {
             log.error("Exception when get user id in getOrderByEipParam.", e);
         }
         String bearerToken = CommonUtil.getKeycloackToken();
-        if(bearerToken.startsWith("Bearer ")){
+        if(null != bearerToken && bearerToken.startsWith("Bearer ")){
             bearerToken = bearerToken.split(" ")[1];
         }
         eipOrder.setToken(bearerToken);
@@ -533,13 +557,6 @@ public class EipServiceImpl  {
         return eipOrder;
     }
 
-    private JSONObject getEipEntityById(String eipId){
-
-        String  uri =eipAtomUrl+eipId;
-        log.info(uri);
-        HttpResponse response= HttpUtil.get(uri,null);
-        return  CommonUtil.handlerResopnse(response);
-    }
 
     public void returnsWebsocket(String eipId,EipReciveOrder eipOrder,String type){
         if ("console".equals(eipOrder.getReturnConsoleMessage().getOrderSource())){
@@ -556,10 +573,9 @@ public class EipServiceImpl  {
                 log.info(url);
                 String orderStr=JSONObject.toJSONString(sendMQEIP);
                 log.info("websocket return: {} {}", url, orderStr);
-                ReturnResult response = HttpsClientUtil.doPostJson(url,null,orderStr);
-                log.info("response:{}", response.getMessage());
+                HttpResponse response = HttpsClientUtil.doPostJson(url,null,orderStr);
 
-            } catch (KeycloakTokenException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }else {
