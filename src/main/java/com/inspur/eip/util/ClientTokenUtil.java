@@ -116,7 +116,7 @@ public class ClientTokenUtil {
             throw new KeycloakTokenException("Get token error exception.");
         }
         JSONObject jsonObject = JSONObject.parseObject(responseEntity.getBody().toString());
-        log.info("get admin token:{}", jsonObject.toJSONString());
+        log.debug("get admin token:{}", jsonObject.toJSONString());
         return jsonObject.getString("access_token");
     }
 }
