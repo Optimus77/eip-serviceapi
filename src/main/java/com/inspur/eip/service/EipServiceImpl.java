@@ -1,7 +1,6 @@
 package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import com.inspur.eip.entity.*;
@@ -9,12 +8,11 @@ import com.inspur.eip.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static com.inspur.eip.util.CommonUtil.preCheckParam;
 
 
 @Service
@@ -23,67 +21,15 @@ public class EipServiceImpl  {
     @Autowired
     private BssApiService bssApiService;
 
+    @Autowired
+    private EipAtomService eipAtomService;
+
+    @Autowired
+    private WebControllerService webControllerService;
+
     public final static Logger log = LoggerFactory.getLogger(EipServiceImpl.class);
 
-    @Value("${mq.webSocket}")
-    private String pushMq;
 
-    //1.2.8 订单接口POST
-    @Value("${eipAtom}")
-    private String eipAtomUrl;
-
-    private JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig) {
-        String url = eipAtomUrl;
-        ReturnResult response = null;
-        try {
-            String orderStr = JSONObject.toJSONString(eipConfig);
-            log.info("Send order to url:{}, body:{}", url, orderStr);
-            response = HttpUtil.post(url, null, orderStr);
-        }catch (Exception e){
-            log.error("Create eip exception", e);
-        }
-        return CommonUtil.handlerResopnse(response);
-    }
-
-    private JSONObject atomDeleteEip(String  eipId)  {
-        String url=eipAtomUrl +eipId;
-        ReturnResult response = null;
-        try {
-            log.info("Send order to url:{}, eipId:{}", url, eipId);
-            response = HttpUtil.delete(url, null);
-        }catch (Exception e){
-            log.error("Atom delete eip exception", e);
-        }
-        return CommonUtil.handlerResopnse(response);
-    }
-
-    private JSONObject atomUpdateEip(String eipId,EipAllocateParam eipConfig)  {
-        String url=eipAtomUrl+eipId +"/renew";
-        ReturnResult response = null;
-        try {
-
-            String orderStr = JSONObject.toJSONString(eipConfig);
-            log.info("Send order to url:{}, body:{}", url, orderStr);
-
-            response = HttpUtil.post(url, null, orderStr);
-        }catch (Exception e){
-            log.error("Update eip exception", e);
-        }
-        return CommonUtil.handlerResopnse(response);
-    }
-
-    private JSONObject getEipEntityById(String eipId){
-
-        String  uri =eipAtomUrl+eipId;
-        ReturnResult response = null;
-        try {
-            log.info(uri);
-            response = HttpUtil.get(uri, null);
-        }catch (Exception e){
-            log.error("Get eip by id exception", e);
-        }
-        return  CommonUtil.handlerResopnse(response);
-    }
     /**
      *  create a order
      * @param eipAllocateJson eip allocat json
@@ -91,7 +37,7 @@ public class EipServiceImpl  {
     public String createOrder(String eipAllocateJson) {
 
         try{
-            int left = getQuota();
+            int left = bssApiService.getQuotaResult();
             if(left > 0) {
                 JSONObject eipAllocateParam = JSON.parseObject(eipAllocateJson);
                 JSONObject eip = eipAllocateParam.getJSONObject("eip");
@@ -104,7 +50,7 @@ public class EipServiceImpl  {
 
                         order.setConsoleCustomization(eipAllocateParam);
 
-                        ReturnResult result = bssApiService.postOrder(order);
+                        ReturnResult result = webControllerService.postOrder(order);
                         return result.getMessage();
                     }else{
                         String code = ReturnStatus.SC_PARAM_ERROR;
@@ -138,7 +84,7 @@ public class EipServiceImpl  {
     public String deleteEipOrder(String eipId) {
 
         try{
-            JSONObject eipEntity = getEipEntityById(eipId);
+            JSONObject eipEntity = eipAtomService.getEipEntityById(eipId);
             JSONObject eip = eipEntity.getJSONObject("eip");
             if(null == eip){
                 return eipEntity.toJSONString();
@@ -157,7 +103,7 @@ public class EipServiceImpl  {
             jsonObject.put("eipId", eipId);
             order.setConsoleCustomization(jsonObject);
 
-            ReturnResult result=bssApiService.postOrder(order);
+            ReturnResult result= webControllerService.postOrder(order);
             log.info("OpenApi delete eip result:{}",result);
             return  result.getMessage();
         }catch (Exception e){
@@ -170,327 +116,16 @@ public class EipServiceImpl  {
     }
 
 
-    public JSONObject onReciveCreateOrderResult(EipReciveOrder eipOrder) {
-
-        String code;
-        String msg;
-        String   eipId = "";
-        JSONObject createRet = null;
-        try {
-            EipOrder message =  eipOrder.getReturnConsoleMessage();
-            if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
-                    message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
-                ReturnMsg checkRet = preCheckParam(eipConfig);
-                if(checkRet.getCode().equals(ReturnStatus.SC_OK)){
-                    //post request to atom
-                    EipAllocateParamWrapper eipAllocateParamWrapper = new EipAllocateParamWrapper();
-                    eipAllocateParamWrapper.setEip(eipConfig);
-                    createRet = atomCreateEip(eipAllocateParamWrapper);
-                    String retStr = HsConstants.SUCCESS;
-
-                    if(createRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.OK.value()) {
-                        retStr = HsConstants.FAIL;
-                        log.info("create eip failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
-                    }else{
-                        JSONObject eipEntity = createRet.getJSONObject("eip");
-                        eipId = eipEntity.getString("eipid");
-                        returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"create");
-                    }
-                    ReturnResult returnResult = bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, retStr));
-                    if(!returnResult.isSuccess() &&
-                            (createRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.OK.value())) {
-                        log.error("Delete the allocate eip just now for mq message error, id:{}", eipId);
-                        atomDeleteEip(eipId);
-                    }
-                    return createRet;
-                } else {
-                    code = ReturnStatus.SC_PARAM_ERROR;
-                    msg = checkRet.getMessage();
-                    log.error(msg);
-                }
-            }else {
-                bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
-                code = ReturnStatus.SC_RESOURCE_ERROR;
-                msg = "not payed.";
-                log.info(msg);
-            }
-        }catch (Exception e){
-            log.error("Exception in createEip", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
-        }
-        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
-        JSONObject result = new JSONObject();
-        result.put("code", code);
-        result.put("msg", msg);
-        if((null != createRet) && (createRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.OK.value())) {
-            log.error("Delete the allocate eip just now for mq message error, id:{}", eipId);
-            atomDeleteEip(eipId);
-        }
-        return result;
-    }
-
-    public JSONObject onReciveDeleteOrderResult(EipReciveOrder eipOrder) {
-        String msg = "";
-        String code = "";
-        String eipId = "0";
-        try {
-            log.info("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
-            EipOrder message =  eipOrder.getReturnConsoleMessage();
-            if(eipOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)  ||
-                    message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-
-                EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
-
-                List<EipOrderProduct> eipOrderProducts = message.getProductList();
-                for (EipOrderProduct eipOrderProduct : eipOrderProducts) {
-                    eipId = eipOrderProduct.getInstanceId();
-                }
-                JSONObject delResult = atomDeleteEip(eipId);
-
-                if (delResult.getInteger(HsConstants.STATUSCODE) == HttpStatus.OK.value()) {
-                    //Return message to the front des
-                    returnsWebsocket(eipId, eipOrder, "delete");
-                    bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
-                    return delResult;
-                } else {
-                    msg = delResult.getString(HsConstants.STATUSCODE);
-                    code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-                }
-            }else{
-                msg = "Failed to delete eip,failed to create delete. orderStatus: "+eipOrder.getOrderStatus();
-                code = ReturnStatus.SC_PARAM_UNKONWERROR;
-                log.error(msg);
-            }
-        }catch (Exception e){
-            log.error("Exception in deleteEip", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
-        }
-        bssApiService.resultReturnMq(getEipOrderResult(eipOrder, eipId,HsConstants.FAIL));
-        JSONObject result = new JSONObject();
-        result.put("code", code);
-        result.put("msg", msg);
-        return result;
-    }
-
-    public JSONObject onReciveUpdateOrder(String eipId, EipReciveOrder eipOrder) {
-        String msg = "";
-        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-
-        try {
-            log.info("Recive update order:{}", JSONObject.toJSONString(eipOrder));
-            EipOrder message =  eipOrder.getReturnConsoleMessage();
-            if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
-                    message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                EipAllocateParam eipUpdate = getEipConfigByOrder(eipOrder);
-
-                JSONObject updateRet = atomUpdateEip(eipId, eipUpdate);
-                String retStr = HsConstants.SUCCESS;
-                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.OK.value()){
-                    retStr = HsConstants.FAIL;
-                }
-                JSONObject eipEntity = updateRet.getJSONObject("eip");
-                log.info("renew order result :{}",eipEntity);
-                returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"update");
-                bssApiService.resultReturnMq(getEipOrderResult(eipOrder,"",retStr));
-                return updateRet;
-
-            }
-        }catch (Exception e){
-            log.error("Exception in update eip", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
-        }
-        bssApiService.resultReturnMq(getEipOrderResult(eipOrder,eipId,HsConstants.FAIL));
-        JSONObject result = new JSONObject();
-        result.put("code", code);
-        result.put("msg", msg);
-        return result;
-    }
-
-
-    public JSONObject onReciveSoftDownOrder(EipSoftDownOrder eipOrder) {
-        String msg = "";
-        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-        JSONObject updateRet = null;
-        try {
-            log.info("Recive soft down order:{}", JSONObject.toJSONString(eipOrder));
-            List<EipSoftDownInstance> instanceList =  eipOrder.getInstanceList();
-            for(EipSoftDownInstance eipSoftDownInstance: instanceList){
-                String operateType =  eipSoftDownInstance.getOperateType();
-                String instanceStatus;
-                if("delete".equalsIgnoreCase(operateType)) {
-                    updateRet = atomDeleteEip(eipSoftDownInstance.getInstanceId());
-                    instanceStatus = "DELETED";
-                }else if("stopServer".equalsIgnoreCase(operateType)) {
-                    EipAllocateParam updateParam = new EipAllocateParam();
-                    updateParam.setDuration("0");
-                    instanceStatus = "DOWN";
-                    updateRet = atomUpdateEip(eipSoftDownInstance.getInstanceId(), updateParam);
-                }else{
-                    continue;
-                }
-
-                String retStr = HsConstants.SUCCESS;
-                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.OK.value()){
-                    retStr = HsConstants.FAIL;
-                    instanceStatus = "ACTIVE";
-                }
-                eipSoftDownInstance.setResult(retStr);
-                eipSoftDownInstance.setInstanceStatus(instanceStatus);
-                eipSoftDownInstance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-                log.info("Soft down result:{}", updateRet);
-            }
-            if(null != updateRet) {
-                bssApiService.resultReturnNotify(eipOrder);
-                return updateRet;
-            }
-        }catch (Exception e){
-            log.error("Exception in update eip", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage()+"";
-        }
-        bssApiService.resultReturnNotify(eipOrder);
-        JSONObject result = new JSONObject();
-        result.put("code", code);
-        result.put("msg", msg);
-        return result;
-    }
-
-    private  EipAllocateParam getEipConfigByOrder(EipReciveOrder eipOrder){
-        EipAllocateParam eipAllocateParam = new EipAllocateParam();
-        eipAllocateParam.setDuration(eipOrder.getReturnConsoleMessage().getDuration());
-        List<EipOrderProduct> eipOrderProducts = eipOrder.getReturnConsoleMessage().getProductList();
-
-        eipAllocateParam.setBillType(eipOrder.getReturnConsoleMessage().getBillType());
-
-        for(EipOrderProduct eipOrderProduct: eipOrderProducts){
-            if(!eipOrderProduct.getProductLineCode().equals(HsConstants.EIP)){
-                continue;
-            }
-            eipAllocateParam.setRegion(eipOrderProduct.getRegion());
-            List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
-
-            for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
-                if(eipOrderProductItem.getCode().equalsIgnoreCase("bandwidth") &&
-                        eipOrderProductItem.getUnit().equals(HsConstants.M)){
-                    eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
-                }else if(eipOrderProductItem.getCode().equals(HsConstants.PROVIDER) &&
-                        eipOrderProductItem.getType().equals(HsConstants.IMPACTFACTOR)){
-                    eipAllocateParam.setIptype(eipOrderProductItem.getValue());
-                }
-            }
-        }
-        log.info("Get eip param from order:{}", eipAllocateParam.toString());
-        /*chargemode now use the default value */
-        return eipAllocateParam;
-    }
-    private ReturnMsg preCheckParam(EipAllocateParam param){
-        String errorMsg = " ";
-        if(null == param){
-            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
-        }
-        if((0== param.getBandwidth()) || (param.getBandwidth() > 2000)){
-            errorMsg = "value must be 1-2000.";
-        }
-        if(null != param.getChargemode()) {
-            if (!param.getChargemode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
-                    !param.getChargemode().equals(HsConstants.SHAREDBANDWIDTH)) {
-                errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
-            }
-        }
-
-        if(null != param.getBillType()) {
-            if (!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                errorMsg = errorMsg + "Only monthly,hourlySettlement is allowed. ";
-            }
-        }
-        if(param.getRegion().isEmpty()){
-            errorMsg = errorMsg + "can not be blank.";
-        }
-        String tp = param.getIptype();
-        if(null != tp) {
-            if (!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") &&
-                    !tp.equals("5_union") && !tp.equals("BGP")) {
-                errorMsg = errorMsg + "Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
-            }
-        }else{
-            errorMsg = errorMsg + "Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
-        }
-        if(errorMsg.equals(" ")) {
-            log.info(errorMsg);
-            return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
-        }else {
-            log.error(errorMsg);
-            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,errorMsg);
-        }
-    }
-
-
-    private   EipOrderResult getEipOrderResult(EipReciveOrder eipReciveOrder, String eipId, String result){
-        EipOrder eipOrder = eipReciveOrder.getReturnConsoleMessage();
-        List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
-
-        for(EipOrderProduct eipOrderProduct: eipOrderProducts){
-            eipOrderProduct.setInstanceStatus(result);
-            eipOrderProduct.setInstanceId(eipId);
-            eipOrderProduct.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-        }
-
-        EipOrderResult eipOrderResult = new EipOrderResult();
-        eipOrderResult.setUserId(eipOrder.getUserId());
-        eipOrderResult.setConsoleOrderFlowId(eipReciveOrder.getConsoleOrderFlowId());
-        eipOrderResult.setOrderId(eipReciveOrder.getOrderId());
-
-        List<EipOrderResultProduct> eipOrderResultProducts = new ArrayList<>();
-        EipOrderResultProduct eipOrderResultProduct = new EipOrderResultProduct();
-        eipOrderResultProduct.setOrderDetailFlowId(eipReciveOrder.getOrderDetailFlowIdList().get(0));
-        eipOrderResultProduct.setProductSetStatus(result);
-        eipOrderResultProduct.setBillType(eipOrder.getBillType());
-        eipOrderResultProduct.setDuration(eipOrder.getDuration());
-        eipOrderResultProduct.setOrderType(eipOrder.getOrderType());
-        eipOrderResultProduct.setProductList(eipOrder.getProductList());
-
-
-        eipOrderResultProducts.add(eipOrderResultProduct);
-        eipOrderResult.setProductSetList(eipOrderResultProducts);
-        return eipOrderResult;
-    }
-    //1.2.13	查询用户配额的接口
-    public int getQuota(){
-        ReturnResult retQuota;
-        try{
-            EipQuota quota=new EipQuota();
-            quota.setProductLineCode(HsConstants.EIP);
-            quota.setRegion(CommonUtil.getReginInfo());
-            quota.setProductTypeCode(HsConstants.EIP);
-            quota.setUserId(CommonUtil.getUserId());
-
-            retQuota =bssApiService.getQuota(quota);
-            if(retQuota.getCode() != HttpStatus.OK.value()){
-                log.info("Get quota failed StatusCode:{}", retQuota.getCode());
-            }
-            JSONObject result = JSONObject.parseObject(retQuota.getMessage());
-            if(null!= result.getString("code") && result.getString("code").equals("0")){
-                JSONArray qutoResult =result.getJSONObject("result").getJSONArray("quotaList");
-                for(int i=0; i< qutoResult.size(); i++) {
-                    JSONObject jb = qutoResult.getJSONObject(i);
-                    if(jb.get("productLineCode").equals("EIP") ){
-                        log.info("Get quota success, number:{}", jb.getString("leftNumber"));
-                        return Integer.valueOf(jb.getString("leftNumber"));
-                    }
-                }
-            }
-            log.error("Failed to get quota.result:{}", result.toJSONString());
-        }catch (Exception e){
-           log.error("Failed to get quota.result", e);
-        }
-        return 0;
-    }
-
-
+    /**
+     * get EipOrder by param
+     * @param bandWidth bandwidth
+     * @param ipType iptype
+     * @param region region
+     * @param duration duration
+     * @param billType bill type
+     * @param eipId id
+     * @return  EipOrder
+     */
     private EipOrder getOrderByEipParam(int bandWidth, String ipType, String region, String duration, String billType, String eipId) {
 
         List<EipOrderProductItem> itemList = new ArrayList<>();
@@ -554,30 +189,5 @@ public class EipServiceImpl  {
         return eipOrder;
     }
 
-
-    public void returnsWebsocket(String eipId,EipReciveOrder eipOrder,String type){
-        if ("console".equals(eipOrder.getReturnConsoleMessage().getOrderSource())){
-            try {
-                SendMQEIP sendMQEIP = new SendMQEIP();
-                sendMQEIP.setUserName(CommonUtil.getUsername());
-                sendMQEIP.setHandlerName("operateEipHandler");
-                sendMQEIP.setInstanceId(eipId);
-                sendMQEIP.setInstanceStatus("active");
-                sendMQEIP.setOperateType(type);
-                sendMQEIP.setMessageType("success");
-                sendMQEIP.setMessage("Flexible public network IP updated successfully");
-                String url=pushMq;
-                log.info(url);
-                String orderStr=JSONObject.toJSONString(sendMQEIP);
-                log.info("websocket send return: {} {}", url, orderStr);
-                ReturnResult response = HttpsClientUtil.doPostJson(url,null,orderStr);
-                log.info("websocket respons:{}", response.getMessage());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }else {
-            log.info("Wrong source of order",eipOrder.getReturnConsoleMessage().getOrderSource());
-        }
-    }
 
 }

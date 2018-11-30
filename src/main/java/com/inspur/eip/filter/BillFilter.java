@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.EipReciveOrder;
 import com.inspur.eip.entity.EipSoftDownOrder;
+import com.inspur.eip.service.BssApiService;
 import com.inspur.eip.service.EipServiceImpl;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HsConstants;
@@ -13,7 +14,6 @@ import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
@@ -26,6 +26,9 @@ public class BillFilter implements Filter {
 
     @Autowired
     private EipServiceImpl eipService;
+
+    @Autowired
+    private BssApiService bssApiService;
 
     private final static Logger log = LoggerFactory.getLogger(BillFilter.class);
 
@@ -76,7 +79,7 @@ public class BillFilter implements Filter {
             String requestBody = CommonUtil.readRequestAsChars(req);
             log.info("get create eip order:{}.", requestBody);
             EipReciveOrder eipReciveOrder =  JSON.parseObject(requestBody, EipReciveOrder.class);
-            JSONObject result = eipService.onReciveCreateOrderResult(eipReciveOrder);
+            JSONObject result = bssApiService.onReciveCreateOrderResult(eipReciveOrder);
             //todo
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
@@ -85,7 +88,7 @@ public class BillFilter implements Filter {
             String requestBody = CommonUtil.readRequestAsChars(req);
             log.info("get delete eip order:{}.", requestBody);
             EipReciveOrder eipReciveOrder =  JSON.parseObject(requestBody, EipReciveOrder.class);
-            JSONObject result = eipService.onReciveDeleteOrderResult(eipReciveOrder);
+            JSONObject result = bssApiService.onReciveDeleteOrderResult(eipReciveOrder);
 
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
@@ -96,7 +99,7 @@ public class BillFilter implements Filter {
             String eipId = req.getPathInfo().substring("/v1/orders/".length());
             log.info("get update eip order:{}.", requestBody);
             EipReciveOrder eipReciveOrder = JSON.parseObject(requestBody, EipReciveOrder.class);
-            JSONObject result = eipService.onReciveUpdateOrder(eipId, eipReciveOrder);
+            JSONObject result = bssApiService.onReciveUpdateOrder(eipId, eipReciveOrder);
 
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
@@ -107,7 +110,7 @@ public class BillFilter implements Filter {
             String requestBody = CommonUtil.readRequestAsChars(req);
             log.info("get softdown eip order:{}.", requestBody);
             EipSoftDownOrder eipReciveOrder = JSON.parseObject(requestBody, EipSoftDownOrder.class);
-            JSONObject result = eipService.onReciveSoftDownOrder(eipReciveOrder);
+            JSONObject result = bssApiService.onReciveSoftDownOrder(eipReciveOrder);
 
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);

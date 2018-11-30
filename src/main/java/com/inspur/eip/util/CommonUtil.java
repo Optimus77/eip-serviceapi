@@ -3,11 +3,11 @@ package com.inspur.eip.util;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.inspur.eip.entity.EipAllocateParam;
+import com.inspur.eip.entity.ReturnMsg;
 import lombok.Setter;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -16,7 +16,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
@@ -187,6 +186,7 @@ public class CommonUtil {
                 }else{
                     returnInfo = new JSONObject();
                     returnInfo.put("statusCode", response.getCode());
+                    returnInfo.put("message", response.getMessage());
                 }
 
                 log.info("RETURN ==>{}", returnInfo);
@@ -200,4 +200,47 @@ public class CommonUtil {
         result.put("message","Can not get return result.");
         return result;
     }
+
+
+    public static ReturnMsg preCheckParam(EipAllocateParam param){
+        String errorMsg = " ";
+        if(null == param){
+            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
+        }
+        if((0== param.getBandwidth()) || (param.getBandwidth() > 2000)){
+            errorMsg = "value must be 1-2000.";
+        }
+        if(null != param.getChargemode()) {
+            if (!param.getChargemode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
+                    !param.getChargemode().equals(HsConstants.SHAREDBANDWIDTH)) {
+                errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
+            }
+        }
+
+        if(null != param.getBillType()) {
+            if (!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                errorMsg = errorMsg + "Only monthly,hourlySettlement is allowed. ";
+            }
+        }
+        if(param.getRegion().isEmpty()){
+            errorMsg = errorMsg + "can not be blank.";
+        }
+        String tp = param.getIptype();
+        if(null != tp) {
+            if (!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") &&
+                    !tp.equals("5_union") && !tp.equals("BGP")) {
+                errorMsg = errorMsg + "Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
+            }
+        }else{
+            errorMsg = errorMsg + "Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
+        }
+        if(errorMsg.equals(" ")) {
+            log.info(errorMsg);
+            return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
+        }else {
+            log.error(errorMsg);
+            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,errorMsg);
+        }
+    }
+
 }
