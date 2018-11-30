@@ -520,12 +520,12 @@ public class ProxyServlet extends HttpServlet {
             if (existingForHeader != null) {
                 forHeader = existingForHeader + ", " + forHeader;
             }
-            log.info("[forward header ]"+forHeaderName+"=getRemoteAddr=>"+forHeader);
+            log.debug("[forward header ]"+forHeaderName+"=getRemoteAddr=>"+forHeader);
             proxyRequest.setHeader(forHeaderName, forHeader);
 
             String protoHeaderName = "X-Forwarded-Proto";
             String protoHeader = servletRequest.getScheme();
-            log.info("[forward header ]"+forHeaderName+"=getScheme=>"+forHeader);
+            log.debug("[forward header ]"+forHeaderName+"=getScheme=>"+forHeader);
             proxyRequest.setHeader(protoHeaderName, protoHeader);
         }
     }
