@@ -196,8 +196,8 @@ public class BssApiService {
                     retStr = HsConstants.FAIL;
                 }
                 JSONObject eipEntity = updateRet.getJSONObject("eip");
-                log.info("renew order result :{}",eipEntity);
-                webControllerService.returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"update");
+                log.info("renew order result :{}",updateRet.getInteger(HsConstants.STATUSCODE));
+                webControllerService.returnsWebsocket(eipId, eipOrder, "update");
                 webControllerService.resultReturnMq(getEipOrderResult(eipOrder,"",retStr));
                 return updateRet;
 

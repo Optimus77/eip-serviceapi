@@ -49,7 +49,8 @@ public class HttpsClientUtil {
 
 	static boolean ignoreSSL = Boolean.TRUE;
 
-	public static ReturnResult doGet(String url, Map<String, String> param) throws  EipException{
+
+	public static ReturnResult doGet(String url, Map<String, String> header) throws  EipException{
 
 		// 创建Httpclient对象
 		CloseableHttpClient httpclient = getHttpsClient();
@@ -58,18 +59,19 @@ public class HttpsClientUtil {
 		try {
 			// 创建uri
 			URIBuilder builder = new URIBuilder(url);
-			if(param == null){
-				param = getHeader();
-			}
-			for (String key : param.keySet()) {
-				builder.addParameter(key, param.get(key));
-			}
 
 			URI uri = builder.build();
 
 			// 创建http GET请求
 			HttpGet httpGet = new HttpGet(uri);
-
+			if(header == null){
+				header = getHeader();
+			}
+			Iterator<Map.Entry<String, String>> it = header.entrySet().iterator();
+			while (it.hasNext()) {
+				Map.Entry<String, String> entry = it.next();
+				httpGet.setHeader(entry.getKey(), entry.getValue());
+			}
 			// 执行请求
 			response = httpclient.execute(httpGet);
             String resultString = EntityUtils.toString(response.getEntity(), "utf-8");
