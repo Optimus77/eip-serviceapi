@@ -47,11 +47,15 @@ public class WebControllerService {
         ReturnResult response;
         try {
             String orderStr = JSONObject.toJSONString(order);
+            Map<String, String> header = new HashMap<String, String>();
+            header.put(HsConstants.AUTHORIZATION, "bearer "+ clientTokenUtil.getAdminToken().trim());
+            header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
+
             log.info("SubmitPay url:{}, body:{}", url, orderStr);
             if ((url.trim().startsWith("https://")) || (url.trim().startsWith("HTTPS://"))) {
-                response = HttpsClientUtil.doPostJson(url, null, orderStr);
+                response = HttpsClientUtil.doPostJson(url, header, orderStr);
             } else {
-                response = HttpUtil.post(url, null, orderStr);
+                response = HttpUtil.post(url, header, orderStr);
             }
             return  response;
         }catch (Exception e){
@@ -71,7 +75,6 @@ public class WebControllerService {
         String orderStr=JSONObject.toJSONString(orderResult);
         try {
             Map<String, String> header = new HashMap<String, String>();
-            header.put("requestId", UUID.randomUUID().toString());
             header.put(HsConstants.AUTHORIZATION, "bearer "+ clientTokenUtil.getAdminToken().trim());
             header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
 
@@ -93,7 +96,6 @@ public class WebControllerService {
         String url=returnNotify;
         try {
             Map<String, String> header = new HashMap<String, String>();
-            header.put("requestId", UUID.randomUUID().toString());
             header.put(HsConstants.AUTHORIZATION, clientTokenUtil.getAdminToken());
             header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
 
