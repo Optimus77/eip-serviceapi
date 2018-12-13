@@ -10,9 +10,8 @@ import com.inspur.eip.service.EipServiceImpl;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HsConstants;
 import com.inspur.eip.util.ReturnStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.*;
@@ -22,6 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @WebFilter
+@Slf4j
 public class BillFilter implements Filter {
 
     @Autowired
@@ -30,11 +30,8 @@ public class BillFilter implements Filter {
     @Autowired
     private BssApiService bssApiService;
 
-    private final static Logger log = LoggerFactory.getLogger(BillFilter.class);
-
-
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
+    public void init(FilterConfig filterConfig)  {
         log.info("====BillFilter init===");
 
     }

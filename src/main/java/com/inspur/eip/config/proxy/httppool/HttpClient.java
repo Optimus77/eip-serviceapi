@@ -1,7 +1,6 @@
 package com.inspur.eip.config.proxy.httppool;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -10,16 +9,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * @author: jiasirui
- * @date: 2018/10/1 10:48
- * @description:
- */
 
 @Configuration
+@Slf4j
 public class HttpClient {
-
-    private final static Log log = LogFactory.getLog(HttpClient.class);
 
     @Value("${http.maxTotal}")
     private Integer maxTotal;
@@ -35,9 +28,6 @@ public class HttpClient {
 
     @Value("${http.socketTimeout}")
     private Integer socketTimeout;
-
-//    @Value("${http.staleConnectionCheckEnabled}")
-//    private boolean staleConnectionCheckEnabled;
 
     @Bean(name = "httpClientConnectionManager")
     public PoolingHttpClientConnectionManager getHttpClientConnectionManager(){
@@ -55,11 +45,6 @@ public class HttpClient {
 
         return httpClientBuilder;
     }
-//
-//    @Bean(name ="closeAbleH")
-//    public CloseableHttpClient getCloseableHttpClient(@Qualifier("httpClientBuilder") HttpClientBuilder httpClientBuilder){
-//        return httpClientBuilder.build();
-//    }
 
     @Bean(name = "builder")
     public RequestConfig.Builder getBuilder(){

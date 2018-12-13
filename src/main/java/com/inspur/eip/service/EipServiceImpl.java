@@ -5,8 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 
 import com.inspur.eip.entity.*;
 import com.inspur.eip.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +15,7 @@ import static com.inspur.eip.util.CommonUtil.preCheckParam;
 
 
 @Service
+@Slf4j
 public class EipServiceImpl  {
 
     @Autowired
@@ -26,9 +26,6 @@ public class EipServiceImpl  {
 
     @Autowired
     private WebControllerService webControllerService;
-
-    public final static Logger log = LoggerFactory.getLogger(EipServiceImpl.class);
-
 
     /**
      *  create a order

@@ -3,23 +3,20 @@ package com.inspur.eip.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.*;
 import com.inspur.eip.util.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.apache.http.protocol.HTTP;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
+
 
 @Service
-public class WebControllerService {
-
-    private final static Logger log = LoggerFactory.getLogger(WebControllerService.class);
-
+@Slf4j
+class WebControllerService {
 
     @Autowired
     private ClientTokenUtil clientTokenUtil;
@@ -42,12 +39,12 @@ public class WebControllerService {
      * @param order order
      * @return code and message
      */
-    public ReturnResult postOrder(EipOrder order)  {
+    ReturnResult postOrder(EipOrder order)  {
         String url=ordercreate;
         ReturnResult response;
         try {
             String orderStr = JSONObject.toJSONString(order);
-            Map<String, String> header = new HashMap<String, String>();
+            Map<String, String> header = new HashMap<>();
             header.put(HsConstants.AUTHORIZATION, "bearer "+ clientTokenUtil.getAdminToken().trim());
             header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
 
@@ -70,17 +67,16 @@ public class WebControllerService {
      * @param orderResult  result
      * @return return
      */
-    public ReturnResult resultReturnMq(EipOrderResult orderResult)   {
+    ReturnResult resultReturnMq(EipOrderResult orderResult)   {
         String url=returnMq;
         String orderStr=JSONObject.toJSONString(orderResult);
         try {
-            Map<String, String> header = new HashMap<String, String>();
+            Map<String, String> header = new HashMap<>();
             header.put(HsConstants.AUTHORIZATION, "bearer "+ clientTokenUtil.getAdminToken().trim());
             header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
 
             log.info("ReturnMq Url:{} body:{}", url, orderStr);
-            ReturnResult response = HttpsClientUtil.doPostJson(url, header, orderStr);
-            return response;
+            return  HttpsClientUtil.doPostJson(url, header, orderStr);
         }catch (Exception e){
             log.error("In return mq, get token exception:{}", e);
         }
@@ -92,17 +88,16 @@ public class WebControllerService {
      * @param orderResult result
      * @return code and message
      */
-    public ReturnResult resultReturnNotify(EipSoftDownOrder orderResult)  {
+    ReturnResult resultReturnNotify(EipSoftDownOrder orderResult)  {
         String url=returnNotify;
         try {
-            Map<String, String> header = new HashMap<String, String>();
+            Map<String, String> header = new HashMap<>();
             header.put(HsConstants.AUTHORIZATION, clientTokenUtil.getAdminToken());
             header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
 
             String orderStr = JSONObject.toJSONString(orderResult);
             log.info("ReturnNotify Url:{} body:{}", url, orderStr);
-            ReturnResult response = HttpsClientUtil.doPostJson(url, null, orderStr);
-            return response;
+            return   HttpsClientUtil.doPostJson(url, null, orderStr);
         }catch (Exception e){
             log.error("In return from notify mq, get token exception:{}", e);
         }
@@ -116,7 +111,7 @@ public class WebControllerService {
      * @param eipOrder  order
      * @param type type
      */
-    public void returnsWebsocket(String eipId, EipReciveOrder eipOrder, String type){
+    void returnsWebsocket(String eipId, EipReciveOrder eipOrder, String type){
         if ("console".equals(eipOrder.getReturnConsoleMessage().getOrderSource())){
             try {
                 SendMQEIP sendMQEIP = new SendMQEIP();

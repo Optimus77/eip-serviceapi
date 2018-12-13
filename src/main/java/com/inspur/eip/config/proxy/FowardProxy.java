@@ -1,7 +1,6 @@
 package com.inspur.eip.config.proxy;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -9,13 +8,8 @@ import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-
-/**
- * @author: jiasirui
- * @date: 2018/9/27 20:59
- * @description:
- */
 @Configuration
+@Slf4j
 public class FowardProxy   {
 
 
@@ -27,8 +21,6 @@ public class FowardProxy   {
 
     @Value("${proxy.logging_enabled}")
     private String loggingEnabled;
-
-    private static Log log = LogFactory.getLog(FowardProxy.class);
 
     @Bean
     public ServletRegistrationBean servletRegistrationBean(){

@@ -6,15 +6,14 @@ import com.inspur.eip.entity.EipAllocateParamWrapper;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HttpUtil;
 import com.inspur.eip.util.ReturnResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class EipAtomService {
 
-    public final static Logger log = LoggerFactory.getLogger(EipAtomService.class);
     //1.2.8 订单接口POST
     @Value("${eipAtom}")
     private String eipAtomUrl;
@@ -24,7 +23,7 @@ public class EipAtomService {
      * @param eipConfig config
      * @return json
      */
-    public JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig) {
+    JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig) {
         String url = eipAtomUrl;
         ReturnResult response = null;
         try {
@@ -42,7 +41,7 @@ public class EipAtomService {
      * @param eipId id
      * @return json
      */
-    public JSONObject atomDeleteEip(String  eipId)  {
+    JSONObject atomDeleteEip(String  eipId)  {
         String url=eipAtomUrl +eipId;
         ReturnResult response = null;
         try {
@@ -60,7 +59,7 @@ public class EipAtomService {
      * @param eipConfig config
      * @return json
      */
-    public JSONObject atomUpdateEip(String eipId, EipAllocateParam eipConfig)  {
+    JSONObject atomUpdateEip(String eipId, EipAllocateParam eipConfig)  {
         String url=eipAtomUrl+eipId +"/renew";
         ReturnResult response = null;
         try {
@@ -80,7 +79,7 @@ public class EipAtomService {
      * @param eipId  id
      * @return json
      */
-    public JSONObject getEipEntityById(String eipId){
+    JSONObject getEipEntityById(String eipId){
 
         String  uri =eipAtomUrl+eipId;
         ReturnResult response = null;

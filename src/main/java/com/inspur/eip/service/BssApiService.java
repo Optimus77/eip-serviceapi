@@ -5,9 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 
 import com.inspur.eip.entity.*;
 import com.inspur.eip.util.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,9 +17,8 @@ import java.util.*;
 import static com.inspur.eip.util.CommonUtil.preCheckParam;
 
 @Service
+@Slf4j
 public class BssApiService {
-
-    private final static Logger log = LoggerFactory.getLogger(BssApiService.class);
 
     @Autowired
     private EipAtomService eipAtomService;
@@ -37,7 +35,7 @@ public class BssApiService {
      * @param quota quota
      * @return string
      */
-    public ReturnResult getQuota(EipQuota quota){
+    private ReturnResult getQuota(EipQuota quota){
         try {
             String uri = quotaUrl + "?userId=" + quota.getUserId() + "&region=" + quota.getRegion() + "&productLineCode="
                     + quota.getProductLineCode() + "&productTypeCode=" + quota.getProductTypeCode() + "&quotaType=amount";
@@ -45,7 +43,7 @@ public class BssApiService {
 
             ReturnResult response;
             if((quotaUrl.startsWith("https://")) ||(quotaUrl.startsWith("HTTPS://"))){
-                Map<String,String> header=new HashMap<String,String>();
+                Map<String,String> header=new HashMap<>();
                 header.put(HsConstants.AUTHORIZATION, CommonUtil.getKeycloackToken());
                 response = HttpsClientUtil.doGet(uri, header);
             }else{
@@ -130,8 +128,8 @@ public class BssApiService {
      * @return string
      */
     public JSONObject onReciveDeleteOrderResult(EipReciveOrder eipOrder) {
-        String msg = "";
-        String code = "";
+        String msg ;
+        String code ;
         String eipId = "0";
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
@@ -306,7 +304,7 @@ public class BssApiService {
      * 查询用户配额的接口
      * @return int
      */
-    public int getQuotaResult(){
+    int getQuotaResult(){
         ReturnResult retQuota;
         try{
             EipQuota quota=new EipQuota();
