@@ -67,6 +67,7 @@ public class BssApiService {
         String msg;
         String   eipId = "";
         JSONObject createRet = null;
+        ReturnResult returnResult = null;
         try {
             EipOrder message =  eipOrder.getReturnConsoleMessage();
             if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
@@ -80,7 +81,7 @@ public class BssApiService {
                     createRet = eipAtomService.atomCreateEip(eipAllocateParamWrapper);
                     String retStr = HsConstants.SUCCESS;
 
-                    if(createRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()) {
+                    if(createRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK) {
                         retStr = HsConstants.FAIL;
                         log.info("create eip failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     }else{
@@ -88,12 +89,8 @@ public class BssApiService {
                         eipId = eipEntity.getString("eipid");
                         webControllerService.returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"create");
                     }
-                    ReturnResult returnResult = webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, retStr));
-                    if(!returnResult.isSuccess() &&
-                            (createRet.getInteger(HsConstants.STATUSCODE) == org.springframework.http.HttpStatus.OK.value())) {
-                        log.error("Delete the allocate eip just now for mq message error, id:{}", eipId);
-                        eipAtomService.atomDeleteEip(eipId);
-                    }
+                    returnResult = webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, retStr));
+
                     return createRet;
                 } else {
                     code = ReturnStatus.SC_PARAM_ERROR;
@@ -101,7 +98,6 @@ public class BssApiService {
                     log.error(msg);
                 }
             }else {
-                webControllerService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
                 code = ReturnStatus.SC_RESOURCE_ERROR;
                 msg = "not payed.";
                 log.info(msg);
@@ -110,15 +106,18 @@ public class BssApiService {
             log.error("Exception in createEip", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
+        }finally {
+            if((null == returnResult) || (!returnResult.isSuccess())) {
+                if ((null != createRet) && (createRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK)) {
+                    log.error("Delete the allocate eip just now for mq message error, id:{}", eipId);
+                    eipAtomService.atomDeleteEip(eipId);
+                }
+            }
         }
         webControllerService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
         JSONObject result = new JSONObject();
         result.put("code", code);
         result.put("msg", msg);
-        if((null != createRet) && (createRet.getInteger(HsConstants.STATUSCODE) == org.springframework.http.HttpStatus.OK.value())) {
-            log.error("Delete the allocate eip just now for mq message error, id:{}", eipId);
-            eipAtomService.atomDeleteEip(eipId);
-        }
         return result;
     }
 
