@@ -1,5 +1,6 @@
 package com.inspur.eip.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -20,12 +21,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 public class HttpUtil {
 
-    private final static Logger log = LoggerFactory.getLogger(HttpUtil.class);
 
-
-    protected static HttpClient getCloseableHttpClient() throws Exception {
+    private static HttpClient getCloseableHttpClient() throws Exception {
         try {
             return  HttpClients.createDefault();
         } catch (Exception e) {
@@ -38,7 +38,7 @@ public class HttpUtil {
 
 
     private static Map<String,String> getHeader(){
-        Map<String,String> header=new HashMap<String,String>();
+        Map<String,String> header=new HashMap<>();
         header.put("requestId", UUID.randomUUID().toString());
         header.put(HsConstants.AUTHORIZATION, CommonUtil.getKeycloackToken());
         header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
@@ -46,7 +46,7 @@ public class HttpUtil {
     }
 
     public static ReturnResult get(String url, Map<String,String > header) throws Exception{
-        HttpGet httpGet = new HttpGet(url.toString());
+        HttpGet httpGet = new HttpGet(url);
 
         if(null == header){
             header = getHeader();
@@ -77,7 +77,7 @@ public class HttpUtil {
 
         try {
             client = getCloseableHttpClient();
-            HttpPost httpPost = new HttpPost(url.toString());
+            HttpPost httpPost = new HttpPost(url);
             Iterator<Map.Entry<String, String>> it = header.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry<String, String> entry = it.next();
@@ -90,7 +90,6 @@ public class HttpUtil {
             httpPost.setEntity(entity);
             HttpResponse httpResponse = client.execute(httpPost);
             String resultString = EntityUtils.toString(httpResponse.getEntity(), "utf-8");
-            log.info("return:{}", resultString);
             return ReturnResult.actionResult(resultString, httpResponse.getStatusLine().getStatusCode());
         } catch (Exception e) {
             log.error("IO Exception when post.{}",e.getMessage());
@@ -99,7 +98,7 @@ public class HttpUtil {
     }
 
     public static ReturnResult delete(String url, Map<String,String > header) throws Exception{
-        HttpDelete httpDelete = new HttpDelete(url.toString());
+        HttpDelete httpDelete = new HttpDelete(url);
 
         if(null == header){
             header = getHeader();
@@ -131,7 +130,7 @@ public class HttpUtil {
         try {
 
             client = getCloseableHttpClient();
-            HttpPut httpPut = new HttpPut(url.toString());
+            HttpPut httpPut = new HttpPut(url);
             Iterator<Map.Entry<String, String>> it = header.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry<String, String> entry = it.next();

@@ -1,11 +1,11 @@
 package com.inspur.eip.util;
 
-class EipException extends Exception {
+public class EipException extends Exception {
     private int value;
     public EipException() {
         super();
     }
-    public EipException(String msg,int value) {
+    EipException(String msg,int value) {
         super(msg);
         this.value=value;
     }

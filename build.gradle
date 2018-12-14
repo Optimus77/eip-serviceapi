@@ -31,6 +31,11 @@ sourceCompatibility = 1.8
 
 configurations.all {
 }
+configurations {
+    all*.exclude module: 'spring-boot-starter-logging'
+    all*.exclude module: 'logback-classic'
+}
+
 
 dependencies {
     compile('org.springframework.boot:spring-boot-starter-security')
@@ -39,12 +44,12 @@ dependencies {
     compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
     compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
     compile('com.alibaba:fastjson:1.2.49')
-    compile('com.alibaba:fastjson:1.2.49')
+    compile('com.inspur.cloudframework:common-utils:0.2.1-SNAPSHOT')
 
     compile('com.inspur.icp:common-util:0.0.2-SNAPSHOT') {
         exclude(module: 'servlet-api')
+        exclude(module: 'logback-classic')
     }
-    compile('com.inspur.cloudframework:common-utils:0.2.0-SNAPSHOT')
 
     runtime('org.springframework.boot:spring-boot-devtools')
     compileOnly('org.projectlombok:lombok')

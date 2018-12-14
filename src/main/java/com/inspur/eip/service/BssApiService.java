@@ -5,9 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 
 import com.inspur.eip.entity.*;
 import com.inspur.eip.util.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,9 +17,8 @@ import java.util.*;
 import static com.inspur.eip.util.CommonUtil.preCheckParam;
 
 @Service
+@Slf4j
 public class BssApiService {
-
-    private final static Logger log = LoggerFactory.getLogger(BssApiService.class);
 
     @Autowired
     private EipAtomService eipAtomService;
@@ -37,7 +35,7 @@ public class BssApiService {
      * @param quota quota
      * @return string
      */
-    public ReturnResult getQuota(EipQuota quota){
+    private ReturnResult getQuota(EipQuota quota){
         try {
             String uri = quotaUrl + "?userId=" + quota.getUserId() + "&region=" + quota.getRegion() + "&productLineCode="
                     + quota.getProductLineCode() + "&productTypeCode=" + quota.getProductTypeCode() + "&quotaType=amount";
@@ -45,7 +43,7 @@ public class BssApiService {
 
             ReturnResult response;
             if((quotaUrl.startsWith("https://")) ||(quotaUrl.startsWith("HTTPS://"))){
-                Map<String,String> header=new HashMap<String,String>();
+                Map<String,String> header=new HashMap<>();
                 header.put(HsConstants.AUTHORIZATION, CommonUtil.getKeycloackToken());
                 response = HttpsClientUtil.doGet(uri, header);
             }else{
@@ -69,6 +67,7 @@ public class BssApiService {
         String msg;
         String   eipId = "";
         JSONObject createRet = null;
+        ReturnResult returnResult = null;
         try {
             EipOrder message =  eipOrder.getReturnConsoleMessage();
             if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
@@ -82,7 +81,7 @@ public class BssApiService {
                     createRet = eipAtomService.atomCreateEip(eipAllocateParamWrapper);
                     String retStr = HsConstants.SUCCESS;
 
-                    if(createRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()) {
+                    if(createRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK) {
                         retStr = HsConstants.FAIL;
                         log.info("create eip failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     }else{
@@ -90,12 +89,8 @@ public class BssApiService {
                         eipId = eipEntity.getString("eipid");
                         webControllerService.returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"create");
                     }
-                    ReturnResult returnResult = webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, retStr));
-                    if(!returnResult.isSuccess() &&
-                            (createRet.getInteger(HsConstants.STATUSCODE) == org.springframework.http.HttpStatus.OK.value())) {
-                        log.error("Delete the allocate eip just now for mq message error, id:{}", eipId);
-                        eipAtomService.atomDeleteEip(eipId);
-                    }
+                    returnResult = webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, retStr));
+
                     return createRet;
                 } else {
                     code = ReturnStatus.SC_PARAM_ERROR;
@@ -103,7 +98,6 @@ public class BssApiService {
                     log.error(msg);
                 }
             }else {
-                webControllerService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
                 code = ReturnStatus.SC_RESOURCE_ERROR;
                 msg = "not payed.";
                 log.info(msg);
@@ -112,15 +106,18 @@ public class BssApiService {
             log.error("Exception in createEip", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
+        }finally {
+            if((null == returnResult) || (!returnResult.isSuccess())) {
+                if ((null != createRet) && (createRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK)) {
+                    log.error("Delete the allocate eip just now for mq message error, id:{}", eipId);
+                    eipAtomService.atomDeleteEip(eipId);
+                }
+            }
         }
         webControllerService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
         JSONObject result = new JSONObject();
         result.put("code", code);
         result.put("msg", msg);
-        if((null != createRet) && (createRet.getInteger(HsConstants.STATUSCODE) == org.springframework.http.HttpStatus.OK.value())) {
-            log.error("Delete the allocate eip just now for mq message error, id:{}", eipId);
-            eipAtomService.atomDeleteEip(eipId);
-        }
         return result;
     }
 
@@ -130,8 +127,8 @@ public class BssApiService {
      * @return string
      */
     public JSONObject onReciveDeleteOrderResult(EipReciveOrder eipOrder) {
-        String msg = "";
-        String code = "";
+        String msg ;
+        String code ;
         String eipId = "0";
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
@@ -306,7 +303,7 @@ public class BssApiService {
      * 查询用户配额的接口
      * @return int
      */
-    public int getQuotaResult(){
+    int getQuotaResult(){
         ReturnResult retQuota;
         try{
             EipQuota quota=new EipQuota();

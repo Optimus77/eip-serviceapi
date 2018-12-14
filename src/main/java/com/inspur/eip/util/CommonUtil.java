@@ -7,9 +7,8 @@ import com.inspur.eip.entity.EipAllocateParam;
 import com.inspur.eip.entity.ReturnMsg;
 import lombok.Setter;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -20,9 +19,9 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 
+@Slf4j
 public class CommonUtil {
 
-    public final static Logger log = LoggerFactory.getLogger(CommonUtil.class);
     public static boolean isDebug = true;
 
 
@@ -79,22 +78,9 @@ public class CommonUtil {
     /**
      * get the region info from httpHeader;
      * @return ret
-     * @throws Exception e
      */
     //TODO region is not correct for now
-    public static String getReginInfo() throws Exception {
-        //ServletRequestAttributes requestAttributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-//        if(null != requestAttributes) {
-//            HttpServletRequest request = requestAttributes.getRequest();
-//            String regionName = QueryUtil.getEndpoint(request);
-//            log.info("regionName"+regionName);
-//            if(regionName==null){
-//                throw new Exception("get region fail");
-//            }
-//            return regionName;
-//        }else{
-//            throw new Exception("get region error");
-//        }
+    public static String getReginInfo()  {
         return region1;
     }
 
@@ -120,7 +106,7 @@ public class CommonUtil {
         }
     }
 
-    public static JSONObject decodeUserInfo(String keycloakToken) {
+    private static JSONObject decodeUserInfo(String keycloakToken) {
         Base64.Decoder decoder = Base64.getDecoder();
         // keycloak 的 token 被 '.' 分隔符分成了三段，其中第二段包含了用户信息，也就是 targetStr
         String targetStr = keycloakToken.substring((keycloakToken.indexOf(".") + 1), keycloakToken.lastIndexOf("."));
@@ -138,7 +124,7 @@ public class CommonUtil {
 
     public static String readRequestAsChars(HttpServletRequest request) {
 
-        StringBuilder sb = new StringBuilder("");
+        StringBuilder sb = new StringBuilder();
         try {
             BufferedReader br = request.getReader();
             String str;

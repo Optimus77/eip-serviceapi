@@ -34,7 +34,7 @@ keycloak:
 
 # Logback
 logging:
-  config: classpath:logback.xml
+  config: classpath:log4j.properties
 
 http:
   #最大连接数
