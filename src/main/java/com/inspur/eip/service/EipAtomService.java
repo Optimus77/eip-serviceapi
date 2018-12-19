@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class EipAtomService {
 
-    @Value("${proxy.servlet_url}")
+    @Value("${proxy.target_url}")
     private String eipAtomUrl;
     /**
      * create
