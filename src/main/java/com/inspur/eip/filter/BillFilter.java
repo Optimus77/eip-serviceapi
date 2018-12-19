@@ -112,7 +112,15 @@ public class BillFilter implements Filter {
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
-        }else {
+        }else if(method.equalsIgnoreCase(HsConstants.POST)  &&
+                req.getPathInfo().equalsIgnoreCase("/v1/loggers/com.inspur.eip")){
+            String packages = req.getPathInfo().substring("/v1/loggers/".length());
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            String result = eipService.setLogLevel(requestBody, packages);
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result);
+        } else {
             filterChain.doFilter(servletRequest, servletResponse);
         }
     }
