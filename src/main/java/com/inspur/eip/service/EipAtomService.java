@@ -14,17 +14,15 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class EipAtomService {
 
-    //1.2.8 订单接口POST
-    @Value("${eipAtom}")
+    @Value("${proxy.servlet_url}")
     private String eipAtomUrl;
-
     /**
      * create
      * @param eipConfig config
      * @return json
      */
     JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig) {
-        String url = eipAtomUrl;
+        String url = eipAtomUrl + "/v1/eips/";
         ReturnResult response = null;
         try {
             String orderStr = JSONObject.toJSONString(eipConfig);
@@ -42,7 +40,7 @@ public class EipAtomService {
      * @return json
      */
     JSONObject atomDeleteEip(String  eipId)  {
-        String url=eipAtomUrl +eipId;
+        String url=eipAtomUrl + "/v1/eips/"+eipId;
         ReturnResult response = null;
         try {
             log.info("Send order to url:{}, eipId:{}", url, eipId);
@@ -60,7 +58,7 @@ public class EipAtomService {
      * @return json
      */
     JSONObject atomUpdateEip(String eipId, EipAllocateParam eipConfig)  {
-        String url=eipAtomUrl+eipId +"/renew";
+        String url=eipAtomUrl + "/v1/eips/" +eipId +"/renew";
         ReturnResult response = null;
         try {
 
@@ -81,7 +79,7 @@ public class EipAtomService {
      */
     JSONObject getEipEntityById(String eipId){
 
-        String  uri =eipAtomUrl+eipId;
+        String  uri =eipAtomUrl+ "/v1/eips/"+eipId;
         ReturnResult response = null;
         try {
             log.info(uri);
@@ -90,5 +88,24 @@ public class EipAtomService {
             log.error("Get eip by id exception", e);
         }
         return  CommonUtil.handlerResopnse(response);
+    }
+
+    /**
+     *  set log
+     * @param requestBody request
+     * @param pack pack
+     * @return return
+     */
+    JSONObject setLogLevel(String requestBody, String pack) {
+        String url = eipAtomUrl;
+        ReturnResult response = null;
+        try {
+            url = url+"/v1/loggers/"+pack;
+            log.info("Send order to url:{}, body:{}", url, requestBody);
+            response = HttpUtil.post(url, null, requestBody);
+        }catch (Exception e){
+            log.error("Create eip exception", e);
+        }
+        return CommonUtil.handlerResopnse(response);
     }
 }
