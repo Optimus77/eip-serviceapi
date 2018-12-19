@@ -90,22 +90,4 @@ public class EipAtomService {
         return  CommonUtil.handlerResopnse(response);
     }
 
-    /**
-     *  set log
-     * @param requestBody request
-     * @param pack pack
-     * @return return
-     */
-    JSONObject setLogLevel(String requestBody, String pack) {
-        String url = eipAtomUrl;
-        ReturnResult response = null;
-        try {
-            url = url+"/v1/loggers/"+pack;
-            log.info("Send order to url:{}, body:{}", url, requestBody);
-            response = HttpUtil.post(url, null, requestBody);
-        }catch (Exception e){
-            log.error("Create eip exception", e);
-        }
-        return CommonUtil.handlerResopnse(response);
-    }
 }

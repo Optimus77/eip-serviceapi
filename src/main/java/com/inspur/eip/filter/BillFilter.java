@@ -113,7 +113,7 @@ public class BillFilter implements Filter {
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
         }else if(method.equalsIgnoreCase(HsConstants.POST)  &&
-                req.getPathInfo().startsWith("/v1/loggers/")){
+                req.getPathInfo().equalsIgnoreCase("/v1/loggers/com.inspur.eip")){
             String packages = req.getPathInfo().substring("/v1/loggers/".length());
             String requestBody = CommonUtil.readRequestAsChars(req);
             String result = eipService.setLogLevel(requestBody, packages);

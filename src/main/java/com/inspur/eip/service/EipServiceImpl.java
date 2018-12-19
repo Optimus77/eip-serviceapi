@@ -201,7 +201,6 @@ public class EipServiceImpl  {
             Level level = Level.toLevel(debugLevel);
             Logger logger = LogManager.getLogger(packageName);
             logger.setLevel(level);
-            eipAtomService.setLogLevel(requestBody, packageName);
         }catch (Exception e){
             log.error("Set log level error", e);
         }
