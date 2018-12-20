@@ -81,8 +81,9 @@ public class EipAtomService {
         String url=eipAtomUrl + "/v1/eips/" +eipId;
         ReturnResult response = null;
         try {
-
-            String orderStr = JSONObject.toJSONString(eipConfig);
+            EipAllocateParamWrapper eipConfigWrapper =  new EipAllocateParamWrapper();
+            eipConfigWrapper.setEip(eipConfig);
+            String orderStr = JSONObject.toJSONString(eipConfigWrapper);
             log.info("Send order to url:{}, body:{}", url, orderStr);
 
             response = HttpUtil.put(url, null, orderStr);
