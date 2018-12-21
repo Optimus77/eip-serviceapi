@@ -183,6 +183,7 @@ public class CommonUtil {
         }
         JSONObject result=new JSONObject();
         result.put(HsConstants.SUCCESS,false);
+        result.put("statusCode", HttpStatus.SC_NOT_IMPLEMENTED);
         result.put("message","Can not get return result.");
         return result;
     }

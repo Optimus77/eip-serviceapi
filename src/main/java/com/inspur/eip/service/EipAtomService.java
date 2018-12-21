@@ -57,7 +57,7 @@ public class EipAtomService {
      * @param eipConfig config
      * @return json
      */
-    JSONObject atomUpdateEip(String eipId, EipAllocateParam eipConfig)  {
+    JSONObject atomRenewEip(String eipId, EipAllocateParam eipConfig)  {
         String url=eipAtomUrl + "/v1/eips/" +eipId +"/renew";
         ReturnResult response = null;
         try {
@@ -71,7 +71,27 @@ public class EipAtomService {
         }
         return CommonUtil.handlerResopnse(response);
     }
+    /**
+     * update
+     * @param eipId id
+     * @param eipConfig config
+     * @return json
+     */
+    JSONObject atomUpdateEip(String eipId, EipAllocateParam eipConfig)  {
+        String url=eipAtomUrl + "/v1/eips/" +eipId;
+        ReturnResult response = null;
+        try {
+            EipAllocateParamWrapper eipConfigWrapper =  new EipAllocateParamWrapper();
+            eipConfigWrapper.setEip(eipConfig);
+            String orderStr = JSONObject.toJSONString(eipConfigWrapper);
+            log.info("Send order to url:{}, body:{}", url, orderStr);
 
+            response = HttpUtil.put(url, null, orderStr);
+        }catch (Exception e){
+            log.error("Update eip exception", e);
+        }
+        return CommonUtil.handlerResopnse(response);
+    }
     /**
      * get by id
      * @param eipId  id

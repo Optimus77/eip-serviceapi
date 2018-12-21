@@ -186,18 +186,24 @@ public class BssApiService {
             if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
                     message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
                 EipAllocateParam eipUpdate = getEipConfigByOrder(eipOrder);
-
-                JSONObject updateRet = eipAtomService.atomUpdateEip(eipId, eipUpdate);
+                JSONObject updateRet;
+                if(message.getOrderType().equalsIgnoreCase("changeConfigure")){
+                    updateRet = eipAtomService.atomUpdateEip(eipId, eipUpdate);
+                }else if(message.getOrderType().equalsIgnoreCase("renew")){
+                    updateRet = eipAtomService.atomRenewEip(eipId, eipUpdate);
+                }else{
+                    log.error("Not support order type:{}", message.getOrderType());
+                    updateRet = CommonUtil.handlerResopnse(null);
+                }
                 String retStr = HsConstants.SUCCESS;
-                if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()){
+                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK){
                     retStr = HsConstants.FAIL;
                 }
-                JSONObject eipEntity = updateRet.getJSONObject("eip");
-                log.info("renew order result :{}",updateRet.getInteger(HsConstants.STATUSCODE));
+
+                log.info("renew order result :{}",updateRet);
                 webControllerService.returnsWebsocket(eipId, eipOrder, "update");
                 webControllerService.resultReturnMq(getEipOrderResult(eipOrder,"",retStr));
                 return updateRet;
-
             }
         }catch (Exception e){
             log.error("Exception in update eip", e);
