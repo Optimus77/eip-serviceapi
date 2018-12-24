@@ -50,6 +50,12 @@ public class HsConstants {
 	public static final String REST_ZONE_AD = "/rest/zone_ad";
 	public static final String REST_ZONE_UPDATE = "?isTransaction=1&idfield=is_ipv6,type,name";
 	public static final String REST_ZONE_WLIST = "/rest/zone_whitelist?target=whitelist";
+	//SBW
+	public static final String SBW = "SBW";
+	public static final String SBW_URI = "/v1/sbws";
+	public static final String SBW_URI_ID_LENGTH = "/v1/sbws/ff232e65-43bb-4ba4-ad43-f891cab7ce0a";
+	public static final String SBW_URI_SOFTDOWN = "/v1/sbws/softdown";
+
 
 	public static final String REST_IDPRULE = "/rest/idp_ruleset";
 	public static final String REST_IDPRULE_AD = "?target=http.virtual_host";

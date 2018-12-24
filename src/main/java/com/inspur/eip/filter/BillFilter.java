@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.EipReciveOrder;
 import com.inspur.eip.entity.EipSoftDownOrder;
+import com.inspur.eip.entity.sbw.SbwCreateRecive;
 import com.inspur.eip.service.BssApiService;
 import com.inspur.eip.service.EipServiceImpl;
 import com.inspur.eip.util.CommonUtil;
@@ -43,6 +44,7 @@ public class BillFilter implements Filter {
         HttpServletResponse response=(HttpServletResponse)servletResponse;
         String method =  req.getMethod();
         String orderUri = "/v1/orders";
+
         if (req.getHeader("authorization") == null) {
             log.info("get authorization is null ");
             JSONObject result = new JSONObject();
@@ -120,7 +122,35 @@ public class BillFilter implements Filter {
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result);
-        } else {
+        }else  if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equals(HsConstants.SBW_URI)){
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("create shareBandWidth order:{}.",requestBody);
+            SbwCreateRecive sharedBandWidthRecive =  JSON.parseObject(requestBody, SbwCreateRecive.class);
+            JSONObject result = bssApiService.createShareBandWidth(sharedBandWidthRecive);
+            //todo
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+        }else if (method.equalsIgnoreCase(HsConstants.DELETE)  &&req.getPathInfo().startsWith(HsConstants.SBW_URI)){
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("delete shareBandWidth order:{}.",requestBody);
+
+        }else if (method.equalsIgnoreCase(HsConstants.POST)  &&req.getPathInfo().startsWith(HsConstants.SBW_URI) &&
+                req.getPathInfo().length() == HsConstants.SBW_URI_ID_LENGTH.length()){
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("update shareBandWidth order:{}.",requestBody);
+        }else if(method.equalsIgnoreCase(HsConstants.POST)  &&
+                req.getPathInfo().equalsIgnoreCase("/v1/orders/softdown")){
+
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("get softdown eip order:{}.", requestBody);
+            EipSoftDownOrder eipReciveOrder = JSON.parseObject(requestBody, EipSoftDownOrder.class);
+            JSONObject result = bssApiService.onReciveSoftDownOrder(eipReciveOrder);
+
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+        }else {
             filterChain.doFilter(servletRequest, servletResponse);
         }
     }

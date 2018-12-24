@@ -3,6 +3,7 @@ package com.inspur.eip.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.EipAllocateParam;
 import com.inspur.eip.entity.EipAllocateParamWrapper;
+import com.inspur.eip.entity.sbw.SbwAllocateParamWrapper;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HttpUtil;
 import com.inspur.eip.util.ReturnResult;
@@ -108,6 +109,19 @@ public class EipAtomService {
             log.error("Get eip by id exception", e);
         }
         return  CommonUtil.handlerResopnse(response);
+    }
+
+    JSONObject atomCreateSbw(SbwAllocateParamWrapper wrapper) {
+        String url = eipAtomUrl + "/v1/sbws/";
+        ReturnResult response = null;
+        try {
+            String orderStr = JSONObject.toJSONString(wrapper);
+            log.info("Send order to url:{}, body:{}", url, orderStr);
+            response = HttpUtil.post(url, null, orderStr);
+        }catch (Exception e){
+            log.error("Create sbw exception", e);
+        }
+        return CommonUtil.handlerResopnse(response);
     }
 
 }
