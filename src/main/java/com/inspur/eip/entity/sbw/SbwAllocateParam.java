@@ -1,5 +1,6 @@
 package com.inspur.eip.entity.sbw;
 
+import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.inspur.eip.util.TypeConstraint;
 import lombok.Data;
@@ -24,9 +25,9 @@ public class SbwAllocateParam {
     @TypeConstraint(allowedValues = {"Bandwidth","SharedBandwidth"}, message = "Only Bandwidth,SharedBandwidth is allowed. ")
     private String chargemode = "Bandwidth";
 
-    @Range(min=1,max=2000,message = "value must be 1-2000.")
+    @Range(min=5,max=2000,message = "value must be 1-2000.")
     private int bandwidth;
 
-    @JsonProperty("sharedbandwidthid")
-    private String sharedBandWidthId;
+    @JsonProperty
+    private JSONObject consoleCustomization;
 }

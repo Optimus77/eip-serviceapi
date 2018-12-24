@@ -230,13 +230,19 @@ public class CommonUtil {
             return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,errorMsg);
         }
     }
+
+    /**
+     * sbw param check
+     * @param param
+     * @return
+     */
     public static ReturnMsg preSbwCheckParam(SbwAllocateParam param){
         String errorMsg = " ";
         if(null == param){
             return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
         }
-        if((0== param.getBandwidth()) || (param.getBandwidth() > 2000)){
-            errorMsg = "value must be 1-2000.";
+        if(param.getBandwidth()==0 && ((param.getBandwidth() > 2000)||param.getBandwidth()<5)){
+            errorMsg = "value must be 5-2000.";
         }
         if(null != param.getChargemode()) {
             if (!param.getChargemode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&

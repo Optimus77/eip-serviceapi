@@ -382,20 +382,20 @@ public class BssApiService {
         return eipOrderResult;
     }
     /**
-     * get create order result
+     * get create shareband result
      * @return return message
      */
     public JSONObject createShareBandWidth(SbwCreateRecive sbwRecive) {
 
         String code;
         String msg;
-        String   eipId = "";
+        String   sbwId = "";
         JSONObject createRet = null;
         ReturnResult returnResult = null;
         try {
              SbwCreate message = sbwRecive.getSbwCreateMessage();
             if(sbwRecive.getOrderStatus().equals(HsConstants.PAYSUCCESS) ) {
-                SbwAllocateParam sbwConfig = getSBWConfigByOrder(sbwRecive);
+                SbwAllocateParam sbwConfig = getSbwConfigByOrder(sbwRecive);
                 ReturnMsg checkRet = preSbwCheckParam(sbwConfig);
                 if(checkRet.getCode().equals(ReturnStatus.SC_OK)){
                     //post request to atom
@@ -409,10 +409,10 @@ public class BssApiService {
                         log.info("create sbw failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     }else{
                         JSONObject eipEntity = createRet.getJSONObject("sbw");
-                        eipId = eipEntity.getString("sbwid");
+                        sbwId = eipEntity.getString("sbwid");
                         webControllerService.returnSbwWebsocket(eipEntity.getString("sbwid"),sbwRecive,"create");
                     }
-                    returnResult = webControllerService.resultSbwReturnMq(getSbwResult(sbwRecive, eipId, retStr));
+                    returnResult = webControllerService.resultSbwReturnMq(getSbwResult(sbwRecive, sbwId, retStr));
 
                     return createRet;
                 } else {
@@ -426,14 +426,14 @@ public class BssApiService {
                 log.info(msg);
             }
         }catch (Exception e){
-            log.error("Exception in createEip", e);
+            log.error("Exception in createSbw", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }finally {
             if((null == returnResult) || (!returnResult.isSuccess())) {
                 if ((null != createRet) && (createRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK)) {
-                    log.error("Delete the allocate eip just now for mq message error, id:{}", eipId);
-                    sbwAtomService.atomDeleteEip(eipId);
+                    log.error("Delete the allocate sbw just now for mq message error, id:{}", sbwId);
+                    sbwAtomService.atomDeleteEip(sbwId);
                 }
             }
         }
@@ -447,13 +447,13 @@ public class BssApiService {
      * get eip config from order
      * @return eip param
      */
-    private SbwAllocateParam getSBWConfigByOrder(SbwCreateRecive sbwRecive){
+    private SbwAllocateParam getSbwConfigByOrder(SbwCreateRecive sbwRecive){
         SbwAllocateParam sbwAllocatePram = new SbwAllocateParam();
         sbwAllocatePram.setDuration(sbwRecive.getSbwCreateMessage().getDuration());
         List<SbwProduct> productList = sbwRecive.getSbwCreateMessage().getProductList();
 
         sbwAllocatePram.setBillType(sbwRecive.getSbwCreateMessage().getBillType());
-
+        sbwAllocatePram.setConsoleCustomization(sbwRecive.getSbwCreateMessage().getConsoleCustomization());
         for(SbwProduct sbwProduct: productList){
             if(!sbwProduct.getProductLineCode().equalsIgnoreCase(HsConstants.SBW)){
                 continue;
@@ -468,7 +468,7 @@ public class BssApiService {
                 }
             }
         }
-        log.info("Get eip param from order:{}", sbwAllocatePram.toString());
+        log.info("Get sbw param from sbw Recive:{}", sbwAllocatePram.toString());
         /*chargemode now use the default value */
         return sbwAllocatePram;
     }
