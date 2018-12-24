@@ -334,7 +334,7 @@ public class ProxyServlet extends HttpServlet {
         //spec: RFC 2616, sec 4.3: either of these two headers signal that there is a message body.
         if (servletRequest.getHeader(HttpHeaders.CONTENT_LENGTH) != null ||
                 servletRequest.getHeader(HttpHeaders.TRANSFER_ENCODING) != null) {
-            log.info("===[BODY]ContentLength {}",getContentLength(servletRequest));
+            log.debug("===[BODY]ContentLength {}",getContentLength(servletRequest));
             proxyRequest = newProxyRequestWithEntity(method, proxyRequestUri, servletRequest);
         } else {
             proxyRequest = new BasicHttpRequest(method, proxyRequestUri);
@@ -384,7 +384,7 @@ public class ProxyServlet extends HttpServlet {
             //Note: Don't need to close servlet outputStream:
             // http://stackoverflow.com/questions/1159168/should-one-call-close-on-httpservletresponse-getoutputstream-getwriter
         }
-        log.info("===================finish service execute====================");
+        log.debug("===================finish service execute====================");
     }
 
     private void handleRequestException(HttpRequest proxyRequest, Exception e) throws ServletException, IOException {
@@ -409,7 +409,7 @@ public class ProxyServlet extends HttpServlet {
     private HttpResponse doExecute(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
                                      HttpRequest proxyRequest) throws IOException {
         if (doLog) {
-            log.info("proxy " + servletRequest.getMethod() + " uri: " + servletRequest.getRequestURI() +"?"+servletRequest.getQueryString()+" --> " + proxyRequest.getRequestLine().getUri());
+            log.debug("proxy " + servletRequest.getMethod() + " uri: " + servletRequest.getRequestURI() +"?"+servletRequest.getQueryString()+" --> " + proxyRequest.getRequestLine().getUri());
         }
         return closeablProxyClient.execute(getTargetHost(servletRequest),proxyRequest);
 

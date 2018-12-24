@@ -69,6 +69,7 @@ public class BssApiService {
         JSONObject createRet = null;
         ReturnResult returnResult = null;
         try {
+            log.debug("Recive create order:{}", JSONObject.toJSONString(eipOrder));
             EipOrder message =  eipOrder.getReturnConsoleMessage();
             if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
                     message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
@@ -181,10 +182,11 @@ public class BssApiService {
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
 
         try {
-            log.info("Recive update order:{}", JSONObject.toJSONString(eipOrder));
+            log.debug("Recive update order:{}", JSONObject.toJSONString(eipOrder));
             EipOrder message =  eipOrder.getReturnConsoleMessage();
-            if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
-                    message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+
+            if((null != message) && (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
+                    message.getBillType().equals(HsConstants.HOURLYSETTLEMENT))) {
                 EipAllocateParam eipUpdate = getEipConfigByOrder(eipOrder);
                 JSONObject updateRet;
                 if(message.getOrderType().equalsIgnoreCase("changeConfigure")){
@@ -227,7 +229,7 @@ public class BssApiService {
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         JSONObject updateRet = null;
         try {
-            log.info("Recive soft down order:{}", JSONObject.toJSONString(eipOrder));
+            log.debug("Recive soft down order:{}", JSONObject.toJSONString(eipOrder));
             List<EipSoftDownInstance> instanceList =  eipOrder.getInstanceList();
             for(EipSoftDownInstance eipSoftDownInstance: instanceList){
                 String operateType =  eipSoftDownInstance.getOperateType();
