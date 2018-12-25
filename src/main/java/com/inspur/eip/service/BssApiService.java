@@ -393,7 +393,7 @@ public class BssApiService {
         JSONObject createRet = null;
         ReturnResult returnResult = null;
         try {
-             SbwCreate message = sbwRecive.getSbwCreateMessage();
+             SbwCreate message = sbwRecive.getReturnConsoleMessage();
             if(sbwRecive.getOrderStatus().equals(HsConstants.PAYSUCCESS) ) {
                 SbwAllocateParam sbwConfig = getSbwConfigByOrder(sbwRecive);
                 ReturnMsg checkRet = preSbwCheckParam(sbwConfig);
@@ -449,11 +449,12 @@ public class BssApiService {
      */
     private SbwAllocateParam getSbwConfigByOrder(SbwCreateRecive sbwRecive){
         SbwAllocateParam sbwAllocatePram = new SbwAllocateParam();
-        sbwAllocatePram.setDuration(sbwRecive.getSbwCreateMessage().getDuration());
-        List<SbwProduct> productList = sbwRecive.getSbwCreateMessage().getProductList();
+        sbwAllocatePram.setDuration(sbwRecive.getReturnConsoleMessage().getDuration());
+        sbwAllocatePram.setDurationUnit(sbwRecive.getReturnConsoleMessage().getDurationUnit());
+        List<SbwProduct> productList = sbwRecive.getReturnConsoleMessage().getProductList();
 
-        sbwAllocatePram.setBillType(sbwRecive.getSbwCreateMessage().getBillType());
-        sbwAllocatePram.setConsoleCustomization(sbwRecive.getSbwCreateMessage().getConsoleCustomization());
+        sbwAllocatePram.setBillType(sbwRecive.getReturnConsoleMessage().getBillType());
+        sbwAllocatePram.setConsoleCustomization(sbwRecive.getReturnConsoleMessage().getConsoleCustomization());
         for(SbwProduct sbwProduct: productList){
             if(!sbwProduct.getProductLineCode().equalsIgnoreCase(HsConstants.SBW)){
                 continue;
@@ -474,7 +475,7 @@ public class BssApiService {
     }
 
     private   SbwResult getSbwResult(SbwCreateRecive sbwRecive, String sbwId, String result){
-        SbwCreate sbwCreate = sbwRecive.getSbwCreateMessage();
+        SbwCreate sbwCreate = sbwRecive.getReturnConsoleMessage();
         List<SbwProduct> productList = sbwCreate.getProductList();
 
         for(SbwProduct sbwProduct: productList){

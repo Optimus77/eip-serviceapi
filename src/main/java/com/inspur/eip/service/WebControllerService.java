@@ -144,7 +144,7 @@ class WebControllerService {
      * @param type
      */
     void returnSbwWebsocket(String sbwId, SbwCreateRecive sbwRecive, String type){
-        if ("console".equals(sbwRecive.getSbwCreateMessage().getOrderSource())){
+        if ("console".equals(sbwRecive.getReturnConsoleMessage().getOrderSource())){
             try {
                 SendMQEIP sendMQEIP = new SendMQEIP();
                 sendMQEIP.setUserName(CommonUtil.getUsername());
@@ -163,7 +163,7 @@ class WebControllerService {
                 e.printStackTrace();
             }
         }else {
-            log.info("Wrong source of order",sbwRecive.getSbwCreateMessage().getOrderSource());
+            log.info("Wrong source of order",sbwRecive.getReturnConsoleMessage().getOrderSource());
         }
     }
 

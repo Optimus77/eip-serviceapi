@@ -2,10 +2,12 @@ package com.inspur.eip.entity.sbw;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
+
+import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class SbwCreate {
+public class SbwCreate{
     private String userId;
     private String token;
     private String orderRoute = "SBW";

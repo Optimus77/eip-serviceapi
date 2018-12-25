@@ -2,10 +2,11 @@ package com.inspur.eip.entity.sbw;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class SbwResultProduct {
+public class SbwResultProduct{
     private String orderDetailFlowId;
     private String productSetStatus;
     private String billType;

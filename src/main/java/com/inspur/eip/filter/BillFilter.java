@@ -126,6 +126,7 @@ public class BillFilter implements Filter {
             String requestBody = CommonUtil.readRequestAsChars(req);
             log.info("create shareBandWidth order:{}.",requestBody);
             SbwCreateRecive sharedBandWidthRecive =  JSON.parseObject(requestBody, SbwCreateRecive.class);
+            log.info("shareBandWidth sharedBandWidthRecive:{}.",sharedBandWidthRecive.toString());
             JSONObject result = bssApiService.createShareBandWidth(sharedBandWidthRecive);
             //todo
             response.setStatus(HttpStatus.SC_OK);

@@ -3,10 +3,11 @@ package com.inspur.eip.entity.sbw;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.List;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SbwProduct {
+public class SbwProduct{
     private String region;
     private String availableZone;
     private String productLineCode = "SBW";
