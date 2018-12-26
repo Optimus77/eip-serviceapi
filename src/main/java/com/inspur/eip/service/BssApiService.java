@@ -241,7 +241,7 @@ public class BssApiService {
                     EipAllocateParam updateParam = new EipAllocateParam();
                     updateParam.setDuration("0");
                     instanceStatus = "DOWN";
-                    updateRet = eipAtomService.atomUpdateEip(eipSoftDownInstance.getInstanceId(), updateParam);
+                    updateRet = eipAtomService.atomRenewEip(eipSoftDownInstance.getInstanceId(), updateParam);
                 }else{
                     continue;
                 }
