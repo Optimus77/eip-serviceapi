@@ -245,9 +245,8 @@ public class CommonUtil {
             errorMsg = "value must be 5-2000.";
         }
         if(null != param.getChargemode()) {
-            if (!param.getChargemode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
-                    !param.getChargemode().equals(HsConstants.SHAREDBANDWIDTH)) {
-                errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
+            if (!param.getChargemode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
+                errorMsg = errorMsg + "Only SharedBandwidth is allowed. ";
             }
         }
 

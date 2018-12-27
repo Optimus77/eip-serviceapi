@@ -2,7 +2,7 @@ package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.*;
-import com.inspur.eip.entity.sbw.SbwCreateRecive;
+import com.inspur.eip.entity.sbw.SbwRecive;
 import com.inspur.eip.entity.sbw.SbwResult;
 import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
@@ -143,7 +143,7 @@ class WebControllerService {
      * @param sbwRecive
      * @param type
      */
-    void returnSbwWebsocket(String sbwId, SbwCreateRecive sbwRecive, String type){
+    void returnSbwWebsocket(String sbwId, SbwRecive sbwRecive, String type){
         if ("console".equals(sbwRecive.getReturnConsoleMessage().getOrderSource())){
             try {
                 SendMQEIP sendMQEIP = new SendMQEIP();
@@ -153,7 +153,7 @@ class WebControllerService {
                 sendMQEIP.setInstanceStatus("active");
                 sendMQEIP.setOperateType(type);
                 sendMQEIP.setMessageType("success");
-                sendMQEIP.setMessage("Flexible public network IP updated successfully");
+                sendMQEIP.setMessage("sbw create successfully");
                 String url=pushMq;
                 String socketStr=JSONObject.toJSONString(sendMQEIP);
                 log.info("websocket send return: {} {}", url, socketStr);

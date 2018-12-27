@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.EipReciveOrder;
 import com.inspur.eip.entity.EipSoftDownOrder;
-import com.inspur.eip.entity.sbw.SbwCreateRecive;
+import com.inspur.eip.entity.sbw.SbwRecive;
 import com.inspur.eip.service.BssApiService;
 import com.inspur.eip.service.EipServiceImpl;
 import com.inspur.eip.util.CommonUtil;
@@ -125,16 +125,23 @@ public class BillFilter implements Filter {
         }else  if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equals(HsConstants.SBW_URI)){
             String requestBody = CommonUtil.readRequestAsChars(req);
             log.info("create shareBandWidth order:{}.",requestBody);
-            SbwCreateRecive sharedBandWidthRecive =  JSON.parseObject(requestBody, SbwCreateRecive.class);
+            SbwRecive sharedBandWidthRecive =  JSON.parseObject(requestBody, SbwRecive.class);
             log.info("shareBandWidth sharedBandWidthRecive:{}.",sharedBandWidthRecive.toString());
             JSONObject result = bssApiService.createShareBandWidth(sharedBandWidthRecive);
             //todo
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
-        }else if (method.equalsIgnoreCase(HsConstants.DELETE)  &&req.getPathInfo().startsWith(HsConstants.SBW_URI)){
+        }else if (method.equalsIgnoreCase(HsConstants.DELETE)  &&req.getPathInfo().startsWith(HsConstants.SBW_URI) &&
+                req.getPathInfo().length() == HsConstants.SBW_URI_ID_LENGTH.length()){
             String requestBody = CommonUtil.readRequestAsChars(req);
-            log.info("delete shareBandWidth order:{}.",requestBody);
+            log.info("delete shareBandWidth:{}.",requestBody);
+
+            SbwRecive sbwRecive = JSON.parseObject(requestBody, SbwRecive.class);
+            JSONObject result = bssApiService.deleteShareBandWidth(sbwRecive);
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
 
         }else if (method.equalsIgnoreCase(HsConstants.POST)  &&req.getPathInfo().startsWith(HsConstants.SBW_URI) &&
                 req.getPathInfo().length() == HsConstants.SBW_URI_ID_LENGTH.length()){

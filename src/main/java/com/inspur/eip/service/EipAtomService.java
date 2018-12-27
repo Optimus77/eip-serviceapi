@@ -51,6 +51,22 @@ public class EipAtomService {
         }
         return CommonUtil.handlerResopnse(response);
     }
+/**
+     * delete
+     * @param sbwId id
+     * @return json
+     */
+    JSONObject atomDeleteSbw(String  sbwId)  {
+        String url=eipAtomUrl + "/v1/sbws/"+sbwId;
+        ReturnResult response = null;
+        try {
+            log.info("Send order to url:{}, sbwId:{}", url, sbwId);
+            response = HttpUtil.delete(url, null);
+        }catch (Exception e){
+            log.error("Atom delete sbw exception", e);
+        }
+        return CommonUtil.handlerResopnse(response);
+    }
 
     /**
      * update

@@ -53,7 +53,7 @@ public class HsConstants {
 	//SBW
 	public static final String SBW = "SBW";
 	public static final String SBW_URI = "/v1/sbws";
-	public static final String SBW_URI_ID_LENGTH = "/v1/sbws/ff232e65-43bb-4ba4-ad43-f891cab7ce0a";
+	public static final String SBW_URI_ID_LENGTH = "/v1/sbws/3344db1d-268e-42ee-9d7d-63c723c7aa46";
 	public static final String SBW_URI_SOFTDOWN = "/v1/sbws/softdown";
 
 
