@@ -40,16 +40,16 @@ http:
   #最大连接数
   maxTotal: 100
   defaultMaxPerRoute: 20
-  connectTimeout: 1000
-  connectionRequestTimeout: 500
-  socketTimeout: 10000
+  connectTimeout: 10000
+  connectionRequestTimeout: 5000
+  socketTimeout: 100000
   statleConnectionCheckEnabled: true
 
 
 bssurl:
   ignoSSL: true
-  submitPay: http://117.73.2.105:8086/order/submitpay #  //1.2.8 订单接口POST
-  quotaUrl:    http://117.73.2.105:8083/crm/quota #//1.2.11	查询用户配额的接口
+  submitPay: http://117.73.2.105.xip.io/order/submitpay #  //1.2.8 订单接口POST
+  quotaUrl:    http://117.73.2.105.xip.io/crm/quota #//1.2.11	查询用户配额的接口
 mq:
 #hourlySettlement k8s服务
   returnMq:  https://service.10.110.25.123.xip.io/mq/v1/messages/productreturn
