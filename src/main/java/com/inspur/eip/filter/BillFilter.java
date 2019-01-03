@@ -146,7 +146,14 @@ public class BillFilter implements Filter {
         }else if (method.equalsIgnoreCase(HsConstants.POST)  &&req.getPathInfo().startsWith(HsConstants.SBW_URI) &&
                 req.getPathInfo().length() == HsConstants.SBW_URI_ID_LENGTH.length()){
             String requestBody = CommonUtil.readRequestAsChars(req);
-            log.info("update shareBandWidth order:{}.",requestBody);
+            String sbwId = req.getPathInfo().substring("/v1/sbws/".length());
+            log.info("update sbw:{}.", requestBody);
+            SbwRecive sbwRecive = JSON.parseObject(requestBody, SbwRecive.class);
+            JSONObject result = bssApiService.updateSbwConfig(sbwId, sbwRecive);
+
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
         }else if(method.equalsIgnoreCase(HsConstants.POST)  &&
                 req.getPathInfo().equalsIgnoreCase("/v1/orders/softdown")){
 

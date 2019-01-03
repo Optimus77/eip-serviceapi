@@ -499,6 +499,17 @@ public class BssApiService {
         result.put("msg", msg);
         return result;
     }
+
+    /**
+     * update the sbw config,incloud bandWidth and eip
+     * @param sbwId
+     * @param recive
+     * @return
+     */
+    public JSONObject updateSbwConfig(String sbwId ,SbwRecive recive){
+
+        return null;
+    }
     /**
      * get eip config from order
      * @return eip param
