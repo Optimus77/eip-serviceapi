@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import com.inspur.eip.entity.*;
+import com.inspur.eip.entity.EipReciveOrder;
+import com.inspur.eip.entity.sbw.*;
 import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
@@ -15,6 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.inspur.eip.util.CommonUtil.preCheckParam;
+import static com.inspur.eip.util.CommonUtil.preSbwCheckParam;
 
 @Service
 @Slf4j
@@ -25,6 +28,9 @@ public class BssApiService {
 
     @Autowired
     private WebControllerService webControllerService;
+
+    @Autowired
+    private EipAtomService sbwAtomService;
 
     //1.2.11	查询用户配额的接口 URL: http://117.73.2.105:8083/crm/quota
     @Value("${bssurl.quotaUrl}")
@@ -170,7 +176,6 @@ public class BssApiService {
         result.put("msg", msg);
         return result;
     }
-
     /**
      * update order from bss
      * @param eipId id
@@ -377,5 +382,196 @@ public class BssApiService {
         eipOrderResultProducts.add(eipOrderResultProduct);
         eipOrderResult.setProductSetList(eipOrderResultProducts);
         return eipOrderResult;
+    }
+    /**
+     * get create shareband result
+     * @return return message
+     */
+    public JSONObject createShareBandWidth(SbwRecive sbwRecive) {
+
+        String code;
+        String msg;
+        String   sbwId = "";
+        JSONObject createRet = null;
+        ReturnResult returnResult = null;
+        try {
+             SbwCreate message = sbwRecive.getReturnConsoleMessage();
+            if(sbwRecive.getOrderStatus().equals(HsConstants.PAYSUCCESS) ) {
+                SbwAllocateParam sbwConfig = getSbwConfigByOrder(sbwRecive);
+                ReturnMsg checkRet = preSbwCheckParam(sbwConfig);
+                if(checkRet.getCode().equals(ReturnStatus.SC_OK)){
+                    //post request to atom
+                    SbwAllocateParamWrapper sbwWrapper = new SbwAllocateParamWrapper();
+                    sbwWrapper.setSbw(sbwConfig);
+                    createRet = sbwAtomService.atomCreateSbw(sbwWrapper);
+                    String retStr = HsConstants.SUCCESS;
+
+                    if(createRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK) {
+                        retStr = HsConstants.FAIL;
+                        log.info("create sbw failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
+                    }else{
+                        JSONObject eipEntity = createRet.getJSONObject("sbw");
+                        sbwId = eipEntity.getString("sbwid");
+                        webControllerService.returnSbwWebsocket(eipEntity.getString("sbwid"),sbwRecive,"create");
+                    }
+                    returnResult = webControllerService.resultSbwReturnMq(getSbwResult(sbwRecive, sbwId, retStr));
+
+                    return createRet;
+                } else {
+                    code = ReturnStatus.SC_PARAM_ERROR;
+                    msg = checkRet.getMessage();
+                    log.error(msg);
+                }
+            }else {
+                code = ReturnStatus.SC_RESOURCE_ERROR;
+                msg = "not payed.";
+                log.info(msg);
+            }
+        }catch (Exception e){
+            log.error("Exception in createSbw", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }finally {
+            if((null == returnResult) || (!returnResult.isSuccess())) {
+                if ((null != createRet) && (createRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK)) {
+                    log.error("Delete the allocate sbw just now for mq message error, id:{}", sbwId);
+                    sbwAtomService.atomDeleteEip(sbwId);
+                }
+            }
+        }
+        webControllerService.resultSbwReturnMq(getSbwResult(sbwRecive, "",HsConstants.FAIL));
+        JSONObject result = new JSONObject();
+        result.put("code", code);
+        result.put("msg", msg);
+        return result;
+    }
+
+    /**
+     * delete result from bss
+     * @param sbwRecive order
+     * @return string
+     */
+    public JSONObject deleteShareBandWidth(SbwRecive sbwRecive) {
+        String msg ;
+        String code ;
+        String sbwId = "0";
+        JSONObject result = new JSONObject();
+        try {
+            log.debug("Recive delete order:{}", JSONObject.toJSONString(sbwRecive));
+            SbwCreate message = sbwRecive.getReturnConsoleMessage();
+            if(sbwRecive.getOrderStatus().equals(HsConstants.CREATESUCCESS)  || message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                if (message.getConsoleCustomization().getString("chargemode") !=null &&
+                        !message.getConsoleCustomization().getString("chargemode").equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)){
+                    msg = "Failed to delete sbw isn't the sharebandWidth,chargemode: {}"+message.getConsoleCustomization().getString("chargemode");
+                    code = ReturnStatus.SC_PARAM_UNKONWERROR;
+                    log.error(msg);
+                    result.put("code", code);
+                    result.put("msg", msg);
+                    return result;
+                }
+                SbwAllocateParam allocateParam = getSbwConfigByOrder(sbwRecive);
+                sbwId = allocateParam.getConsoleCustomization().getString("sbwId");
+                List<SbwProduct> productList = message.getProductList();
+                for (SbwProduct product : productList) {
+                    sbwId = product.getInstanceId();
+                }
+                JSONObject delResult = eipAtomService.atomDeleteSbw(sbwId);
+
+                if (delResult.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK) {
+                    //Return message to the front des
+                    webControllerService.returnSbwWebsocket(sbwId, sbwRecive, "delete");
+                    webControllerService.resultSbwReturnMq(getSbwResult(sbwRecive, sbwId, HsConstants.SUCCESS));
+                    return delResult;
+                } else {
+                    msg = delResult.getString(HsConstants.STATUSCODE);
+                    code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+                }
+            }else{
+                msg = "Failed to delete eip,failed to create delete. orderStatus: "+sbwRecive.getOrderStatus();
+                code = ReturnStatus.SC_PARAM_UNKONWERROR;
+                log.error(msg);
+            }
+        }catch (Exception e){
+            log.error("Exception in deleteEip", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        webControllerService.resultSbwReturnMq(getSbwResult(sbwRecive, sbwId,HsConstants.FAIL));
+        result.put("code", code);
+        result.put("msg", msg);
+        return result;
+    }
+
+    /**
+     * update the sbw config,incloud bandWidth and eip
+     * @param sbwId
+     * @param recive
+     * @return
+     */
+    public JSONObject updateSbwConfig(String sbwId ,SbwRecive recive){
+
+        return null;
+    }
+    /**
+     * get eip config from order
+     * @return eip param
+     */
+    private SbwAllocateParam getSbwConfigByOrder(SbwRecive sbwRecive){
+        SbwAllocateParam sbwAllocatePram = new SbwAllocateParam();
+        sbwAllocatePram.setDuration(sbwRecive.getReturnConsoleMessage().getDuration());
+        sbwAllocatePram.setDurationUnit(sbwRecive.getReturnConsoleMessage().getDurationUnit());
+        sbwAllocatePram.setChargemode(sbwRecive.getReturnConsoleMessage().getConsoleCustomization().getString("chargemode"));
+        sbwAllocatePram.setBandwidth(Integer.parseInt(sbwRecive.getReturnConsoleMessage().getProductList().get(0).getItemList().get(0).getValue()));
+        List<SbwProduct> productList = sbwRecive.getReturnConsoleMessage().getProductList();
+
+        sbwAllocatePram.setBillType(sbwRecive.getReturnConsoleMessage().getBillType());
+        sbwAllocatePram.setConsoleCustomization(sbwRecive.getReturnConsoleMessage().getConsoleCustomization());
+        for(SbwProduct sbwProduct: productList){
+            if(!sbwProduct.getProductLineCode().equalsIgnoreCase(HsConstants.SBW)){
+                continue;
+            }
+            sbwAllocatePram.setRegion(sbwProduct.getRegion());
+            List<SbwProductItem> sbwProductItemList = sbwProduct.getItemList();
+
+            for(SbwProductItem sbwItem: sbwProductItemList){
+                if(sbwItem.getCode().equalsIgnoreCase("bandwidth") &&
+                        sbwItem.getUnit().equals(HsConstants.M)){
+                    sbwAllocatePram.setBandwidth(Integer.parseInt(sbwItem.getValue()));
+                }
+            }
+        }
+        log.info("Get sbw param from sbw Recive:{}", sbwAllocatePram.toString());
+        /*chargemode now use the default value */
+        return sbwAllocatePram;
+    }
+
+    private   SbwResult getSbwResult(SbwRecive sbwRecive, String sbwId, String result){
+        SbwCreate sbwCreate = sbwRecive.getReturnConsoleMessage();
+        List<SbwProduct> productList = sbwCreate.getProductList();
+
+        for(SbwProduct sbwProduct: productList){
+            sbwProduct.setInstanceStatus(result);
+            sbwProduct.setInstanceId(sbwId);
+            sbwProduct.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        }
+
+        SbwResult sbwResult = new SbwResult();
+        sbwResult.setUserId(sbwCreate.getUserId());
+        sbwResult.setConsoleOrderFlowId(sbwRecive.getConsoleOrderFlowId());
+        sbwResult.setOrderId(sbwRecive.getOrderId());
+
+        List<SbwResultProduct> sbwResultProducts = new ArrayList<>();
+        SbwResultProduct sbwResultProduct = new SbwResultProduct();
+        sbwResultProduct.setOrderDetailFlowId(sbwRecive.getOrderDetailFlowIdList().get(0));
+        sbwResultProduct.setProductSetStatus(result);
+        sbwResultProduct.setBillType(sbwCreate.getBillType());
+        sbwResultProduct.setDuration(sbwCreate.getDuration());
+        sbwResultProduct.setOrderType(sbwCreate.getOrderType());
+        sbwResultProduct.setProductList(sbwCreate.getProductList());
+
+
+        sbwResultProducts.add(sbwResultProduct);
+        sbwResult.setProductSetList(sbwResultProducts);
+        return sbwResult;
     }
 }

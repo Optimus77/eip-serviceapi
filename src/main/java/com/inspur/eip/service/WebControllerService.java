@@ -2,6 +2,8 @@ package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.*;
+import com.inspur.eip.entity.sbw.SbwRecive;
+import com.inspur.eip.entity.sbw.SbwResult;
 import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
@@ -135,4 +137,54 @@ class WebControllerService {
         }
     }
 
+    /**
+     * sbw webSocket
+     * @param sbwId
+     * @param sbwRecive
+     * @param type
+     */
+    void returnSbwWebsocket(String sbwId, SbwRecive sbwRecive, String type){
+        if ("console".equals(sbwRecive.getReturnConsoleMessage().getOrderSource())){
+            try {
+                SendMQEIP sendMQEIP = new SendMQEIP();
+                sendMQEIP.setUserName(CommonUtil.getUsername());
+                sendMQEIP.setHandlerName("operateEipHandler");
+                sendMQEIP.setInstanceId(sbwId);
+                sendMQEIP.setInstanceStatus("active");
+                sendMQEIP.setOperateType(type);
+                sendMQEIP.setMessageType("success");
+                sendMQEIP.setMessage("sbw create successfully");
+                String url=pushMq;
+                String socketStr=JSONObject.toJSONString(sendMQEIP);
+                log.info("websocket send return: {} {}", url, socketStr);
+                ReturnResult response = HttpsClientUtil.doPostJson(url,null,socketStr);
+                log.debug("websocket respons:{}", response.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }else {
+            log.info("Wrong source of order",sbwRecive.getReturnConsoleMessage().getOrderSource());
+        }
+    }
+
+    /**
+     * 订单返回给控制台的消息
+     * @param sbwResult  result
+     * @return return
+     */
+    ReturnResult resultSbwReturnMq(SbwResult sbwResult)   {
+        String url=returnMq;
+        String mqStr=JSONObject.toJSONString(sbwResult);
+        try {
+            Map<String, String> header = new HashMap<>();
+            header.put(HsConstants.AUTHORIZATION, "bearer "+ clientTokenUtil.getAdminToken().trim());
+            header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
+
+            log.info("ReturnMq Url:{} body:{}", url, mqStr);
+            return  HttpsClientUtil.doPostJson(url, header, mqStr);
+        }catch (Exception e){
+            log.error("In return mq, get token exception:{}", e);
+        }
+        return ReturnResult.actionFailed("Return mq failed ", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    }
 }

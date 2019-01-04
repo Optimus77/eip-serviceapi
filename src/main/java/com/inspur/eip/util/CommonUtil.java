@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.EipAllocateParam;
 import com.inspur.eip.entity.ReturnMsg;
+import com.inspur.eip.entity.sbw.SbwAllocateParam;
 import lombok.Setter;
 
 import lombok.extern.slf4j.Slf4j;
@@ -230,4 +231,39 @@ public class CommonUtil {
         }
     }
 
+    /**
+     * sbw param check
+     * @param param
+     * @return
+     */
+    public static ReturnMsg preSbwCheckParam(SbwAllocateParam param){
+        String errorMsg = " ";
+        if(null == param){
+            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
+        }
+        if(param.getBandwidth()==0 && ((param.getBandwidth() > 2000)||param.getBandwidth()<5)){
+            errorMsg = "value must be 5-2000.";
+        }
+        if(null != param.getChargemode()) {
+            if (!param.getChargemode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
+                errorMsg = errorMsg + "Only SharedBandwidth is allowed. ";
+            }
+        }
+
+        if(null != param.getBillType()) {
+            if (!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                errorMsg = errorMsg + "Only monthly,hourlySettlement is allowed. ";
+            }
+        }
+        if(param.getRegion().isEmpty()){
+            errorMsg = errorMsg + "can not be blank.";
+        }
+        if(errorMsg.equals(" ")) {
+            log.info(errorMsg);
+            return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
+        }else {
+            log.error(errorMsg);
+            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,errorMsg);
+        }
+    }
 }
