@@ -204,7 +204,7 @@ public class BssApiService {
 
                 log.info("renew order result :{}",updateRet);
                 webControllerService.returnsWebsocket(eipId, eipOrder, "update");
-                webControllerService.resultReturnMq(getEipOrderResult(eipOrder,"",retStr));
+                webControllerService.resultReturnMq(getEipOrderResult(eipOrder,eipId,retStr));
                 return updateRet;
             }
         }catch (Exception e){
