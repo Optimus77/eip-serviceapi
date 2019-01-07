@@ -1,6 +1,7 @@
 package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.inspur.eip.entity.sbw.SbwAllocateParam;
 import com.inspur.eip.entity.sbw.SbwAllocateParamWrapper;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HttpUtil;
@@ -37,11 +38,53 @@ public class SbwAtomService {
         String url=sbwAtomUrl + "/v1/sbws/"+sbwId;
         ReturnResult response = null;
         try {
-            log.info("Send order to url:{}, sbwId:{}", url, sbwId);
+            log.info("Send config to url:{}, sbwId:{}", url, sbwId);
             response = HttpUtil.delete(url, null);
         }catch (Exception e){
             log.error("Atom delete sbw exception", e);
         }
         return CommonUtil.handlerResopnse(response);
     }
+    /**
+     * update
+     * @param sbwId id
+     * @param sbwConfig config
+     * @return json
+     */
+    JSONObject atomUpdateSbw(String sbwId, SbwAllocateParam sbwConfig)  {
+        String url=sbwAtomUrl + "/v1/sbws/" +sbwId;
+        ReturnResult response = null;
+        try {
+            SbwAllocateParamWrapper eipConfigWrapper =  new SbwAllocateParamWrapper();
+            eipConfigWrapper.setSbw(sbwConfig);
+            String orderStr = JSONObject.toJSONString(eipConfigWrapper);
+            log.info("Send config to url:{}, body:{}", url, orderStr);
+
+            response = HttpUtil.put(url, null, orderStr);
+        }catch (Exception e){
+            log.error("Update sbw exception", e);
+        }
+        return CommonUtil.handlerResopnse(response);
+    }
+
+    /**
+     * update
+     * @param sbwId id
+     * @param sbwConfig config
+     * @return json
+     */
+    JSONObject atomRenewSbw(String sbwId, SbwAllocateParam sbwConfig)  {
+        String url=sbwAtomUrl + "/v1/sbws/" +sbwId +"/renew";
+        ReturnResult response = null;
+        try {
+            String orderStr = JSONObject.toJSONString(sbwConfig);
+            log.info("Send config to url:{}, body:{}", url, orderStr);
+
+            response = HttpUtil.post(url, null, orderStr);
+        }catch (Exception e){
+            log.error("Update sbw exception", e);
+        }
+        return CommonUtil.handlerResopnse(response);
+    }
+
 }

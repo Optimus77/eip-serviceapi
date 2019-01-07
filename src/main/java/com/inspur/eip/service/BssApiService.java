@@ -30,7 +30,7 @@ public class BssApiService {
     private WebControllerService webControllerService;
 
     @Autowired
-    private EipAtomService sbwAtomService;
+    private SbwAtomService sbwAtomService;
 
     //1.2.11	查询用户配额的接口 URL: http://117.73.2.105:8083/crm/quota
     @Value("${bssurl.quotaUrl}")
@@ -181,7 +181,7 @@ public class BssApiService {
      * @param eipOrder order
      * @return string
      */
-    public JSONObject onReciveUpdateOrder(String eipId, EipReciveOrder eipOrder) {
+    public JSONObject  onReciveUpdateOrder(String eipId, EipReciveOrder eipOrder) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
 
@@ -393,7 +393,6 @@ public class BssApiService {
         JSONObject createRet = null;
         ReturnResult returnResult = null;
         try {
-             SbwCreate message = sbwRecive.getReturnConsoleMessage();
             if(sbwRecive.getOrderStatus().equals(HsConstants.PAYSUCCESS) ) {
                 SbwAllocateParam sbwConfig = getSbwConfigByOrder(sbwRecive);
                 ReturnMsg checkRet = preSbwCheckParam(sbwConfig);
@@ -408,9 +407,9 @@ public class BssApiService {
                         retStr = HsConstants.FAIL;
                         log.info("create sbw failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     }else{
-                        JSONObject eipEntity = createRet.getJSONObject("sbw");
-                        sbwId = eipEntity.getString("sbwid");
-                        webControllerService.returnSbwWebsocket(eipEntity.getString("sbwid"),sbwRecive,"create");
+                        JSONObject sbwEntity = createRet.getJSONObject("sbw");
+                        sbwId = sbwEntity.getString("sbwid");
+                        webControllerService.returnSbwWebsocket(sbwEntity.getString("sbwid"),sbwRecive,"create");
                     }
                     returnResult = webControllerService.resultSbwReturnMq(getSbwResult(sbwRecive, sbwId, retStr));
 
@@ -433,7 +432,7 @@ public class BssApiService {
             if((null == returnResult) || (!returnResult.isSuccess())) {
                 if ((null != createRet) && (createRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK)) {
                     log.error("Delete the allocate sbw just now for mq message error, id:{}", sbwId);
-                    sbwAtomService.atomDeleteEip(sbwId);
+                    sbwAtomService.atomDeleteSbw(sbwId);
                 }
             }
         }
@@ -469,11 +468,12 @@ public class BssApiService {
                 }
                 SbwAllocateParam allocateParam = getSbwConfigByOrder(sbwRecive);
                 sbwId = allocateParam.getConsoleCustomization().getString("sbwId");
+                // todo :delete sbwId from Console
                 List<SbwProduct> productList = message.getProductList();
                 for (SbwProduct product : productList) {
                     sbwId = product.getInstanceId();
                 }
-                JSONObject delResult = eipAtomService.atomDeleteSbw(sbwId);
+                JSONObject delResult = sbwAtomService.atomDeleteSbw(sbwId);
 
                 if (delResult.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK) {
                     //Return message to the front des
@@ -507,8 +507,44 @@ public class BssApiService {
      * @return
      */
     public JSONObject updateSbwConfig(String sbwId ,SbwRecive recive){
+        String msg = "";
+        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
 
-        return null;
+        try {
+            log.info("Recive update sbw:{}", JSONObject.toJSONString(recive));
+            SbwCreate message = recive.getReturnConsoleMessage();
+            if(recive.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
+                    message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                SbwAllocateParam sbwUpdate = getSbwConfigByOrder(recive);
+                JSONObject updateRet;
+                if(message.getOrderType().equalsIgnoreCase("changeConfigure")){
+                    updateRet = sbwAtomService.atomUpdateSbw(sbwId, sbwUpdate);
+                }else if(message.getOrderType().equalsIgnoreCase("renew")){
+                    updateRet = sbwAtomService.atomRenewSbw(sbwId, sbwUpdate);
+                }else{
+                    log.error("Not support order type:{}", message.getOrderType());
+                    updateRet = CommonUtil.handlerResopnse(null);
+                }
+                String retStr = HsConstants.SUCCESS;
+                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK){
+                    retStr = HsConstants.FAIL;
+                }
+
+                log.info("renew order result :{}",updateRet);
+                webControllerService.returnSbwWebsocket(sbwId, recive, "update");
+                webControllerService.resultSbwReturnMq(getSbwResult(recive,"",retStr));
+                return updateRet;
+            }
+        }catch (Exception e){
+            log.error("Exception in update eip", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        webControllerService.resultSbwReturnMq(getSbwResult(recive,sbwId,HsConstants.FAIL));
+        JSONObject result = new JSONObject();
+        result.put("code", code);
+        result.put("msg", msg);
+        return result;
     }
     /**
      * get eip config from order

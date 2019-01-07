@@ -241,7 +241,7 @@ public class CommonUtil {
         if(null == param){
             return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
         }
-        if(param.getBandwidth()==0 && ((param.getBandwidth() > 2000)||param.getBandwidth()<5)){
+        if(param.getBandwidth()==0 || param.getBandwidth() > 2000|| param.getBandwidth()<5){
             errorMsg = "value must be 5-2000.";
         }
         if(null != param.getChargemode()) {
