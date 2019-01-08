@@ -74,46 +74,46 @@ public class BillFilter implements Filter {
             response.setStatus(HttpStatus.SC_ACCEPTED);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result);
-//        }else if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equals(orderUri)) {
-//            String requestBody = CommonUtil.readRequestAsChars(req);
-//            log.info("get create eip order:{}.", requestBody);
-//            EipReciveOrder eipReciveOrder =  JSON.parseObject(requestBody, EipReciveOrder.class);
-//            JSONObject result = bssApiService.onReciveCreateOrderResult(eipReciveOrder);
-//            //todo
-//            response.setStatus(HttpStatus.SC_OK);
-//            response.setContentType(HsConstants.APPLICATION_JSON);
-//            response.getWriter().write(result.toJSONString());
-//        }else if(method.equalsIgnoreCase(HsConstants.DELETE)  && req.getPathInfo().startsWith(orderUri)) {
-//            String requestBody = CommonUtil.readRequestAsChars(req);
-//            log.info("get delete eip order:{}.", requestBody);
-//            EipReciveOrder eipReciveOrder =  JSON.parseObject(requestBody, EipReciveOrder.class);
-//            JSONObject result = bssApiService.onReciveDeleteOrderResult(eipReciveOrder);
-//
-//            response.setStatus(HttpStatus.SC_OK);
-//            response.setContentType(HsConstants.APPLICATION_JSON);
-//            response.getWriter().write(result.toJSONString());
-//        }else if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().startsWith(orderUri) &&
-//                req.getPathInfo().length() == "/v1/orders/ff232e65-43bb-4ba4-ad43-f891cab7ce0a".length()) {
-//            String requestBody = CommonUtil.readRequestAsChars(req);
-//            String eipId = req.getPathInfo().substring("/v1/orders/".length());
-//            log.info("get update eip order:{}.", requestBody);
-//            EipReciveOrder eipReciveOrder = JSON.parseObject(requestBody, EipReciveOrder.class);
-//            JSONObject result = bssApiService.onReciveUpdateOrder(eipId, eipReciveOrder);
-//
-//            response.setStatus(HttpStatus.SC_OK);
-//            response.setContentType(HsConstants.APPLICATION_JSON);
-//            response.getWriter().write(result.toJSONString());
-//        }else if(method.equalsIgnoreCase(HsConstants.POST)  &&
-//                req.getPathInfo().equalsIgnoreCase("/v1/orders/softdown")){
-//
-//            String requestBody = CommonUtil.readRequestAsChars(req);
-//            log.info("get softdown eip order:{}.", requestBody);
-//            EipSoftDownOrder eipReciveOrder = JSON.parseObject(requestBody, EipSoftDownOrder.class);
-//            JSONObject result = bssApiService.onReciveSoftDownOrder(eipReciveOrder);
-//
-//            response.setStatus(HttpStatus.SC_OK);
-//            response.setContentType(HsConstants.APPLICATION_JSON);
-//            response.getWriter().write(result.toJSONString());
+        }else if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equals(orderUri)) {
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("get create eip order:{}.", requestBody);
+            EipReciveOrder eipReciveOrder =  JSON.parseObject(requestBody, EipReciveOrder.class);
+            JSONObject result = bssApiService.onReciveCreateOrderResult(eipReciveOrder);
+            //todo
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+        }else if(method.equalsIgnoreCase(HsConstants.DELETE)  && req.getPathInfo().startsWith(orderUri)) {
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("get delete eip order:{}.", requestBody);
+            EipReciveOrder eipReciveOrder =  JSON.parseObject(requestBody, EipReciveOrder.class);
+            JSONObject result = bssApiService.onReciveDeleteOrderResult(eipReciveOrder);
+
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+        }else if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().startsWith(orderUri) &&
+                req.getPathInfo().length() == "/v1/orders/ff232e65-43bb-4ba4-ad43-f891cab7ce0a".length()) {
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            String eipId = req.getPathInfo().substring("/v1/orders/".length());
+            log.info("get update eip order:{}.", requestBody);
+            EipReciveOrder eipReciveOrder = JSON.parseObject(requestBody, EipReciveOrder.class);
+            JSONObject result = bssApiService.onReciveUpdateOrder(eipId, eipReciveOrder);
+
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+        }else if(method.equalsIgnoreCase(HsConstants.POST)  &&
+                req.getPathInfo().equalsIgnoreCase("/v1/orders/softdown")){
+
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("get softdown eip order:{}.", requestBody);
+            EipSoftDownOrder eipReciveOrder = JSON.parseObject(requestBody, EipSoftDownOrder.class);
+            JSONObject result = bssApiService.onReciveSoftDownOrder(eipReciveOrder);
+
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
         }else if(method.equalsIgnoreCase(HsConstants.POST)  &&
                 req.getPathInfo().equalsIgnoreCase("/v1/loggers/com.inspur.eip")){
             String packages = req.getPathInfo().substring("/v1/loggers/".length());
