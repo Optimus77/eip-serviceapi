@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class SbwRecive implements Serializable {
+public class SbwCreateRecive implements Serializable {
     private String consoleOrderFlowId;
     private String orderStatus;
     private String statusTime;

@@ -52,7 +52,7 @@ public class SbwAtomService {
      * @return json
      */
     JSONObject atomUpdateSbw(String sbwId, SbwAllocateParam sbwConfig)  {
-        String url=sbwAtomUrl + "/v1/sbws/" +sbwId;
+        String url=sbwAtomUrl + "/v1/sbws/" +sbwId+"/update";
         ReturnResult response = null;
         try {
             SbwAllocateParamWrapper eipConfigWrapper =  new SbwAllocateParamWrapper();

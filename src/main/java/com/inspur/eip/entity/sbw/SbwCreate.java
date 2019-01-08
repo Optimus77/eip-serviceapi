@@ -25,5 +25,5 @@ public class SbwCreate{
     private JSONObject consoleCustomization;
     private String totalMoney;
     private List<SbwProduct> productList;
-    private List<String> originalProductList;
+    private List<SbwProduct> originalProductList;
 }

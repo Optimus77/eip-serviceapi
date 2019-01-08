@@ -2,7 +2,7 @@ package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.*;
-import com.inspur.eip.entity.sbw.SbwRecive;
+import com.inspur.eip.entity.sbw.SbwCreateRecive;
 import com.inspur.eip.entity.sbw.SbwResult;
 import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
@@ -140,11 +140,11 @@ class WebControllerService {
     /**
      * sbw webSocket
      * @param sbwId
-     * @param sbwRecive
+     * @param sbwCreateRecive
      * @param type
      */
-    void returnSbwWebsocket(String sbwId, SbwRecive sbwRecive, String type){
-        if ("console".equals(sbwRecive.getReturnConsoleMessage().getOrderSource())){
+    void returnSbwWebsocket(String sbwId, SbwCreateRecive sbwCreateRecive, String type){
+        if ("console".equals(sbwCreateRecive.getReturnConsoleMessage().getOrderSource())){
             try {
                 SendMQEIP sendMQEIP = new SendMQEIP();
                 sendMQEIP.setUserName(CommonUtil.getUsername());
@@ -163,7 +163,7 @@ class WebControllerService {
                 e.printStackTrace();
             }
         }else {
-            log.info("Wrong source of order",sbwRecive.getReturnConsoleMessage().getOrderSource());
+            log.info("Wrong source of order", sbwCreateRecive.getReturnConsoleMessage().getOrderSource());
         }
     }
 
