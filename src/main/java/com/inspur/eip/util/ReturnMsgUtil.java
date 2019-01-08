@@ -4,7 +4,7 @@ import com.inspur.eip.entity.ReturnMsg;
 
 public class ReturnMsgUtil {
     public static <T> ReturnMsg success(T t) {
-        return ReturnMsg.builder().data(t).build();
+        return ReturnMsg.builder().eip(t).build();
     }
 
 

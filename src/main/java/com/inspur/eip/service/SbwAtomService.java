@@ -16,7 +16,7 @@ public class SbwAtomService {
     private String sbwAtomUrl;
 
     JSONObject atomCreateSbw(SbwAllocateParamWrapper wrapper) {
-        String url = sbwAtomUrl + "/v1/sbws/";
+        String url = sbwAtomUrl + "/eip/v1/sbws/";
         ReturnResult response = null;
         try {
             String orderStr = JSONObject.toJSONString(wrapper);
@@ -34,7 +34,7 @@ public class SbwAtomService {
      * @return json
      */
     JSONObject atomDeleteSbw(String  sbwId)  {
-        String url=sbwAtomUrl + "/v1/sbws/"+sbwId;
+        String url=sbwAtomUrl + "/eip/v1/sbws/"+sbwId;
         ReturnResult response = null;
         try {
             log.info("Send order to url:{}, sbwId:{}", url, sbwId);
@@ -44,4 +44,57 @@ public class SbwAtomService {
         }
         return CommonUtil.handlerResopnse(response);
     }
+
+//
+//    public JSONObject listSbw(String pageIndex, String pageSize, String searchValue)  {
+//        String url=sbwAtomUrl + "/eip/v1/sbws?"+"pageIndex="+pageIndex+"&pageSize="+pageSize+"&searchValue="+searchValue;
+//        ReturnResult response = null;
+//        try {
+//            log.info("Send order to url:{}", url);
+//            response = HttpUtil.get(url, null);
+//        }catch (Exception e){
+//            log.error("list sbw exception", e);
+//        }
+//        return CommonUtil.handlerResopnse(response);
+//    }
+//
+//
+//    public JSONObject getSbwByProjectId(String projectId)  {
+//        String url=sbwAtomUrl + "/eip/v1/sbws?"+"projectId="+projectId;
+//        ReturnResult response = null;
+//        try {
+//            log.info("Send order to url:{}", url);
+//            response = HttpUtil.get(url, null);
+//        }catch (Exception e){
+//            log.error("list sbw exception", e);
+//        }
+//        return CommonUtil.handlerResopnse(response);
+//    }
+//
+//
+//
+//    public JSONObject getSbwDetail(String id)  {
+//        String url=sbwAtomUrl + "/eip/v1/sbws/"+id;
+//        ReturnResult response = null;
+//        try {
+//            log.info("Send order to url:{}", url);
+//            response = HttpUtil.get(url, null);
+//        }catch (Exception e){
+//            log.error("list sbw exception", e);
+//        }
+//        return CommonUtil.handlerResopnse(response);
+//    }
+//
+//
+//    public JSONObject getSbwCount()  {
+//        String url=sbwAtomUrl + "/eip/v1/sbwnumbers";
+//        ReturnResult response = null;
+//        try {
+//            log.info("Send order to url:{}", url);
+//            response = HttpUtil.get(url, null);
+//        }catch (Exception e){
+//            log.error("list sbw exception", e);
+//        }
+//        return CommonUtil.handlerResopnse(response);
+//    }
 }

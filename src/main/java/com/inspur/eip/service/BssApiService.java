@@ -30,7 +30,7 @@ public class BssApiService {
     private WebControllerService webControllerService;
 
     @Autowired
-    private EipAtomService sbwAtomService;
+    private SbwAtomService sbwAtomService;
 
     //1.2.11	查询用户配额的接口 URL: http://117.73.2.105:8083/crm/quota
     @Value("${bssurl.quotaUrl}")
@@ -435,7 +435,7 @@ public class BssApiService {
             if((null == returnResult) || (!returnResult.isSuccess())) {
                 if ((null != createRet) && (createRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK)) {
                     log.error("Delete the allocate sbw just now for mq message error, id:{}", sbwId);
-                    sbwAtomService.atomDeleteEip(sbwId);
+                    sbwAtomService.atomDeleteSbw(sbwId);
                 }
             }
         }
@@ -475,7 +475,7 @@ public class BssApiService {
                 for (SbwProduct product : productList) {
                     sbwId = product.getInstanceId();
                 }
-                JSONObject delResult = eipAtomService.atomDeleteSbw(sbwId);
+                JSONObject delResult = sbwAtomService.atomDeleteSbw(sbwId);
 
                 if (delResult.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK) {
                     //Return message to the front des
@@ -504,9 +504,9 @@ public class BssApiService {
 
     /**
      * update the sbw config,incloud bandWidth and eip
-     * @param sbwId
-     * @param recive
-     * @return
+     * @param sbwId id
+     * @param recive info recived
+     * @return ret
      */
     public JSONObject updateSbwConfig(String sbwId ,SbwRecive recive){
 

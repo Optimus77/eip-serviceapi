@@ -653,11 +653,15 @@ public class ProxyServlet extends HttpServlet {
     private String rewriteUrlFromRequest(HttpServletRequest servletRequest) {
         StringBuilder uri = new StringBuilder(500);
         uri.append(getTargetUri(servletRequest));
+
         // Handle the path given to the servlet
         String pathInfo = servletRequest.getPathInfo();
-        if (pathInfo != null) {//ex: /my/path.html
+        String reuestUri = servletRequest.getRequestURI();
+        //log.info("path:{}", pathInfo);
+        log.info("request uri:{}", servletRequest.getRequestURI());
+        if (reuestUri != null) {//ex: /my/path.html
             // getPathInfo() returns decoded string, so we need encodeUriQuery to encode "%" characters
-            uri.append(encodeUriQuery(pathInfo, true));
+            uri.append(encodeUriQuery(reuestUri, true));
         }
         // Handle the query string & fragment
         String queryString = servletRequest.getQueryString();//ex:(following '?'): name=value&foo=bar#fragment

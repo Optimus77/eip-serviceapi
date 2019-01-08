@@ -8,6 +8,6 @@ import lombok.Data;
 public class ReturnMsg<T> {
     private String code;
     private String message;
-    private T data;
+    private T eip;
 
 }

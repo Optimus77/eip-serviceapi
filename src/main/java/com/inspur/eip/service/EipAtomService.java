@@ -3,7 +3,6 @@ package com.inspur.eip.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.EipAllocateParam;
 import com.inspur.eip.entity.EipAllocateParamWrapper;
-import com.inspur.eip.entity.sbw.SbwAllocateParamWrapper;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HttpUtil;
 import com.inspur.eip.util.ReturnResult;
@@ -23,7 +22,7 @@ public class EipAtomService {
      * @return json
      */
     JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig) {
-        String url = eipAtomUrl + "/v1/eips/";
+        String url = eipAtomUrl + "/eip/v1/eips/";
         ReturnResult response = null;
         try {
             String orderStr = JSONObject.toJSONString(eipConfig);
@@ -41,7 +40,7 @@ public class EipAtomService {
      * @return json
      */
     JSONObject atomDeleteEip(String  eipId)  {
-        String url=eipAtomUrl + "/v1/eips/"+eipId;
+        String url=eipAtomUrl + "/eip/v1/eips/"+eipId;
         ReturnResult response = null;
         try {
             log.info("Send order to url:{}, eipId:{}", url, eipId);
@@ -51,22 +50,7 @@ public class EipAtomService {
         }
         return CommonUtil.handlerResopnse(response);
     }
-/**
-     * delete
-     * @param sbwId id
-     * @return json
-     */
-    JSONObject atomDeleteSbw(String  sbwId)  {
-        String url=eipAtomUrl + "/v1/sbws/"+sbwId;
-        ReturnResult response = null;
-        try {
-            log.info("Send order to url:{}, sbwId:{}", url, sbwId);
-            response = HttpUtil.delete(url, null);
-        }catch (Exception e){
-            log.error("Atom delete sbw exception", e);
-        }
-        return CommonUtil.handlerResopnse(response);
-    }
+
 
     /**
      * update
@@ -75,7 +59,7 @@ public class EipAtomService {
      * @return json
      */
     JSONObject atomRenewEip(String eipId, EipAllocateParam eipConfig)  {
-        String url=eipAtomUrl + "/v1/eips/" +eipId +"/renew";
+        String url=eipAtomUrl + "/eip/v1/eips/" +eipId +"/renew";
         ReturnResult response = null;
         try {
 
@@ -95,7 +79,7 @@ public class EipAtomService {
      * @return json
      */
     JSONObject atomUpdateEip(String eipId, EipAllocateParam eipConfig)  {
-        String url=eipAtomUrl + "/v1/eips/" +eipId;
+        String url=eipAtomUrl + "/eip/v1/eips/" +eipId;
         ReturnResult response = null;
         try {
             EipAllocateParamWrapper eipConfigWrapper =  new EipAllocateParamWrapper();
@@ -116,7 +100,7 @@ public class EipAtomService {
      */
     JSONObject getEipEntityById(String eipId){
 
-        String  uri =eipAtomUrl+ "/v1/eips/"+eipId;
+        String  uri =eipAtomUrl+ "/eip/v1/eips/"+eipId;
         ReturnResult response = null;
         try {
             log.info(uri);
@@ -126,18 +110,45 @@ public class EipAtomService {
         }
         return  CommonUtil.handlerResopnse(response);
     }
+//
+//    public ReturnResult getServerList(String region, String tag){
+//
+//        String  uri =eipAtomUrl+ "/eip/v1/servers?region="+region+"&tag="+tag;
+//        ReturnResult response = null;
+//        try {
+//            log.info(uri);
+//            response = HttpUtil.get(uri, null);
+//        }catch (Exception e){
+//            log.error("Get eip by id exception", e);
+//        }
+//        return  response;
+//    }
+//
+//
+//    public ReturnResult getEipNumbers(){
+//
+//        String  uri =eipAtomUrl+ "/eip/v1/numbers";
+//        ReturnResult response = null;
+//        try {
+//            log.info(uri);
+//            response = HttpUtil.get(uri, null);
+//        }catch (Exception e){
+//            log.error("Get eip by id exception", e);
+//        }
+//        return  response;
+//    }
+//
+//    public ReturnResult delEipList(EipDelParam param){
+//
+//        String  uri =eipAtomUrl+ "/eip/v1/deleiplist";
+//        ReturnResult response = null;
+//        try {
+//            response = HttpUtil.post(uri, null, param.toString());
+//        }catch (Exception e){
+//            log.error("Get eip by id exception", e);
+//        }
+//        return response;
+//    }
 
-    JSONObject atomCreateSbw(SbwAllocateParamWrapper wrapper) {
-        String url = eipAtomUrl + "/v1/sbws/";
-        ReturnResult response = null;
-        try {
-            String orderStr = JSONObject.toJSONString(wrapper);
-            log.info("Send order to url:{}, body:{}", url, orderStr);
-            response = HttpUtil.post(url, null, orderStr);
-        }catch (Exception e){
-            log.error("Create sbw exception", e);
-        }
-        return CommonUtil.handlerResopnse(response);
-    }
 
 }
