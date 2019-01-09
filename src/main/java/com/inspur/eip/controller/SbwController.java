@@ -23,10 +23,10 @@ import javax.validation.Valid;
 
 
 @Slf4j
-@RestController
-@RequestMapping(value= "/v1", produces={"application/json;charset=UTF-8"})
-@Api(value = "/v1", description = "sbw API")
-@Validated
+//@RestController
+//@RequestMapping(value= "/v1", produces={"application/json;charset=UTF-8"})
+//@Api(value = "/v1", description = "sbw API")
+//@Validated
 public class SbwController {
 
     @Autowired

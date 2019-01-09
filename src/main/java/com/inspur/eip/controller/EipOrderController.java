@@ -13,12 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
+//
 @Slf4j
-@RestController
-@RequestMapping(value= "/v1", produces={"application/json;charset=UTF-8"})
-@Api(value = "/v1", description = "eip API")
-@Validated
+//@RestController
+//@RequestMapping(value= "/v1", produces={"application/json;charset=UTF-8"})
+//@Api(value = "/v1", description = "eip API")
+//@Validated
 public class EipOrderController {
 
     @Autowired
