@@ -44,7 +44,7 @@ public class BillFilter implements Filter {
         HttpServletResponse response=(HttpServletResponse)servletResponse;
         String method =  req.getMethod();
         String orderUri = "/v1/orders";
-
+        log.info("requtst:{}, {}",method ,  req.getPathInfo());
         if (req.getHeader("authorization") == null) {
             log.info("get authorization is null ");
             JSONObject result = new JSONObject();
@@ -122,38 +122,38 @@ public class BillFilter implements Filter {
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result);
-//        }else  if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equals(HsConstants.SBW_URI)){
-//            String requestBody = CommonUtil.readRequestAsChars(req);
-//            log.info("create shareBandWidth order:{}.",requestBody);
-//            SbwRecive sharedBandWidthRecive =  JSON.parseObject(requestBody, SbwRecive.class);
-//            log.info("shareBandWidth sharedBandWidthRecive:{}.",sharedBandWidthRecive.toString());
-//            JSONObject result = bssApiService.createShareBandWidth(sharedBandWidthRecive);
-//            //todo
-//            response.setStatus(HttpStatus.SC_OK);
-//            response.setContentType(HsConstants.APPLICATION_JSON);
-//            response.getWriter().write(result.toJSONString());
-//        }else if (method.equalsIgnoreCase(HsConstants.DELETE)  &&req.getPathInfo().startsWith(HsConstants.SBW_URI) &&
-//                req.getPathInfo().length() == HsConstants.SBW_URI_ID_LENGTH.length()){
-//            String requestBody = CommonUtil.readRequestAsChars(req);
-//            log.info("delete shareBandWidth:{}.",requestBody);
-//
-//            SbwRecive sbwRecive = JSON.parseObject(requestBody, SbwRecive.class);
-//            JSONObject result = bssApiService.deleteShareBandWidth(sbwRecive);
-//            response.setStatus(HttpStatus.SC_OK);
-//            response.setContentType(HsConstants.APPLICATION_JSON);
-//            response.getWriter().write(result.toJSONString());
-//
-//        }else if (method.equalsIgnoreCase(HsConstants.POST)  &&req.getPathInfo().startsWith(HsConstants.SBW_URI) &&
-//                req.getPathInfo().length() == HsConstants.SBW_URI_ID_LENGTH.length()){
-//            String requestBody = CommonUtil.readRequestAsChars(req);
-//            String sbwId = req.getPathInfo().substring("/v1/sbws/".length());
-//            log.info("update sbw:{}.", requestBody);
-//            SbwRecive sbwRecive = JSON.parseObject(requestBody, SbwRecive.class);
-//            JSONObject result = bssApiService.updateSbwConfig(sbwId, sbwRecive);
-//
-//            response.setStatus(HttpStatus.SC_OK);
-//            response.setContentType(HsConstants.APPLICATION_JSON);
-//            response.getWriter().write(result.toJSONString());
+        }else  if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equals(HsConstants.SBW_URI)){
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("create shareBandWidth order:{}.",requestBody);
+            SbwRecive sharedBandWidthRecive =  JSON.parseObject(requestBody, SbwRecive.class);
+            log.info("shareBandWidth sharedBandWidthRecive:{}.",sharedBandWidthRecive.toString());
+            JSONObject result = bssApiService.createShareBandWidth(sharedBandWidthRecive);
+            //todo
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+        }else if (method.equalsIgnoreCase(HsConstants.DELETE)  &&req.getPathInfo().startsWith(HsConstants.SBW_URI) &&
+                req.getPathInfo().length() == HsConstants.SBW_URI_ID_LENGTH.length()){
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("delete shareBandWidth:{}.",requestBody);
+
+            SbwRecive sbwRecive = JSON.parseObject(requestBody, SbwRecive.class);
+            JSONObject result = bssApiService.deleteShareBandWidth(sbwRecive);
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+
+        }else if (method.equalsIgnoreCase(HsConstants.POST)  &&req.getPathInfo().startsWith(HsConstants.SBW_URI) &&
+                req.getPathInfo().length() == HsConstants.SBW_URI_ID_LENGTH.length()){
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            String sbwId = req.getPathInfo().substring("/v1/sbws/".length());
+            log.info("update sbw:{}.", requestBody);
+            SbwRecive sbwRecive = JSON.parseObject(requestBody, SbwRecive.class);
+            JSONObject result = bssApiService.updateSbwConfig(sbwId, sbwRecive);
+
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
         }else {
             filterChain.doFilter(servletRequest, servletResponse);
         }

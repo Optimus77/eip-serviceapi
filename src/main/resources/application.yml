@@ -58,7 +58,8 @@ mq:
   webSocket:   https://service.10.110.25.123.xip.io/console/websocket/v1/messages
 
 proxy:
-  servlet_url: /v1/eips/*
+#  servlet_url: /v1/eips/*
+  servlet_url: /*
   logging_enabled: true
   target_url:  http://eip-atom.10.110.25.123.xip.io/
 #  target_url:  http://127.0.0.1:8088/eip

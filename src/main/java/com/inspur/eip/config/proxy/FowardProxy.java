@@ -30,6 +30,9 @@ public class FowardProxy   {
         ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(proxyServlet, servletUrl);
         servletRegistrationBean.addInitParameter(ProxyServlet.P_TARGET_URI, targetUrl);
         servletRegistrationBean.addInitParameter(ProxyServlet.P_LOG, loggingEnabled);
+        servletRegistrationBean.setName("eipproxy");
+//        servletRegistrationBean.addUrlMappings("/v1/sbws");
+        servletRegistrationBean.setLoadOnStartup(999);
         return servletRegistrationBean;
     }
 
