@@ -182,7 +182,7 @@ public class BssApiService {
      * @param eipOrder order
      * @return string
      */
-    public JSONObject onReciveUpdateOrder(String eipId, EipReciveOrder eipOrder) {
+    public JSONObject  onReciveUpdateOrder(String eipId, EipReciveOrder eipOrder) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
 
@@ -387,7 +387,7 @@ public class BssApiService {
      * get create shareband result
      * @return return message
      */
-    public JSONObject createShareBandWidth(SbwRecive sbwRecive) {
+    public JSONObject createShareBandWidth(SbwCreateRecive sbwCreateRecive) {
 
         String code;
         String msg;
@@ -395,9 +395,8 @@ public class BssApiService {
         JSONObject createRet = null;
         ReturnResult returnResult = null;
         try {
-             SbwCreate message = sbwRecive.getReturnConsoleMessage();
-            if(sbwRecive.getOrderStatus().equals(HsConstants.PAYSUCCESS) ) {
-                SbwAllocateParam sbwConfig = getSbwConfigByOrder(sbwRecive);
+            if(sbwCreateRecive.getOrderStatus().equals(HsConstants.PAYSUCCESS) ) {
+                SbwAllocateParam sbwConfig = getSbwConfigByOrder(sbwCreateRecive);
                 ReturnMsg checkRet = preSbwCheckParam(sbwConfig);
                 if(checkRet.getCode().equals(ReturnStatus.SC_OK)){
                     //post request to atom
@@ -410,11 +409,11 @@ public class BssApiService {
                         retStr = HsConstants.FAIL;
                         log.info("create sbw failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     }else{
-                        JSONObject eipEntity = createRet.getJSONObject("sbw");
-                        sbwId = eipEntity.getString("sbwid");
-                        webControllerService.returnSbwWebsocket(eipEntity.getString("sbwid"),sbwRecive,"create");
+                        JSONObject sbwEntity = createRet.getJSONObject("sbw");
+                        sbwId = sbwEntity.getString("sbwid");
+                        webControllerService.returnSbwWebsocket(sbwEntity.getString("sbwid"), sbwCreateRecive,"create");
                     }
-                    returnResult = webControllerService.resultSbwReturnMq(getSbwResult(sbwRecive, sbwId, retStr));
+                    returnResult = webControllerService.resultSbwReturnMq(getSbwResult(sbwCreateRecive, sbwId, retStr));
 
                     return createRet;
                 } else {
@@ -439,7 +438,7 @@ public class BssApiService {
                 }
             }
         }
-        webControllerService.resultSbwReturnMq(getSbwResult(sbwRecive, "",HsConstants.FAIL));
+        webControllerService.resultSbwReturnMq(getSbwResult(sbwCreateRecive, "",HsConstants.FAIL));
         JSONObject result = new JSONObject();
         result.put("code", code);
         result.put("msg", msg);
@@ -448,18 +447,18 @@ public class BssApiService {
 
     /**
      * delete result from bss
-     * @param sbwRecive order
+     * @param sbwCreateRecive order
      * @return string
      */
-    public JSONObject deleteShareBandWidth(SbwRecive sbwRecive) {
+    public JSONObject deleteShareBandWidth(SbwCreateRecive sbwCreateRecive) {
         String msg ;
         String code ;
         String sbwId = "0";
         JSONObject result = new JSONObject();
         try {
-            log.debug("Recive delete order:{}", JSONObject.toJSONString(sbwRecive));
-            SbwCreate message = sbwRecive.getReturnConsoleMessage();
-            if(sbwRecive.getOrderStatus().equals(HsConstants.CREATESUCCESS)  || message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+            log.debug("Recive delete order:{}", JSONObject.toJSONString(sbwCreateRecive));
+            SbwCreate message = sbwCreateRecive.getReturnConsoleMessage();
+            if(sbwCreateRecive.getOrderStatus().equals(HsConstants.CREATESUCCESS)  || message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
                 if (message.getConsoleCustomization().getString("chargemode") !=null &&
                         !message.getConsoleCustomization().getString("chargemode").equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)){
                     msg = "Failed to delete sbw isn't the sharebandWidth,chargemode: {}"+message.getConsoleCustomization().getString("chargemode");
@@ -469,8 +468,9 @@ public class BssApiService {
                     result.put("msg", msg);
                     return result;
                 }
-                SbwAllocateParam allocateParam = getSbwConfigByOrder(sbwRecive);
-                sbwId = allocateParam.getConsoleCustomization().getString("sbwId");
+                SbwAllocateParam allocateParam = getSbwConfigByOrder(sbwCreateRecive);
+//                sbwId = allocateParam.getConsoleCustomization().getString("sbwId");
+                // todo :delete sbwId from Console
                 List<SbwProduct> productList = message.getProductList();
                 for (SbwProduct product : productList) {
                     sbwId = product.getInstanceId();
@@ -479,15 +479,15 @@ public class BssApiService {
 
                 if (delResult.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK) {
                     //Return message to the front des
-                    webControllerService.returnSbwWebsocket(sbwId, sbwRecive, "delete");
-                    webControllerService.resultSbwReturnMq(getSbwResult(sbwRecive, sbwId, HsConstants.SUCCESS));
+                    webControllerService.returnSbwWebsocket(sbwId, sbwCreateRecive, "delete");
+                    webControllerService.resultSbwReturnMq(getSbwResult(sbwCreateRecive, sbwId, HsConstants.SUCCESS));
                     return delResult;
                 } else {
                     msg = delResult.getString(HsConstants.STATUSCODE);
                     code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 }
             }else{
-                msg = "Failed to delete eip,failed to create delete. orderStatus: "+sbwRecive.getOrderStatus();
+                msg = "Failed to delete eip,failed to create delete. orderStatus: "+ sbwCreateRecive.getOrderStatus();
                 code = ReturnStatus.SC_PARAM_UNKONWERROR;
                 log.error(msg);
             }
@@ -496,7 +496,7 @@ public class BssApiService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
-        webControllerService.resultSbwReturnMq(getSbwResult(sbwRecive, sbwId,HsConstants.FAIL));
+        webControllerService.resultSbwReturnMq(getSbwResult(sbwCreateRecive, sbwId,HsConstants.FAIL));
         result.put("code", code);
         result.put("msg", msg);
         return result;
@@ -508,24 +508,63 @@ public class BssApiService {
      * @param recive info recived
      * @return ret
      */
-    public JSONObject updateSbwConfig(String sbwId ,SbwRecive recive){
+    public JSONObject updateSbwConfig(String sbwId , SbwCreateRecive recive){
+        String msg = "";
+        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
 
-        return null;
+        try {
+            log.info("Recive update sbw:{}", JSONObject.toJSONString(recive));
+            SbwCreate message = recive.getReturnConsoleMessage();
+            if(recive.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
+                    message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                SbwAllocateParam sbwUpdate = getSbwConfigByOrder(recive);
+                JSONObject updateRet;
+                if(message.getOrderType().equalsIgnoreCase("changeConfigure")){
+                    updateRet = sbwAtomService.atomUpdateSbw(sbwId, sbwUpdate);
+                }else if(message.getOrderType().equalsIgnoreCase("renew")){
+                    updateRet = sbwAtomService.atomRenewSbw(sbwId, sbwUpdate);
+                }else{
+                    log.error("Not support order type:{}", message.getOrderType());
+                    updateRet = CommonUtil.handlerResopnse(null);
+                }
+                String retStr = HsConstants.SUCCESS;
+                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK){
+                    retStr = HsConstants.FAIL;
+                }
+
+                log.info("renew order result :{}",updateRet);
+                webControllerService.returnSbwWebsocket(sbwId, recive, "update");
+                webControllerService.resultSbwReturnMq(getSbwResult(recive,"",retStr));
+                return updateRet;
+            }
+        }catch (Exception e){
+            log.error("Exception in update eip", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        webControllerService.resultSbwReturnMq(getSbwResult(recive,sbwId,HsConstants.FAIL));
+        JSONObject result = new JSONObject();
+        result.put("code", code);
+        result.put("msg", msg);
+        return result;
     }
     /**
      * get eip config from order
      * @return eip param
      */
-    private SbwAllocateParam getSbwConfigByOrder(SbwRecive sbwRecive){
+    private SbwAllocateParam getSbwConfigByOrder(SbwCreateRecive sbwCreateRecive){
         SbwAllocateParam sbwAllocatePram = new SbwAllocateParam();
-        sbwAllocatePram.setDuration(sbwRecive.getReturnConsoleMessage().getDuration());
-        sbwAllocatePram.setDurationUnit(sbwRecive.getReturnConsoleMessage().getDurationUnit());
-        sbwAllocatePram.setChargemode(sbwRecive.getReturnConsoleMessage().getConsoleCustomization().getString("chargemode"));
-        sbwAllocatePram.setBandwidth(Integer.parseInt(sbwRecive.getReturnConsoleMessage().getProductList().get(0).getItemList().get(0).getValue()));
-        List<SbwProduct> productList = sbwRecive.getReturnConsoleMessage().getProductList();
+        JSONObject customization = sbwCreateRecive.getReturnConsoleMessage().getConsoleCustomization();
+        sbwAllocatePram.setDuration(sbwCreateRecive.getReturnConsoleMessage().getDuration());
+        sbwAllocatePram.setDurationUnit(sbwCreateRecive.getReturnConsoleMessage().getDurationUnit());
+        sbwAllocatePram.setChargemode(customization.getString("chargemode"));
+        sbwAllocatePram.setBandwidth(Integer.parseInt(sbwCreateRecive.getReturnConsoleMessage().getProductList().get(0).getItemList().get(0).getValue()));
+        sbwAllocatePram.setSbwName(customization.getString("sharedbandwidthname"));
+        sbwAllocatePram.setMethod(customization.getString("method"));
 
-        sbwAllocatePram.setBillType(sbwRecive.getReturnConsoleMessage().getBillType());
-        sbwAllocatePram.setConsoleCustomization(sbwRecive.getReturnConsoleMessage().getConsoleCustomization());
+        List<SbwProduct> productList = sbwCreateRecive.getReturnConsoleMessage().getProductList();
+
+        sbwAllocatePram.setBillType(sbwCreateRecive.getReturnConsoleMessage().getBillType());
         for(SbwProduct sbwProduct: productList){
             if(!sbwProduct.getProductLineCode().equalsIgnoreCase(HsConstants.SBW)){
                 continue;
@@ -545,8 +584,8 @@ public class BssApiService {
         return sbwAllocatePram;
     }
 
-    private   SbwResult getSbwResult(SbwRecive sbwRecive, String sbwId, String result){
-        SbwCreate sbwCreate = sbwRecive.getReturnConsoleMessage();
+    private   SbwResult getSbwResult(SbwCreateRecive sbwCreateRecive, String sbwId, String result){
+        SbwCreate sbwCreate = sbwCreateRecive.getReturnConsoleMessage();
         List<SbwProduct> productList = sbwCreate.getProductList();
 
         for(SbwProduct sbwProduct: productList){
@@ -557,12 +596,12 @@ public class BssApiService {
 
         SbwResult sbwResult = new SbwResult();
         sbwResult.setUserId(sbwCreate.getUserId());
-        sbwResult.setConsoleOrderFlowId(sbwRecive.getConsoleOrderFlowId());
-        sbwResult.setOrderId(sbwRecive.getOrderId());
+        sbwResult.setConsoleOrderFlowId(sbwCreateRecive.getConsoleOrderFlowId());
+        sbwResult.setOrderId(sbwCreateRecive.getOrderId());
 
         List<SbwResultProduct> sbwResultProducts = new ArrayList<>();
         SbwResultProduct sbwResultProduct = new SbwResultProduct();
-        sbwResultProduct.setOrderDetailFlowId(sbwRecive.getOrderDetailFlowIdList().get(0));
+        sbwResultProduct.setOrderDetailFlowId(sbwCreateRecive.getOrderDetailFlowIdList().get(0));
         sbwResultProduct.setProductSetStatus(result);
         sbwResultProduct.setBillType(sbwCreate.getBillType());
         sbwResultProduct.setDuration(sbwCreate.getDuration());
