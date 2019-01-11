@@ -35,7 +35,7 @@ public class SbwAtomService {
      * @return json
      */
     JSONObject atomDeleteSbw(String  sbwId)  {
-        String url=sbwAtomUrl + "/v1/sbws/"+sbwId;
+        String url=sbwAtomUrl + "eip/v1/sbws/"+sbwId;
         ReturnResult response = null;
         try {
             log.info("Send config to url:{}, sbwId:{}", url, sbwId);
@@ -52,7 +52,7 @@ public class SbwAtomService {
      * @return json
      */
     JSONObject atomUpdateSbw(String sbwId, SbwAllocateParam sbwConfig)  {
-        String url=sbwAtomUrl + "/v1/sbws/" +sbwId+"/update";
+        String url=sbwAtomUrl + "eip/v1/sbws/" +sbwId+"/update";
         ReturnResult response = null;
         try {
             SbwAllocateParamWrapper eipConfigWrapper =  new SbwAllocateParamWrapper();
@@ -74,7 +74,7 @@ public class SbwAtomService {
      * @return json
      */
     JSONObject atomRenewSbw(String sbwId, SbwAllocateParam sbwConfig)  {
-        String url=sbwAtomUrl + "/v1/sbws/" +sbwId +"/renew";
+        String url=sbwAtomUrl + "eip/v1/sbws/" +sbwId +"/renew";
         ReturnResult response = null;
         try {
             String orderStr = JSONObject.toJSONString(sbwConfig);
