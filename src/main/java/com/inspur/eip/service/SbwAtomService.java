@@ -17,7 +17,7 @@ public class SbwAtomService {
     private String sbwAtomUrl;
 
     JSONObject atomCreateSbw(SbwAllocateParamWrapper wrapper) {
-        String url = sbwAtomUrl + "/v1/sbws/";
+        String url = sbwAtomUrl + "eip/v1/sbws/";
         ReturnResult response = null;
         try {
             String orderStr = JSONObject.toJSONString(wrapper);
