@@ -7,8 +7,15 @@ import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HttpUtil;
 import com.inspur.eip.util.ReturnResult;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.protocol.HTTP;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -16,6 +23,10 @@ public class EipAtomService {
 
     @Value("${proxy.target_url}")
     private String eipAtomUrl;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
     /**
      * create
      * @param eipConfig config
@@ -110,45 +121,5 @@ public class EipAtomService {
         }
         return  CommonUtil.handlerResopnse(response);
     }
-//
-//    public ReturnResult getServerList(String region, String tag){
-//
-//        String  uri =eipAtomUrl+ "/eip/v1/servers?region="+region+"&tag="+tag;
-//        ReturnResult response = null;
-//        try {
-//            log.info(uri);
-//            response = HttpUtil.get(uri, null);
-//        }catch (Exception e){
-//            log.error("Get eip by id exception", e);
-//        }
-//        return  response;
-//    }
-//
-//
-//    public ReturnResult getEipNumbers(){
-//
-//        String  uri =eipAtomUrl+ "/eip/v1/numbers";
-//        ReturnResult response = null;
-//        try {
-//            log.info(uri);
-//            response = HttpUtil.get(uri, null);
-//        }catch (Exception e){
-//            log.error("Get eip by id exception", e);
-//        }
-//        return  response;
-//    }
-//
-//    public ReturnResult delEipList(EipDelParam param){
-//
-//        String  uri =eipAtomUrl+ "/eip/v1/deleiplist";
-//        ReturnResult response = null;
-//        try {
-//            response = HttpUtil.post(uri, null, param.toString());
-//        }catch (Exception e){
-//            log.error("Get eip by id exception", e);
-//        }
-//        return response;
-//    }
-
 
 }
