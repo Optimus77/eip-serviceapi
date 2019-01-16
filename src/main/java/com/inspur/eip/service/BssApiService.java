@@ -192,7 +192,7 @@ public class BssApiService {
 
             if((null != message) && (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
                     message.getBillType().equals(HsConstants.HOURLYSETTLEMENT))) {
-                EipAllocateParam eipUpdate = getEipConfigByOrder(eipOrder);
+                EipUpdateParam eipUpdate = getUpdatParmByOrder(eipOrder);
                 JSONObject updateRet;
                 if(message.getOrderType().equalsIgnoreCase("changeConfigure")){
                     updateRet = eipAtomService.atomUpdateEip(eipId, eipUpdate);
@@ -243,7 +243,7 @@ public class BssApiService {
                     updateRet = eipAtomService.atomDeleteEip(eipSoftDownInstance.getInstanceId());
                     instanceStatus = "DELETED";
                 }else if("stopServer".equalsIgnoreCase(operateType)) {
-                    EipAllocateParam updateParam = new EipAllocateParam();
+                    EipUpdateParam updateParam = new EipUpdateParam();
                     updateParam.setDuration("0");
                     instanceStatus = "DOWN";
                     updateRet = eipAtomService.atomRenewEip(eipSoftDownInstance.getInstanceId(), updateParam);
@@ -297,12 +297,54 @@ public class BssApiService {
             List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
 
             for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
-                if(eipOrderProductItem.getCode().equalsIgnoreCase("bandwidth") &&
+                if(eipOrderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
                         eipOrderProductItem.getUnit().equals(HsConstants.M)){
                     eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
                 }else if(eipOrderProductItem.getCode().equals(HsConstants.PROVIDER) &&
                         eipOrderProductItem.getType().equals(HsConstants.IMPACTFACTOR)){
                     eipAllocateParam.setIptype(eipOrderProductItem.getValue());
+                }else if(eipOrderProductItem.getCode().equals(HsConstants.IS_SBW) &&
+                        eipOrderProductItem.getValue().equals(HsConstants.YES)){
+                    String sbwId = eipOrder.getReturnConsoleMessage().getConsoleCustomization().getString("sbwid");
+                    String chargeMode = eipOrder.getReturnConsoleMessage().getConsoleCustomization().getString("chargemode");
+                    eipAllocateParam.setSharedBandWidthId(sbwId);
+                    eipAllocateParam.setChargemode(chargeMode);
+                }
+            }
+        }
+        log.info("Get eip param from order:{}", eipAllocateParam.toString());
+        /*chargemode now use the default value */
+        return eipAllocateParam;
+    }
+
+    /**
+     * get eip config from order
+     * @param eipOrder order
+     * @return eip param
+     */
+    private  EipUpdateParam getUpdatParmByOrder(EipReciveOrder eipOrder){
+        EipUpdateParam eipAllocateParam = new EipUpdateParam();
+
+        List<EipOrderProduct> eipOrderProducts = eipOrder.getReturnConsoleMessage().getProductList();
+        eipAllocateParam.setDuration(eipOrder.getReturnConsoleMessage().getDuration());
+        eipAllocateParam.setBillType(eipOrder.getReturnConsoleMessage().getBillType());
+
+        for(EipOrderProduct eipOrderProduct: eipOrderProducts){
+            if(!eipOrderProduct.getProductLineCode().equals(HsConstants.EIP)){
+                continue;
+            }
+            List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
+
+            for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
+                if(eipOrderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
+                        eipOrderProductItem.getUnit().equals(HsConstants.M)){
+                    eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
+                }else if(eipOrderProductItem.getCode().equals(HsConstants.IS_SBW) &&
+                        eipOrderProductItem.getValue().equals(HsConstants.YES)){
+                    String sbwId = eipOrder.getReturnConsoleMessage().getConsoleCustomization().getString("sbwid");
+                    String chargeMode = eipOrder.getReturnConsoleMessage().getConsoleCustomization().getString("chargemode");
+                    eipAllocateParam.setSharedBandWidthId(sbwId);
+                    eipAllocateParam.setChargemode(chargeMode);
                 }
             }
         }

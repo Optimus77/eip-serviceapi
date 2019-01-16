@@ -6,6 +6,8 @@ public class HsConstants {
 	public static final String VRID = "1";
 	public static final String LANG = "zh_CN";
     public static final String VERSION_REST = "/v2.0";
+	public static final String IS_SBW = "is_SBW";
+	public static final String YES = "yes";
     public static final String PAYSUCCESS = "paySuccess";
 	public static final String CREATESUCCESS = "createSuccess";
     public static final String HOURLYSETTLEMENT = "hourlySettlement";

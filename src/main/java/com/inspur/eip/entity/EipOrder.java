@@ -25,5 +25,5 @@ public class EipOrder {
     private JSONObject consoleCustomization;
     private String totalMoney;
     private List<EipOrderProduct> productList;
-
+    private List<EipOrderProduct> originalProductList;
 }

@@ -7,6 +7,6 @@ import java.io.Serializable;
 
 @Getter
 @Setter
-public class EipAllocateParamWrapper implements Serializable {
-    private EipAllocateParam   eip;
+public class EipUpdateParamWrapper implements Serializable {
+    private EipUpdateParam   eip;
 }
