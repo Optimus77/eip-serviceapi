@@ -339,8 +339,7 @@ public class BssApiService {
                 if(eipOrderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
                         eipOrderProductItem.getUnit().equals(HsConstants.M)){
                     eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
-                }else if(eipOrderProductItem.getCode().equals(HsConstants.IS_SBW) &&
-                        eipOrderProductItem.getValue().equals(HsConstants.YES)){
+                }else if(eipOrderProductItem.getCode().equals(HsConstants.IS_SBW) ){
                     String sbwId = eipOrder.getReturnConsoleMessage().getConsoleCustomization().getString("sbwid");
                     String chargeMode = eipOrder.getReturnConsoleMessage().getConsoleCustomization().getString("chargemode");
                     eipAllocateParam.setSharedBandWidthId(sbwId);
