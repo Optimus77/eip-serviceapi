@@ -328,7 +328,7 @@ public class BssApiService {
         List<EipOrderProduct> eipOrderProducts = eipOrder.getReturnConsoleMessage().getProductList();
         eipAllocateParam.setDuration(eipOrder.getReturnConsoleMessage().getDuration());
         eipAllocateParam.setBillType(eipOrder.getReturnConsoleMessage().getBillType());
-
+        eipAllocateParam.setChargemode("Bandwidth");
         for(EipOrderProduct eipOrderProduct: eipOrderProducts){
             if(!eipOrderProduct.getProductLineCode().equals(HsConstants.EIP)){
                 continue;
@@ -341,9 +341,10 @@ public class BssApiService {
                     eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
                 }else if(eipOrderProductItem.getCode().equals(HsConstants.IS_SBW) ){
                     String sbwId = eipOrder.getReturnConsoleMessage().getConsoleCustomization().getString("sbwid");
-                    String chargeMode = eipOrder.getReturnConsoleMessage().getConsoleCustomization().getString("chargemode");
                     eipAllocateParam.setSharedBandWidthId(sbwId);
-                    eipAllocateParam.setChargemode(chargeMode);
+                    if(eipOrderProductItem.getValue().equalsIgnoreCase("yes")){
+                        eipAllocateParam.setChargemode("SharedBandwidth");
+                    }
                 }
             }
         }
