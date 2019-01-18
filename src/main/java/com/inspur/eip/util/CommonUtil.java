@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.EipAllocateParam;
 import com.inspur.eip.entity.ReturnMsg;
+import com.inspur.eip.entity.ReturnSbwMsg;
 import com.inspur.eip.entity.sbw.SbwAllocateParam;
 import lombok.Setter;
 
@@ -236,10 +237,10 @@ public class CommonUtil {
      * @param param
      * @return
      */
-    public static ReturnMsg preSbwCheckParam(SbwAllocateParam param){
+    public static ReturnSbwMsg preSbwCheckParam(SbwAllocateParam param){
         String errorMsg = " ";
         if(null == param){
-            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
+            return ReturnMsgUtil.errorSbw(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
         }
         if(param.getBandwidth()==0 || param.getBandwidth() > 2000|| param.getBandwidth()<5){
             errorMsg = "value must be 5-2000.";
@@ -260,10 +261,10 @@ public class CommonUtil {
         }
         if(errorMsg.equals(" ")) {
             log.info(errorMsg);
-            return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
+            return ReturnMsgUtil.errorSbw(ReturnStatus.SC_OK, errorMsg);
         }else {
             log.error(errorMsg);
-            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,errorMsg);
+            return ReturnMsgUtil.errorSbw(ReturnStatus.SC_PARAM_ERROR,errorMsg);
         }
     }
 }
