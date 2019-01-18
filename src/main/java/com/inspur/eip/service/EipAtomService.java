@@ -1,7 +1,6 @@
 package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eip.entity.EipAllocateParam;
 import com.inspur.eip.entity.EipAllocateParamWrapper;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.EipUpdateParamWrapper;

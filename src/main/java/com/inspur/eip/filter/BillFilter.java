@@ -44,7 +44,7 @@ public class BillFilter implements Filter {
         HttpServletResponse response=(HttpServletResponse)servletResponse;
         String method =  req.getMethod();
         String orderUri = "/v1/orders";
-        log.info("requtst:{}, {}",method ,  req.getPathInfo());
+        log.debug("requtst:{}, {}",method ,  req.getPathInfo());
         if (req.getHeader("authorization") == null) {
             log.info("get authorization is null ");
             JSONObject result = new JSONObject();
