@@ -439,7 +439,7 @@ public class BssApiService {
         try {
             if(sbwCreateRecive.getOrderStatus().equals(HsConstants.PAYSUCCESS) ) {
                 SbwAllocateParam sbwConfig = getSbwConfigByOrder(sbwCreateRecive);
-                ReturnMsg checkRet = preSbwCheckParam(sbwConfig);
+                ReturnSbwMsg checkRet = preSbwCheckParam(sbwConfig);
                 if(checkRet.getCode().equals(ReturnStatus.SC_OK)){
                     //post request to atom
                     SbwAllocateParamWrapper sbwWrapper = new SbwAllocateParamWrapper();
