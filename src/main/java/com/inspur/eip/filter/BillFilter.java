@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.EipReciveOrder;
 import com.inspur.eip.entity.EipSoftDownOrder;
+import com.inspur.eip.entity.sbw.SbwCreateRecive;
 import com.inspur.eip.service.BssApiService;
 import com.inspur.eip.service.EipServiceImpl;
 import com.inspur.eip.util.CommonUtil;
@@ -43,6 +44,7 @@ public class BillFilter implements Filter {
         HttpServletResponse response=(HttpServletResponse)servletResponse;
         String method =  req.getMethod();
         String orderUri = "/v1/orders";
+        log.debug("requtst:{}, {}",method ,  req.getPathInfo());
         if (req.getHeader("authorization") == null) {
             log.info("get authorization is null ");
             JSONObject result = new JSONObject();
@@ -120,7 +122,38 @@ public class BillFilter implements Filter {
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result);
-        } else {
+        }else  if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equals(HsConstants.SBW_URI)){
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("create sbw recive:{}.",requestBody);
+            SbwCreateRecive recive =  JSON.parseObject(requestBody, SbwCreateRecive.class);
+            JSONObject result = bssApiService.createShareBandWidth(recive);
+
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+        }else if (method.equalsIgnoreCase(HsConstants.DELETE)  &&req.getPathInfo().startsWith(HsConstants.SBW_URI) &&
+                req.getPathInfo().length() == HsConstants.SBW_URI_ID_LENGTH.length()){
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("delete shareBandWidth:{}.",requestBody);
+            SbwCreateRecive sbwCreateRecive = JSON.parseObject(requestBody, SbwCreateRecive.class);
+            JSONObject result = bssApiService.deleteShareBandWidth(sbwCreateRecive);
+
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+
+        }else if (method.equalsIgnoreCase(HsConstants.POST)  &&req.getPathInfo().startsWith(HsConstants.SBW_URI) &&
+                req.getPathInfo().length() == HsConstants.SBW_URI_ID_LENGTH.length()){
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            String sbwId = req.getPathInfo().substring("/v1/sbws/".length());
+            log.info("update sbw config:{}.", requestBody);
+            SbwCreateRecive sbwCreateRecive = JSON.parseObject(requestBody, SbwCreateRecive.class);
+            JSONObject result = bssApiService.updateSbwConfig(sbwId, sbwCreateRecive);
+
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+        }else {
             filterChain.doFilter(servletRequest, servletResponse);
         }
     }

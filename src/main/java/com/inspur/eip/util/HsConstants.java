@@ -6,6 +6,8 @@ public class HsConstants {
 	public static final String VRID = "1";
 	public static final String LANG = "zh_CN";
     public static final String VERSION_REST = "/v2.0";
+	public static final String IS_SBW = "is_SBW";
+	public static final String YES = "yes";
     public static final String PAYSUCCESS = "paySuccess";
 	public static final String CREATESUCCESS = "createSuccess";
     public static final String HOURLYSETTLEMENT = "hourlySettlement";
@@ -50,6 +52,13 @@ public class HsConstants {
 	public static final String REST_ZONE_AD = "/rest/zone_ad";
 	public static final String REST_ZONE_UPDATE = "?isTransaction=1&idfield=is_ipv6,type,name";
 	public static final String REST_ZONE_WLIST = "/rest/zone_whitelist?target=whitelist";
+	public static final String TIME_OUT = "106.801408";
+	//SBW
+	public static final String SBW = "SBW";
+	public static final String SBW_URI = "/v1/sbws";
+	public static final String SBW_URI_ID_LENGTH = "/v1/sbws/3344db1d-268e-42ee-9d7d-63c723c7aa46";
+	public static final String SBW_URI_SOFTDOWN = "/v1/sbws/softdown";
+
 
 	public static final String REST_IDPRULE = "/rest/idp_ruleset";
 	public static final String REST_IDPRULE_AD = "?target=http.virtual_host";
