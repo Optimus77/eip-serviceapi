@@ -50,7 +50,7 @@ public class HttpUtil {
         HttpGet httpGet = new HttpGet(url);
 
         RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(5000)
-                .setSocketTimeout(5000).setConnectTimeout(5000).build();
+                .setSocketTimeout(10000).setConnectTimeout(10000).build();
         httpGet.setConfig(requestConfig);
         if(null == header){
             header = getHeader();
@@ -84,7 +84,7 @@ public class HttpUtil {
             HttpPost httpPost = new HttpPost(url);
 
             RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(5000)
-                    .setSocketTimeout(5000).setConnectTimeout(5000).build();
+                    .setSocketTimeout(10000).setConnectTimeout(10000).build();
             httpPost.setConfig(requestConfig);
 
             Iterator<Map.Entry<String, String>> it = header.entrySet().iterator();
@@ -110,7 +110,7 @@ public class HttpUtil {
         HttpDelete httpDelete = new HttpDelete(url);
 
         RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(5000)
-                .setSocketTimeout(5000).setConnectTimeout(5000).build();
+                .setSocketTimeout(10000).setConnectTimeout(10000).build();
         httpDelete.setConfig(requestConfig);
         if(null == header){
             header = getHeader();
@@ -145,7 +145,7 @@ public class HttpUtil {
             HttpPut httpPut = new HttpPut(url);
 
             RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(5000)
-                    .setSocketTimeout(5000).setConnectTimeout(5000).build();
+                    .setSocketTimeout(10000).setConnectTimeout(10000).build();
             httpPut.setConfig(requestConfig);
 
             Iterator<Map.Entry<String, String>> it = header.entrySet().iterator();
