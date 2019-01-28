@@ -196,8 +196,8 @@ public class CommonUtil {
         if(null == param){
             return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
         }
-        if((0== param.getBandwidth()) || (param.getBandwidth() > 2000)){
-            errorMsg = "value must be 1-2000.";
+        if((0== param.getBandwidth()) || (param.getBandwidth() > 500)){
+            errorMsg = "value must be 1-500.";
         }
         if(null != param.getChargemode()) {
             if (!param.getChargemode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
@@ -242,8 +242,8 @@ public class CommonUtil {
         if(null == param){
             return ReturnMsgUtil.errorSbw(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
         }
-        if(param.getBandwidth()==0 || param.getBandwidth() > 200|| param.getBandwidth()<5){
-            errorMsg = "value must be 5-2000.";
+        if(param.getBandwidth()==0 || param.getBandwidth() > 500|| param.getBandwidth()<5){
+            errorMsg = "value must be 5-500.";
         }
         if(null != param.getChargemode()) {
             if (!param.getChargemode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
