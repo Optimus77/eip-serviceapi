@@ -49,8 +49,8 @@ public class HttpUtil {
     public static ReturnResult get(String url, Map<String,String > header) throws Exception{
         HttpGet httpGet = new HttpGet(url);
 
-        RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(3000)
-                .setSocketTimeout(3000).setConnectTimeout(3000).build();
+        RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(5000)
+                .setSocketTimeout(5000).setConnectTimeout(5000).build();
         httpGet.setConfig(requestConfig);
         if(null == header){
             header = getHeader();
@@ -83,8 +83,8 @@ public class HttpUtil {
             client = getCloseableHttpClient();
             HttpPost httpPost = new HttpPost(url);
 
-            RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(3000)
-                    .setSocketTimeout(3000).setConnectTimeout(3000).build();
+            RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(5000)
+                    .setSocketTimeout(5000).setConnectTimeout(5000).build();
             httpPost.setConfig(requestConfig);
 
             Iterator<Map.Entry<String, String>> it = header.entrySet().iterator();
@@ -109,8 +109,8 @@ public class HttpUtil {
     public static ReturnResult delete(String url, Map<String,String > header) throws Exception{
         HttpDelete httpDelete = new HttpDelete(url);
 
-        RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(3000)
-                .setSocketTimeout(3000).setConnectTimeout(3000).build();
+        RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(5000)
+                .setSocketTimeout(5000).setConnectTimeout(5000).build();
         httpDelete.setConfig(requestConfig);
         if(null == header){
             header = getHeader();
@@ -144,8 +144,8 @@ public class HttpUtil {
             client = getCloseableHttpClient();
             HttpPut httpPut = new HttpPut(url);
 
-            RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(3000)
-                    .setSocketTimeout(3000).setConnectTimeout(3000).build();
+            RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(5000)
+                    .setSocketTimeout(5000).setConnectTimeout(5000).build();
             httpPut.setConfig(requestConfig);
 
             Iterator<Map.Entry<String, String>> it = header.entrySet().iterator();
