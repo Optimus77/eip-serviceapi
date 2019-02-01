@@ -48,8 +48,8 @@ http:
 
 bssurl:
   ignoSSL: true
-  submitPay: http://117.73.2.105.xip.io/order/submitpay #  //1.2.8 订单接口POST
-  quotaUrl:    http://117.73.2.105.xip.io/crm/quota #//1.2.11	查询用户配额的接口
+  submitPay: http://117.73.2.105.xip.io:9080/order/submitpay #  //1.2.8 订单接口POST
+  quotaUrl:    http://117.73.2.105.xip.io:9080/crm/quota #//1.2.11	查询用户配额的接口
 mq:
 #hourlySettlement k8s服务
   returnMq:  http://service.10.110.25.123.xip.io/mq/v1/messages/productreturn
