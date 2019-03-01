@@ -238,14 +238,11 @@ public class BssApiService {
             List<EipSoftDownInstance> instanceList =  eipOrder.getInstanceList();
             for(EipSoftDownInstance eipSoftDownInstance: instanceList){
                 String operateType =  eipSoftDownInstance.getOperateType();
-                String instanceStatus;
                 if("delete".equalsIgnoreCase(operateType)) {
                     updateRet = eipAtomService.atomDeleteEip(eipSoftDownInstance.getInstanceId());
-                    instanceStatus = "DELETED";
                 }else if("stopServer".equalsIgnoreCase(operateType)) {
                     EipUpdateParam updateParam = new EipUpdateParam();
                     updateParam.setDuration("0");
-                    instanceStatus = "DOWN";
                     updateRet = eipAtomService.atomRenewEip(eipSoftDownInstance.getInstanceId(), updateParam);
                 }else{
                     continue;
@@ -254,10 +251,8 @@ public class BssApiService {
                 String retStr = HsConstants.SUCCESS;
                 if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()){
                     retStr = HsConstants.FAIL;
-                    instanceStatus = "ACTIVE";
                 }
                 eipSoftDownInstance.setResult(retStr);
-                eipSoftDownInstance.setInstanceStatus(instanceStatus);
                 eipSoftDownInstance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
                 log.info("Soft down result:{}", updateRet);
             }
@@ -284,7 +279,6 @@ public class BssApiService {
      */
     private  EipAllocateParam getEipConfigByOrder(EipReciveOrder eipOrder){
         EipAllocateParam eipAllocateParam = new EipAllocateParam();
-        eipAllocateParam.setDuration(eipOrder.getReturnConsoleMessage().getDuration());
         List<EipOrderProduct> eipOrderProducts = eipOrder.getReturnConsoleMessage().getProductList();
 
         eipAllocateParam.setBillType(eipOrder.getReturnConsoleMessage().getBillType());
@@ -297,11 +291,11 @@ public class BssApiService {
             List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
 
             for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
-                if(eipOrderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
-                        eipOrderProductItem.getUnit().equals(HsConstants.M)){
+                if(eipOrderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)
+                ){
                     eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
-                }else if(eipOrderProductItem.getCode().equals(HsConstants.PROVIDER) &&
-                        eipOrderProductItem.getType().equals(HsConstants.IMPACTFACTOR)){
+                }else if(eipOrderProductItem.getCode().equals(HsConstants.PROVIDER)
+                ){
                     eipAllocateParam.setIptype(eipOrderProductItem.getValue());
                 }else if(eipOrderProductItem.getCode().equals(HsConstants.IS_SBW) &&
                         eipOrderProductItem.getValue().equals(HsConstants.YES)){
@@ -326,7 +320,6 @@ public class BssApiService {
         EipUpdateParam eipAllocateParam = new EipUpdateParam();
 
         List<EipOrderProduct> eipOrderProducts = eipOrder.getReturnConsoleMessage().getProductList();
-        eipAllocateParam.setDuration(eipOrder.getReturnConsoleMessage().getDuration());
         eipAllocateParam.setBillType(eipOrder.getReturnConsoleMessage().getBillType());
         eipAllocateParam.setChargemode("Bandwidth");
         for(EipOrderProduct eipOrderProduct: eipOrderProducts){
@@ -336,8 +329,8 @@ public class BssApiService {
             List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
 
             for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
-                if(eipOrderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
-                        eipOrderProductItem.getUnit().equals(HsConstants.M)){
+                if(eipOrderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)
+                ){
                     eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
                 }else if(eipOrderProductItem.getCode().equals(HsConstants.IS_SBW) ){
                     String sbwId = eipOrder.getReturnConsoleMessage().getConsoleCustomization().getString("sbwid");
@@ -401,9 +394,7 @@ public class BssApiService {
         List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
 
         for(EipOrderProduct eipOrderProduct: eipOrderProducts){
-            eipOrderProduct.setInstanceStatus(result);
             eipOrderProduct.setInstanceId(eipId);
-            eipOrderProduct.setStatusTime(eipReciveOrder.getStatusTime());
         }
 
         EipOrderResult eipOrderResult = new EipOrderResult();
@@ -413,11 +404,7 @@ public class BssApiService {
 
         List<EipOrderResultProduct> eipOrderResultProducts = new ArrayList<>();
         EipOrderResultProduct eipOrderResultProduct = new EipOrderResultProduct();
-        eipOrderResultProduct.setOrderDetailFlowId(eipReciveOrder.getOrderDetailFlowIdList().get(0));
         eipOrderResultProduct.setProductSetStatus(result);
-        eipOrderResultProduct.setBillType(eipOrder.getBillType());
-        eipOrderResultProduct.setDuration(eipOrder.getDuration());
-        eipOrderResultProduct.setOrderType(eipOrder.getOrderType());
         eipOrderResultProduct.setProductList(eipOrder.getProductList());
 
 
@@ -597,8 +584,6 @@ public class BssApiService {
     private SbwAllocateParam getSbwConfigByOrder(SbwCreateRecive sbwCreateRecive){
         SbwAllocateParam sbwAllocatePram = new SbwAllocateParam();
         JSONObject customization = sbwCreateRecive.getReturnConsoleMessage().getConsoleCustomization();
-        sbwAllocatePram.setDuration(sbwCreateRecive.getReturnConsoleMessage().getDuration());
-        sbwAllocatePram.setDurationUnit(sbwCreateRecive.getReturnConsoleMessage().getDurationUnit());
         sbwAllocatePram.setChargemode(customization.getString("chargemode"));
         sbwAllocatePram.setBandwidth(Integer.parseInt(sbwCreateRecive.getReturnConsoleMessage().getProductList().get(0).getItemList().get(0).getValue()));
         sbwAllocatePram.setSbwName(customization.getString("sharedbandwidthname"));
@@ -615,8 +600,7 @@ public class BssApiService {
             List<SbwProductItem> sbwProductItemList = sbwProduct.getItemList();
 
             for(SbwProductItem sbwItem: sbwProductItemList){
-                if(sbwItem.getCode().equalsIgnoreCase("bandwidth") &&
-                        sbwItem.getUnit().equals(HsConstants.M)){
+                if(sbwItem.getCode().equalsIgnoreCase("bandwidth")){
                     sbwAllocatePram.setBandwidth(Integer.parseInt(sbwItem.getValue()));
                 }
             }
@@ -643,11 +627,7 @@ public class BssApiService {
 
         List<SbwResultProduct> sbwResultProducts = new ArrayList<>();
         SbwResultProduct sbwResultProduct = new SbwResultProduct();
-        sbwResultProduct.setOrderDetailFlowId(sbwCreateRecive.getOrderDetailFlowIdList().get(0));
         sbwResultProduct.setProductSetStatus(result);
-        sbwResultProduct.setBillType(sbwCreate.getBillType());
-        sbwResultProduct.setDuration(sbwCreate.getDuration());
-        sbwResultProduct.setOrderType(sbwCreate.getOrderType());
         sbwResultProduct.setProductList(sbwCreate.getProductList());
 
 

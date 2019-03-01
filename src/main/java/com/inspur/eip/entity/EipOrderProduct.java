@@ -13,7 +13,6 @@ public class EipOrderProduct {
     private String availableZone;
     private String productLineCode = "EIP";
     private String productTypeCode = "EIP";
-    private String productName = "EIP";
     private String instanceCount = "1";
     private String instanceId;
     private String instanceStatus;

@@ -114,7 +114,6 @@ class WebControllerService {
      * @param type type
      */
     void returnsWebsocket(String eipId, EipReciveOrder eipOrder, String type){
-        if ("console".equals(eipOrder.getReturnConsoleMessage().getOrderSource())){
             try {
                 SendMQEIP sendMQEIP = new SendMQEIP();
                 sendMQEIP.setUserName(CommonUtil.getUsername());
@@ -132,9 +131,7 @@ class WebControllerService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }else {
-            log.info("Wrong source of order",eipOrder.getReturnConsoleMessage().getOrderSource());
-        }
+
     }
 
     /**
@@ -144,7 +141,7 @@ class WebControllerService {
      * @param type
      */
     void returnSbwWebsocket(String sbwId, SbwCreateRecive sbwCreateRecive, String type){
-        if ("console".equals(sbwCreateRecive.getReturnConsoleMessage().getOrderSource())){
+
             try {
                 SendMQEIP sendMQEIP = new SendMQEIP();
                 sendMQEIP.setUserName(CommonUtil.getUsername());
@@ -162,10 +159,8 @@ class WebControllerService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }else {
-            log.info("Wrong source of order", sbwCreateRecive.getReturnConsoleMessage().getOrderSource());
         }
-    }
+
 
     /**
      * 订单返回给控制台的消息

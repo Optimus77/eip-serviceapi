@@ -12,7 +12,6 @@ public class SbwProduct{
     private String availableZone;
     private String productLineCode = "SBW";
     private String productTypeCode = "SBW";
-    private String productName = "SBW";
     private String instanceCount = "1";
     private String instanceId;
     private String instanceStatus;
