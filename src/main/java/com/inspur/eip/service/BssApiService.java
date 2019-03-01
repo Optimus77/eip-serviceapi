@@ -143,7 +143,7 @@ public class BssApiService {
             if(eipOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)  ||
                     message.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
 
-                EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
+//                EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
 
                 List<EipOrderProduct> eipOrderProducts = message.getProductList();
                 for (EipOrderProduct eipOrderProduct : eipOrderProducts) {
@@ -291,11 +291,9 @@ public class BssApiService {
             List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
 
             for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
-                if(eipOrderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)
-                ){
+                if(eipOrderProductItem.getCode().equalsIgnoreCase(HsConstants.NET)){
                     eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
-                }else if(eipOrderProductItem.getCode().equals(HsConstants.PROVIDER)
-                ){
+                }else if(eipOrderProductItem.getCode().equals(HsConstants.PROVIDER)){
                     eipAllocateParam.setIptype(eipOrderProductItem.getValue());
                 }else if(eipOrderProductItem.getCode().equals(HsConstants.IS_SBW) &&
                         eipOrderProductItem.getValue().equals(HsConstants.YES)){
