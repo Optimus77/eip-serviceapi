@@ -45,8 +45,8 @@ public class EipServiceImpl  {
                     EipAllocateParam eipConfig  = JSONObject.parseObject(eip.toJSONString(), EipAllocateParam.class);
                     ReturnMsg checkRet = preCheckParam(eipConfig);
                     if(checkRet.getCode().equals(ReturnStatus.SC_OK)) {
-                        EipOrder order = getOrderByEipParam(eipConfig.getBandwidth(), eipConfig.getIptype(),
-                                eipConfig.getRegion(), eipConfig.getDuration(), eipConfig.getBillType(), "");
+                        EipOrder order = getOrderByEipParam(eipConfig.getBandwidth(),
+                                eipConfig.getRegion(), eipConfig.getBillType(), "");
 
                         order.setConsoleCustomization(eipAllocateParam);
 
@@ -92,11 +92,9 @@ public class EipServiceImpl  {
 //            String region = eip.getString("region");
             String region = "cn-north-3";
             Integer bandwidth = eip.getInteger(HsConstants.BANDWIDTH);
-            String duration = eip.getString(HsConstants.DURATION);
-            String ipType = eip.getString(HsConstants.IPTYPE);
             String billType = eip.getString(HsConstants.BILLTYPE);
 
-            EipOrder order = getOrderByEipParam(bandwidth, ipType, region,duration,billType, eipId);
+            EipOrder order = getOrderByEipParam(bandwidth, region,billType, eipId);
             order.setOrderType(HsConstants.UNSUBSCRIBE);
 
             JSONObject jsonObject = new JSONObject();
@@ -119,14 +117,12 @@ public class EipServiceImpl  {
     /**
      * get EipOrder by param
      * @param bandWidth bandwidth
-     * @param ipType iptype
      * @param region region
-     * @param duration duration
      * @param billType bill type
      * @param eipId id
      * @return  EipOrder
      */
-    private EipOrder getOrderByEipParam(int bandWidth, String ipType , String region, String duration, String billType, String eipId) {
+    private EipOrder getOrderByEipParam(int bandWidth, String region, String billType, String eipId) {
 
         List<EipOrderProductItem> itemList = new ArrayList<>();
         EipOrderProductItem bandWidthItem = new EipOrderProductItem();
