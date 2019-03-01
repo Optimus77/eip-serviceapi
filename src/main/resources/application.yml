@@ -52,9 +52,9 @@ bssurl:
   quotaUrl:    http://117.73.2.105.xip.io/crm/quota #//1.2.11	查询用户配额的接口
 mq:
 #hourlySettlement k8s服务
-  returnMq:  http://service.10.110.25.123.xip.io/mq/v1/messages/productreturn
+  returnMq: http://service.10.110.25.123.xip.io/mqservice/v2/messages/productreturn
 #monthly k8s服务名
-  returnNotify: http://service.10.110.25.123.xip.io/mq/v1/messages/productnotify
+  returnNotify: http://service.10.110.25.123.xip.io/mqservice/v2/messages/productnotify
   webSocket:   http://service.10.110.25.123.xip.io/console/websocket/v1/messages
 
 proxy:
