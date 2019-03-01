@@ -45,8 +45,8 @@ public class EipServiceImpl  {
                     EipAllocateParam eipConfig  = JSONObject.parseObject(eip.toJSONString(), EipAllocateParam.class);
                     ReturnMsg checkRet = preCheckParam(eipConfig);
                     if(checkRet.getCode().equals(ReturnStatus.SC_OK)) {
-                        EipOrder order = getOrderByEipParam(eipConfig.getBandwidth(), "1",
-                                eipConfig.getRegion(), "BGP", eipConfig.getBillType(), "");
+                        EipOrder order = getOrderByEipParam(eipConfig.getBandwidth(), eipConfig.getIptype(),
+                                eipConfig.getRegion(), eipConfig.getDuration(), eipConfig.getBillType(), "");
 
                         order.setConsoleCustomization(eipAllocateParam);
 
@@ -96,7 +96,7 @@ public class EipServiceImpl  {
             String ipType = eip.getString(HsConstants.IPTYPE);
             String billType = eip.getString(HsConstants.BILLTYPE);
 
-            EipOrder order = getOrderByEipParam(bandwidth, "1", region,"BGP",billType, eipId);
+            EipOrder order = getOrderByEipParam(bandwidth, ipType, region,duration,billType, eipId);
             order.setOrderType(HsConstants.UNSUBSCRIBE);
 
             JSONObject jsonObject = new JSONObject();
