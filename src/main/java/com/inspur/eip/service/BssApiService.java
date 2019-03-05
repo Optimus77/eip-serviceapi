@@ -279,6 +279,10 @@ public class BssApiService {
         List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
 
         eipAllocateParam.setBillType(eipOrder.getBillType());
+        if(eipOrder.getConsoleCustomization().containsKey("operateType") &&
+                eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("createNatWithEip") ){
+            eipAllocateParam.setIpv6("yes");
+        }
 
         for(EipOrderProduct eipOrderProduct: eipOrderProducts){
             if(!eipOrderProduct.getProductLineCode().equals(HsConstants.EIP)){
