@@ -2,8 +2,6 @@ package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.*;
-import com.inspur.eip.entity.sbw.SbwCreateRecive;
-import com.inspur.eip.entity.sbw.SbwResult;
 import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
@@ -136,11 +134,11 @@ class WebControllerService {
 
     /**
      * sbw webSocket
-     * @param sbwId
-     * @param sbwCreateRecive
-     * @param type
+     * @param sbwId id
+     * @param eipReciveOrder order
+     * @param type tyep
      */
-    void returnSbwWebsocket(String sbwId, SbwCreateRecive sbwCreateRecive, String type){
+    void returnSbwWebsocket(String sbwId, EipReciveOrder eipReciveOrder, String type){
 
             try {
                 SendMQEIP sendMQEIP = new SendMQEIP();
@@ -164,12 +162,12 @@ class WebControllerService {
 
     /**
      * 订单返回给控制台的消息
-     * @param sbwResult  result
+     * @param eipOrderResult  result
      * @return return
      */
-    ReturnResult resultSbwReturnMq(SbwResult sbwResult)   {
+    ReturnResult resultSbwReturnMq(EipOrderResult eipOrderResult)   {
         String url=returnMq;
-        String mqStr=JSONObject.toJSONString(sbwResult);
+        String mqStr=JSONObject.toJSONString(eipOrderResult);
         try {
             Map<String, String> header = new HashMap<>();
             header.put(HsConstants.AUTHORIZATION, "bearer "+ clientTokenUtil.getAdminToken().trim());
