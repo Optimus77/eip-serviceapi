@@ -19,5 +19,7 @@ public class EipOrder {
     private String setCount = "1";
     private String billType = "monthly";
     private String orderType = "new";
+    private String duration;
+    private String durationUnit;
     private List<EipOrderProduct> productList;
 }

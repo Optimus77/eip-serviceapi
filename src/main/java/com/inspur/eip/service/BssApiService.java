@@ -291,7 +291,7 @@ public class BssApiService {
             List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
 
             for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
-                if(eipOrderProductItem.getCode().equalsIgnoreCase(HsConstants.NET)){
+                if(eipOrderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)){
                     eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
                 }else if(eipOrderProductItem.getCode().equals(HsConstants.PROVIDER)){
                     eipAllocateParam.setIptype(eipOrderProductItem.getValue());
