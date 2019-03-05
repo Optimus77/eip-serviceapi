@@ -41,7 +41,7 @@ class WebControllerService {
      * @param order order
      * @return code and message
      */
-    ReturnResult postOrder(EipOrder order)  {
+    ReturnResult postOrder(EipReciveOrder order)  {
         String url=ordercreate;
         ReturnResult response;
         try {
