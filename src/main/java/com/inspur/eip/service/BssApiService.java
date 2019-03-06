@@ -394,6 +394,8 @@ public class BssApiService {
 
         for(EipOrderProduct eipOrderProduct: eipOrderProducts){
             eipOrderProduct.setInstanceId(eipId);
+            eipOrderProduct.setInstanceStatus(eipId);
+            eipOrderProduct.setStatusTime(eipId);
         }
 
         EipOrderResult eipOrderResult = new EipOrderResult();
