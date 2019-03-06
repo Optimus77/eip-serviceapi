@@ -93,6 +93,9 @@ public class BssApiService {
                         JSONObject eipEntity = createRet.getJSONObject("eip");
                         eipId = eipEntity.getString("eipid");
                         webControllerService.returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"create");
+                        if(eipConfig.getIpv6().equalsIgnoreCase("yes")){
+                            webControllerService.returnsIpv6Websocket("Success", "Success", "createNatWithEip");
+                        }
                     }
                     returnResult = webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, retStr));
 
@@ -140,8 +143,6 @@ public class BssApiService {
             if(eipOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)  ||
                     eipOrder.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
 
-//                EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
-
                 List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
                 for (EipOrderProduct eipOrderProduct : eipOrderProducts) {
                     eipId = eipOrderProduct.getInstanceId();
@@ -151,6 +152,10 @@ public class BssApiService {
                 if (delResult.getInteger(HsConstants.STATUSCODE) == org.springframework.http.HttpStatus.OK.value()) {
                     //Return message to the front des
                     webControllerService.returnsWebsocket(eipId, eipOrder, "delete");
+//                    if(eipOrder.getConsoleCustomization().containsKey("operateType")
+//                            && eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")){
+//                        webControllerService.returnsIpv6Websocket("Success", "Success", "createNatWithEip");
+//                    }
                     webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
                     return delResult;
                 } else {

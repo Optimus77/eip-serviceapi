@@ -131,6 +131,24 @@ class WebControllerService {
             }
 
     }
+    void returnsIpv6Websocket(String eipResult, String eipV6Reuslt, String type){
+        try {
+            SendMQEIP sendMQEIP = new SendMQEIP();
+            sendMQEIP.setUserName(CommonUtil.getUsername());
+            sendMQEIP.setHandlerName("operateNatHandler");
+            sendMQEIP.setOperateType(type);
+            String retMessage = "createNat"+eipV6Reuslt+"&"+"createEIP"+eipResult;
+            sendMQEIP.setMessage(retMessage);
+            String url=pushMq;
+            String orderStr=JSONObject.toJSONString(sendMQEIP);
+            log.info("websocket send return: {} {}", url, orderStr);
+            ReturnResult response = HttpsClientUtil.doPostJson(url,null,orderStr);
+            log.debug("websocket respons:{}", response.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 
     /**
      * sbw webSocket
