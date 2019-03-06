@@ -493,18 +493,7 @@ public class BssApiService {
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(eipReciveOrder));
             if(eipReciveOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)  || eipReciveOrder.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                if (eipReciveOrder.getConsoleCustomization().getString("chargemode") !=null &&
-                        !eipReciveOrder.getConsoleCustomization().getString("chargemode").equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)){
-                    msg = "Failed to delete sbw isn't the sharebandWidth,chargemode: {}"+eipReciveOrder.getConsoleCustomization().getString("chargemode");
-                    code = ReturnStatus.SC_PARAM_UNKONWERROR;
-                    log.error(msg);
-                    result.put("code", code);
-                    result.put("msg", msg);
-                    return result;
-                }
-                SbwAllocateParam allocateParam = getSbwConfigByOrder(eipReciveOrder);
-//                sbwId = allocateParam.getConsoleCustomization().getString("sbwId");
-                // todo :delete sbwId from Console
+
                 List<EipOrderProduct> productList = eipReciveOrder.getProductList();
                 for (EipOrderProduct product : productList) {
                     sbwId = product.getInstanceId();
@@ -588,14 +577,12 @@ public class BssApiService {
     private SbwAllocateParam getSbwConfigByOrder(EipReciveOrder eipReciveOrder){
         SbwAllocateParam sbwAllocatePram = new SbwAllocateParam();
         JSONObject customization = eipReciveOrder.getConsoleCustomization();
-        sbwAllocatePram.setChargemode(eipReciveOrder.getBillType());
+        sbwAllocatePram.setBillType(eipReciveOrder.getBillType());
         sbwAllocatePram.setBandwidth(Integer.parseInt(eipReciveOrder.getProductList().get(0).getItemList().get(0).getValue()));
         sbwAllocatePram.setSbwName(customization.getString("sharedbandwidthname"));
-        sbwAllocatePram.setMethod(customization.getString("method"));
+//        sbwAllocatePram.setMethod(customization.getString("method"));
 
         List<EipOrderProduct> productList = eipReciveOrder.getProductList();
-
-        sbwAllocatePram.setBillType(eipReciveOrder.getBillType());
         for(EipOrderProduct eipOrderProduct : productList){
             if(!eipOrderProduct.getProductLineCode().equalsIgnoreCase(HsConstants.SBW)){
                 continue;
@@ -620,7 +607,7 @@ public class BssApiService {
         for(com.inspur.eip.entity.EipOrderProduct eipOrderProduct : productList){
             eipOrderProduct.setInstanceStatus(result);
             eipOrderProduct.setInstanceId(sbwId);
-            eipOrderProduct.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+            eipOrderProduct.setStatusTime(eipReciveOrder.getStatusTime());
         }
 
         EipOrderResult eipOrderResult = new EipOrderResult();

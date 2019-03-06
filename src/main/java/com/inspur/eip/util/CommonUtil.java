@@ -234,8 +234,8 @@ public class CommonUtil {
 
     /**
      * sbw param check
-     * @param param
-     * @return
+     * @param param param
+     * @return return
      */
     public static ReturnSbwMsg preSbwCheckParam(SbwAllocateParam param){
         String errorMsg = " ";
@@ -244,11 +244,6 @@ public class CommonUtil {
         }
         if(param.getBandwidth()==0 || param.getBandwidth() > 500|| param.getBandwidth()<5){
             errorMsg = "value must be 5-500.";
-        }
-        if(null != param.getChargemode()) {
-            if (!param.getChargemode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
-                errorMsg = errorMsg + "Only SharedBandwidth is allowed. ";
-            }
         }
 
         if(null != param.getBillType()) {
