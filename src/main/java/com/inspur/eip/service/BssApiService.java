@@ -152,7 +152,7 @@ public class BssApiService {
                 if (delResult.getInteger(HsConstants.STATUSCODE) == org.springframework.http.HttpStatus.OK.value()) {
                     if(eipOrder.getConsoleCustomization().containsKey("operateType")
                             && eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")){
-                        webControllerService.returnsIpv6Websocket("Success", "Success", "createNatWithEip");
+                        webControllerService.returnsIpv6Websocket("Success", "Success", "deleteNatWithEip");
                     }else{
                         webControllerService.returnsWebsocket(eipId, eipOrder, "delete");
                     }

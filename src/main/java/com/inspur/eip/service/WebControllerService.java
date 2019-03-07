@@ -137,7 +137,12 @@ class WebControllerService {
             sendMQEIP.setUserName(CommonUtil.getUsername());
             sendMQEIP.setHandlerName("operateNatHandler");
             sendMQEIP.setOperateType(type);
-            String retMessage = "createNat"+eipV6Reuslt+"&"+"createEIP"+eipResult;
+            String retMessage;
+            if(type.equalsIgnoreCase("createNatWithEip")) {
+                retMessage = "createNat" + eipV6Reuslt + "&" + "createEIP" + eipResult;
+            }else {
+                retMessage = "deleteNat" + eipV6Reuslt + "&" + "deleteEIP" + eipResult;
+            }
             sendMQEIP.setMessage(retMessage);
             String url=pushMq;
             String orderStr=JSONObject.toJSONString(sendMQEIP);
