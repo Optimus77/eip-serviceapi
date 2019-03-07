@@ -400,7 +400,7 @@ public class BssApiService {
         for(EipOrderProduct eipOrderProduct: eipOrderProducts){
             eipOrderProduct.setInstanceId(eipId);
             eipOrderProduct.setInstanceStatus(result);
-            eipOrderProduct.setStatusTime(eipReciveOrder.getStatusTime());
+            eipOrderProduct.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
         }
 
         EipOrderResult eipOrderResult = new EipOrderResult();
