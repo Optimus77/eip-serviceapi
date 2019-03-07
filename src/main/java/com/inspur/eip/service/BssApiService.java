@@ -150,12 +150,12 @@ public class BssApiService {
                 JSONObject delResult = eipAtomService.atomDeleteEip(eipId);
 
                 if (delResult.getInteger(HsConstants.STATUSCODE) == org.springframework.http.HttpStatus.OK.value()) {
-                    //Return message to the front des
-                    webControllerService.returnsWebsocket(eipId, eipOrder, "delete");
-//                    if(eipOrder.getConsoleCustomization().containsKey("operateType")
-//                            && eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")){
-//                        webControllerService.returnsIpv6Websocket("Success", "Success", "createNatWithEip");
-//                    }
+                    if(eipOrder.getConsoleCustomization().containsKey("operateType")
+                            && eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")){
+                        webControllerService.returnsIpv6Websocket("Success", "Success", "createNatWithEip");
+                    }else{
+                        webControllerService.returnsWebsocket(eipId, eipOrder, "delete");
+                    }
                     webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
                     return delResult;
                 } else {
