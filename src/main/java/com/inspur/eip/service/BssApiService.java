@@ -285,6 +285,7 @@ public class BssApiService {
         List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
 
         eipAllocateParam.setBillType(eipOrder.getBillType());
+        eipAllocateParam.setDuration(eipOrder.getDuration());
         if(eipOrder.getConsoleCustomization().containsKey("operateType") &&
                 eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("createNatWithEip") ){
             eipAllocateParam.setIpv6("yes");
@@ -580,7 +581,7 @@ public class BssApiService {
         sbwAllocatePram.setBillType(eipReciveOrder.getBillType());
         sbwAllocatePram.setBandwidth(Integer.parseInt(eipReciveOrder.getProductList().get(0).getItemList().get(0).getValue()));
         sbwAllocatePram.setSbwName(customization.getString("sharedbandwidthname"));
-//        sbwAllocatePram.setMethod(customization.getString("method"));
+        sbwAllocatePram.setDuration(eipReciveOrder.getDuration());
 
         List<EipOrderProduct> productList = eipReciveOrder.getProductList();
         for(EipOrderProduct eipOrderProduct : productList){
