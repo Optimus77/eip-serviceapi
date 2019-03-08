@@ -411,6 +411,8 @@ public class BssApiService {
         List<EipOrderResultProduct> eipOrderResultProducts = new ArrayList<>();
         EipOrderResultProduct eipOrderResultProduct = new EipOrderResultProduct();
         eipOrderResultProduct.setProductSetStatus(result);
+        eipOrderResultProduct.setDuration(eipOrderResultProduct.getDuration());
+        eipOrderResultProduct.setDurationUnit(eipOrderResultProduct.getDurationUnit());
         eipOrderResultProduct.setProductList(eipReciveOrder.getProductList());
 
 

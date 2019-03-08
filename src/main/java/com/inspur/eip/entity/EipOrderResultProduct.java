@@ -8,6 +8,8 @@ import java.util.List;
 public class EipOrderResultProduct {
 
     private String productSetStatus;
+    private String duration;
+    private String durationUnit = "M";
     private List<EipOrderProduct> productList;
 
 }
