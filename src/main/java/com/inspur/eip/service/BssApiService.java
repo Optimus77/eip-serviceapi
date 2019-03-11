@@ -93,6 +93,9 @@ public class BssApiService {
                         JSONObject eipEntity = createRet.getJSONObject("eip");
                         eipId = eipEntity.getString("eipid");
                         webControllerService.returnsWebsocket(eipEntity.getString("eipid"),eipOrder,"create");
+                        if(eipConfig.getIpv6().equalsIgnoreCase("yes")){
+                            webControllerService.returnsIpv6Websocket("Success", "Success", "createNatWithEip");
+                        }
                     }
                     returnResult = webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, retStr));
 
@@ -140,8 +143,6 @@ public class BssApiService {
             if(eipOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)  ||
                     eipOrder.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
 
-//                EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
-
                 List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
                 for (EipOrderProduct eipOrderProduct : eipOrderProducts) {
                     eipId = eipOrderProduct.getInstanceId();
@@ -149,8 +150,12 @@ public class BssApiService {
                 JSONObject delResult = eipAtomService.atomDeleteEip(eipId);
 
                 if (delResult.getInteger(HsConstants.STATUSCODE) == org.springframework.http.HttpStatus.OK.value()) {
-                    //Return message to the front des
-                    webControllerService.returnsWebsocket(eipId, eipOrder, "delete");
+                    if(eipOrder.getConsoleCustomization().containsKey("operateType")
+                            && eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")){
+                        webControllerService.returnsIpv6Websocket("Success", "Success", "deleteNatWithEip");
+                    }else{
+                        webControllerService.returnsWebsocket(eipId, eipOrder, "delete");
+                    }
                     webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
                     return delResult;
                 } else {
@@ -395,7 +400,7 @@ public class BssApiService {
         for(EipOrderProduct eipOrderProduct: eipOrderProducts){
             eipOrderProduct.setInstanceId(eipId);
             eipOrderProduct.setInstanceStatus(result);
-            eipOrderProduct.setStatusTime(eipReciveOrder.getStatusTime());
+            eipOrderProduct.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
         }
 
         EipOrderResult eipOrderResult = new EipOrderResult();
@@ -406,6 +411,8 @@ public class BssApiService {
         List<EipOrderResultProduct> eipOrderResultProducts = new ArrayList<>();
         EipOrderResultProduct eipOrderResultProduct = new EipOrderResultProduct();
         eipOrderResultProduct.setProductSetStatus(result);
+        eipOrderResultProduct.setDuration(eipOrderResultProduct.getDuration());
+        eipOrderResultProduct.setDurationUnit(eipOrderResultProduct.getDurationUnit());
         eipOrderResultProduct.setProductList(eipReciveOrder.getProductList());
 
 
@@ -488,18 +495,7 @@ public class BssApiService {
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(eipReciveOrder));
             if(eipReciveOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)  || eipReciveOrder.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                if (eipReciveOrder.getConsoleCustomization().getString("chargemode") !=null &&
-                        !eipReciveOrder.getConsoleCustomization().getString("chargemode").equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)){
-                    msg = "Failed to delete sbw isn't the sharebandWidth,chargemode: {}"+eipReciveOrder.getConsoleCustomization().getString("chargemode");
-                    code = ReturnStatus.SC_PARAM_UNKONWERROR;
-                    log.error(msg);
-                    result.put("code", code);
-                    result.put("msg", msg);
-                    return result;
-                }
-                SbwAllocateParam allocateParam = getSbwConfigByOrder(eipReciveOrder);
-//                sbwId = allocateParam.getConsoleCustomization().getString("sbwId");
-                // todo :delete sbwId from Console
+
                 List<EipOrderProduct> productList = eipReciveOrder.getProductList();
                 for (EipOrderProduct product : productList) {
                     sbwId = product.getInstanceId();
@@ -583,14 +579,12 @@ public class BssApiService {
     private SbwAllocateParam getSbwConfigByOrder(EipReciveOrder eipReciveOrder){
         SbwAllocateParam sbwAllocatePram = new SbwAllocateParam();
         JSONObject customization = eipReciveOrder.getConsoleCustomization();
-        sbwAllocatePram.setChargemode(eipReciveOrder.getBillType());
+        sbwAllocatePram.setBillType(eipReciveOrder.getBillType());
         sbwAllocatePram.setBandwidth(Integer.parseInt(eipReciveOrder.getProductList().get(0).getItemList().get(0).getValue()));
         sbwAllocatePram.setSbwName(customization.getString("sharedbandwidthname"));
-        sbwAllocatePram.setMethod(customization.getString("method"));
+//        sbwAllocatePram.setMethod(customization.getString("method"));
 
         List<EipOrderProduct> productList = eipReciveOrder.getProductList();
-
-        sbwAllocatePram.setBillType(eipReciveOrder.getBillType());
         for(EipOrderProduct eipOrderProduct : productList){
             if(!eipOrderProduct.getProductLineCode().equalsIgnoreCase(HsConstants.SBW)){
                 continue;
@@ -615,7 +609,7 @@ public class BssApiService {
         for(com.inspur.eip.entity.EipOrderProduct eipOrderProduct : productList){
             eipOrderProduct.setInstanceStatus(result);
             eipOrderProduct.setInstanceId(sbwId);
-            eipOrderProduct.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+            eipOrderProduct.setStatusTime(eipReciveOrder.getStatusTime());
         }
 
         EipOrderResult eipOrderResult = new EipOrderResult();
