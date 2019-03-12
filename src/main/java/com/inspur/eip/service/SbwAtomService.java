@@ -78,11 +78,11 @@ public class SbwAtomService {
         ReturnResult response = null;
         try {
             String orderStr = JSONObject.toJSONString(sbwConfig);
-            log.info("Send config to url:{}, body:{}", url, orderStr);
+            log.info("Renew sbw to url:{}, body:{}", url, orderStr);
 
             response = HttpUtil.post(url, null, orderStr);
         }catch (Exception e){
-            log.error("Update sbw exception", e);
+            log.error("Renew sbw exception", e);
         }
         return CommonUtil.handlerResopnse(response);
     }

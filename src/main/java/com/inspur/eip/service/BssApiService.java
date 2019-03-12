@@ -582,7 +582,6 @@ public class BssApiService {
         sbwAllocatePram.setBillType(eipReciveOrder.getBillType());
         sbwAllocatePram.setBandwidth(Integer.parseInt(eipReciveOrder.getProductList().get(0).getItemList().get(0).getValue()));
         sbwAllocatePram.setSbwName(customization.getString("sharedbandwidthname"));
-//        sbwAllocatePram.setMethod(customization.getString("method"));
 
         List<EipOrderProduct> productList = eipReciveOrder.getProductList();
         for(EipOrderProduct eipOrderProduct : productList){
@@ -598,8 +597,9 @@ public class BssApiService {
                 }
             }
         }
+        // the chargemode will be changed in the future : BandWidth or Traffic (带宽计费/流量计费)
+        sbwAllocatePram.setChargemode("Bandwidth");
         log.info("Get sbw param from sbw Recive:{}", sbwAllocatePram.toString());
-        /*chargemode now use the default value */
         return sbwAllocatePram;
     }
 
