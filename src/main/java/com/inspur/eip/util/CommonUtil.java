@@ -242,7 +242,7 @@ public class CommonUtil {
         if(null == param){
             return ReturnMsgUtil.errorSbw(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
         }
-        if((5 >= param.getBandwidth()) || (param.getBandwidth() > 500)){
+        if((5 > param.getBandwidth()) || (param.getBandwidth() > 500)){
             errorMsg = "value must be 5-500.";
         }
 
