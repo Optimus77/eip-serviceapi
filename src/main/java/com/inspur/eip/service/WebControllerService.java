@@ -2,8 +2,6 @@ package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.*;
-import com.inspur.eip.entity.sbw.SbwCreateRecive;
-import com.inspur.eip.entity.sbw.SbwResult;
 import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
@@ -41,7 +39,7 @@ class WebControllerService {
      * @param order order
      * @return code and message
      */
-    ReturnResult postOrder(EipOrder order)  {
+    ReturnResult postOrder(EipReciveOrder order)  {
         String url=ordercreate;
         ReturnResult response;
         try {
@@ -114,7 +112,6 @@ class WebControllerService {
      * @param type type
      */
     void returnsWebsocket(String eipId, EipReciveOrder eipOrder, String type){
-        if ("console".equals(eipOrder.getReturnConsoleMessage().getOrderSource())){
             try {
                 SendMQEIP sendMQEIP = new SendMQEIP();
                 sendMQEIP.setUserName(CommonUtil.getUsername());
@@ -132,19 +129,40 @@ class WebControllerService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }else {
-            log.info("Wrong source of order",eipOrder.getReturnConsoleMessage().getOrderSource());
+
+    }
+    void returnsIpv6Websocket(String eipResult, String eipV6Reuslt, String type){
+        try {
+            SendMQEIP sendMQEIP = new SendMQEIP();
+            sendMQEIP.setUserName(CommonUtil.getUsername());
+            sendMQEIP.setHandlerName("operateNatHandler");
+            sendMQEIP.setOperateType(type);
+            String retMessage;
+            if(type.equalsIgnoreCase("createNatWithEip")) {
+                retMessage = "createNat" + eipV6Reuslt + "&" + "createEIP" + eipResult;
+            }else {
+                retMessage = "deleteNat" + eipV6Reuslt + "&" + "deleteEIP" + eipResult;
+            }
+            sendMQEIP.setMessage(retMessage);
+            String url=pushMq;
+            String orderStr=JSONObject.toJSONString(sendMQEIP);
+            log.info("websocket send return: {} {}", url, orderStr);
+            ReturnResult response = HttpsClientUtil.doPostJson(url,null,orderStr);
+            log.debug("websocket respons:{}", response.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
     }
 
     /**
      * sbw webSocket
-     * @param sbwId
-     * @param sbwCreateRecive
-     * @param type
+     * @param sbwId id
+     * @param eipReciveOrder order
+     * @param type tyep
      */
-    void returnSbwWebsocket(String sbwId, SbwCreateRecive sbwCreateRecive, String type){
-        if ("console".equals(sbwCreateRecive.getReturnConsoleMessage().getOrderSource())){
+    void returnSbwWebsocket(String sbwId, EipReciveOrder eipReciveOrder, String type){
+
             try {
                 SendMQEIP sendMQEIP = new SendMQEIP();
                 sendMQEIP.setUserName(CommonUtil.getUsername());
@@ -162,19 +180,17 @@ class WebControllerService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }else {
-            log.info("Wrong source of order", sbwCreateRecive.getReturnConsoleMessage().getOrderSource());
         }
-    }
+
 
     /**
      * 订单返回给控制台的消息
-     * @param sbwResult  result
+     * @param eipOrderResult  result
      * @return return
      */
-    ReturnResult resultSbwReturnMq(SbwResult sbwResult)   {
+    ReturnResult resultSbwReturnMq(EipOrderResult eipOrderResult)   {
         String url=returnMq;
-        String mqStr=JSONObject.toJSONString(sbwResult);
+        String mqStr=JSONObject.toJSONString(eipOrderResult);
         try {
             Map<String, String> header = new HashMap<>();
             header.put(HsConstants.AUTHORIZATION, "bearer "+ clientTokenUtil.getAdminToken().trim());

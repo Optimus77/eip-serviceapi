@@ -45,8 +45,8 @@ public class EipServiceImpl  {
                     EipAllocateParam eipConfig  = JSONObject.parseObject(eip.toJSONString(), EipAllocateParam.class);
                     ReturnMsg checkRet = preCheckParam(eipConfig);
                     if(checkRet.getCode().equals(ReturnStatus.SC_OK)) {
-                        EipOrder order = getOrderByEipParam(eipConfig.getBandwidth(), eipConfig.getIptype(),
-                                eipConfig.getRegion(), eipConfig.getDuration(), eipConfig.getBillType(), "");
+                        EipReciveOrder order = getOrderByEipParam(eipConfig.getBandwidth(),
+                                eipConfig.getRegion(), eipConfig.getBillType(), "");
 
                         order.setConsoleCustomization(eipAllocateParam);
 
@@ -92,11 +92,9 @@ public class EipServiceImpl  {
 //            String region = eip.getString("region");
             String region = "cn-north-3";
             Integer bandwidth = eip.getInteger(HsConstants.BANDWIDTH);
-            String duration = eip.getString(HsConstants.DURATION);
-            String ipType = eip.getString(HsConstants.IPTYPE);
             String billType = eip.getString(HsConstants.BILLTYPE);
 
-            EipOrder order = getOrderByEipParam(bandwidth, ipType, region, duration,billType, eipId);
+            EipReciveOrder order = getOrderByEipParam(bandwidth, region,billType, eipId);
             order.setOrderType(HsConstants.UNSUBSCRIBE);
 
             JSONObject jsonObject = new JSONObject();
@@ -119,43 +117,29 @@ public class EipServiceImpl  {
     /**
      * get EipOrder by param
      * @param bandWidth bandwidth
-     * @param ipType iptype
      * @param region region
-     * @param duration duration
      * @param billType bill type
      * @param eipId id
      * @return  EipOrder
      */
-    private EipOrder getOrderByEipParam(int bandWidth, String ipType, String region, String duration, String billType, String eipId) {
+    private EipReciveOrder getOrderByEipParam(int bandWidth, String region, String billType, String eipId) {
 
         List<EipOrderProductItem> itemList = new ArrayList<>();
         EipOrderProductItem bandWidthItem = new EipOrderProductItem();
         bandWidthItem.setCode(HsConstants.BANDWIDTH);
-        bandWidthItem.setName("带宽");
-        bandWidthItem.setUnit(HsConstants.M);
         bandWidthItem.setValue(String.valueOf(bandWidth));
-        bandWidthItem.setType(HsConstants.BILLINGITEM);
 
         EipOrderProductItem ipTypeItem = new EipOrderProductItem();
         ipTypeItem.setCode(HsConstants.PROVIDER);
-        ipTypeItem.setName("线路");
         ipTypeItem.setValue(HsConstants.BGP);
-        ipTypeItem.setUnit("");
-        ipTypeItem.setType(HsConstants.IMPACTFACTOR);
 
         EipOrderProductItem trasfer = new EipOrderProductItem();
         trasfer.setCode(HsConstants.TRANSFER);
-        trasfer.setName("流量");
-        trasfer.setUnit("Gb");
         trasfer.setValue("0");
-        trasfer.setType(HsConstants.BILLINGITEM);
 
         EipOrderProductItem ip = new EipOrderProductItem();
         ip.setCode("IP");
-        ip.setName("IP费用");
         ip.setValue("1");
-        ip.setType(HsConstants.BILLINGITEM);
-        ip.setUnit("个");
 
         itemList.add(bandWidthItem);
         itemList.add(ipTypeItem);
@@ -168,7 +152,7 @@ public class EipServiceImpl  {
         eipOrderProduct.setAvailableZone("");
         eipOrderProduct.setInstanceId(eipId);
 
-        EipOrder eipOrder = new EipOrder();
+        EipReciveOrder eipOrder = new EipReciveOrder();
         try {
             eipOrder.setUserId(CommonUtil.getUserId());
         }catch (Exception e){
@@ -182,7 +166,6 @@ public class EipServiceImpl  {
         eipOrder.setConsoleOrderFlowId(UUID.randomUUID().toString());
         List<EipOrderProduct> orders = new ArrayList<>();
         orders.add(eipOrderProduct);
-        eipOrder.setDuration(duration);
         eipOrder.setBillType(billType);
         eipOrder.setProductList(orders);
 

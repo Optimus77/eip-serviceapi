@@ -19,7 +19,5 @@ public class EipSoftDownInstance {
 
     private String result;
 
-    private String instanceStatus;
-
     private String statusTime;
 }

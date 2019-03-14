@@ -1,7 +1,7 @@
 package com.inspur.eip.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eip.entity.sbw.SbwCreateRecive;
+import com.inspur.eip.entity.EipReciveOrder;
 import com.inspur.eip.service.BssApiService;
 import com.inspur.eip.service.SbwAtomService;
 import com.inspur.eip.util.*;
@@ -37,7 +37,7 @@ public class SbwController {
 
     @PostMapping(value = "/sbws")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity allocateSbw(@Valid @RequestBody SbwCreateRecive sharedBandWidthRecive, BindingResult result) {
+    public ResponseEntity allocateSbw(@Valid @RequestBody EipReciveOrder sharedBandWidthRecive, BindingResult result) {
         log.info("get server api called");
         JSONObject ret =  bssApiService.createShareBandWidth(sharedBandWidthRecive);
 
@@ -47,7 +47,7 @@ public class SbwController {
 
     @DeleteMapping(value = "/sbws/{id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity deleteSbw(@Valid @RequestBody SbwCreateRecive sbwRecive,
+    public ResponseEntity deleteSbw(@Valid @RequestBody EipReciveOrder sbwRecive,
                                           @PathVariable("id") String id,
                                           BindingResult result) {
         log.info("delete sbw api called");
@@ -58,7 +58,7 @@ public class SbwController {
     @ICPControllerLog
     @PostMapping(value = "/sbws/{id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity updateSbw(@Valid @RequestBody SbwCreateRecive sbwRecive,
+    public ResponseEntity updateSbw(@Valid @RequestBody EipReciveOrder sbwRecive,
                                     @PathVariable("id") String sbwId,
                                     BindingResult result) {
         log.info("delete sbw api called");
