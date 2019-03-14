@@ -75,8 +75,7 @@ public class BssApiService {
         ReturnResult returnResult = null;
         try {
             log.debug("Recive create order:{}", JSONObject.toJSONString(eipOrder));
-            if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
-                    eipOrder.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+            if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
                 ReturnMsg checkRet = preCheckParam(eipConfig);
                 if(checkRet.getCode().equals(ReturnStatus.SC_OK)){
@@ -140,8 +139,7 @@ public class BssApiService {
         String eipId = "0";
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
-            if(eipOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)  ||
-                    eipOrder.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+            if(eipOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)) {
 
                 List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
                 for (EipOrderProduct eipOrderProduct : eipOrderProducts) {
@@ -191,13 +189,12 @@ public class BssApiService {
         try {
             log.debug("Recive update order:{}", JSONObject.toJSONString(eipOrder));
 
-            if((null != eipOrder) && (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
-                    eipOrder.getBillType().equals(HsConstants.HOURLYSETTLEMENT))) {
+            if((null != eipOrder) && (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS))) {
                 EipUpdateParam eipUpdate = getUpdatParmByOrder(eipOrder);
                 JSONObject updateRet;
                 if(eipOrder.getOrderType().equalsIgnoreCase("changeConfigure")){
                     updateRet = eipAtomService.atomUpdateEip(eipId, eipUpdate);
-                }else if(eipOrder.getOrderType().equalsIgnoreCase("renew")){
+                }else if(eipOrder.getOrderType().equalsIgnoreCase("renew") && eipOrder.getBillType().equals(HsConstants.MONTHLY)){
                     updateRet = eipAtomService.atomRenewEip(eipId, eipUpdate);
                 }else{
                     log.error("Not support order type:{}", eipOrder.getOrderType());
@@ -494,7 +491,7 @@ public class BssApiService {
         JSONObject result = new JSONObject();
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(eipReciveOrder));
-            if(eipReciveOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)  || eipReciveOrder.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+            if(eipReciveOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS) ) {
 
                 List<EipOrderProduct> productList = eipReciveOrder.getProductList();
                 for (EipOrderProduct product : productList) {
@@ -539,13 +536,12 @@ public class BssApiService {
 
         try {
             log.info("Recive update sbw:{}", JSONObject.toJSONString(recive));
-            if(recive.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
-                    recive.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+            if(recive.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 SbwAllocateParam sbwUpdate = getSbwConfigByOrder(recive);
                 JSONObject updateRet;
                 if(recive.getOrderType().equalsIgnoreCase("changeConfigure")){
                     updateRet = sbwAtomService.atomUpdateSbw(sbwId, sbwUpdate);
-                }else if(recive.getOrderType().equalsIgnoreCase("renew")){
+                }else if(recive.getOrderType().equalsIgnoreCase("renew") && recive.getBillType().equals(HsConstants.MONTHLY)){
                     updateRet = sbwAtomService.atomRenewSbw(sbwId, sbwUpdate);
                 }else{
                     log.error("Not support order type:{}", recive.getOrderType());
