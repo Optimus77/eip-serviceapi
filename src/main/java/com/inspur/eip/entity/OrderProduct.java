@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class EipOrderProduct {
+public class OrderProduct {
 
     private String region;
     private String availableZone;
@@ -17,5 +17,5 @@ public class EipOrderProduct {
     private String instanceId;
     private String instanceStatus;
     private String statusTime;
-    private List<EipOrderProductItem> itemList;
+    private List<OrderProductItem> itemList;
 }

@@ -2,16 +2,14 @@ package com.inspur.eip.controller;
 
 
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eip.entity.EipReciveOrder;
+import com.inspur.eip.entity.ReciveOrder;
 import com.inspur.eip.entity.EipSoftDownOrder;
 import com.inspur.eip.service.BssApiService;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 //
 @Slf4j
@@ -27,10 +25,10 @@ public class EipOrderController {
     @PostMapping(value = "/orders")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "show all servers", notes = "get")
-    public ResponseEntity createOrders(@RequestBody EipReciveOrder eipReciveOrder) {
+    public ResponseEntity createOrders(@RequestBody ReciveOrder reciveOrder) {
 
-        log.info("get create eip order:{}.", eipReciveOrder.toString());
-        JSONObject result = bssApiService.onReciveCreateOrderResult(eipReciveOrder);
+        log.info("get create eip order:{}.", reciveOrder.toString());
+        JSONObject result = bssApiService.onReciveCreateOrderResult(reciveOrder);
         return new ResponseEntity<>(result, HttpStatus.OK);
 
     }
@@ -39,10 +37,10 @@ public class EipOrderController {
     @PostMapping(value = "/orders/{id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "show all servers", notes = "get")
-    public ResponseEntity updateOrder(@RequestBody EipReciveOrder eipReciveOrder,  @PathVariable("id") String eipId) {
+    public ResponseEntity updateOrder(@RequestBody ReciveOrder reciveOrder, @PathVariable("id") String eipId) {
 
-        log.info("get update eip order:{}.", eipReciveOrder.toString());
-        JSONObject result = bssApiService.onReciveUpdateOrder(eipId,eipReciveOrder);
+        log.info("get update eip order:{}.", reciveOrder.toString());
+        JSONObject result = bssApiService.onReciveUpdateOrder(eipId, reciveOrder);
         return new ResponseEntity<>(result, HttpStatus.OK);
 
     }
@@ -63,10 +61,10 @@ public class EipOrderController {
     @DeleteMapping(value = "/orders/{id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "show all servers", notes = "get")
-    public ResponseEntity deleteOrder(@RequestBody EipReciveOrder eipReciveOrder,  @PathVariable("id") String eipId) {
+    public ResponseEntity deleteOrder(@RequestBody ReciveOrder reciveOrder, @PathVariable("id") String eipId) {
 
-        log.info("get delete eip order:{}.", eipReciveOrder.toString());
-        JSONObject result = bssApiService.onReciveDeleteOrderResult(eipReciveOrder);
+        log.info("get delete eip order:{}.", reciveOrder.toString());
+        JSONObject result = bssApiService.onReciveDeleteOrderResult(reciveOrder);
         return new ResponseEntity<>(result, HttpStatus.OK);
 
     }

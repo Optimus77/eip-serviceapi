@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class EipReciveOrder {
+public class ReciveOrder {
     private String consoleOrderFlowId;
     private String orderId;
     private String orderStatus;
@@ -18,6 +18,6 @@ public class EipReciveOrder {
     private String setCount = "1";
     private String billType = "monthly";
     private String orderType = "new";
-    private List<EipOrderProduct> productList;
+    private List<OrderProduct> productList;
 
 }
