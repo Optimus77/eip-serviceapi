@@ -198,6 +198,7 @@ public class BssApiService {
                 if(eipOrder.getOrderType().equalsIgnoreCase("changeConfigure")){
                     updateRet = eipAtomService.atomUpdateEip(eipId, eipUpdate);
                 }else if(eipOrder.getOrderType().equalsIgnoreCase("renew")){
+                    eipUpdate.setDuration("1");
                     updateRet = eipAtomService.atomRenewEip(eipId, eipUpdate);
                 }else{
                     log.error("Not support order type:{}", eipOrder.getOrderType());
