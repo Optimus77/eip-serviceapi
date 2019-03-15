@@ -3,6 +3,8 @@ package com.inspur.eip.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.sbw.SbwAtomParam;
 import com.inspur.eip.entity.sbw.SbwAtomParamWrapper;
+import com.inspur.eip.entity.sbw.SbwUpdateParam;
+import com.inspur.eip.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HttpUtil;
 import com.inspur.eip.util.ReturnResult;
@@ -48,16 +50,13 @@ public class SbwAtomService {
     /**
      * update
      * @param sbwId id
-     * @param sbwConfig config
      * @return json
      */
-    JSONObject atomUpdateSbw(String sbwId, SbwAtomParam sbwConfig)  {
+    JSONObject atomUpdateSbw(String sbwId, SbwUpdateParamWrapper wrapper)  {
         String url=sbwAtomUrl + "/eip/v1/sbws/" +sbwId+"/update";
         ReturnResult response = null;
         try {
-            SbwAtomParamWrapper eipConfigWrapper =  new SbwAtomParamWrapper();
-            eipConfigWrapper.setSbw(sbwConfig);
-            String orderStr = JSONObject.toJSONString(eipConfigWrapper);
+            String orderStr = JSONObject.toJSONString(wrapper);
             log.info("Send config to url:{}, body:{}", url, orderStr);
 
             response = HttpUtil.put(url, null, orderStr);
@@ -70,14 +69,13 @@ public class SbwAtomService {
     /**
      * update
      * @param sbwId id
-     * @param sbwConfig config
      * @return json
      */
-    JSONObject atomRenewSbw(String sbwId, SbwAtomParam sbwConfig)  {
+    JSONObject atomRenewSbw(String sbwId, SbwUpdateParamWrapper wrapper)  {
         String url=sbwAtomUrl + "/eip/v1/sbws/" +sbwId +"/renew";
         ReturnResult response = null;
         try {
-            String orderStr = JSONObject.toJSONString(sbwConfig);
+            String orderStr = JSONObject.toJSONString(wrapper);
             log.info("Renew sbw to url:{}, body:{}", url, orderStr);
 
             response = HttpUtil.post(url, null, orderStr);
@@ -86,5 +84,4 @@ public class SbwAtomService {
         }
         return CommonUtil.handlerResopnse(response);
     }
-
 }

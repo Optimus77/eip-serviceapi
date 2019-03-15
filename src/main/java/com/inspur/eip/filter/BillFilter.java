@@ -4,7 +4,7 @@ package com.inspur.eip.filter;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.ReciveOrder;
-import com.inspur.eip.entity.EipSoftDownOrder;
+import com.inspur.eip.entity.OrderSoftDown;
 import com.inspur.eip.service.BssApiService;
 import com.inspur.eip.service.EipServiceImpl;
 import com.inspur.eip.util.CommonUtil;
@@ -106,7 +106,7 @@ public class BillFilter implements Filter {
 
             String requestBody = CommonUtil.readRequestAsChars(req);
             log.info("get softdown eip order:{}.", requestBody);
-            EipSoftDownOrder eipReciveOrder = JSON.parseObject(requestBody, EipSoftDownOrder.class);
+            OrderSoftDown eipReciveOrder = JSON.parseObject(requestBody, OrderSoftDown.class);
             JSONObject result = bssApiService.onReciveSoftDownOrder(eipReciveOrder);
 
             response.setStatus(HttpStatus.SC_OK);
@@ -147,6 +147,15 @@ public class BillFilter implements Filter {
             log.info("update sbw config:{}.", requestBody);
             ReciveOrder sbwCreateRecive = JSON.parseObject(requestBody, ReciveOrder.class);
             JSONObject result = bssApiService.updateSbwConfig(sbwId, sbwCreateRecive);
+
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+        }else if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equalsIgnoreCase("/v1/sbws/stopOrDelete")){
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("get softDelete sbw order:{}.", requestBody);
+            OrderSoftDown eipReciveOrder = JSON.parseObject(requestBody, OrderSoftDown.class);
+            JSONObject result = bssApiService.stopOrSoftDeleteSbw(eipReciveOrder);
 
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
