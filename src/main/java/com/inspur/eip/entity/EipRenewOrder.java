@@ -25,7 +25,7 @@ public class EipRenewOrder {
     private String rewardActivity;
     private JSONObject consoleCustomization;
     private String totalMoney;
-    private List<EipOrderProduct> originalProductList;
-    private List<EipOrderProduct> productList;
+    private List<OrderProduct> originalProductList;
+    private List<OrderProduct> productList;
 
 }

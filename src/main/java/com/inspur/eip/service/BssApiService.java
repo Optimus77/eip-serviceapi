@@ -66,7 +66,7 @@ public class BssApiService {
      * @param eipOrder order
      * @return return message
      */
-    public JSONObject onReciveCreateOrderResult(EipReciveOrder eipOrder) {
+    public JSONObject onReciveCreateOrderResult(ReciveOrder eipOrder) {
 
         String code;
         String msg;
@@ -75,8 +75,7 @@ public class BssApiService {
         ReturnResult returnResult = null;
         try {
             log.debug("Recive create order:{}", JSONObject.toJSONString(eipOrder));
-            if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
-                    eipOrder.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+            if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
                 ReturnMsg checkRet = preCheckParam(eipConfig);
                 if(checkRet.getCode().equals(ReturnStatus.SC_OK)){
@@ -134,18 +133,17 @@ public class BssApiService {
      * @param eipOrder order
      * @return string
      */
-    public JSONObject onReciveDeleteOrderResult(EipReciveOrder eipOrder) {
+    public JSONObject onReciveDeleteOrderResult(ReciveOrder eipOrder) {
         String msg ;
         String code ;
         String eipId = "0";
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
-            if(eipOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)  ||
-                    eipOrder.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+            if(eipOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)) {
 
-                List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
-                for (EipOrderProduct eipOrderProduct : eipOrderProducts) {
-                    eipId = eipOrderProduct.getInstanceId();
+                List<OrderProduct> orderProducts = eipOrder.getProductList();
+                for (OrderProduct orderProduct : orderProducts) {
+                    eipId = orderProduct.getInstanceId();
                 }
                 JSONObject delResult = eipAtomService.atomDeleteEip(eipId);
 
@@ -184,21 +182,19 @@ public class BssApiService {
      * @param eipOrder order
      * @return string
      */
-    public JSONObject  onReciveUpdateOrder(String eipId, EipReciveOrder eipOrder) {
+    public JSONObject  onReciveUpdateOrder(String eipId, ReciveOrder eipOrder) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
 
         try {
             log.debug("Recive update order:{}", JSONObject.toJSONString(eipOrder));
 
-            if((null != eipOrder) && (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
-                    eipOrder.getBillType().equals(HsConstants.HOURLYSETTLEMENT))) {
+            if((null != eipOrder) && (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS))) {
                 EipUpdateParam eipUpdate = getUpdatParmByOrder(eipOrder);
                 JSONObject updateRet;
                 if(eipOrder.getOrderType().equalsIgnoreCase("changeConfigure")){
                     updateRet = eipAtomService.atomUpdateEip(eipId, eipUpdate);
-                }else if(eipOrder.getOrderType().equalsIgnoreCase("renew")){
-                    eipUpdate.setDuration("1");
+                }else if(eipOrder.getOrderType().equalsIgnoreCase("renew") && eipOrder.getBillType().equals(HsConstants.MONTHLY)){
                     updateRet = eipAtomService.atomRenewEip(eipId, eipUpdate);
                 }else{
                     log.error("Not support order type:{}", eipOrder.getOrderType());
@@ -281,35 +277,34 @@ public class BssApiService {
      * @param eipOrder order
      * @return eip param
      */
-    private  EipAllocateParam getEipConfigByOrder(EipReciveOrder eipOrder){
+    private  EipAllocateParam getEipConfigByOrder(ReciveOrder eipOrder){
         EipAllocateParam eipAllocateParam = new EipAllocateParam();
-        List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
+        List<OrderProduct> orderProducts = eipOrder.getProductList();
 
         eipAllocateParam.setBillType(eipOrder.getBillType());
-        eipAllocateParam.setDuration(eipOrder.getDuration());
+        eipAllocateParam.setChargemode("Bandwidth");
         if(eipOrder.getConsoleCustomization().containsKey("operateType") &&
                 eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("createNatWithEip") ){
             eipAllocateParam.setIpv6("yes");
         }
 
-        for(EipOrderProduct eipOrderProduct: eipOrderProducts){
-            if(!eipOrderProduct.getProductLineCode().equals(HsConstants.EIP)){
+        for(OrderProduct orderProduct : orderProducts){
+            if(!orderProduct.getProductLineCode().equals(HsConstants.EIP)){
                 continue;
             }
-            eipAllocateParam.setRegion(eipOrderProduct.getRegion());
-            List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
+            eipAllocateParam.setRegion(orderProduct.getRegion());
+            List<OrderProductItem> orderProductItems = orderProduct.getItemList();
 
-            for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
-                if(eipOrderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)){
-                    eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
-                }else if(eipOrderProductItem.getCode().equals(HsConstants.PROVIDER)){
-                    eipAllocateParam.setIptype(eipOrderProductItem.getValue());
-                }else if(eipOrderProductItem.getCode().equals(HsConstants.IS_SBW) &&
-                        eipOrderProductItem.getValue().equals(HsConstants.YES)){
+            for(OrderProductItem orderProductItem : orderProductItems){
+                if(orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)){
+                    eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
+                }else if(orderProductItem.getCode().equals(HsConstants.PROVIDER)){
+                    eipAllocateParam.setIptype(orderProductItem.getValue());
+                }else if(orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
+                        orderProductItem.getValue().equals(HsConstants.YES)){
                     String sbwId = eipOrder.getConsoleCustomization().getString("sbwid");
-                    String chargeMode = eipOrder.getConsoleCustomization().getString("chargemode");
                     eipAllocateParam.setSharedBandWidthId(sbwId);
-                    eipAllocateParam.setChargemode(chargeMode);
+                    eipAllocateParam.setChargemode("SharedBandwidth");
                 }
             }
         }
@@ -323,26 +318,26 @@ public class BssApiService {
      * @param eipOrder order
      * @return eip param
      */
-    private  EipUpdateParam getUpdatParmByOrder(EipReciveOrder eipOrder){
+    private  EipUpdateParam getUpdatParmByOrder(ReciveOrder eipOrder){
         EipUpdateParam eipAllocateParam = new EipUpdateParam();
 
-        List<EipOrderProduct> eipOrderProducts = eipOrder.getProductList();
+        List<OrderProduct> orderProducts = eipOrder.getProductList();
         eipAllocateParam.setBillType(eipOrder.getBillType());
         eipAllocateParam.setChargemode("Bandwidth");
-        for(EipOrderProduct eipOrderProduct: eipOrderProducts){
-            if(!eipOrderProduct.getProductLineCode().equals(HsConstants.EIP)){
+        for(OrderProduct orderProduct : orderProducts){
+            if(!orderProduct.getProductLineCode().equals(HsConstants.EIP)){
                 continue;
             }
-            List<EipOrderProductItem> eipOrderProductItems = eipOrderProduct.getItemList();
+            List<OrderProductItem> orderProductItems = orderProduct.getItemList();
 
-            for(EipOrderProductItem eipOrderProductItem: eipOrderProductItems){
-                if(eipOrderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)
+            for(OrderProductItem orderProductItem : orderProductItems){
+                if(orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)
                 ){
-                    eipAllocateParam.setBandwidth(Integer.parseInt(eipOrderProductItem.getValue()));
-                }else if(eipOrderProductItem.getCode().equals(HsConstants.IS_SBW) ){
+                    eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
+                }else if(orderProductItem.getCode().equals(HsConstants.IS_SBW) ){
                     String sbwId = eipOrder.getConsoleCustomization().getString("sbwid");
                     eipAllocateParam.setSharedBandWidthId(sbwId);
-                    if(eipOrderProductItem.getValue().equalsIgnoreCase("yes")){
+                    if(orderProductItem.getValue().equalsIgnoreCase("yes")){
                         eipAllocateParam.setChargemode("SharedBandwidth");
                     }
                 }
@@ -391,40 +386,42 @@ public class BssApiService {
 
     /**
      * constructe EipOrderResult form order
-     * @param eipReciveOrder order
+     * @param reciveOrder order
      * @param eipId id
      * @param result result
      * @return EipOrderResult
      */
-    private EipOrderResult getEipOrderResult(EipReciveOrder eipReciveOrder, String eipId, String result){
-        List<EipOrderProduct> eipOrderProducts = eipReciveOrder.getProductList();
+    private EipOrderResult getEipOrderResult(ReciveOrder reciveOrder, String eipId, String result){
+        List<OrderProduct> orderProducts = reciveOrder.getProductList();
 
-        for(EipOrderProduct eipOrderProduct: eipOrderProducts){
-            eipOrderProduct.setInstanceId(eipId);
-            eipOrderProduct.setInstanceStatus(result);
-            eipOrderProduct.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        for(OrderProduct orderProduct : orderProducts){
+            orderProduct.setInstanceId(eipId);
+            orderProduct.setInstanceStatus(result);
+            orderProduct.setStatusTime(reciveOrder.getStatusTime());
         }
 
         EipOrderResult eipOrderResult = new EipOrderResult();
-        eipOrderResult.setUserId(eipReciveOrder.getUserId());
-        eipOrderResult.setConsoleOrderFlowId(eipReciveOrder.getConsoleOrderFlowId());
-        eipOrderResult.setOrderId(eipReciveOrder.getOrderId());
+        eipOrderResult.setUserId(reciveOrder.getUserId());
+        eipOrderResult.setConsoleOrderFlowId(reciveOrder.getConsoleOrderFlowId());
+        eipOrderResult.setOrderId(reciveOrder.getOrderId());
 
-        List<EipOrderResultProduct> eipOrderResultProducts = new ArrayList<>();
-        EipOrderResultProduct eipOrderResultProduct = new EipOrderResultProduct();
-        eipOrderResultProduct.setProductSetStatus(result);
-        eipOrderResultProduct.setProductList(eipReciveOrder.getProductList());
+        List<OrderResultProduct> orderResultProducts = new ArrayList<>();
+        OrderResultProduct orderResultProduct = new OrderResultProduct();
+        orderResultProduct.setProductSetStatus(result);
+        orderResultProduct.setDuration(orderResultProduct.getDuration());
+        orderResultProduct.setDurationUnit(orderResultProduct.getDurationUnit());
+        orderResultProduct.setProductList(reciveOrder.getProductList());
 
 
-        eipOrderResultProducts.add(eipOrderResultProduct);
-        eipOrderResult.setProductSetList(eipOrderResultProducts);
+        orderResultProducts.add(orderResultProduct);
+        eipOrderResult.setProductSetList(orderResultProducts);
         return eipOrderResult;
     }
     /**
      * get create shareband result
      * @return return message
      */
-    public JSONObject createShareBandWidth(EipReciveOrder eipReciveOrder) {
+    public JSONObject createShareBandWidth(ReciveOrder reciveOrder) {
 
         String code;
         String msg;
@@ -432,12 +429,12 @@ public class BssApiService {
         JSONObject createRet = null;
         ReturnResult returnResult = null;
         try {
-            if(eipReciveOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ) {
-                SbwAllocateParam sbwConfig = getSbwConfigByOrder(eipReciveOrder);
+            if(reciveOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ) {
+                SbwAtomParam sbwConfig = getSbwConfigByOrder(reciveOrder);
                 ReturnSbwMsg checkRet = preSbwCheckParam(sbwConfig);
                 if(checkRet.getCode().equals(ReturnStatus.SC_OK)){
                     //post request to atom
-                    SbwAllocateParamWrapper sbwWrapper = new SbwAllocateParamWrapper();
+                    SbwAtomParamWrapper sbwWrapper = new SbwAtomParamWrapper();
                     sbwWrapper.setSbw(sbwConfig);
                     createRet = sbwAtomService.atomCreateSbw(sbwWrapper);
                     String retStr = HsConstants.SUCCESS;
@@ -448,9 +445,9 @@ public class BssApiService {
                     }else{
                         JSONObject sbwEntity = createRet.getJSONObject("sbw");
                         sbwId = sbwEntity.getString("sbwid");
-                        webControllerService.returnSbwWebsocket(sbwEntity.getString("sbwid"), eipReciveOrder,"create");
+                        webControllerService.returnSbwWebsocket(sbwEntity.getString("sbwid"), reciveOrder,"create");
                     }
-                    returnResult = webControllerService.resultSbwReturnMq(getSbwResult(eipReciveOrder, sbwId, retStr));
+                    returnResult = webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId, retStr));
 
                     return createRet;
                 } else {
@@ -475,7 +472,7 @@ public class BssApiService {
                 }
             }
         }
-        webControllerService.resultSbwReturnMq(getSbwResult(eipReciveOrder, "",HsConstants.FAIL));
+        webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, "",HsConstants.FAIL));
         JSONObject result = new JSONObject();
         result.put("code", code);
         result.put("msg", msg);
@@ -484,35 +481,35 @@ public class BssApiService {
 
     /**
      * delete result from bss
-     * @param eipReciveOrder order
+     * @param reciveOrder order
      * @return string
      */
-    public JSONObject deleteShareBandWidth(EipReciveOrder eipReciveOrder) {
+    public JSONObject deleteShareBandWidth(ReciveOrder reciveOrder) {
         String msg ;
         String code ;
         String sbwId = "0";
         JSONObject result = new JSONObject();
         try {
-            log.debug("Recive delete order:{}", JSONObject.toJSONString(eipReciveOrder));
-            if(eipReciveOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)  || eipReciveOrder.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+            log.debug("Recive delete order:{}", JSONObject.toJSONString(reciveOrder));
+            if(reciveOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS) ) {
 
-                List<EipOrderProduct> productList = eipReciveOrder.getProductList();
-                for (EipOrderProduct product : productList) {
+                List<OrderProduct> productList = reciveOrder.getProductList();
+                for (OrderProduct product : productList) {
                     sbwId = product.getInstanceId();
                 }
                 JSONObject delResult = sbwAtomService.atomDeleteSbw(sbwId);
 
                 if (delResult.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK) {
                     //Return message to the front des
-                    webControllerService.returnSbwWebsocket(sbwId, eipReciveOrder, "delete");
-                    webControllerService.resultSbwReturnMq(getSbwResult(eipReciveOrder, sbwId, HsConstants.SUCCESS));
+                    webControllerService.returnSbwWebsocket(sbwId, reciveOrder, "delete");
+                    webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId, HsConstants.SUCCESS));
                     return delResult;
                 } else {
                     msg = delResult.getString(HsConstants.STATUSCODE);
                     code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 }
             }else{
-                msg = "Failed to delete eip,failed to create delete. orderStatus: "+ eipReciveOrder.getOrderStatus();
+                msg = "Failed to delete eip,failed to create delete. orderStatus: "+ reciveOrder.getOrderStatus();
                 code = ReturnStatus.SC_PARAM_UNKONWERROR;
                 log.error(msg);
             }
@@ -521,7 +518,7 @@ public class BssApiService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
-        webControllerService.resultSbwReturnMq(getSbwResult(eipReciveOrder, sbwId,HsConstants.FAIL));
+        webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId,HsConstants.FAIL));
         result.put("code", code);
         result.put("msg", msg);
         return result;
@@ -533,19 +530,18 @@ public class BssApiService {
      * @param recive info recived
      * @return ret
      */
-    public JSONObject updateSbwConfig(String sbwId , EipReciveOrder recive){
+    public JSONObject updateSbwConfig(String sbwId , ReciveOrder recive){
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
 
         try {
             log.info("Recive update sbw:{}", JSONObject.toJSONString(recive));
-            if(recive.getOrderStatus().equals(HsConstants.PAYSUCCESS) ||
-                    recive.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                SbwAllocateParam sbwUpdate = getSbwConfigByOrder(recive);
+            if(recive.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
+                SbwAtomParam sbwUpdate = getSbwConfigByOrder(recive);
                 JSONObject updateRet;
                 if(recive.getOrderType().equalsIgnoreCase("changeConfigure")){
                     updateRet = sbwAtomService.atomUpdateSbw(sbwId, sbwUpdate);
-                }else if(recive.getOrderType().equalsIgnoreCase("renew")){
+                }else if(recive.getOrderType().equalsIgnoreCase("renew") && recive.getBillType().equals(HsConstants.MONTHLY)){
                     updateRet = sbwAtomService.atomRenewSbw(sbwId, sbwUpdate);
                 }else{
                     log.error("Not support order type:{}", recive.getOrderType());
@@ -576,55 +572,55 @@ public class BssApiService {
      * get eip config from order
      * @return eip param
      */
-    private SbwAllocateParam getSbwConfigByOrder(EipReciveOrder eipReciveOrder){
-        SbwAllocateParam sbwAllocatePram = new SbwAllocateParam();
-        JSONObject customization = eipReciveOrder.getConsoleCustomization();
-        sbwAllocatePram.setBillType(eipReciveOrder.getBillType());
-        sbwAllocatePram.setBandwidth(Integer.parseInt(eipReciveOrder.getProductList().get(0).getItemList().get(0).getValue()));
+    private SbwAtomParam getSbwConfigByOrder(ReciveOrder reciveOrder){
+        SbwAtomParam sbwAllocatePram = new SbwAtomParam();
+        JSONObject customization = reciveOrder.getConsoleCustomization();
+        sbwAllocatePram.setBillType(reciveOrder.getBillType());
+        sbwAllocatePram.setBandwidth(Integer.parseInt(reciveOrder.getProductList().get(0).getItemList().get(0).getValue()));
         sbwAllocatePram.setSbwName(customization.getString("sharedbandwidthname"));
-        sbwAllocatePram.setDuration(eipReciveOrder.getDuration());
 
-        List<EipOrderProduct> productList = eipReciveOrder.getProductList();
-        for(EipOrderProduct eipOrderProduct : productList){
-            if(!eipOrderProduct.getProductLineCode().equalsIgnoreCase(HsConstants.SBW)){
+        List<OrderProduct> productList = reciveOrder.getProductList();
+        for(OrderProduct orderProduct : productList){
+            if(!orderProduct.getProductLineCode().equalsIgnoreCase(HsConstants.SBW)){
                 continue;
             }
-            sbwAllocatePram.setRegion(eipOrderProduct.getRegion());
-            List<EipOrderProductItem> eipOrderProductItemList = eipOrderProduct.getItemList();
+            sbwAllocatePram.setRegion(orderProduct.getRegion());
+            List<OrderProductItem> orderProductItemList = orderProduct.getItemList();
 
-            for(EipOrderProductItem sbwItem: eipOrderProductItemList){
+            for(OrderProductItem sbwItem: orderProductItemList){
                 if(sbwItem.getCode().equalsIgnoreCase("bandwidth")){
                     sbwAllocatePram.setBandwidth(Integer.parseInt(sbwItem.getValue()));
                 }
             }
         }
+        // the chargemode will be changed in the future : BandWidth or Traffic (带宽计费/流量计费)
+        sbwAllocatePram.setChargemode("Bandwidth");
         log.info("Get sbw param from sbw Recive:{}", sbwAllocatePram.toString());
-        /*chargemode now use the default value */
         return sbwAllocatePram;
     }
 
-    private EipOrderResult getSbwResult(EipReciveOrder eipReciveOrder, String sbwId, String result){
-        List<com.inspur.eip.entity.EipOrderProduct> productList = eipReciveOrder.getProductList();
+    private EipOrderResult getSbwResult(ReciveOrder reciveOrder, String sbwId, String result){
+        List<OrderProduct> productList = reciveOrder.getProductList();
 
-        for(com.inspur.eip.entity.EipOrderProduct eipOrderProduct : productList){
-            eipOrderProduct.setInstanceStatus(result);
-            eipOrderProduct.setInstanceId(sbwId);
-            eipOrderProduct.setStatusTime(eipReciveOrder.getStatusTime());
+        for(OrderProduct orderProduct : productList){
+            orderProduct.setInstanceStatus(result);
+            orderProduct.setInstanceId(sbwId);
+            orderProduct.setStatusTime(reciveOrder.getStatusTime());
         }
 
         EipOrderResult eipOrderResult = new EipOrderResult();
-        eipOrderResult.setUserId(eipReciveOrder.getUserId());
-        eipOrderResult.setConsoleOrderFlowId(eipReciveOrder.getConsoleOrderFlowId());
-        eipOrderResult.setOrderId(eipReciveOrder.getOrderId());
+        eipOrderResult.setUserId(reciveOrder.getUserId());
+        eipOrderResult.setConsoleOrderFlowId(reciveOrder.getConsoleOrderFlowId());
+        eipOrderResult.setOrderId(reciveOrder.getOrderId());
 
-        List<EipOrderResultProduct> eipOrderResultProducts = new ArrayList<>();
-        EipOrderResultProduct eipOrderResultProduct = new EipOrderResultProduct();
-        eipOrderResultProduct.setProductSetStatus(result);
-        eipOrderResultProduct.setProductList(eipReciveOrder.getProductList());
+        List<OrderResultProduct> orderResultProducts = new ArrayList<>();
+        OrderResultProduct orderResultProduct = new OrderResultProduct();
+        orderResultProduct.setProductSetStatus(result);
+        orderResultProduct.setProductList(reciveOrder.getProductList());
 
 
-        eipOrderResultProducts.add(eipOrderResultProduct);
-        eipOrderResult.setProductSetList(eipOrderResultProducts);
+        orderResultProducts.add(orderResultProduct);
+        eipOrderResult.setProductSetList(orderResultProducts);
         return eipOrderResult;
     }
 }

@@ -9,7 +9,7 @@ import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 
 @Data
-public class SbwAllocateParam implements Serializable {
+public class SbwAtomParam implements Serializable {
 
     @NotBlank(message = "can not be blank.")
     private String region;

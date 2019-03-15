@@ -7,6 +7,6 @@ import java.io.Serializable;
 
 @Setter
 @Getter
-public class SbwAllocateParamWrapper implements Serializable {
-    private SbwAllocateParam   sbw;
+public class SbwAtomParamWrapper implements Serializable {
+    private SbwAtomParam sbw;
 }
