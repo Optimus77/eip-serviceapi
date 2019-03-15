@@ -195,6 +195,7 @@ public class BssApiService {
                 if(eipOrder.getOrderType().equalsIgnoreCase("changeConfigure")){
                     updateRet = eipAtomService.atomUpdateEip(eipId, eipUpdate);
                 }else if(eipOrder.getOrderType().equalsIgnoreCase("renew") && eipOrder.getBillType().equals(HsConstants.MONTHLY)){
+                    eipUpdate.setDuration("1");
                     updateRet = eipAtomService.atomRenewEip(eipId, eipUpdate);
                 }else{
                     log.error("Not support order type:{}", eipOrder.getOrderType());
@@ -639,7 +640,7 @@ public class BssApiService {
                 }
             }
         }
-        // the chargemode will be changed in the future : BandWidth or Traffic (带宽计费/流量计费)
+
         log.info("Get sbw param from sbw Recive:{}", sbwAllocatePram.toString());
         return sbwAllocatePram;
     }
