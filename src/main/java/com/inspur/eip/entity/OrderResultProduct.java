@@ -5,11 +5,11 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class EipOrderResultProduct {
+public class OrderResultProduct {
 
     private String productSetStatus;
     private String duration;
     private String durationUnit = "M";
-    private List<EipOrderProduct> productList;
+    private List<OrderProduct> productList;
 
 }

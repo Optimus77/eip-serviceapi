@@ -39,7 +39,7 @@ class WebControllerService {
      * @param order order
      * @return code and message
      */
-    ReturnResult postOrder(EipReciveOrder order)  {
+    ReturnResult postOrder(ReciveOrder order)  {
         String url=ordercreate;
         ReturnResult response;
         try {
@@ -111,7 +111,7 @@ class WebControllerService {
      * @param eipOrder  order
      * @param type type
      */
-    void returnsWebsocket(String eipId, EipReciveOrder eipOrder, String type){
+    void returnsWebsocket(String eipId, ReciveOrder eipOrder, String type){
             try {
                 SendMQEIP sendMQEIP = new SendMQEIP();
                 sendMQEIP.setUserName(CommonUtil.getUsername());
@@ -158,10 +158,10 @@ class WebControllerService {
     /**
      * sbw webSocket
      * @param sbwId id
-     * @param eipReciveOrder order
+     * @param reciveOrder order
      * @param type tyep
      */
-    void returnSbwWebsocket(String sbwId, EipReciveOrder eipReciveOrder, String type){
+    void returnSbwWebsocket(String sbwId, ReciveOrder reciveOrder, String type){
 
             try {
                 SendMQEIP sendMQEIP = new SendMQEIP();

@@ -1,8 +1,8 @@
 package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eip.entity.sbw.SbwAllocateParam;
-import com.inspur.eip.entity.sbw.SbwAllocateParamWrapper;
+import com.inspur.eip.entity.sbw.SbwAtomParam;
+import com.inspur.eip.entity.sbw.SbwAtomParamWrapper;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.HttpUtil;
 import com.inspur.eip.util.ReturnResult;
@@ -16,7 +16,7 @@ public class SbwAtomService {
     @Value("${proxy.target_url}")
     private String sbwAtomUrl;
 
-    JSONObject atomCreateSbw(SbwAllocateParamWrapper wrapper) {
+    JSONObject atomCreateSbw(SbwAtomParamWrapper wrapper) {
         String url = sbwAtomUrl + "/eip/v1/sbws";
         ReturnResult response = null;
         try {
@@ -51,11 +51,11 @@ public class SbwAtomService {
      * @param sbwConfig config
      * @return json
      */
-    JSONObject atomUpdateSbw(String sbwId, SbwAllocateParam sbwConfig)  {
+    JSONObject atomUpdateSbw(String sbwId, SbwAtomParam sbwConfig)  {
         String url=sbwAtomUrl + "/eip/v1/sbws/" +sbwId+"/update";
         ReturnResult response = null;
         try {
-            SbwAllocateParamWrapper eipConfigWrapper =  new SbwAllocateParamWrapper();
+            SbwAtomParamWrapper eipConfigWrapper =  new SbwAtomParamWrapper();
             eipConfigWrapper.setSbw(sbwConfig);
             String orderStr = JSONObject.toJSONString(eipConfigWrapper);
             log.info("Send config to url:{}, body:{}", url, orderStr);
@@ -73,16 +73,16 @@ public class SbwAtomService {
      * @param sbwConfig config
      * @return json
      */
-    JSONObject atomRenewSbw(String sbwId, SbwAllocateParam sbwConfig)  {
+    JSONObject atomRenewSbw(String sbwId, SbwAtomParam sbwConfig)  {
         String url=sbwAtomUrl + "/eip/v1/sbws/" +sbwId +"/renew";
         ReturnResult response = null;
         try {
             String orderStr = JSONObject.toJSONString(sbwConfig);
-            log.info("Renew sbw to url:{}, body:{}", url, orderStr);
+            log.info("Send config to url:{}, body:{}", url, orderStr);
 
             response = HttpUtil.post(url, null, orderStr);
         }catch (Exception e){
-            log.error("Renew sbw exception", e);
+            log.error("Update sbw exception", e);
         }
         return CommonUtil.handlerResopnse(response);
     }

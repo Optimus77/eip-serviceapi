@@ -11,6 +11,6 @@ public class EipOrderResult {
     private String userId;
     private String consoleOrderFlowId;
     private String orderId;
-    private List<EipOrderResultProduct> productSetList;
+    private List<OrderResultProduct> productSetList;
 
 }

@@ -6,7 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.EipAllocateParam;
 import com.inspur.eip.entity.ReturnMsg;
 import com.inspur.eip.entity.ReturnSbwMsg;
-import com.inspur.eip.entity.sbw.SbwAllocateParam;
+import com.inspur.eip.entity.sbw.SbwAtomParam;
 import lombok.Setter;
 
 import lombok.extern.slf4j.Slf4j;
@@ -237,7 +237,7 @@ public class CommonUtil {
      * @param param param
      * @return return
      */
-    public static ReturnSbwMsg preSbwCheckParam(SbwAllocateParam param){
+    public static ReturnSbwMsg preSbwCheckParam(SbwAtomParam param){
         String errorMsg = " ";
         if(null == param){
             return ReturnMsgUtil.errorSbw(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
