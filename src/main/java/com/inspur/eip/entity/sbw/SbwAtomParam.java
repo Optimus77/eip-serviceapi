@@ -25,6 +25,4 @@ public class SbwAtomParam implements Serializable {
 
     @NotBlank(message = "can not be blank.")
     private String sbwName;
-
-    private String method;
 }
