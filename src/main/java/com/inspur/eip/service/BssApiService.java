@@ -540,6 +540,7 @@ public class BssApiService {
             if(recive.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 SbwUpdateParamWrapper wrapper = new SbwUpdateParamWrapper();
                 SbwUpdateParam sbwUpdate = getSbwUpdatParmByOrder(recive);
+                sbwUpdate.setDuration("1");
                 wrapper.setSbw(sbwUpdate);
                 JSONObject updateRet;
                 if(recive.getOrderType().equalsIgnoreCase("changeConfigure")){
@@ -593,6 +594,8 @@ public class BssApiService {
                     continue;
                 }
                 String retStr = HsConstants.SUCCESS;
+
+
                 if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()){
                     retStr = HsConstants.FAIL;
                 }
