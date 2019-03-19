@@ -139,7 +139,7 @@ public class BssApiService {
         String eipId = "0";
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
-            if(eipOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)) {
+            if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
 
                 List<OrderProduct> orderProducts = eipOrder.getProductList();
                 for (OrderProduct orderProduct : orderProducts) {
@@ -492,7 +492,7 @@ public class BssApiService {
         JSONObject result = new JSONObject();
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(reciveOrder));
-            if(reciveOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS) ) {
+            if(reciveOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ) {
 
                 List<OrderProduct> productList = reciveOrder.getProductList();
                 for (OrderProduct product : productList) {
@@ -683,12 +683,12 @@ public class BssApiService {
         eipOrderResult.setOrderId(reciveOrder.getOrderId());
 
         List<OrderResultProduct> orderResultProducts = new ArrayList<>();
-        OrderResultProduct orderResultProduct = new OrderResultProduct();
-        orderResultProduct.setProductSetStatus(result);
-        orderResultProduct.setProductList(reciveOrder.getProductList());
+        OrderResultProduct resultProduct = new OrderResultProduct();
+        resultProduct.setProductSetStatus(result);
+        resultProduct.setProductList(reciveOrder.getProductList());
 
 
-        orderResultProducts.add(orderResultProduct);
+        orderResultProducts.add(resultProduct);
         eipOrderResult.setProductSetList(orderResultProducts);
         return eipOrderResult;
     }

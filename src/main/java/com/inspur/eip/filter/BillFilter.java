@@ -77,7 +77,6 @@ public class BillFilter implements Filter {
             log.info("get create eip order:{}.", requestBody);
             ReciveOrder reciveOrder =  JSON.parseObject(requestBody, ReciveOrder.class);
             JSONObject result = bssApiService.onReciveCreateOrderResult(reciveOrder);
-            //todo
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
