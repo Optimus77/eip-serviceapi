@@ -3,7 +3,7 @@ package com.inspur.eip.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.ReciveOrder;
-import com.inspur.eip.entity.EipSoftDownOrder;
+import com.inspur.eip.entity.OrderSoftDown;
 import com.inspur.eip.service.BssApiService;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +49,7 @@ public class EipOrderController {
     @PostMapping(value = "/orders/softdown")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "show all servers", notes = "get")
-    public ResponseEntity softDown(@RequestBody EipSoftDownOrder eipReciveOrder) {
+    public ResponseEntity softDown(@RequestBody OrderSoftDown eipReciveOrder) {
 
         log.info("get soft down eip order:{}.", eipReciveOrder.toString());
         JSONObject result = bssApiService.onReciveSoftDownOrder(eipReciveOrder);

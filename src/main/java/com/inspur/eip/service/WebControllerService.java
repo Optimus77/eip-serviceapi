@@ -88,7 +88,7 @@ class WebControllerService {
      * @param orderResult result
      * @return code and message
      */
-    ReturnResult resultReturnNotify(EipSoftDownOrder orderResult)  {
+    ReturnResult resultReturnNotify(OrderSoftDown orderResult)  {
         String url=returnNotify;
         try {
             Map<String, String> header = new HashMap<>();
