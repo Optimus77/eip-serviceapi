@@ -608,7 +608,7 @@ public class BssApiService {
                 return updateRet;
             }
         }catch (Exception e){
-            log.error("Exception in update sbw", e);
+            log.error("Exception in stopOrSoftDeleteSbw sbw", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
