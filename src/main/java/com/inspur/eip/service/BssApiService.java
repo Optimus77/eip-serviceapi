@@ -139,7 +139,7 @@ public class BssApiService {
         String eipId = "0";
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
-            if(eipOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)) {
+            if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
 
                 List<OrderProduct> orderProducts = eipOrder.getProductList();
                 for (OrderProduct orderProduct : orderProducts) {
@@ -230,21 +230,21 @@ public class BssApiService {
      * @param eipOrder order
      * @return return
      */
-    public JSONObject onReciveSoftDownOrder(EipSoftDownOrder eipOrder) {
+    public JSONObject onReciveSoftDownOrder(OrderSoftDown eipOrder) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         JSONObject updateRet = null;
         try {
             log.debug("Recive soft down order:{}", JSONObject.toJSONString(eipOrder));
-            List<EipSoftDownInstance> instanceList =  eipOrder.getInstanceList();
-            for(EipSoftDownInstance eipSoftDownInstance: instanceList){
-                String operateType =  eipSoftDownInstance.getOperateType();
+            List<SoftDownInstance> instanceList =  eipOrder.getInstanceList();
+            for(SoftDownInstance softDownInstance : instanceList){
+                String operateType =  softDownInstance.getOperateType();
                 if("delete".equalsIgnoreCase(operateType)) {
-                    updateRet = eipAtomService.atomDeleteEip(eipSoftDownInstance.getInstanceId());
+                    updateRet = eipAtomService.atomDeleteEip(softDownInstance.getInstanceId());
                 }else if("stopServer".equalsIgnoreCase(operateType)) {
                     EipUpdateParam updateParam = new EipUpdateParam();
                     updateParam.setDuration("0");
-                    updateRet = eipAtomService.atomRenewEip(eipSoftDownInstance.getInstanceId(), updateParam);
+                    updateRet = eipAtomService.atomRenewEip(softDownInstance.getInstanceId(), updateParam);
                 }else{
                     continue;
                 }
@@ -253,8 +253,8 @@ public class BssApiService {
                 if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()){
                     retStr = HsConstants.FAIL;
                 }
-                eipSoftDownInstance.setResult(retStr);
-                eipSoftDownInstance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+                softDownInstance.setResult(retStr);
+                softDownInstance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
                 log.info("Soft down result:{}", updateRet);
             }
             if(null != updateRet) {
@@ -492,7 +492,7 @@ public class BssApiService {
         JSONObject result = new JSONObject();
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(reciveOrder));
-            if(reciveOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS) ) {
+            if(reciveOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS) ) {
 
                 List<OrderProduct> productList = reciveOrder.getProductList();
                 for (OrderProduct product : productList) {
@@ -538,12 +538,15 @@ public class BssApiService {
         try {
             log.info("Recive update sbw:{}", JSONObject.toJSONString(recive));
             if(recive.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
-                SbwAtomParam sbwUpdate = getSbwConfigByOrder(recive);
+                SbwUpdateParamWrapper wrapper = new SbwUpdateParamWrapper();
+                SbwUpdateParam sbwUpdate = getSbwUpdatParmByOrder(recive);
+                sbwUpdate.setDuration("1");
+                wrapper.setSbw(sbwUpdate);
                 JSONObject updateRet;
                 if(recive.getOrderType().equalsIgnoreCase("changeConfigure")){
-                    updateRet = sbwAtomService.atomUpdateSbw(sbwId, sbwUpdate);
+                    updateRet = sbwAtomService.atomUpdateSbw(sbwId, wrapper);
                 }else if(recive.getOrderType().equalsIgnoreCase("renew") && recive.getBillType().equals(HsConstants.MONTHLY)){
-                    updateRet = sbwAtomService.atomRenewSbw(sbwId, sbwUpdate);
+                    updateRet = sbwAtomService.atomRenewSbw(sbwId, wrapper);
                 }else{
                     log.error("Not support order type:{}", recive.getOrderType());
                     updateRet = CommonUtil.handlerResopnse(null);
@@ -569,6 +572,53 @@ public class BssApiService {
         result.put("msg", msg);
         return result;
     }
+
+    public JSONObject stopOrSoftDeleteSbw(OrderSoftDown softDown) {
+        String msg = "";
+        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+        JSONObject updateRet = null;
+        try {
+            log.debug("Recive soft down order:{}", JSONObject.toJSONString(softDown));
+            List<SoftDownInstance> instanceList =  softDown.getInstanceList();
+            for(SoftDownInstance instance : instanceList){
+                String operateType =  instance.getOperateType();
+                if("delete".equalsIgnoreCase(operateType)) {
+                    updateRet = sbwAtomService.atomDeleteSbw(instance.getInstanceId());
+                }else if("stopServer".equalsIgnoreCase(operateType)) {
+                    SbwUpdateParamWrapper wrapper = new SbwUpdateParamWrapper();
+                    SbwUpdateParam updateParam = new SbwUpdateParam();
+                    updateParam.setDuration("0");
+                    wrapper.setSbw(updateParam);
+                    updateRet = sbwAtomService.atomRenewSbw(instance.getInstanceId(), wrapper);
+                }else{
+                    continue;
+                }
+                String retStr = HsConstants.SUCCESS;
+
+
+                if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()){
+                    retStr = HsConstants.FAIL;
+                }
+                instance.setResult(retStr);
+                instance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+                log.info("Soft down result:{}", updateRet);
+            }
+            if(null != updateRet) {
+                webControllerService.resultReturnNotify(softDown);
+                return updateRet;
+            }
+        }catch (Exception e){
+            log.error("Exception in stopOrSoftDeleteSbw sbw", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage()+"";
+        }
+        webControllerService.resultReturnNotify(softDown);
+        JSONObject result = new JSONObject();
+        result.put("code", code);
+        result.put("msg", msg);
+        return result;
+    }
+
     /**
      * get eip config from order
      * @return eip param
@@ -577,7 +627,6 @@ public class BssApiService {
         SbwAtomParam sbwAllocatePram = new SbwAtomParam();
         JSONObject customization = reciveOrder.getConsoleCustomization();
         sbwAllocatePram.setBillType(reciveOrder.getBillType());
-        sbwAllocatePram.setBandwidth(Integer.parseInt(reciveOrder.getProductList().get(0).getItemList().get(0).getValue()));
         sbwAllocatePram.setSbwName(customization.getString("sharedbandwidthname"));
 
         List<OrderProduct> productList = reciveOrder.getProductList();
@@ -599,6 +648,29 @@ public class BssApiService {
         return sbwAllocatePram;
     }
 
+    private  SbwUpdateParam getSbwUpdatParmByOrder(ReciveOrder eipOrder){
+        SbwUpdateParam sbwParam = new SbwUpdateParam();
+
+        List<OrderProduct> orderProducts = eipOrder.getProductList();
+        sbwParam.setBillType(eipOrder.getBillType());
+        for(OrderProduct orderProduct : orderProducts){
+            if(!orderProduct.getProductLineCode().equals(HsConstants.SBW)){
+                continue;
+            }
+            sbwParam.setRegion(orderProduct.getRegion());
+            List<OrderProductItem> orderProductItems = orderProduct.getItemList();
+
+            for(OrderProductItem orderProductItem : orderProductItems){
+                if(orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)){
+                    sbwParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
+                }
+            }
+        }
+        log.info("Get eip param from order:{}", sbwParam.toString());
+        /*chargemode now use the default value */
+        return sbwParam;
+    }
+
     private EipOrderResult getSbwResult(ReciveOrder reciveOrder, String sbwId, String result){
         List<OrderProduct> productList = reciveOrder.getProductList();
 
@@ -614,12 +686,12 @@ public class BssApiService {
         eipOrderResult.setOrderId(reciveOrder.getOrderId());
 
         List<OrderResultProduct> orderResultProducts = new ArrayList<>();
-        OrderResultProduct orderResultProduct = new OrderResultProduct();
-        orderResultProduct.setProductSetStatus(result);
-        orderResultProduct.setProductList(reciveOrder.getProductList());
+        OrderResultProduct resultProduct = new OrderResultProduct();
+        resultProduct.setProductSetStatus(result);
+        resultProduct.setProductList(reciveOrder.getProductList());
 
 
-        orderResultProducts.add(orderResultProduct);
+        orderResultProducts.add(resultProduct);
         eipOrderResult.setProductSetList(orderResultProducts);
         return eipOrderResult;
     }

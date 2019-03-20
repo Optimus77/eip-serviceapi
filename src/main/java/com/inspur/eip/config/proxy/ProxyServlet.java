@@ -409,7 +409,7 @@ public class ProxyServlet extends HttpServlet {
     private HttpResponse doExecute(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
                                      HttpRequest proxyRequest) throws IOException {
         if (doLog) {
-            log.debug("proxy " + servletRequest.getMethod() + " uri: " + servletRequest.getRequestURI() +"?"+servletRequest.getQueryString()+" --> " + proxyRequest.getRequestLine().getUri());
+            log.info("proxy " + servletRequest.getMethod() + " uri: " + servletRequest.getRequestURI() +"?"+servletRequest.getQueryString()+" --> " + proxyRequest.getRequestLine().getUri());
         }
         return closeablProxyClient.execute(getTargetHost(servletRequest),proxyRequest);
 

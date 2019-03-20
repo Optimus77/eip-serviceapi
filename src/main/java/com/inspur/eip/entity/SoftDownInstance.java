@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class EipSoftDownInstance {
+public class SoftDownInstance {
 
     private String subFlowId;
 

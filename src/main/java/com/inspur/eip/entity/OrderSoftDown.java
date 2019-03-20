@@ -5,10 +5,10 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class EipSoftDownOrder {
+public class OrderSoftDown {
     private String region;
     private String flowId;
 
-    private List<EipSoftDownInstance> instanceList;
+    private List<SoftDownInstance> instanceList;
 
 }
