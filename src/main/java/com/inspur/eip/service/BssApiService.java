@@ -139,7 +139,7 @@ public class BssApiService {
         String eipId = "0";
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
-            if(eipOrder.getOrderStatus().equals(HsConstants.CREATESUCCESS)) {
+            if(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
 
                 List<OrderProduct> orderProducts = eipOrder.getProductList();
                 for (OrderProduct orderProduct : orderProducts) {
@@ -284,10 +284,6 @@ public class BssApiService {
 
         eipAllocateParam.setBillType(eipOrder.getBillType());
         eipAllocateParam.setChargemode("Bandwidth");
-        if(eipOrder.getConsoleCustomization().containsKey("operateType") &&
-                eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("createNatWithEip") ){
-            eipAllocateParam.setIpv6("yes");
-        }
 
         for(OrderProduct orderProduct : orderProducts){
             if(!orderProduct.getProductLineCode().equals(HsConstants.EIP)){
@@ -306,6 +302,9 @@ public class BssApiService {
                     String sbwId = eipOrder.getConsoleCustomization().getString("sbwid");
                     eipAllocateParam.setSharedBandWidthId(sbwId);
                     eipAllocateParam.setChargemode("SharedBandwidth");
+                }else if(orderProductItem.getCode().equals(HsConstants.WITH_IPV6) &&
+                        orderProductItem.getValue().equals(HsConstants.YES)){
+                    eipAllocateParam.setIpv6("yes");
                 }
             }
         }
