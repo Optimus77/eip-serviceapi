@@ -195,7 +195,6 @@ public class BssApiService {
                 if(eipOrder.getOrderType().equalsIgnoreCase("changeConfigure")){
                     updateRet = eipAtomService.atomUpdateEip(eipId, eipUpdate);
                 }else if(eipOrder.getOrderType().equalsIgnoreCase("renew") && eipOrder.getBillType().equals(HsConstants.MONTHLY)){
-                    eipUpdate.setDuration("1");
                     updateRet = eipAtomService.atomRenewEip(eipId, eipUpdate);
                 }else{
                     log.error("Not support order type:{}", eipOrder.getOrderType());
@@ -243,7 +242,6 @@ public class BssApiService {
                     updateRet = eipAtomService.atomDeleteEip(softDownInstance.getInstanceId());
                 }else if("stopServer".equalsIgnoreCase(operateType)) {
                     EipUpdateParam updateParam = new EipUpdateParam();
-                    updateParam.setDuration("0");
                     updateRet = eipAtomService.atomRenewEip(softDownInstance.getInstanceId(), updateParam);
                 }else{
                     continue;
@@ -487,7 +485,7 @@ public class BssApiService {
     public JSONObject deleteShareBandWidth(ReciveOrder reciveOrder) {
         String msg ;
         String code ;
-        String sbwId = "0";
+        String sbwId = "";
         JSONObject result = new JSONObject();
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(reciveOrder));
@@ -539,7 +537,6 @@ public class BssApiService {
             if(recive.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 SbwUpdateParamWrapper wrapper = new SbwUpdateParamWrapper();
                 SbwUpdateParam sbwUpdate = getSbwUpdatParmByOrder(recive);
-                sbwUpdate.setDuration("1");
                 wrapper.setSbw(sbwUpdate);
                 JSONObject updateRet;
                 if(recive.getOrderType().equalsIgnoreCase("changeConfigure")){
@@ -557,7 +554,7 @@ public class BssApiService {
 
                 log.info("renew order result :{}",updateRet);
                 webControllerService.returnSbwWebsocket(sbwId, recive, "update");
-                webControllerService.resultSbwReturnMq(getSbwResult(recive,"",retStr));
+                webControllerService.resultSbwReturnMq(getSbwResult(recive, sbwId, retStr));
                 return updateRet;
             }
         }catch (Exception e){
@@ -586,7 +583,6 @@ public class BssApiService {
                 }else if("stopServer".equalsIgnoreCase(operateType)) {
                     SbwUpdateParamWrapper wrapper = new SbwUpdateParamWrapper();
                     SbwUpdateParam updateParam = new SbwUpdateParam();
-                    updateParam.setDuration("0");
                     wrapper.setSbw(updateParam);
                     updateRet = sbwAtomService.atomRenewSbw(instance.getInstanceId(), wrapper);
                 }else{
@@ -627,7 +623,7 @@ public class BssApiService {
         JSONObject customization = reciveOrder.getConsoleCustomization();
         sbwAllocatePram.setBillType(reciveOrder.getBillType());
         sbwAllocatePram.setSbwName(customization.getString("sharedbandwidthname"));
-
+        sbwAllocatePram.setDuration(reciveOrder.getDuration());
         List<OrderProduct> productList = reciveOrder.getProductList();
         for(OrderProduct orderProduct : productList){
             if(!orderProduct.getProductLineCode().equalsIgnoreCase(HsConstants.SBW)){
@@ -652,6 +648,7 @@ public class BssApiService {
 
         List<OrderProduct> orderProducts = eipOrder.getProductList();
         sbwParam.setBillType(eipOrder.getBillType());
+        sbwParam.setDuration(eipOrder.getDuration());
         for(OrderProduct orderProduct : orderProducts){
             if(!orderProduct.getProductLineCode().equals(HsConstants.SBW)){
                 continue;
