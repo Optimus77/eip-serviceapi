@@ -435,10 +435,10 @@ public class BssApiService {
                     SbwAtomParamWrapper sbwWrapper = new SbwAtomParamWrapper();
                     sbwWrapper.setSbw(sbwConfig);
                     createRet = sbwAtomService.atomCreateSbw(sbwWrapper);
-                    String retStr = HsConstants.SUCCESS;
+                    String retStr = HsConstants.STATUS_ACTIVE;
 
                     if(createRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK) {
-                        retStr = HsConstants.FAIL;
+                        retStr = HsConstants.STATUS_ERROR;
                         log.info("create sbw failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     }else{
                         JSONObject sbwEntity = createRet.getJSONObject("sbw");
@@ -470,7 +470,7 @@ public class BssApiService {
                 }
             }
         }
-        webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, "",HsConstants.FAIL));
+        webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, "",HsConstants.STATUS_ERROR));
         JSONObject result = new JSONObject();
         result.put("code", code);
         result.put("msg", msg);
@@ -500,14 +500,14 @@ public class BssApiService {
                 if (delResult.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK) {
                     //Return message to the front des
                     webControllerService.returnSbwWebsocket(sbwId, reciveOrder, "delete");
-                    webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId, HsConstants.SUCCESS));
+                    webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId, HsConstants.STATUS_DELETE));
                     return delResult;
                 } else {
                     msg = delResult.getString(HsConstants.STATUSCODE);
                     code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 }
             }else{
-                msg = "Failed to delete eip,failed to create delete. orderStatus: "+ reciveOrder.getOrderStatus();
+                msg = "Failed to delete SBW,failed to create delete. orderStatus: "+ reciveOrder.getOrderStatus();
                 code = ReturnStatus.SC_PARAM_UNKONWERROR;
                 log.error(msg);
             }
@@ -516,7 +516,7 @@ public class BssApiService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
-        webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId,HsConstants.FAIL));
+        webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId,HsConstants.STATUS_ACTIVE));
         result.put("code", code);
         result.put("msg", msg);
         return result;
@@ -547,10 +547,10 @@ public class BssApiService {
                     log.error("Not support order type:{}", recive.getOrderType());
                     updateRet = CommonUtil.handlerResopnse(null);
                 }
-                String retStr = HsConstants.SUCCESS;
-                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK){
-                    retStr = HsConstants.FAIL;
-                }
+                String retStr = HsConstants.STATUS_ACTIVE;
+//                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK){
+//                    retStr = HsConstants.STATUS_ACTIVE;
+//                }
 
                 log.info("renew order result :{}",updateRet);
                 webControllerService.returnSbwWebsocket(sbwId, recive, "update");
@@ -562,7 +562,7 @@ public class BssApiService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
-        webControllerService.resultSbwReturnMq(getSbwResult(recive,sbwId,HsConstants.FAIL));
+        webControllerService.resultSbwReturnMq(getSbwResult(recive,sbwId,HsConstants.STATUS_ACTIVE));
         JSONObject result = new JSONObject();
         result.put("code", code);
         result.put("msg", msg);
