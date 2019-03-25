@@ -516,7 +516,7 @@ public class BssApiService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
-        webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId,HsConstants.STATUS_ACTIVE));
+        webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId,HsConstants.STATUS_ERROR));
         result.put("code", code);
         result.put("msg", msg);
         return result;
@@ -548,9 +548,9 @@ public class BssApiService {
                     updateRet = CommonUtil.handlerResopnse(null);
                 }
                 String retStr = HsConstants.STATUS_ACTIVE;
-//                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK){
-//                    retStr = HsConstants.STATUS_ACTIVE;
-//                }
+                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK){
+                   retStr = HsConstants.STATUS_ERROR;
+                }
 
                 log.info("update order result :{}",updateRet);
                 webControllerService.returnSbwWebsocket(sbwId, recive, "update");
@@ -588,10 +588,15 @@ public class BssApiService {
                 }else{
                     continue;
                 }
-                String retStr = HsConstants.SUCCESS;
+                String retStr ="";
+                if ("stopServer".equalsIgnoreCase(operateType)){
+                    retStr = HsConstants.STATUS_STOP;
+                }else if ("delete".equalsIgnoreCase(operateType)){
+                    retStr = HsConstants.STATUS_DELETE;
+                }
 
                 if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()){
-                    retStr = HsConstants.FAIL;
+                    retStr = HsConstants.STATUS_ERROR;
                 }
                 instance.setResult(retStr);
                 instance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
