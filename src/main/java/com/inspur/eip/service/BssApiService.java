@@ -574,7 +574,7 @@ public class BssApiService {
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         JSONObject updateRet = null;
         try {
-            log.debug("Recive soft down order:{}", JSONObject.toJSONString(softDown));
+            log.debug("Recive soft down or delete order:{}", JSONObject.toJSONString(softDown));
             List<SoftDownInstance> instanceList =  softDown.getInstanceList();
             for(SoftDownInstance instance : instanceList){
                 String operateType =  instance.getOperateType();
@@ -600,7 +600,7 @@ public class BssApiService {
                 }
                 instance.setResult(retStr);
                 instance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-                log.info("Soft down result:{}", updateRet);
+                log.info("Soft down or delete result:{}", updateRet);
             }
             if(null != updateRet) {
                 webControllerService.resultReturnNotify(softDown);

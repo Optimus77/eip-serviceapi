@@ -153,8 +153,8 @@ public class BillFilter implements Filter {
         }else if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equalsIgnoreCase("/v1/sbws/softdown")){
             String requestBody = CommonUtil.readRequestAsChars(req);
             log.info("get softDelete sbw order:{}.", requestBody);
-            OrderSoftDown eipReciveOrder = JSON.parseObject(requestBody, OrderSoftDown.class);
-            JSONObject result = bssApiService.stopOrSoftDeleteSbw(eipReciveOrder);
+            OrderSoftDown softDown = JSON.parseObject(requestBody, OrderSoftDown.class);
+            JSONObject result = bssApiService.stopOrSoftDeleteSbw(softDown);
 
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
