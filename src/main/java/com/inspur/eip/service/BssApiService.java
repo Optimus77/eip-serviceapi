@@ -83,10 +83,10 @@ public class BssApiService {
                     EipAllocateParamWrapper eipAllocateParamWrapper = new EipAllocateParamWrapper();
                     eipAllocateParamWrapper.setEip(eipConfig);
                     createRet = eipAtomService.atomCreateEip(eipAllocateParamWrapper);
-                    String retStr = HsConstants.STATUS_ACTIVE;
+                    String retStr = HsConstants.SUCCESS;
 
                     if(createRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK) {
-                        retStr = HsConstants.STATUS_ERROR;
+                        retStr = HsConstants.FAIL;
                         log.info("create eip failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     }else{
                         JSONObject eipEntity = createRet.getJSONObject("eip");
@@ -121,7 +121,7 @@ public class BssApiService {
                 }
             }
         }
-        webControllerService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.STATUS_ERROR));
+        webControllerService.resultReturnMq(getEipOrderResult(eipOrder, "",HsConstants.FAIL));
         JSONObject result = new JSONObject();
         result.put("code", code);
         result.put("msg", msg);
@@ -154,7 +154,7 @@ public class BssApiService {
                     }else{
                         webControllerService.returnsWebsocket(eipId, eipOrder, "delete");
                     }
-                    webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.STATUS_ACTIVE));
+                    webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
                     return delResult;
                 } else {
                     msg = delResult.getString(HsConstants.STATUSCODE);
@@ -170,7 +170,7 @@ public class BssApiService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
-        webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId,HsConstants.STATUS_ERROR));
+        webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId,HsConstants.FAIL));
         JSONObject result = new JSONObject();
         result.put("code", code);
         result.put("msg", msg);
@@ -200,9 +200,9 @@ public class BssApiService {
                     log.error("Not support order type:{}", eipOrder.getOrderType());
                     updateRet = CommonUtil.handlerResopnse(null);
                 }
-                String retStr = HsConstants.STATUS_ACTIVE;
+                String retStr = HsConstants.SUCCESS;
                 if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK){
-                    retStr = HsConstants.STATUS_ERROR;
+                    retStr = HsConstants.FAIL;
                 }
 
                 log.info("renew order result :{}",updateRet);
@@ -216,7 +216,7 @@ public class BssApiService {
             msg = e.getMessage()+"";
         }
         if(null != eipOrder) {
-            webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.STATUS_ERROR));
+            webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.FAIL));
         }
         JSONObject result = new JSONObject();
         result.put("code", code);
@@ -247,9 +247,9 @@ public class BssApiService {
                     continue;
                 }
 
-                String retStr = HsConstants.STATUS_ACTIVE;
+                String retStr = HsConstants.SUCCESS;
                 if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()){
-                    retStr = HsConstants.STATUS_ERROR;
+                    retStr = HsConstants.FAIL;
                 }
                 softDownInstance.setResult(retStr);
                 softDownInstance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
