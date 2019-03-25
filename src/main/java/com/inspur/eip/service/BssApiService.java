@@ -552,7 +552,7 @@ public class BssApiService {
 //                    retStr = HsConstants.STATUS_ACTIVE;
 //                }
 
-                log.info("renew order result :{}",updateRet);
+                log.info("update order result :{}",updateRet);
                 webControllerService.returnSbwWebsocket(sbwId, recive, "update");
                 webControllerService.resultSbwReturnMq(getSbwResult(recive, sbwId, retStr));
                 return updateRet;
@@ -589,7 +589,6 @@ public class BssApiService {
                     continue;
                 }
                 String retStr = HsConstants.SUCCESS;
-
 
                 if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()){
                     retStr = HsConstants.FAIL;
@@ -683,7 +682,12 @@ public class BssApiService {
 
         List<OrderResultProduct> orderResultProducts = new ArrayList<>();
         OrderResultProduct resultProduct = new OrderResultProduct();
-        resultProduct.setProductSetStatus(result);
+        if (HsConstants.STATUS_ACTIVE.equals(result)){
+            resultProduct.setProductSetStatus(HsConstants.SUCCESS);
+        }
+        else {
+            resultProduct.setProductSetStatus(HsConstants.FAIL);
+        }
         resultProduct.setProductList(reciveOrder.getProductList());
 
 
