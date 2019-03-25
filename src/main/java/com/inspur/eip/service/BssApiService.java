@@ -242,6 +242,7 @@ public class BssApiService {
                     updateRet = eipAtomService.atomDeleteEip(softDownInstance.getInstanceId());
                 }else if("stopServer".equalsIgnoreCase(operateType)) {
                     EipUpdateParam updateParam = new EipUpdateParam();
+                    updateParam.setDuration("0");
                     updateRet = eipAtomService.atomRenewEip(softDownInstance.getInstanceId(), updateParam);
                 }else{
                     continue;
@@ -322,6 +323,7 @@ public class BssApiService {
         List<OrderProduct> orderProducts = eipOrder.getProductList();
         eipAllocateParam.setBillType(eipOrder.getBillType());
         eipAllocateParam.setChargemode("Bandwidth");
+        eipAllocateParam.setDuration(eipOrder.getDuration());
         for(OrderProduct orderProduct : orderProducts){
             if(!orderProduct.getProductLineCode().equals(HsConstants.EIP)){
                 continue;
@@ -583,6 +585,7 @@ public class BssApiService {
                 }else if("stopServer".equalsIgnoreCase(operateType)) {
                     SbwUpdateParamWrapper wrapper = new SbwUpdateParamWrapper();
                     SbwUpdateParam updateParam = new SbwUpdateParam();
+                    updateParam.setDuration("0");
                     wrapper.setSbw(updateParam);
                     updateRet = sbwAtomService.atomRenewSbw(instance.getInstanceId(), wrapper);
                 }else{
