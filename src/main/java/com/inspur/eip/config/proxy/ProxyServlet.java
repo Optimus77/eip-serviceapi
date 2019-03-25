@@ -119,33 +119,33 @@ public class ProxyServlet extends HttpServlet {
 
     /* MISC */
 
-    private boolean doLog = true;
-    private boolean doForwardIP = true;
+    private static boolean doLog = true;
+    private static boolean doForwardIP = true;
     /**
      * User agents shouldn't send the url fragment but what if it does?
      */
-    private boolean doSendUrlFragment = true;
-    private boolean doPreserveHost = false;
-    private boolean doPreserveCookies = false;
-    private boolean doHandleRedirects = false;
-    private boolean useSystemProperties = false;
-    private int connectTimeout = -1;
-    private int readTimeout = -1;
+    private static boolean doSendUrlFragment = true;
+    private static boolean doPreserveHost = false;
+    private static boolean doPreserveCookies = false;
+    private static boolean doHandleRedirects = false;
+    private static boolean useSystemProperties = false;
+    private static int connectTimeout = -1;
+    private static int readTimeout = -1;
 
     //These next 3 are cached here, and should only be referred to in initialization logic. See the
     // ATTR_* parameters.
     /**
      * From the configured parameter "targetUri".
      */
-    private String targetUri;
-    private URI targetUriObj;//new URI(targetUri)
-    private HttpHost targetHost;//URIUtils.extractHost(targetUriObj);
+    private static String targetUri;
+    private static URI targetUriObj;//new URI(targetUri)
+    private static HttpHost targetHost;//URIUtils.extractHost(targetUriObj);
 
-    private HttpClient proxyClient;
+    private static HttpClient proxyClient;
 
     @Getter
     @Setter
-    private HttpClient closeablProxyClient;
+    private static HttpClient closeablProxyClient;
 
     @Override
     public String getServletInfo() {
@@ -454,10 +454,10 @@ public class ProxyServlet extends HttpServlet {
 
     static {
         hopByHopHeaders = new HeaderGroup();
-        String[] headers = new String[]{
+        final String[] headers = new String[]{
                 "Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization",
                 "TE", "Trailers", "Transfer-Encoding", "Upgrade"};
-        for (String header : headers) {
+        for (final String header : headers) {
             hopByHopHeaders.addHeader(new BasicHeader(header, null));
         }
     }
@@ -789,10 +789,10 @@ public class ProxyServlet extends HttpServlet {
 
     private static final BitSet asciiQueryChars;
 
-    static {
-        char[] c_unreserved = "_-!.~'()*".toCharArray();//plus alphanum
-        char[] c_punct = ",;:$&+=".toCharArray();
-        char[] c_reserved = "?/[]@".toCharArray();//plus punct
+    static  {
+        final char[] c_unreserved = "_-!.~'()*".toCharArray();//plus alphanum
+        final char[] c_punct = ",;:$&+=".toCharArray();
+        final char[] c_reserved = "?/[]@".toCharArray();//plus punct
 
         asciiQueryChars = new BitSet(128);
         for (char c = 'a'; c <= 'z'; c++) {
