@@ -28,8 +28,11 @@ public class HsConstants {
     public static final String IPTYPE = "iptype";
     public static final String DURATION = "duration";
     public static final String UNSUBSCRIBE = "unsubscribe";
+    public static final String STOPSERVER = "stopServer";
+
     public static final String SUCCESS = "success";
     public static final String DELETE = "DELETE";
+    public static final String DELETED = "deleted";
     public static final String POST = "POST";
 	public static final String PUT = "PUT";
     public static final String AUTHORIZATION = "Authorization";

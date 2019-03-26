@@ -154,7 +154,7 @@ public class BssApiService {
                     }else{
                         webControllerService.returnsWebsocket(eipId, eipOrder, "delete");
                     }
-                    webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
+                    webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.UNSUBSCRIBE));
                     return delResult;
                 } else {
                     msg = delResult.getString(HsConstants.STATUSCODE);
@@ -234,6 +234,7 @@ public class BssApiService {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         JSONObject updateRet = null;
+        String retStr;
         try {
             log.debug("Recive soft down order:{}", JSONObject.toJSONString(eipOrder));
             List<SoftDownInstance> instanceList =  eipOrder.getInstanceList();
@@ -241,15 +242,15 @@ public class BssApiService {
                 String operateType =  softDownInstance.getOperateType();
                 if("delete".equalsIgnoreCase(operateType)) {
                     updateRet = eipAtomService.atomDeleteEip(softDownInstance.getInstanceId());
-                }else if("stopServer".equalsIgnoreCase(operateType)) {
+                    retStr = HsConstants.DELETED;
+                }else if(HsConstants.STOPSERVER.equalsIgnoreCase(operateType)) {
                     EipUpdateParam updateParam = new EipUpdateParam();
                     updateParam.setDuration("0");
                     updateRet = eipAtomService.atomRenewEip(softDownInstance.getInstanceId(), updateParam);
+                    retStr = HsConstants.STOPSERVER;
                 }else{
                     continue;
                 }
-
-                String retStr = HsConstants.SUCCESS;
                 if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()){
                     retStr = HsConstants.FAIL;
                 }
@@ -331,8 +332,7 @@ public class BssApiService {
             List<OrderProductItem> orderProductItems = orderProduct.getItemList();
 
             for(OrderProductItem orderProductItem : orderProductItems){
-                if(orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)
-                ){
+                if(orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)){
                     eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
                 }else if(orderProductItem.getCode().equals(HsConstants.IS_SBW) ){
                     String sbwId = eipOrder.getConsoleCustomization().getString("sbwid");
