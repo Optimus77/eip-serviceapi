@@ -195,7 +195,6 @@ public class BssApiService {
                 if(eipOrder.getOrderType().equalsIgnoreCase("changeConfigure")){
                     updateRet = eipAtomService.atomUpdateEip(eipId, eipUpdate);
                 }else if(eipOrder.getOrderType().equalsIgnoreCase("renew") && eipOrder.getBillType().equals(HsConstants.MONTHLY)){
-                    eipUpdate.setDuration("1");
                     updateRet = eipAtomService.atomRenewEip(eipId, eipUpdate);
                 }else{
                     log.error("Not support order type:{}", eipOrder.getOrderType());
@@ -284,10 +283,6 @@ public class BssApiService {
 
         eipAllocateParam.setBillType(eipOrder.getBillType());
         eipAllocateParam.setChargemode("Bandwidth");
-        if(eipOrder.getConsoleCustomization().containsKey("operateType") &&
-                eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("createNatWithEip") ){
-            eipAllocateParam.setIpv6("yes");
-        }
 
         for(OrderProduct orderProduct : orderProducts){
             if(!orderProduct.getProductLineCode().equals(HsConstants.EIP)){
@@ -306,6 +301,9 @@ public class BssApiService {
                     String sbwId = eipOrder.getConsoleCustomization().getString("sbwid");
                     eipAllocateParam.setSharedBandWidthId(sbwId);
                     eipAllocateParam.setChargemode("SharedBandwidth");
+                }else if(orderProductItem.getCode().equals(HsConstants.WITH_IPV6) &&
+                        orderProductItem.getValue().equals(HsConstants.YES)){
+                    eipAllocateParam.setIpv6("yes");
                 }
             }
         }
@@ -325,6 +323,7 @@ public class BssApiService {
         List<OrderProduct> orderProducts = eipOrder.getProductList();
         eipAllocateParam.setBillType(eipOrder.getBillType());
         eipAllocateParam.setChargemode("Bandwidth");
+        eipAllocateParam.setDuration(eipOrder.getDuration());
         for(OrderProduct orderProduct : orderProducts){
             if(!orderProduct.getProductLineCode().equals(HsConstants.EIP)){
                 continue;
@@ -438,10 +437,10 @@ public class BssApiService {
                     SbwAtomParamWrapper sbwWrapper = new SbwAtomParamWrapper();
                     sbwWrapper.setSbw(sbwConfig);
                     createRet = sbwAtomService.atomCreateSbw(sbwWrapper);
-                    String retStr = HsConstants.SUCCESS;
+                    String retStr = HsConstants.STATUS_ACTIVE;
 
                     if(createRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK) {
-                        retStr = HsConstants.FAIL;
+                        retStr = HsConstants.STATUS_ERROR;
                         log.info("create sbw failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     }else{
                         JSONObject sbwEntity = createRet.getJSONObject("sbw");
@@ -473,7 +472,7 @@ public class BssApiService {
                 }
             }
         }
-        webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, "",HsConstants.FAIL));
+        webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, "",HsConstants.STATUS_ERROR));
         JSONObject result = new JSONObject();
         result.put("code", code);
         result.put("msg", msg);
@@ -488,7 +487,7 @@ public class BssApiService {
     public JSONObject deleteShareBandWidth(ReciveOrder reciveOrder) {
         String msg ;
         String code ;
-        String sbwId = "0";
+        String sbwId = "";
         JSONObject result = new JSONObject();
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(reciveOrder));
@@ -503,14 +502,14 @@ public class BssApiService {
                 if (delResult.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK) {
                     //Return message to the front des
                     webControllerService.returnSbwWebsocket(sbwId, reciveOrder, "delete");
-                    webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId, HsConstants.SUCCESS));
+                    webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId, HsConstants.STATUS_DELETE));
                     return delResult;
                 } else {
                     msg = delResult.getString(HsConstants.STATUSCODE);
                     code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 }
             }else{
-                msg = "Failed to delete eip,failed to create delete. orderStatus: "+ reciveOrder.getOrderStatus();
+                msg = "Failed to delete SBW,failed to create delete. orderStatus: "+ reciveOrder.getOrderStatus();
                 code = ReturnStatus.SC_PARAM_UNKONWERROR;
                 log.error(msg);
             }
@@ -519,7 +518,7 @@ public class BssApiService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
-        webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId,HsConstants.FAIL));
+        webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId,HsConstants.STATUS_ERROR));
         result.put("code", code);
         result.put("msg", msg);
         return result;
@@ -540,7 +539,6 @@ public class BssApiService {
             if(recive.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 SbwUpdateParamWrapper wrapper = new SbwUpdateParamWrapper();
                 SbwUpdateParam sbwUpdate = getSbwUpdatParmByOrder(recive);
-                sbwUpdate.setDuration("1");
                 wrapper.setSbw(sbwUpdate);
                 JSONObject updateRet;
                 if(recive.getOrderType().equalsIgnoreCase("changeConfigure")){
@@ -551,14 +549,14 @@ public class BssApiService {
                     log.error("Not support order type:{}", recive.getOrderType());
                     updateRet = CommonUtil.handlerResopnse(null);
                 }
-                String retStr = HsConstants.SUCCESS;
+                String retStr = HsConstants.STATUS_ACTIVE;
                 if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK){
-                    retStr = HsConstants.FAIL;
+                   retStr = HsConstants.STATUS_ERROR;
                 }
 
-                log.info("renew order result :{}",updateRet);
+                log.info("update order result :{}",updateRet);
                 webControllerService.returnSbwWebsocket(sbwId, recive, "update");
-                webControllerService.resultSbwReturnMq(getSbwResult(recive,"",retStr));
+                webControllerService.resultSbwReturnMq(getSbwResult(recive, sbwId, retStr));
                 return updateRet;
             }
         }catch (Exception e){
@@ -566,7 +564,7 @@ public class BssApiService {
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
-        webControllerService.resultSbwReturnMq(getSbwResult(recive,sbwId,HsConstants.FAIL));
+        webControllerService.resultSbwReturnMq(getSbwResult(recive,sbwId,HsConstants.STATUS_ACTIVE));
         JSONObject result = new JSONObject();
         result.put("code", code);
         result.put("msg", msg);
@@ -578,7 +576,7 @@ public class BssApiService {
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         JSONObject updateRet = null;
         try {
-            log.debug("Recive soft down order:{}", JSONObject.toJSONString(softDown));
+            log.debug("Recive soft down or delete order:{}", JSONObject.toJSONString(softDown));
             List<SoftDownInstance> instanceList =  softDown.getInstanceList();
             for(SoftDownInstance instance : instanceList){
                 String operateType =  instance.getOperateType();
@@ -593,15 +591,19 @@ public class BssApiService {
                 }else{
                     continue;
                 }
-                String retStr = HsConstants.SUCCESS;
-
+                String retStr ="";
+                if ("stopServer".equalsIgnoreCase(operateType)){
+                    retStr = HsConstants.STATUS_STOP;
+                }else if ("delete".equalsIgnoreCase(operateType)){
+                    retStr = HsConstants.STATUS_DELETE;
+                }
 
                 if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()){
-                    retStr = HsConstants.FAIL;
+                    retStr = HsConstants.STATUS_ERROR;
                 }
                 instance.setResult(retStr);
                 instance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-                log.info("Soft down result:{}", updateRet);
+                log.info("Soft down or delete result:{}", updateRet);
             }
             if(null != updateRet) {
                 webControllerService.resultReturnNotify(softDown);
@@ -628,7 +630,7 @@ public class BssApiService {
         JSONObject customization = reciveOrder.getConsoleCustomization();
         sbwAllocatePram.setBillType(reciveOrder.getBillType());
         sbwAllocatePram.setSbwName(customization.getString("sharedbandwidthname"));
-
+        sbwAllocatePram.setDuration(reciveOrder.getDuration());
         List<OrderProduct> productList = reciveOrder.getProductList();
         for(OrderProduct orderProduct : productList){
             if(!orderProduct.getProductLineCode().equalsIgnoreCase(HsConstants.SBW)){
@@ -653,6 +655,7 @@ public class BssApiService {
 
         List<OrderProduct> orderProducts = eipOrder.getProductList();
         sbwParam.setBillType(eipOrder.getBillType());
+        sbwParam.setDuration(eipOrder.getDuration());
         for(OrderProduct orderProduct : orderProducts){
             if(!orderProduct.getProductLineCode().equals(HsConstants.SBW)){
                 continue;
@@ -687,7 +690,12 @@ public class BssApiService {
 
         List<OrderResultProduct> orderResultProducts = new ArrayList<>();
         OrderResultProduct resultProduct = new OrderResultProduct();
-        resultProduct.setProductSetStatus(result);
+        if (HsConstants.STATUS_ACTIVE.equals(result)){
+            resultProduct.setProductSetStatus(HsConstants.SUCCESS);
+        }
+        else {
+            resultProduct.setProductSetStatus(HsConstants.FAIL);
+        }
         resultProduct.setProductList(reciveOrder.getProductList());
 
 
