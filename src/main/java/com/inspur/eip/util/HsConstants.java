@@ -64,6 +64,16 @@ public class HsConstants {
 	public static final String SBW_URI_ID_LENGTH = "/v1/sbws/3344db1d-268e-42ee-9d7d-63c723c7aa46";
 	public static final String SBW_URI_SOFTDOWN = "/v1/sbws/softdown";
 
+	public static final String STATUS_ACTIVE = "ACTIVE";
+	public static final String STATUS_DOWN = "DOWN";
+	public static final String STATUS_BIND_ERROR = "BIND_ERROR";
+	public static final String STATUS_BINDING = "BINDING";
+	public static final String STATUS_STOP = "STOP";
+	public static final String STATUS_PENDING_CREATE = "PENDING_CREATE";
+	public static final String STATUS_ERROR = "ERROR";
+	public static final String STATUS_DELETE = "DELETE";
+
+
 
 	public static final String REST_IDPRULE = "/rest/idp_ruleset";
 	public static final String REST_IDPRULE_AD = "?target=http.virtual_host";
