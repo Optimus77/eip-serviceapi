@@ -578,6 +578,8 @@ public class BssApiService {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         JSONObject updateRet = null;
+        String retStr = HsConstants.SUCCESS;;
+        String instanceStatusStr ="";
         try {
             log.debug("Recive soft down or delete order:{}", JSONObject.toJSONString(softDown));
             List<SoftDownInstance> instanceList =  softDown.getInstanceList();
@@ -594,17 +596,19 @@ public class BssApiService {
                 }else{
                     continue;
                 }
-                String retStr ="";
+
                 if ("stopServer".equalsIgnoreCase(operateType)){
-                    retStr = HsConstants.STATUS_STOP;
+                    instanceStatusStr = HsConstants.STATUS_STOP;
                 }else if ("delete".equalsIgnoreCase(operateType)){
-                    retStr = HsConstants.STATUS_DELETE;
+                    instanceStatusStr = HsConstants.STATUS_DELETE;
                 }
 
                 if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()){
-                    retStr = HsConstants.STATUS_ERROR;
+                    retStr = HsConstants.FAIL;
+                    instanceStatusStr = HsConstants.STATUS_ERROR;
                 }
                 instance.setResult(retStr);
+                instance.setInstanceStatus(instanceStatusStr);
                 instance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
                 log.info("Soft down or delete result:{}", updateRet);
             }
