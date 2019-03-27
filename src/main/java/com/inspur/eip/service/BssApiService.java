@@ -154,7 +154,7 @@ public class BssApiService {
                     }else{
                         webControllerService.returnsWebsocket(eipId, eipOrder, "delete");
                     }
-                    webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
+                    webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.UNSUBSCRIBE));
                     return delResult;
                 } else {
                     msg = delResult.getString(HsConstants.STATUSCODE);
@@ -233,6 +233,8 @@ public class BssApiService {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         JSONObject updateRet = null;
+        String retStr = HsConstants.SUCCESS;
+        String iStatusStr;
         try {
             log.debug("Recive soft down order:{}", JSONObject.toJSONString(eipOrder));
             List<SoftDownInstance> instanceList =  eipOrder.getInstanceList();
@@ -240,19 +242,21 @@ public class BssApiService {
                 String operateType =  softDownInstance.getOperateType();
                 if("delete".equalsIgnoreCase(operateType)) {
                     updateRet = eipAtomService.atomDeleteEip(softDownInstance.getInstanceId());
-                }else if("stopServer".equalsIgnoreCase(operateType)) {
+                    iStatusStr = HsConstants.DELETED;
+                }else if(HsConstants.STOPSERVER.equalsIgnoreCase(operateType)) {
                     EipUpdateParam updateParam = new EipUpdateParam();
                     updateParam.setDuration("0");
                     updateRet = eipAtomService.atomRenewEip(softDownInstance.getInstanceId(), updateParam);
+                    iStatusStr = HsConstants.STOPSERVER;
                 }else{
                     continue;
                 }
-
-                String retStr = HsConstants.SUCCESS;
                 if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()){
                     retStr = HsConstants.FAIL;
+                    iStatusStr = HsConstants.FAIL;
                 }
                 softDownInstance.setResult(retStr);
+                softDownInstance.setInstanceStatus(iStatusStr);
                 softDownInstance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
                 log.info("Soft down result:{}", updateRet);
             }
@@ -331,8 +335,7 @@ public class BssApiService {
             List<OrderProductItem> orderProductItems = orderProduct.getItemList();
 
             for(OrderProductItem orderProductItem : orderProductItems){
-                if(orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)
-                ){
+                if(orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)){
                     eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
                 }else if(orderProductItem.getCode().equals(HsConstants.IS_SBW) ){
                     String sbwId = eipOrder.getConsoleCustomization().getString("sbwid");
@@ -575,6 +578,8 @@ public class BssApiService {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         JSONObject updateRet = null;
+        String retStr = HsConstants.SUCCESS;;
+        String instanceStatusStr ="";
         try {
             log.debug("Recive soft down or delete order:{}", JSONObject.toJSONString(softDown));
             List<SoftDownInstance> instanceList =  softDown.getInstanceList();
@@ -591,17 +596,19 @@ public class BssApiService {
                 }else{
                     continue;
                 }
-                String retStr ="";
+
                 if ("stopServer".equalsIgnoreCase(operateType)){
-                    retStr = HsConstants.STATUS_STOP;
+                    instanceStatusStr = HsConstants.STATUS_STOP;
                 }else if ("delete".equalsIgnoreCase(operateType)){
-                    retStr = HsConstants.STATUS_DELETE;
+                    instanceStatusStr = HsConstants.STATUS_DELETE;
                 }
 
                 if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()){
-                    retStr = HsConstants.STATUS_ERROR;
+                    retStr = HsConstants.FAIL;
+                    instanceStatusStr = HsConstants.STATUS_ERROR;
                 }
                 instance.setResult(retStr);
+                instance.setInstanceStatus(instanceStatusStr);
                 instance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
                 log.info("Soft down or delete result:{}", updateRet);
             }

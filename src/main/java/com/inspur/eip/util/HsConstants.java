@@ -10,6 +10,7 @@ public class HsConstants {
 	public static final String YES = "yes";
 	public static final String WITH_IPV6 = "withIpv6";
     public static final String PAYSUCCESS = "paySuccess";
+    public static final String NOTFOUND = "NOT_FOUND";
 	public static final String CREATESUCCESS = "createSuccess";
     public static final String HOURLYSETTLEMENT = "hourlySettlement";
     public static final String MONTHLY = "monthly";
@@ -28,8 +29,11 @@ public class HsConstants {
     public static final String IPTYPE = "iptype";
     public static final String DURATION = "duration";
     public static final String UNSUBSCRIBE = "unsubscribe";
+    public static final String STOPSERVER = "stopServer";
+
     public static final String SUCCESS = "success";
     public static final String DELETE = "DELETE";
+    public static final String DELETED = "deleted";
     public static final String POST = "POST";
 	public static final String PUT = "PUT";
     public static final String AUTHORIZATION = "Authorization";
