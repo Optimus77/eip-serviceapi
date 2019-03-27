@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
+import java.util.TimeZone;
 
 @Slf4j
 public class CommonUtil {
@@ -32,6 +33,11 @@ public class CommonUtil {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return formatter.format(currentTime);
     }
+    public static String getGmtDateString() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+    }
+
 
     @Setter
     private static JSONObject KeyClockInfo;
