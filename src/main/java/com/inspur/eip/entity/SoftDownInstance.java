@@ -20,4 +20,7 @@ public class SoftDownInstance {
     private String result;
 
     private String statusTime;
+
+    private String instanceStatus;
+
 }
