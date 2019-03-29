@@ -243,18 +243,27 @@ public class BssApiService {
                 if("delete".equalsIgnoreCase(operateType)) {
                     updateRet = eipAtomService.atomDeleteEip(softDownInstance.getInstanceId());
                     iStatusStr = HsConstants.DELETED;
+                    if (updateRet.getInteger(HsConstants.STATUSCODE) !=  HttpStatus.SC_OK){
+                        retStr = HsConstants.FAIL;
+                        iStatusStr = HsConstants.FAIL;
+                    }
                 }else if(HsConstants.STOPSERVER.equalsIgnoreCase(operateType)) {
                     EipUpdateParam updateParam = new EipUpdateParam();
                     updateParam.setDuration("0");
                     updateRet = eipAtomService.atomRenewEip(softDownInstance.getInstanceId(), updateParam);
-                    iStatusStr = HsConstants.STOPSERVER;
+                    if (updateRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK){
+                        iStatusStr = HsConstants.STOPSERVER;
+                    }else if(updateRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_NOT_FOUND){
+                        iStatusStr = HsConstants.NOTFOUND;
+                        retStr = HsConstants.FAIL;
+                    }else{
+                        retStr = HsConstants.FAIL;
+                        iStatusStr = HsConstants.FAIL;
+                    }
                 }else{
                     continue;
                 }
-                if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()){
-                    retStr = HsConstants.FAIL;
-                    iStatusStr = HsConstants.FAIL;
-                }
+
                 softDownInstance.setResult(retStr);
                 softDownInstance.setInstanceStatus(iStatusStr);
                 softDownInstance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
