@@ -419,7 +419,11 @@ public class BssApiService {
 
         List<OrderResultProduct> orderResultProducts = new ArrayList<>();
         OrderResultProduct orderResultProduct = new OrderResultProduct();
-        orderResultProduct.setProductSetStatus(result);
+        if(HsConstants.FAIL.equalsIgnoreCase(result)){
+            orderResultProduct.setProductSetStatus(result);
+        }else {
+            orderResultProduct.setProductSetStatus(HsConstants.SUCCESS);
+        }
         orderResultProduct.setDuration(orderResultProduct.getDuration());
         orderResultProduct.setDurationUnit(orderResultProduct.getDurationUnit());
         orderResultProduct.setProductList(reciveOrder.getProductList());
@@ -587,7 +591,7 @@ public class BssApiService {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         JSONObject updateRet = null;
-        String retStr = HsConstants.SUCCESS;;
+        String setStatus = HsConstants.SUCCESS;;
         String instanceStatusStr ="";
         try {
             log.debug("Recive soft down or delete order:{}", JSONObject.toJSONString(softDown));
@@ -613,10 +617,10 @@ public class BssApiService {
                 }
 
                 if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()){
-                    retStr = HsConstants.FAIL;
+                    setStatus = HsConstants.FAIL;
                     instanceStatusStr = HsConstants.STATUS_ERROR;
                 }
-                instance.setResult(retStr);
+                instance.setResult(setStatus);
                 instance.setInstanceStatus(instanceStatusStr);
                 instance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
                 log.info("Soft down or delete result:{}", updateRet);
@@ -706,14 +710,12 @@ public class BssApiService {
 
         List<OrderResultProduct> orderResultProducts = new ArrayList<>();
         OrderResultProduct resultProduct = new OrderResultProduct();
-        if (HsConstants.STATUS_ACTIVE.equals(result)){
+        if (HsConstants.STATUS_ERROR.equalsIgnoreCase(result)){
+            resultProduct.setProductSetStatus(HsConstants.FAIL);
+        } else {
             resultProduct.setProductSetStatus(HsConstants.SUCCESS);
         }
-        else {
-            resultProduct.setProductSetStatus(HsConstants.FAIL);
-        }
         resultProduct.setProductList(reciveOrder.getProductList());
-
 
         orderResultProducts.add(resultProduct);
         eipOrderResult.setProductSetList(orderResultProducts);
