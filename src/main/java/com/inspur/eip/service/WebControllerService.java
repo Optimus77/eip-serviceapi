@@ -166,12 +166,12 @@ class WebControllerService {
             try {
                 SendMQEIP sendMQEIP = new SendMQEIP();
                 sendMQEIP.setUserName(CommonUtil.getUsername());
-                sendMQEIP.setHandlerName("operateEipHandler");
+                sendMQEIP.setHandlerName("operateSbwHandler");
                 sendMQEIP.setInstanceId(sbwId);
                 sendMQEIP.setInstanceStatus("active");
                 sendMQEIP.setOperateType(type);
                 sendMQEIP.setMessageType("success");
-                sendMQEIP.setMessage("sbw create successfully");
+                sendMQEIP.setMessage("Config update successfully");
                 String url=pushMq;
                 String socketStr=JSONObject.toJSONString(sendMQEIP);
                 log.info("websocket send return: {} {}", url, socketStr);
