@@ -207,7 +207,7 @@ public class CommonUtil {
         }
         if(null != param.getChargemode()) {
             if (!param.getChargemode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
-                    !param.getChargemode().equals(HsConstants.SHAREDBANDWIDTH)) {
+                    !param.getChargemode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
                 errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
             }
         }

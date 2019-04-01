@@ -8,8 +8,6 @@ import java.util.List;
 public class OrderResultProduct {
 
     private String productSetStatus;
-    private String duration;
-    private String durationUnit = "M";
     private List<OrderProduct> productList;
 
 }

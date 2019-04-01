@@ -21,15 +21,16 @@ public class HsConstants {
     public static final String M = "M";
     public static final String BANDWIDTH = "bandwidth";
     public static final String NET = "net";
-    public static final String SHAREDBANDWIDTH = "SharedBandwidth";
     public static final String FAIL = "fail";
-    public static final String BILLINGITEM = "billingItem";
-    public static final String TRANSFER = "transfer";
-    public static final String REGION = "region";
-    public static final String IPTYPE = "iptype";
-    public static final String DURATION = "duration";
-    public static final String UNSUBSCRIBE = "unsubscribe";
-    public static final String STOPSERVER = "stopServer";
+	public static final String BILLINGITEM = "billingItem";
+	public static final String TRANSFER = "transfer";
+	public static final String REGION = "region";
+	public static final String IPTYPE = "iptype";
+	public static final String DURATION = "duration";
+	public static final String UNSUBSCRIBE = "unsubscribe";
+	public static final String STOPSERVER = "stopServer";
+	public static final String CHARGE_MODE_BANDWIDTH = "Bandwidth";
+	public static final String CHARGE_MODE_SHAREDBANDWIDTH = "SharedBandwidth";
 
     public static final String SUCCESS = "success";
     public static final String DELETE = "DELETE";
@@ -64,6 +65,10 @@ public class HsConstants {
 	public static final String SBW_URI = "/v1/sbws";
 	public static final String SBW_URI_ID_LENGTH = "/v1/sbws/3344db1d-268e-42ee-9d7d-63c723c7aa46";
 	public static final String SBW_URI_SOFTDOWN = "/v1/sbws/softdown";
+	public static final String SBW_NAME= "sbwName";
+	public static final String SBW_ID= "sbwId";
+
+
 
 	public static final String STATUS_ACTIVE = "ACTIVE";
 	public static final String STATUS_DOWN = "DOWN";
