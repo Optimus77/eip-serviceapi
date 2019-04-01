@@ -546,7 +546,7 @@ public class BssApiService {
     public JSONObject updateSbwConfig(String sbwId, ReciveOrder recive) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-
+        String retStr = HsConstants.STATUS_ACTIVE;
         try {
             log.info("Update sbw config:{}", JSONObject.toJSONString(recive));
             if (recive.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
@@ -562,22 +562,21 @@ public class BssApiService {
                     log.error("Not support order type:{}", recive.getOrderType());
                     updateRet = CommonUtil.handlerResopnse(null);
                 }
-                String retStr = HsConstants.STATUS_ACTIVE;
                 if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK) {
                     retStr = HsConstants.STATUS_ERROR;
+                }else {
+                    log.info("update order result :{}", updateRet);
+                    webControllerService.returnSbwWebsocket(sbwId, recive, "update");
                 }
-
-                log.info("update order result :{}", updateRet);
-                webControllerService.returnSbwWebsocket(sbwId, recive, "update");
-                webControllerService.resultSbwReturnMq(getSbwResult(recive, sbwId, retStr));
+                 webControllerService.resultSbwReturnMq(getSbwResult(recive, sbwId, retStr));
                 return updateRet;
             }
         } catch (Exception e) {
-            log.error("Exception in update eip", e);
+            log.error("Exception in update sbw", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage() + "";
         }
-        webControllerService.resultSbwReturnMq(getSbwResult(recive, sbwId, HsConstants.STATUS_ACTIVE));
+        webControllerService.resultSbwReturnMq(getSbwResult(recive, sbwId, retStr));
         JSONObject result = new JSONObject();
         result.put("code", code);
         result.put("msg", msg);
@@ -686,7 +685,7 @@ public class BssApiService {
                 }
             }
         }
-        log.info("Get eip param from order:{}", sbwParam.toString());
+        log.info("Get sbw param from order:{}", sbwParam.toString());
         /*chargemode now use the default value */
         return sbwParam;
     }
