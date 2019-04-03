@@ -256,7 +256,6 @@ public class BssApiService {
                         iStatusStr = HsConstants.STOPSERVER;
                     }else if(updateRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_NOT_FOUND){
                         iStatusStr = HsConstants.NOTFOUND;
-                        retStr = HsConstants.FAIL;
                     } else {
                         retStr = HsConstants.FAIL;
                         iStatusStr = HsConstants.FAIL;
