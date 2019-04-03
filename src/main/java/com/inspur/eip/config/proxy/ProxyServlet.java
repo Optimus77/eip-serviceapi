@@ -324,7 +324,9 @@ public class ProxyServlet extends HttpServlet {
         // Make the Request
         //note: we won't transfer the protocol version because I'm not sure it would truly be compatible
         String method = servletRequest.getMethod();
-        log.info("===================start service,method:{}====================", method.toUpperCase());
+        if(!method.equalsIgnoreCase("GET")) {
+            log.info("===================start service,method:{}====================", method.toUpperCase());
+        }
 
         //if allocateEip or delete eip or update bandwidth create order
         String proxyRequestUri;

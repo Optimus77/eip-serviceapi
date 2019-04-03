@@ -256,7 +256,6 @@ public class BssApiService {
                         iStatusStr = HsConstants.STOPSERVER;
                     }else if(updateRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_NOT_FOUND){
                         iStatusStr = HsConstants.NOTFOUND;
-                        retStr = HsConstants.FAIL;
                     } else {
                         retStr = HsConstants.FAIL;
                         iStatusStr = HsConstants.FAIL;
@@ -267,7 +266,7 @@ public class BssApiService {
 
                 softDownInstance.setResult(retStr);
                 softDownInstance.setInstanceStatus(iStatusStr);
-                softDownInstance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+                softDownInstance.setStatusTime(CommonUtil.getDate());
                 log.info("Soft down result:{}", updateRet);
             }
             if (null != updateRet) {
