@@ -260,7 +260,17 @@ public class BssApiService {
                         retStr = HsConstants.FAIL;
                         iStatusStr = HsConstants.FAIL;
                     }
-                }else{
+                }else if ("resumeServer".equalsIgnoreCase(operateType)){
+                    EipUpdateParam eipUpdate = new EipUpdateParam();
+                    eipUpdate.setDuration("1");
+                    updateRet = eipAtomService.atomRenewEip(softDownInstance.getInstanceId(), eipUpdate);
+                    if (updateRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK){
+                        iStatusStr = HsConstants.SUCCESS;
+                    }else {
+                        iStatusStr = HsConstants.FAIL;
+                        retStr = HsConstants.FAIL;
+                    }
+                }else {
                     continue;
                 }
 
