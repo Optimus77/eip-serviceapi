@@ -234,7 +234,7 @@ public class BssApiService {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         JSONObject updateRet = null;
-        String retStr = HsConstants.SUCCESS;
+        String retStr;;
         String iStatusStr;
         try {
             log.debug("Recive soft down order:{}", JSONObject.toJSONString(eipOrder));
@@ -244,6 +244,7 @@ public class BssApiService {
                 if ("delete".equalsIgnoreCase(operateType)) {
                     updateRet = eipAtomService.atomDeleteEip(softDownInstance.getInstanceId());
                     iStatusStr = HsConstants.DELETED;
+                    retStr = HsConstants.SUCCESS;
                     if (updateRet.getInteger(HsConstants.STATUSCODE) !=  HttpStatus.SC_OK){
                         retStr = HsConstants.FAIL;
                         iStatusStr = HsConstants.FAIL;
@@ -254,8 +255,10 @@ public class BssApiService {
                     updateRet = eipAtomService.atomRenewEip(softDownInstance.getInstanceId(), updateParam);
                     if (updateRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK){
                         iStatusStr = HsConstants.STOPSERVER;
+                        retStr = HsConstants.SUCCESS;
                     }else if(updateRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_NOT_FOUND){
                         iStatusStr = HsConstants.NOTFOUND;
+                        retStr = HsConstants.SUCCESS;
                     } else {
                         retStr = HsConstants.FAIL;
                         iStatusStr = HsConstants.FAIL;
@@ -266,6 +269,7 @@ public class BssApiService {
                     updateRet = eipAtomService.atomRenewEip(softDownInstance.getInstanceId(), eipUpdate);
                     if (updateRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK){
                         iStatusStr = HsConstants.SUCCESS;
+                        retStr = HsConstants.SUCCESS;
                     }else {
                         iStatusStr = HsConstants.FAIL;
                         retStr = HsConstants.FAIL;
