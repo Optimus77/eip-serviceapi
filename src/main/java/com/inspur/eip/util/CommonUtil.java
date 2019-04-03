@@ -31,6 +31,7 @@ public class CommonUtil {
     public static String getDate() {
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        formatter.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"));
         return formatter.format(currentTime);
     }
     public static String getGmtDateString() {
