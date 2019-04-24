@@ -176,7 +176,7 @@ public class BssApiService {
                     retStr = HsConstants.FAIL;
                 }
 
-                log.info("renew order result :{}", updateRet);
+                log.debug("renew order result :{}", updateRet);
                 webControllerService.returnsWebsocket(eipId, eipOrder, "update");
                 webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, retStr));
                 return updateRet;
@@ -251,7 +251,7 @@ public class BssApiService {
                 softDownInstance.setResult(retStr);
                 softDownInstance.setInstanceStatus(iStatusStr);
                 softDownInstance.setStatusTime(CommonUtil.getDate());
-                log.info("Soft down result:{}", updateRet);
+                log.debug("Soft down result:{}", updateRet);
             }
             if (null != updateRet) {
                 webControllerService.resultReturnNotify(eipOrder);
