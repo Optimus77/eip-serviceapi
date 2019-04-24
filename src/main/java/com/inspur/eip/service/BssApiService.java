@@ -31,36 +31,6 @@ public class BssApiService {
     @Autowired
     private SbwAtomService sbwAtomService;
 
-    //1.2.11	查询用户配额的接口 URL: http://117.73.2.105:8083/crm/quota
-    @Value("${bssurl.quotaUrl}")
-    private String quotaUrl;
-
-    /**
-     * get quota
-     * @param quota quota
-     * @return string
-     */
-    private ReturnResult getQuota(EipQuota quota) {
-        try {
-            String uri = quotaUrl + "?userId=" + quota.getUserId() + "&region=" + quota.getRegion() + "&productLineCode="
-                    + quota.getProductLineCode() + "&productTypeCode=" + quota.getProductTypeCode() + "&quotaType=amount";
-            log.info("Get quota: {}", uri);
-
-            ReturnResult response;
-            if ((quotaUrl.startsWith("https://")) || (quotaUrl.startsWith("HTTPS://"))) {
-                Map<String, String> header = new HashMap<>();
-                header.put(HsConstants.AUTHORIZATION, CommonUtil.getKeycloackToken());
-                response = HttpsClientUtil.doGet(uri, header);
-            } else {
-                response = HttpUtil.get(uri, null);
-            }
-            return response;
-        } catch (Exception e) {
-            log.error("In quota query, get token exception:{}", e);
-        }
-        return ReturnResult.actionFailed("Quota query failed ", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-    }
-
     /**
      * get create order result
      * @param eipOrder order
@@ -234,7 +204,7 @@ public class BssApiService {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         JSONObject updateRet = null;
-        String retStr;;
+        String retStr;
         String iStatusStr;
         try {
             log.debug("Recive soft down order:{}", JSONObject.toJSONString(eipOrder));
@@ -371,42 +341,6 @@ public class BssApiService {
         log.info("Get eip param from order:{}", eipAllocateParam.toString());
         /*chargemode now use the default value */
         return eipAllocateParam;
-    }
-
-
-    /**
-     * 查询用户配额的接口
-     * @return int
-     */
-    int getQuotaResult() {
-        ReturnResult retQuota;
-        try {
-            EipQuota quota = new EipQuota();
-            quota.setProductLineCode(HsConstants.EIP);
-            quota.setRegion(CommonUtil.getReginInfo());
-            quota.setProductTypeCode(HsConstants.EIP);
-            quota.setUserId(CommonUtil.getUserId());
-
-            retQuota = getQuota(quota);
-            if (retQuota.getCode() != org.springframework.http.HttpStatus.OK.value()) {
-                log.info("Get quota failed StatusCode:{}", retQuota.getCode());
-            }
-            JSONObject result = JSONObject.parseObject(retQuota.getMessage());
-            if (null != result.getString("code") && result.getString("code").equals("0")) {
-                JSONArray qutoResult = result.getJSONObject("result").getJSONArray("quotaList");
-                for (int i = 0; i < qutoResult.size(); i++) {
-                    JSONObject jb = qutoResult.getJSONObject(i);
-                    if (jb.get("productLineCode").equals("EIP")) {
-                        log.info("Get quota success, number:{}", jb.getString("leftNumber"));
-                        return Integer.valueOf(jb.getString("leftNumber"));
-                    }
-                }
-            }
-            log.error("Failed to get quota.result:{}", result.toJSONString());
-        } catch (Exception e) {
-            log.error("Failed to get quota.result", e);
-        }
-        return 0;
     }
 
     /**
@@ -601,7 +535,7 @@ public class BssApiService {
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         JSONObject updateRet = null;
         String setStatus = HsConstants.SUCCESS;
-        ;
+
         String instanceStatusStr = "";
         try {
             log.debug("Recive soft down or delete order:{}", JSONObject.toJSONString(softDown));
