@@ -211,6 +211,10 @@ public class CommonUtil {
                     !param.getChargemode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
                 errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
             }
+            if(param.getChargemode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)
+                    && (null == param.getSharedBandWidthId())) {
+                errorMsg = errorMsg + "SharedBandwidth id is needed in sharedbandwidth charge mode. ";
+            }
         }
 
         if(null != param.getBillType()) {
@@ -231,7 +235,6 @@ public class CommonUtil {
             errorMsg = errorMsg + "Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
         }
         if(errorMsg.equals(" ")) {
-            log.info(errorMsg);
             return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
         }else {
             log.error(errorMsg);

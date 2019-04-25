@@ -25,9 +25,6 @@ public class EipUpdateParam implements Serializable {
 
     private String billType;
 
-    @JsonProperty("slbip")
-    private String slbIp;
-
     @JsonProperty("privateip")
     private String privateIp;
 
