@@ -30,6 +30,6 @@ public class EipUpdateParam implements Serializable {
 
     private String chargemode;
 
-    @JsonProperty("sharedbandwidthid")
-    private String sharedBandWidthId;
+    @JsonProperty("sbwId")
+    private String sbwId;
 }

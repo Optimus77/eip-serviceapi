@@ -300,7 +300,7 @@ public class BssApiService {
                         orderProductItem.getValue().equals(HsConstants.YES)) {
                     eipAllocateParam.setIpv6("yes");
                 } else if (orderProductItem.getCode().equals(HsConstants.SBW_ID)) {
-                    eipAllocateParam.setSharedBandWidthId(orderProductItem.getValue());
+                    eipAllocateParam.setSbwId(orderProductItem.getValue());
                 }
             }
         }
@@ -334,7 +334,7 @@ public class BssApiService {
                         orderProductItem.getValue().equalsIgnoreCase(HsConstants.YES)) {
                     eipAllocateParam.setChargemode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
                 } else if (orderProductItem.getCode().equals(HsConstants.SBW_ID)) {
-                    eipAllocateParam.setSharedBandWidthId(orderProductItem.getValue());
+                    eipAllocateParam.setSbwId(orderProductItem.getValue());
                 }
             }
         }
