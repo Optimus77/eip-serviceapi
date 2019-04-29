@@ -404,8 +404,8 @@ public class BssApiService {
                         log.info("create sbw failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     } else {
                         JSONObject sbwEntity = createRet.getJSONObject("sbw");
-                        sbwId = sbwEntity.getString("sbwid");
-                        webControllerService.returnSbwWebsocket(sbwEntity.getString("sbwid"), reciveOrder, "create");
+                        sbwId = sbwEntity.getString("sbwId");
+                        webControllerService.returnSbwWebsocket(sbwEntity.getString("sbwId"), reciveOrder, "create");
                     }
                     returnResult = webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId, retStr));
 
