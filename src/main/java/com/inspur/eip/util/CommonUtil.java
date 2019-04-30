@@ -212,7 +212,7 @@ public class CommonUtil {
                 errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
             }
             if(param.getChargemode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)
-                    && (null == param.getSharedBandWidthId())) {
+                    && (null == param.getSbwId())) {
                 errorMsg = errorMsg + "SharedBandwidth id is needed in sharedbandwidth charge mode. ";
             }
         }
