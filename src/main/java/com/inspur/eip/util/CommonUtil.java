@@ -10,7 +10,8 @@ import com.inspur.eip.entity.sbw.SbwAtomParam;
 import lombok.Setter;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpStatus;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -169,15 +170,14 @@ public class CommonUtil {
         }
     }
 
-    public static JSONObject handlerResopnse(ReturnResult response){
+    public static ResponseEntity handlerResopnse(ReturnResult response){
 
         if(response!=null) {
-
             try {
                 JSONObject returnInfo;
-                if(response.getCode() == HttpStatus.SC_OK) {
+                if(response.getCode()==200) {
                     returnInfo = JSONObject.parseObject(response.getMessage());
-                    returnInfo.put("statusCode", HttpStatus.SC_OK);
+                    returnInfo.put("statusCode", HttpStatus.OK);
                 }else{
                     returnInfo = new JSONObject();
                     returnInfo.put("statusCode", response.getCode());
@@ -185,16 +185,16 @@ public class CommonUtil {
                 }
 
                 log.info("RETURN ==>{}", returnInfo);
-                return returnInfo;
+                return new ResponseEntity<>(returnInfo, HttpStatus.OK);
             }catch (Exception e){
                 log.error("handlerResopnse exception:", e);
             }
         }
         JSONObject result=new JSONObject();
         result.put(HsConstants.SUCCESS,false);
-        result.put("statusCode", HttpStatus.SC_NOT_IMPLEMENTED);
+        result.put("statusCode", HttpStatus.NOT_IMPLEMENTED);
         result.put("message","Can not get return result.");
-        return result;
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
 

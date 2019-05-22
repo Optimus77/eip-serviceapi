@@ -60,6 +60,7 @@ public class HsConstants {
 	public static final String REST_ZONE_UPDATE = "?isTransaction=1&idfield=is_ipv6,type,name";
 	public static final String REST_ZONE_WLIST = "/rest/zone_whitelist?target=whitelist";
 	public static final String TIME_OUT = "106.801408";
+	public static final String RESTTEMPLATE = "106.801500";
 	//SBW
 	public static final String SBW = "SBW";
 	public static final String SBW_URI = "/v1/sbws";

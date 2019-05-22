@@ -9,6 +9,7 @@ import org.apache.http.protocol.HTTP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +34,18 @@ class WebControllerService {
 
     @Value("${mq.returnMq}")
     private   String returnMq;
+
+    @Value("${keycloak.credentials.secret}")
+    private String secret;
+    @Value("${keycloak.resource}")
+    private String client;
+
+    @Value("${keycloak.realm}")
+    private String realm;
+
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     /**
      * send order to controller

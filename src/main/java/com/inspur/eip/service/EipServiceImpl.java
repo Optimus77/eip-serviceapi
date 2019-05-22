@@ -10,6 +10,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -84,10 +85,11 @@ public class EipServiceImpl  {
     public String deleteEipOrder(String eipId) {
 
         try{
-            JSONObject eipEntity = eipAtomService.getEipEntityById(eipId);
-            JSONObject eip = eipEntity.getJSONObject("eip");
+            ResponseEntity eipEntity = eipAtomService.getEipEntityById(eipId);
+            JSONObject JSONObjectEipEntity=(JSONObject)eipEntity.getBody();
+            JSONObject eip = JSONObjectEipEntity.getJSONObject("eip");
             if(null == eip){
-                return eipEntity.toJSONString();
+                return JSONObjectEipEntity.toJSONString();
             }
 //            String region = eip.getString("region");
             String region = "cn-north-3";

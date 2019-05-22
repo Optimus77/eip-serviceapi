@@ -1,7 +1,5 @@
 package com.inspur.eip.entity.sbw;
 
-import com.alibaba.fastjson.JSONObject;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.inspur.eip.util.TypeConstraint;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;

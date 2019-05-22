@@ -64,7 +64,7 @@ import java.util.Formatter;
  *
  * @author David Smiley dsmiley@apache.org
  */
-@SuppressWarnings({"deprecation", "serial"})
+//@SuppressWarnings({"deprecation", "serial"})
 @Slf4j
 public class ProxyServlet extends HttpServlet {
 

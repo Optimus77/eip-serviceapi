@@ -2,7 +2,6 @@ package com.inspur.eip.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.springframework.lang.NonNull;
 
 import java.io.Serializable;
 
@@ -10,10 +9,10 @@ import java.io.Serializable;
 public class EipUpdateParam implements Serializable {
 
     @JsonProperty("serverid")
-    private String serverId;
+    private String serverid;
 
     @JsonProperty("portid")
-    private String portId;
+    private String portid;
 
     //1：ecs // 2：cps // 3：slb
     @JsonProperty("type")
@@ -33,6 +32,6 @@ public class EipUpdateParam implements Serializable {
 
     private String chargemode;
 
-    @JsonProperty("sharedbandwidthid")
-    private String sharedBandWidthId;
+    @JsonProperty("sbwid")
+    private String sbwId;
 }

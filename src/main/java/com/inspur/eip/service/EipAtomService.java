@@ -1,15 +1,15 @@
 package com.inspur.eip.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.EipAllocateParamWrapper;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
-import com.inspur.eip.util.CommonUtil;
-import com.inspur.eip.util.HttpUtil;
-import com.inspur.eip.util.ReturnResult;
+import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -29,17 +29,19 @@ public class EipAtomService {
      * @param eipConfig config
      * @return json
      */
-    JSONObject atomCreateEip(EipAllocateParamWrapper eipConfig) {
-        String url = eipAtomUrl + "/eip/v1/eips/";
-        ReturnResult response = null;
+    ResponseEntity atomCreateEip(EipAllocateParamWrapper eipConfig) {
+        String url = "http://localhost:8080/eip/v1/eips";
         try {
+            restTemplate.setErrorHandler(new ThrowErrorHandler());
             String orderStr = JSONObject.toJSONString(eipConfig);
             log.info("Send order to url:{}, body:{}", url, orderStr);
-            response = HttpUtil.post(url, null, orderStr);
-        }catch (Exception e){
-            log.error("Create eip exception", e);
+            return restTemplate.postForEntity(url, eipConfig, JSONObject.class);
+        }catch (CustomException e){
+            JSONObject resultJson = JSON.parseObject(e.getBody());
+            log.error(resultJson.getString("message"));
+            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return CommonUtil.handlerResopnse(response);
     }
 
     /**
@@ -47,16 +49,21 @@ public class EipAtomService {
      * @param eipId id
      * @return json
      */
-    JSONObject atomDeleteEip(String  eipId)  {
-        String url=eipAtomUrl + "/eip/v1/eips/"+eipId;
-        ReturnResult response = null;
+    ResponseEntity atomDeleteEip(String  eipId)  {
+        String url="http://localhost:8080/eip/v1/eips/"+eipId;
         try {
+            restTemplate.setErrorHandler(new ThrowErrorHandler());
             log.info("Send order to url:{}, eipId:{}", url, eipId);
-            response = HttpUtil.delete(url, null);
-        }catch (Exception e){
-            log.error("Atom delete eip exception", e);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            HttpEntity<String> entity = new HttpEntity<>(eipId, headers);
+            return restTemplate.exchange(url, HttpMethod.DELETE, entity, JSONObject.class,eipId);
+        }catch (CustomException e){
+            JSONObject resultJson = JSON.parseObject(e.getBody());
+            log.error(resultJson.getString("message"));
+            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return CommonUtil.handlerResopnse(response);
     }
 
 
@@ -66,19 +73,19 @@ public class EipAtomService {
      * @param eipConfig config
      * @return json
      */
-    JSONObject atomRenewEip(String eipId, EipUpdateParam eipConfig)  {
-        String url=eipAtomUrl + "/eip/v1/eips/" +eipId +"/renew";
-        ReturnResult response = null;
+    ResponseEntity atomRenewEip(String eipId, EipUpdateParam eipConfig)  {
+        String url="http://localhost:8080/eip/v1/eips/"+eipId+"/renew";
         try {
-
+            restTemplate.setErrorHandler(new ThrowErrorHandler());
             String orderStr = JSONObject.toJSONString(eipConfig);
             log.info("Renew eip, url:{}, body:{}", url, orderStr);
-
-            response = HttpUtil.post(url, null, orderStr);
-        }catch (Exception e){
-            log.error("Update eip exception", e);
+            return restTemplate.postForEntity(url, orderStr, JSONObject.class,eipId);
+        }catch (CustomException e){
+            JSONObject resultJson = JSON.parseObject(e.getBody());
+            log.error(resultJson.getString("message"));
+            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return CommonUtil.handlerResopnse(response);
     }
     /**
      * update
@@ -86,37 +93,45 @@ public class EipAtomService {
      * @param eipConfig config
      * @return json
      */
-    JSONObject atomUpdateEip(String eipId, EipUpdateParam eipConfig)  {
-        String url=eipAtomUrl + "/eip/v1/eips/" +eipId;
-        ReturnResult response = null;
+    ResponseEntity atomUpdateEip(String eipId, EipUpdateParam eipConfig)  {
+        String url="http://localhost:8080/eip/v1/eips/"+eipId;
         try {
+            restTemplate.setErrorHandler(new ThrowErrorHandler());
             EipUpdateParamWrapper eipConfigWrapper =  new EipUpdateParamWrapper();
             eipConfigWrapper.setEip(eipConfig);
             String orderStr = JSONObject.toJSONString(eipConfigWrapper);
             log.info("Update eip, url:{}, body:{}", url, orderStr);
-
-            response = HttpUtil.put(url, null, orderStr);
-        }catch (Exception e){
-            log.error("Update eip exception", e);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> entity = new HttpEntity<>(orderStr, headers);
+            return restTemplate.exchange(url, HttpMethod.PUT, entity, JSONObject.class,eipId);
+        }catch (CustomException e){
+            JSONObject resultJson = JSON.parseObject(e.getBody());
+            log.error(resultJson.getString("message"));
+            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return CommonUtil.handlerResopnse(response);
     }
     /**
      * get by id
      * @param eipId  id
      * @return json
      */
-    JSONObject getEipEntityById(String eipId){
+    ResponseEntity getEipEntityById(String eipId){
 
         String  uri =eipAtomUrl+ "/eip/v1/eips/"+eipId;
-        ReturnResult response = null;
-        try {
-            log.info(uri);
-            response = HttpUtil.get(uri, null);
-        }catch (Exception e){
-            log.error("Get eip by id exception", e);
+
+        try{
+            restTemplate.setErrorHandler(new ThrowErrorHandler());
+            return restTemplate.getForEntity(uri, JSONObject.class ,eipId);
+
+        }catch (CustomException e){
+            JSONObject resultJson = JSON.parseObject(e.getBody());
+            log.error(resultJson.getString("message"));
+            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return  CommonUtil.handlerResopnse(response);
+
     }
 
 }
