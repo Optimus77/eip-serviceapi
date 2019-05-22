@@ -42,7 +42,7 @@ public class SbwController {
                                   @RequestParam(required = false) String searchValue) {
         log.info("————SbwService api listSbw, pageIndex:{}, pageSize:{}", pageIndex, pageSize);
 
-        String uri = "http://localhost:8080/eip/v1/sbws?pageIndex={pageIndex}&pageSize={pageSize}&searchValue={searchValue}";
+        String uri = sbwAtomUrl + "/eip/v1/sbws?pageIndex={pageIndex}&pageSize={pageSize}&searchValue={searchValue}";
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             HashMap<String, Object> map = new HashMap();
@@ -64,7 +64,7 @@ public class SbwController {
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "getSbwByProjectId", notes = "get")
     public ResponseEntity getSbwByProjectId(@RequestParam(required = false) String projectId) {
-        String uri = "http://localhost:8080/eip/v1/sbws/search?projectId={projectId}";
+        String uri = sbwAtomUrl + "eip/v1/sbws/search?projectId={projectId}";
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             HashMap<String, Object> map = new HashMap();
@@ -96,7 +96,7 @@ public class SbwController {
     public ResponseEntity getSbwDetail(@PathVariable("sbw_id") String sbwId) {
         log.info("————get sbw detail SbwService api called————");
 
-        String uri = "http://localhost:8080/eip/v1/sbws/{sbwId}";
+        String uri = sbwAtomUrl + "/eip/v1/sbws/{sbwId}";
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             return restTemplate.getForEntity(uri, JSONObject.class, sbwId);
@@ -121,7 +121,7 @@ public class SbwController {
     public ResponseEntity getSbwCount() {
 
         log.info("————sbwnumbers SbwService api———— ");
-        String uri = "http://localhost:8080/eip/v1/sbwnumbers";
+        String uri = sbwAtomUrl + "/eip/v1/sbwnumbers";
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             return restTemplate.getForEntity(uri, JSONObject.class);
@@ -145,7 +145,7 @@ public class SbwController {
     public ResponseEntity getOtherEips(@PathVariable("sbw_id") String sbwId){
         log.info("————SbwService listSbw, sbwId:{}", sbwId);
 
-        String uri = "http://localhost:8080/eip/v1/sbws/{sbw_id}/othereips";
+        String uri = sbwAtomUrl + "/eip/v1/sbws/{sbw_id}/othereips";
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             return restTemplate.getForEntity(uri, JSONObject.class, sbwId);
@@ -166,7 +166,7 @@ public class SbwController {
                                      @RequestParam(required = false, name = "currentPageSize", defaultValue = "10") String pageSize) {
         log.info("————SbwService listSbw, pageIndex:{}, pageSize:{}", pageIndex, pageSize);
 
-        String uri = "http://localhost:8080/eip/v1/sbws/"+sbwId+"/eips?pageIndex={pageIndex}&pageSize={pageSize}";
+        String uri = sbwAtomUrl + "/eip/v1/sbws/"+sbwId+"/eips?pageIndex={pageIndex}&pageSize={pageSize}";
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             HashMap<String, Object> map = new HashMap();
@@ -192,7 +192,7 @@ public class SbwController {
     })
     public ResponseEntity renameSbw(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param){
         log.info("————Atom rename sbw param:{}",param.getSbw().toString());
-        String  uri ="http://localhost:8080/eip/v1//sbws/{sbw_id}/rename";
+        String  uri =sbwAtomUrl + "/eip/v1//sbws/{sbw_id}/rename";
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             String params = JSONObject.toJSONString(param);

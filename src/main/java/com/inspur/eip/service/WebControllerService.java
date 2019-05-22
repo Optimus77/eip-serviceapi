@@ -28,10 +28,6 @@ class WebControllerService {
     @Value("${mq.returnNotify}")
     private   String returnNotify;
 
-    //1.2.8 订单接口POST
-    @Value("${bssurl.submitPay}")
-    private   String ordercreate;
-
     @Value("${mq.returnMq}")
     private   String returnMq;
 
@@ -46,34 +42,6 @@ class WebControllerService {
 
     @Autowired
     private RestTemplate restTemplate;
-
-    /**
-     * send order to controller
-     * @param order order
-     * @return code and message
-     */
-    ReturnResult postOrder(ReciveOrder order)  {
-        String url=ordercreate;
-        ReturnResult response;
-        try {
-            String orderStr = JSONObject.toJSONString(order);
-            Map<String, String> header = new HashMap<>();
-            header.put(HsConstants.AUTHORIZATION, "bearer "+ clientTokenUtil.getAdminToken().trim());
-            header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
-
-            log.info("SubmitPay url:{}, body:{}", url, orderStr);
-            if ((url.trim().startsWith("https://")) || (url.trim().startsWith("HTTPS://"))) {
-                response = HttpsClientUtil.doPostJson(url, header, orderStr);
-            } else {
-                response = HttpUtil.post(url, header, orderStr);
-            }
-            return  response;
-        }catch (Exception e){
-            log.error("In submitpay order, get token exception:{}", e);
-        }
-        return ReturnResult.actionFailed("Post order failed ", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-    }
-
 
     /**
      * 订单返回给控制台的消息

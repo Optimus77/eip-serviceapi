@@ -82,7 +82,7 @@ public class EipController {
             HashMap<String,Object> map = new HashMap();
             map.put("DimensionName",DimensionName);
             map.put("status",status);
-            String  uri ="http://localhost:8080/eip/v1/eipnumbers?DimensionName={DimensionName}&status={status}";
+            String  uri =eipAtomUrl + "/eip/v1/eipnumbers?DimensionName={DimensionName}&status={status}";
             ResponseEntity responseEntity = restTemplate.getForEntity(uri, JSONObject.class,map );
             return responseEntity;
         }catch (CustomException e){
@@ -106,7 +106,7 @@ public class EipController {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> entity = new HttpEntity<>(params, headers);
-            String  uri ="http://localhost:8080/eip/v1/deleiplist";
+            String  uri =eipAtomUrl + "/eip/v1/deleiplist";
             return restTemplate.exchange(uri, HttpMethod.POST,entity, Object.class);
 
         }catch (CustomException e){
@@ -125,7 +125,7 @@ public class EipController {
     public ResponseEntity getServerList(@RequestParam String region, @RequestParam String tag) {
         log.info("————get serverList api called————");
 
-        String  uri ="http://localhost:8080/eip/v1/servers?region={region}&tag={tag}";
+        String  uri =eipAtomUrl + "/eip/v1/servers?region={region}&tag={tag}";
 
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
@@ -155,7 +155,7 @@ public class EipController {
 
         log.info("————get listEip service api ————");
 
-        String  uri ="http://localhost:8080/eip/v1/eips?currentPage={currentPage}&limit={limit}&status={status}&bandWidth={bandWidth}";
+        String  uri =eipAtomUrl + "/eip/v1/eips?currentPage={currentPage}&limit={limit}&status={status}&bandWidth={bandWidth}";
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             HashMap<String,Object> map = new HashMap();
@@ -184,7 +184,7 @@ public class EipController {
 
         log.info("————get EipDetail service api ————");
 
-        String  uri ="http://localhost:8080/eip/v1/eips/{eipId}";
+        String  uri =eipAtomUrl + "/eip/v1/eips/{eipId}";
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             return restTemplate.getForEntity(uri, JSONObject.class,eipId );
@@ -204,7 +204,7 @@ public class EipController {
     public ResponseEntity getEipByInstanceId(@RequestParam(required = false) String resourceid,
                                              @RequestParam(required = false) String eipaddress) {
         log.info("————getEipByInstanceId service api ————");
-        String  uri ="http://localhost:8080/eip/v1/eips/search?resourceid={resourceid}&eipaddress={eipaddress}";
+        String  uri =eipAtomUrl + "/eip/v1/eips/search?resourceid={resourceid}&eipaddress={eipaddress}";
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             HashMap<String,Object> map = new HashMap();
@@ -232,7 +232,7 @@ public class EipController {
     @ApiOperation(value="get number",notes="get number")
     public ResponseEntity getFreeEipCount() {
         log.info("————freeeipnumbers service api ————");
-        String  uri ="http://localhost:8080/eip/v1/freeeipnumbers";
+        String  uri =eipAtomUrl + "/eip/v1/freeeipnumbers";
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             return restTemplate.getForEntity(uri, JSONObject.class );
@@ -251,7 +251,7 @@ public class EipController {
     @ApiOperation(value="get number",notes="get number")
     public ResponseEntity getUsingEipCount(@RequestParam(required = false )String status) {
         log.info("————usingeipnumbers service api———— ");
-        String  uri ="http://localhost:8080/eip/v1/usingeipnumbers?status={status}";
+        String  uri =eipAtomUrl + "/eip/v1/usingeipnumbers?status={status}";
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             HashMap<String,Object> map = new HashMap();
@@ -274,7 +274,7 @@ public class EipController {
     public ResponseEntity getTotalEipCount() {
 
         log.info("————totaleipnumbers service api———— ");
-        String  uri ="http://localhost:8080/eip/v1/totaleipnumbers";
+        String  uri =eipAtomUrl + "/eip/v1/totaleipnumbers";
 
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
@@ -297,7 +297,7 @@ public class EipController {
 
 
         log.info("————update service api ————");
-        String  uri ="http://localhost:8080/eip/v1/eips/{eipId}";
+        String  uri =eipAtomUrl + "/eip/v1/eips/{eipId}";
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             String params = JSONObject.toJSONString(param);

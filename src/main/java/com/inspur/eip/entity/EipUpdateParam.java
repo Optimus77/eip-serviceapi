@@ -24,14 +24,12 @@ public class EipUpdateParam implements Serializable {
 
     private String billType;
 
-    @JsonProperty("slbip")
-    private String slbIp;
-
     @JsonProperty("privateip")
     private String privateIp;
 
     private String chargemode;
 
-    @JsonProperty("sbwid")
+
+    @JsonProperty("sbwId")
     private String sbwId;
 }

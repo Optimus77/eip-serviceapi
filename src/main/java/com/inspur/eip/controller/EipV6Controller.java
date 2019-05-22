@@ -14,6 +14,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -33,11 +34,14 @@ public class EipV6Controller {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Value("${proxy.target_url}")
+    private String eipAtomUrl;
+
     @PostMapping(value = "/eipv6")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity allocateEipV6(@Valid @RequestBody EipV6AllocateParamWrapper eipV6Config) {
         log.info("————create Eipv6 service api ————");
-        String url = "http://localhost:8080/eip/v1/eipv6";
+        String url = eipAtomUrl + "/eip/v1/eipv6";
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             String orderStr = JSONObject.toJSONString(eipV6Config);
@@ -60,7 +64,7 @@ public class EipV6Controller {
                                     @RequestParam(required = false )String status) {
         log.info("————get listEipv6 service api ————");
 
-        String  uri ="http://localhost:8080/eip/v1/eipv6?currentPage={currentPage}&limit={limit}&status={status}";
+        String  uri =eipAtomUrl + "/eip/v1/eipv6?currentPage={currentPage}&limit={limit}&status={status}";
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             HashMap<String,Object> map = new HashMap();
@@ -83,7 +87,7 @@ public class EipV6Controller {
     public ResponseEntity deleteEip(@Size(min=36, max=36, message = "Must be uuid.")
                                     @PathVariable("eipv6_id") String eipV6Id) {
         log.info("————service delete the EipV6Id :{} ",eipV6Id);
-        String url="http://localhost:8080/eip/v1/eipv6/"+eipV6Id;
+        String url=eipAtomUrl + "/eip/v1/eipv6/"+eipV6Id;
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             HttpHeaders headers = new HttpHeaders();
@@ -117,7 +121,7 @@ public class EipV6Controller {
 
         log.info("————get EipV6Detail service api———— ");
 
-        String  uri ="http://localhost:8080/eip/v1/eipv6/{eipId}";
+        String  uri =eipAtomUrl + "/eip/v1/eipv6/{eipId}";
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             return restTemplate.getForEntity(uri, JSONObject.class,eipV6Id );
@@ -136,7 +140,7 @@ public class EipV6Controller {
     @ApiOperation(value = "update eipv6", notes = "put")
     public ResponseEntity updateEip(@PathVariable("eipv6_id") String eipV6Id, @Valid  @RequestBody (required = false) EipV6UpdateParamWrapper param) {
         log.info("————update eipv6 service api———— ");
-        String  uri ="http://localhost:8080/eip/v1/eipv6/{eipId}";
+        String  uri =eipAtomUrl + "/eip/v1/eipv6/{eipId}";
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             String params = JSONObject.toJSONString(param);

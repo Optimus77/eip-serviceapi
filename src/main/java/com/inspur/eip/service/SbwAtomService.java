@@ -22,7 +22,7 @@ public class SbwAtomService {
 
     ResponseEntity atomCreateSbw(SbwAtomParamWrapper wrapper) {
 
-        String url = "http://localhost:8080/eip/v1/sbws";
+        String url = sbwAtomUrl + "/eip/v1/sbws";
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             String orderStr = JSONObject.toJSONString(wrapper);
@@ -45,7 +45,7 @@ public class SbwAtomService {
     ResponseEntity atomDeleteSbw(String  sbwId)  {
 
 
-        String url="http://localhost:8080/eip/v1/sbws/"+sbwId;
+        String url=sbwAtomUrl + "/eip/v1/sbws/"+sbwId;
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             log.info("Send order to url:{}, eipId:{}", url, sbwId);
@@ -67,7 +67,7 @@ public class SbwAtomService {
      * @return json
      */
     ResponseEntity atomUpdateSbw(String sbwId, SbwUpdateParamWrapper wrapper)  {
-        String url="http://localhost:8080/eip/v1/sbws/"+sbwId+"/update";
+        String url=sbwAtomUrl + "/eip/v1/sbws/"+sbwId+"/update";
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             String orderStr = JSONObject.toJSONString(wrapper);
@@ -90,7 +90,7 @@ public class SbwAtomService {
      * @return json
      */
     ResponseEntity atomRenewSbw(String sbwId, SbwUpdateParamWrapper wrapper)  {
-        String url="http://localhost:8080/eip/v1/sbws/" +sbwId +"/renew";
+        String url=sbwAtomUrl + "/eip/v1/sbws/" +sbwId +"/renew";
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             String orderStr = JSONObject.toJSONString(wrapper);

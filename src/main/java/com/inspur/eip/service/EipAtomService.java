@@ -30,7 +30,7 @@ public class EipAtomService {
      * @return json
      */
     ResponseEntity atomCreateEip(EipAllocateParamWrapper eipConfig) {
-        String url = "http://localhost:8080/eip/v1/eips";
+        String url = eipAtomUrl + "/eip/v1/eips/";;
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             String orderStr = JSONObject.toJSONString(eipConfig);
@@ -50,7 +50,7 @@ public class EipAtomService {
      * @return json
      */
     ResponseEntity atomDeleteEip(String  eipId)  {
-        String url="http://localhost:8080/eip/v1/eips/"+eipId;
+        String url=eipAtomUrl + "/eip/v1/eips/"+eipId;
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             log.info("Send order to url:{}, eipId:{}", url, eipId);
@@ -74,7 +74,7 @@ public class EipAtomService {
      * @return json
      */
     ResponseEntity atomRenewEip(String eipId, EipUpdateParam eipConfig)  {
-        String url="http://localhost:8080/eip/v1/eips/"+eipId+"/renew";
+        String url=eipAtomUrl + "/eip/v1/eips/"+eipId+"/renew";
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             String orderStr = JSONObject.toJSONString(eipConfig);
@@ -94,7 +94,7 @@ public class EipAtomService {
      * @return json
      */
     ResponseEntity atomUpdateEip(String eipId, EipUpdateParam eipConfig)  {
-        String url="http://localhost:8080/eip/v1/eips/"+eipId;
+        String url=eipAtomUrl + "/eip/v1/eips/"+eipId;
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             EipUpdateParamWrapper eipConfigWrapper =  new EipUpdateParamWrapper();
