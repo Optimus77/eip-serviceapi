@@ -75,8 +75,9 @@ public class BillFilter implements Filter {
             response.setStatus(HttpStatus.SC_OK);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(responseEntity.toString());
+        }else {
+            filterChain.doFilter(servletRequest, servletResponse);
         }
-        filterChain.doFilter(servletRequest, servletResponse);
 
     }
 
