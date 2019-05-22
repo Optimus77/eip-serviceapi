@@ -77,7 +77,7 @@ public class EipController {
     public ResponseEntity getEipCount(@RequestParam(required = false )String DimensionName,
                                       @RequestParam(required = false )String status) {
         try{
-            log.info("———— get eipnumbers api called————");
+            log.debug("———— get eipnumbers api called————");
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             HashMap<String,Object> map = new HashMap();
             map.put("DimensionName",DimensionName);
@@ -118,33 +118,6 @@ public class EipController {
     }
 
 
-
-    @GetMapping(value = "/servers")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value = "show all servers", notes = "get")
-    public ResponseEntity getServerList(@RequestParam String region, @RequestParam String tag) {
-        log.info("————get serverList api called————");
-
-        String  uri =eipAtomUrl + "/eip/v1/servers?region={region}&tag={tag}";
-
-        try {
-            restTemplate.setErrorHandler(new ThrowErrorHandler());
-            HashMap<String,Object> map = new HashMap();
-            map.put("region",region);
-            map.put("tag",tag);
-            ResponseEntity responseEntity = restTemplate.getForEntity(uri, JSONObject.class,map );
-            return responseEntity;
-        }catch (CustomException e){
-            JSONObject resultJson = JSON.parseObject(e.getBody());
-            log.error(resultJson.getString("message"));
-            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-    }
-
-
-
     @GetMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeip",notes="list")
@@ -153,7 +126,7 @@ public class EipController {
                                   @RequestParam(required = false )String status,
                                   @RequestParam(required = false )String bandWidth) {
 
-        log.info("————get listEip service api ————");
+        log.debug("————get listEip service api ————");
 
         String  uri =eipAtomUrl + "/eip/v1/eips?currentPage={currentPage}&limit={limit}&status={status}&bandWidth={bandWidth}";
         try{
@@ -227,55 +200,12 @@ public class EipController {
      * get number of user
      * @return response
      */
-    @GetMapping(value = "/freeeipnumbers")
+    @GetMapping(value = "/statistics")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")
     public ResponseEntity getFreeEipCount() {
-        log.info("————freeeipnumbers service api ————");
-        String  uri =eipAtomUrl + "/eip/v1/freeeipnumbers";
-        try{
-            restTemplate.setErrorHandler(new ThrowErrorHandler());
-            return restTemplate.getForEntity(uri, JSONObject.class );
-
-        }catch (CustomException e){
-            JSONObject resultJson = JSON.parseObject(e.getBody());
-            log.error(resultJson.getString("message"));
-            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-
-    @GetMapping(value = "/usingeipnumbers")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="get number",notes="get number")
-    public ResponseEntity getUsingEipCount(@RequestParam(required = false )String status) {
-        log.info("————usingeipnumbers service api———— ");
-        String  uri =eipAtomUrl + "/eip/v1/usingeipnumbers?status={status}";
-        try{
-            restTemplate.setErrorHandler(new ThrowErrorHandler());
-            HashMap<String,Object> map = new HashMap();
-            map.put("status",status);
-            return restTemplate.getForEntity(uri, JSONObject.class ,map);
-
-        }catch (CustomException e){
-            JSONObject resultJson = JSON.parseObject(e.getBody());
-            log.error(resultJson.getString("message"));
-            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-    }
-
-
-    @GetMapping(value = "/totaleipnumbers")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="get number",notes="get number")
-    public ResponseEntity getTotalEipCount() {
-
-        log.info("————totaleipnumbers service api———— ");
-        String  uri =eipAtomUrl + "/eip/v1/totaleipnumbers";
-
+        log.info("————statistics service api ————");
+        String  uri =eipAtomUrl + "/eip/v1/statistics";
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             return restTemplate.getForEntity(uri, JSONObject.class );

@@ -55,13 +55,13 @@ public class SbwOrderController {
     }
 
 
-    @PostMapping(value = "/sbws/softdown")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value = "show all servers", notes = "get")
-    public ResponseEntity softDown(@RequestBody OrderSoftDown eipReciveOrder) {
-
-        log.info("——————get soft down sbw order:{}.", eipReciveOrder.toString());
-        return bssApiService.onReciveSoftDownOrder(eipReciveOrder);
-
-    }
+//    @PostMapping(value = "/sbws/softdown")
+//    @CrossOrigin(origins = "*",maxAge = 3000)
+//    @ApiOperation(value = "show all servers", notes = "get")
+//    public ResponseEntity softDown(@RequestBody OrderSoftDown eipReciveOrder) {
+//
+//        log.info("——————get soft down sbw order:{}.", eipReciveOrder.toString());
+//        return bssApiService.onReciveSoftDownOrder(eipReciveOrder);
+//
+//    }
 }

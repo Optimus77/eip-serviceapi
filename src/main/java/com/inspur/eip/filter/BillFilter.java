@@ -13,6 +13,7 @@ import com.inspur.eip.util.ReturnStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
@@ -54,8 +55,27 @@ public class BillFilter implements Filter {
             response.getWriter().write(result.toJSONString());
             return;
         }
+        if(method.equalsIgnoreCase(HsConstants.POST)  &&
+                req.getPathInfo().equalsIgnoreCase("/v1/orders/softdown")) {
 
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("get softdown eip order:{}.", requestBody);
+            OrderSoftDown eipReciveOrder = JSON.parseObject(requestBody, OrderSoftDown.class);
+            ResponseEntity responseEntity = bssApiService.onReciveSoftDownOrder(eipReciveOrder);
 
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(responseEntity.toString());
+        }else if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equalsIgnoreCase("/v1/sbws/softdown")) {
+            String requestBody = CommonUtil.readRequestAsChars(req);
+            log.info("get softDelete sbw order:{}.", requestBody);
+            OrderSoftDown softDown = JSON.parseObject(requestBody, OrderSoftDown.class);
+            ResponseEntity responseEntity = bssApiService.stopOrSoftDeleteSbw(softDown);
+
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(responseEntity.toString());
+        }
         filterChain.doFilter(servletRequest, servletResponse);
 
     }

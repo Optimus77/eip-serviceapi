@@ -40,7 +40,7 @@ public class SbwController {
     public ResponseEntity listSbw(@RequestParam(required = false) String pageIndex,
                                   @RequestParam(required = false) String pageSize,
                                   @RequestParam(required = false) String searchValue) {
-        log.info("————SbwService api listSbw, pageIndex:{}, pageSize:{}", pageIndex, pageSize);
+        log.debug("————SbwService api listSbw, pageIndex:{}, pageSize:{}", pageIndex, pageSize);
 
         String uri = sbwAtomUrl + "/eip/v1/sbws?pageIndex={pageIndex}&pageSize={pageSize}&searchValue={searchValue}";
         try {
@@ -64,7 +64,7 @@ public class SbwController {
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "getSbwByProjectId", notes = "get")
     public ResponseEntity getSbwByProjectId(@RequestParam(required = false) String projectId) {
-        String uri = sbwAtomUrl + "eip/v1/sbws/search?projectId={projectId}";
+        String uri = sbwAtomUrl + "/eip/v1/sbws/search?projectId={projectId}";
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             HashMap<String, Object> map = new HashMap();
@@ -143,7 +143,7 @@ public class SbwController {
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
     public ResponseEntity getOtherEips(@PathVariable("sbw_id") String sbwId){
-        log.info("————SbwService listSbw, sbwId:{}", sbwId);
+        log.debug("————SbwService listSbw, sbwId:{}", sbwId);
 
         String uri = sbwAtomUrl + "/eip/v1/sbws/{sbw_id}/othereips";
         try {
@@ -164,7 +164,7 @@ public class SbwController {
     public ResponseEntity sbwListEip(@PathVariable( name = "sbw_id") String sbwId,
                                      @RequestParam(required = false, name = "currentPageIndex", defaultValue = "1") String pageIndex,
                                      @RequestParam(required = false, name = "currentPageSize", defaultValue = "10") String pageSize) {
-        log.info("————SbwService listSbw, pageIndex:{}, pageSize:{}", pageIndex, pageSize);
+        log.debug("————SbwService listSbw, pageIndex:{}, pageSize:{}", pageIndex, pageSize);
 
         String uri = sbwAtomUrl + "/eip/v1/sbws/"+sbwId+"/eips?pageIndex={pageIndex}&pageSize={pageSize}";
         try {

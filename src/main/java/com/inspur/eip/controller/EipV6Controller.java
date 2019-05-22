@@ -35,13 +35,13 @@ public class EipV6Controller {
     private RestTemplate restTemplate;
 
     @Value("${proxy.target_url}")
-    private String eipAtomUrl;
+    private String eipV6AtomUrl;
 
     @PostMapping(value = "/eipv6")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity allocateEipV6(@Valid @RequestBody EipV6AllocateParamWrapper eipV6Config) {
         log.info("————create Eipv6 service api ————");
-        String url = eipAtomUrl + "/eip/v1/eipv6";
+        String url = eipV6AtomUrl + "/eip/v1/eipv6";
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             String orderStr = JSONObject.toJSONString(eipV6Config);
@@ -62,9 +62,9 @@ public class EipV6Controller {
     public ResponseEntity listEipV6(@RequestParam(required = false) String currentPage ,
                                     @RequestParam(required = false )String limit,
                                     @RequestParam(required = false )String status) {
-        log.info("————get listEipv6 service api ————");
+        log.debug("————get listEipv6 service api ————");
 
-        String  uri =eipAtomUrl + "/eip/v1/eipv6?currentPage={currentPage}&limit={limit}&status={status}";
+        String  uri =eipV6AtomUrl + "/eip/v1/eipv6?currentPage={currentPage}&limit={limit}&status={status}";
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             HashMap<String,Object> map = new HashMap();
@@ -87,7 +87,7 @@ public class EipV6Controller {
     public ResponseEntity deleteEip(@Size(min=36, max=36, message = "Must be uuid.")
                                     @PathVariable("eipv6_id") String eipV6Id) {
         log.info("————service delete the EipV6Id :{} ",eipV6Id);
-        String url=eipAtomUrl + "/eip/v1/eipv6/"+eipV6Id;
+        String url=eipV6AtomUrl + "/eip/v1/eipv6/"+eipV6Id;
         try {
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             HttpHeaders headers = new HttpHeaders();
@@ -121,7 +121,7 @@ public class EipV6Controller {
 
         log.info("————get EipV6Detail service api———— ");
 
-        String  uri =eipAtomUrl + "/eip/v1/eipv6/{eipId}";
+        String  uri =eipV6AtomUrl + "/eip/v1/eipv6/{eipId}";
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             return restTemplate.getForEntity(uri, JSONObject.class,eipV6Id );
@@ -140,7 +140,7 @@ public class EipV6Controller {
     @ApiOperation(value = "update eipv6", notes = "put")
     public ResponseEntity updateEip(@PathVariable("eipv6_id") String eipV6Id, @Valid  @RequestBody (required = false) EipV6UpdateParamWrapper param) {
         log.info("————update eipv6 service api———— ");
-        String  uri =eipAtomUrl + "/eip/v1/eipv6/{eipId}";
+        String  uri =eipV6AtomUrl + "/eip/v1/eipv6/{eipId}";
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             String params = JSONObject.toJSONString(param);

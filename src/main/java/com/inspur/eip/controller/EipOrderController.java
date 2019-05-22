@@ -44,7 +44,7 @@ public class EipOrderController {
     }
 
 
-    @PostMapping(value = "/orders/softdown")
+   /* @PostMapping(value = "/orders/softdown")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "show all servers", notes = "get")
     public ResponseEntity softDown(@RequestBody OrderSoftDown eipReciveOrder) {
@@ -52,7 +52,7 @@ public class EipOrderController {
         log.info("——————get soft down eip order:{}.", eipReciveOrder.toString());
         return bssApiService.onReciveSoftDownOrder(eipReciveOrder);
 
-    }
+    }*/
 
 
     @DeleteMapping(value = "/orders/{id}")
