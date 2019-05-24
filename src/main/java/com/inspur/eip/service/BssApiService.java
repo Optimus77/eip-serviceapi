@@ -7,11 +7,9 @@ import com.inspur.eip.entity.*;
 import com.inspur.eip.entity.sbw.*;
 import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -38,12 +36,12 @@ public class BssApiService {
      * @param eipOrder order
      * @return return message
      */
-    public ResponseEntity onReciveCreateOrderResult(ReciveOrder eipOrder) {
+    public JSONObject onReciveCreateOrderResult(ReciveOrder eipOrder) {
 
         String code;
         String msg;
         String eipId = "";
-        ResponseEntity createRet = null;
+        JSONObject createRet = null;
         ReturnResult returnResult = null;
         try {
             log.debug("Recive create order:{}", JSONObject.toJSONString(eipOrder));
@@ -57,14 +55,13 @@ public class BssApiService {
                     createRet = eipAtomService.atomCreateEip(eipAllocateParamWrapper);
                     String retStr = HsConstants.SUCCESS;
 
-                    if (createRet.getStatusCodeValue() != HttpStatus.SC_OK) {
+                    if (createRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK) {
                         retStr = HsConstants.FAIL;
-                        log.info("create eip failed, return code:{}", createRet.getStatusCodeValue());
+                        log.info("create eip failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     } else {
-                        JSONObject JSONObjectEip = (JSONObject) createRet.getBody();
-                        JSONObject eip1 = JSONObjectEip.getJSONObject("eip");
-                        eipId = eip1.getString("eipid");
-                        webControllerService.returnsWebsocket(eipId, eipOrder, "create");
+                        JSONObject eipEntity = createRet.getJSONObject("eip");
+                        eipId = eipEntity.getString("eipid");
+                        webControllerService.returnsWebsocket(eipEntity.getString("eipid"), eipOrder, "create");
                         if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
                             webControllerService.returnsIpv6Websocket("Success", "Success", "createNatWithEip");
                         }
@@ -88,15 +85,17 @@ public class BssApiService {
             msg = e.getMessage() + "";
         } finally {
             if ((null == returnResult) || (!returnResult.isSuccess())) {
-                if ((null != createRet) && (createRet.getStatusCodeValue() == HttpStatus.SC_OK)) {
+                if ((null != createRet) && (createRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK)) {
                     log.error("Delete the allocate eip just now for mq message error, id:{}", eipId);
                     eipAtomService.atomDeleteEip(eipId);
                 }
             }
         }
         webControllerService.resultReturnMq(getEipOrderResult(eipOrder, "", HsConstants.FAIL));
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg),
-                org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR);
+        JSONObject result = new JSONObject();
+        result.put("code", code);
+        result.put("msg", msg);
+        return result;
     }
 
     /**
@@ -104,16 +103,21 @@ public class BssApiService {
      * @param eipOrder order
      * @return string
      */
-    public ResponseEntity onReciveDeleteOrderResult(ReciveOrder eipOrder,String eipId) {
+    public JSONObject onReciveDeleteOrderResult(ReciveOrder eipOrder) {
         String msg;
         String code;
+        String eipId = "0";
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
             if (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
 
-                ResponseEntity  delResult = eipAtomService.atomDeleteEip(eipId);
+                List<OrderProduct> orderProducts = eipOrder.getProductList();
+                for (OrderProduct orderProduct : orderProducts) {
+                    eipId = orderProduct.getInstanceId();
+                }
+                JSONObject delResult = eipAtomService.atomDeleteEip(eipId);
 
-                if (delResult.getStatusCodeValue() == org.springframework.http.HttpStatus.OK.value()) {
+                if (delResult.getInteger(HsConstants.STATUSCODE) == org.springframework.http.HttpStatus.OK.value()) {
                     if (eipOrder.getConsoleCustomization().containsKey("operateType")
                             && eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")) {
                         webControllerService.returnsIpv6Websocket("Success", "Success", "deleteNatWithEip");
@@ -123,7 +127,7 @@ public class BssApiService {
                     webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.UNSUBSCRIBE));
                     return delResult;
                 } else {
-                    msg = "HTTP false";
+                    msg = delResult.getString(HsConstants.STATUSCODE);
                     code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 }
             } else {
@@ -137,8 +141,10 @@ public class BssApiService {
             msg = e.getMessage() + "";
         }
         webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.FAIL));
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg),
-                org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR);
+        JSONObject result = new JSONObject();
+        result.put("code", code);
+        result.put("msg", msg);
+        return result;
     }
 
     /**
@@ -147,7 +153,7 @@ public class BssApiService {
      * @param eipOrder order
      * @return string
      */
-    public ResponseEntity onReciveUpdateOrder(String eipId, ReciveOrder eipOrder) {
+    public JSONObject onReciveUpdateOrder(String eipId, ReciveOrder eipOrder) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
 
@@ -156,19 +162,18 @@ public class BssApiService {
 
             if ((null != eipOrder) && (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS))) {
                 EipUpdateParam eipUpdate = getUpdatParmByOrder(eipOrder);
-                ResponseEntity updateRet=null;
+                JSONObject updateRet;
                 if (eipOrder.getOrderType().equalsIgnoreCase("changeConfigure")) {
                     updateRet = eipAtomService.atomUpdateEip(eipId, eipUpdate);
                 } else if (eipOrder.getOrderType().equalsIgnoreCase("renew") && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
                     updateRet = eipAtomService.atomRenewEip(eipId, eipUpdate);
                 } else {
                     log.error("Not support order type:{}", eipOrder.getOrderType());
+                    updateRet = CommonUtil.handlerResopnse(null);
                 }
                 String retStr = HsConstants.SUCCESS;
-                if(updateRet!=null){
-                    if (updateRet.getStatusCodeValue()!= HttpStatus.SC_OK) {
-                        retStr = HsConstants.FAIL;
-                    }
+                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK) {
+                    retStr = HsConstants.FAIL;
                 }
 
                 log.debug("renew order result :{}", updateRet);
@@ -184,8 +189,10 @@ public class BssApiService {
         if (null != eipOrder) {
             webControllerService.resultReturnMq(getEipOrderResult(eipOrder, eipId, HsConstants.FAIL));
         }
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg),
-                org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR);
+        JSONObject result = new JSONObject();
+        result.put("code", code);
+        result.put("msg", msg);
+        return result;
     }
 
     /**
@@ -193,11 +200,11 @@ public class BssApiService {
      * @param eipOrder order
      * @return return
      */
-    public ResponseEntity onReciveSoftDownOrder(OrderSoftDown eipOrder) {
+    public JSONObject onReciveSoftDownOrder(OrderSoftDown eipOrder) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-        ResponseEntity updateRet = null;
-        String retStr;;
+        JSONObject updateRet = null;
+        String retStr;
         String iStatusStr;
         try {
             log.debug("Recive soft down order:{}", JSONObject.toJSONString(eipOrder));
@@ -208,7 +215,7 @@ public class BssApiService {
                     updateRet = eipAtomService.atomDeleteEip(softDownInstance.getInstanceId());
                     iStatusStr = HsConstants.DELETED;
                     retStr = HsConstants.SUCCESS;
-                    if (updateRet.getStatusCodeValue()!=  HttpStatus.SC_OK){
+                    if (updateRet.getInteger(HsConstants.STATUSCODE) !=  HttpStatus.SC_OK){
                         retStr = HsConstants.FAIL;
                         iStatusStr = HsConstants.FAIL;
                     }
@@ -216,10 +223,10 @@ public class BssApiService {
                     EipUpdateParam updateParam = new EipUpdateParam();
                     updateParam.setDuration("0");
                     updateRet = eipAtomService.atomRenewEip(softDownInstance.getInstanceId(), updateParam);
-                    if (updateRet.getStatusCodeValue() == HttpStatus.SC_OK){
+                    if (updateRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK){
                         iStatusStr = HsConstants.STOPSERVER;
                         retStr = HsConstants.SUCCESS;
-                    }else if(updateRet.getStatusCodeValue() == HttpStatus.SC_NOT_FOUND){
+                    }else if(updateRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_NOT_FOUND){
                         iStatusStr = HsConstants.NOTFOUND;
                         retStr = HsConstants.SUCCESS;
                     } else {
@@ -230,7 +237,7 @@ public class BssApiService {
                     EipUpdateParam eipUpdate = new EipUpdateParam();
                     eipUpdate.setDuration("1");
                     updateRet = eipAtomService.atomRenewEip(softDownInstance.getInstanceId(), eipUpdate);
-                    if (updateRet.getStatusCodeValue() == HttpStatus.SC_OK){
+                    if (updateRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK){
                         iStatusStr = HsConstants.SUCCESS;
                         retStr = HsConstants.SUCCESS;
                     }else {
@@ -256,8 +263,10 @@ public class BssApiService {
             msg = e.getMessage() + "";
         }
         webControllerService.resultReturnNotify(eipOrder);
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg),
-                org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR);
+        JSONObject result = new JSONObject();
+        result.put("code", code);
+        result.put("msg", msg);
+        return result;
     }
 
     /**
@@ -372,12 +381,12 @@ public class BssApiService {
      * get create shareband result
      * @return return message
      */
-    public ResponseEntity createShareBandWidth(ReciveOrder reciveOrder) {
+    public JSONObject createShareBandWidth(ReciveOrder reciveOrder) {
 
         String code;
         String msg;
         String sbwId = "";
-        ResponseEntity createRet = null;
+        JSONObject createRet = null;
         ReturnResult returnResult = null;
         try {
             if (reciveOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
@@ -390,12 +399,11 @@ public class BssApiService {
                     createRet = sbwAtomService.atomCreateSbw(sbwWrapper);
                     String retStr = HsConstants.STATUS_ACTIVE;
 
-                    if (createRet.getStatusCodeValue() != HttpStatus.SC_OK) {
+                    if (createRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK) {
                         retStr = HsConstants.STATUS_ERROR;
-                        log.info("create sbw failed, return code:{}", createRet.getStatusCodeValue());
+                        log.info("create sbw failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     } else {
-                        JSONObject JSONObjectSbw = (JSONObject) createRet.getBody();
-                        JSONObject sbwEntity = JSONObjectSbw.getJSONObject("sbw");
+                        JSONObject sbwEntity = createRet.getJSONObject("sbw");
                         sbwId = sbwEntity.getString("sbwId");
                         webControllerService.returnSbwWebsocket(sbwEntity.getString("sbwId"), reciveOrder, "create");
                     }
@@ -418,15 +426,17 @@ public class BssApiService {
             msg = e.getMessage() + "";
         } finally {
             if ((null == returnResult) || (!returnResult.isSuccess())) {
-                if ((null != createRet) && (createRet.getStatusCodeValue() == HttpStatus.SC_OK)) {
+                if ((null != createRet) && (createRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK)) {
                     log.error("Delete the allocate sbw just now for mq message error, id:{}", sbwId);
                     sbwAtomService.atomDeleteSbw(sbwId);
                 }
             }
         }
         webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, "", HsConstants.STATUS_ERROR));
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg),
-                org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR);
+        JSONObject result = new JSONObject();
+        result.put("code", code);
+        result.put("msg", msg);
+        return result;
     }
 
     /**
@@ -434,7 +444,7 @@ public class BssApiService {
      * @param reciveOrder order
      * @return string
      */
-    public ResponseEntity deleteShareBandWidth(ReciveOrder reciveOrder) {
+    public JSONObject deleteShareBandWidth(ReciveOrder reciveOrder) {
         String msg;
         String code;
         String sbwId = "";
@@ -447,15 +457,15 @@ public class BssApiService {
                 for (OrderProduct product : productList) {
                     sbwId = product.getInstanceId();
                 }
-                ResponseEntity delResult = sbwAtomService.atomDeleteSbw(sbwId);
+                JSONObject delResult = sbwAtomService.atomDeleteSbw(sbwId);
 
-                if (delResult.getStatusCodeValue() == HttpStatus.SC_OK) {
+                if (delResult.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK) {
                     //Return message to the front des
                     webControllerService.returnSbwWebsocket(sbwId, reciveOrder, "delete");
                     webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId, HsConstants.STATUS_DELETE));
                     return delResult;
                 } else {
-                    msg = delResult.getStatusCode().toString();
+                    msg = delResult.getString(HsConstants.STATUSCODE);
                     code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 }
             } else {
@@ -469,8 +479,9 @@ public class BssApiService {
             msg = e.getMessage() + "";
         }
         webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId, HsConstants.STATUS_ERROR));
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg),
-                org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR);
+        result.put("code", code);
+        result.put("msg", msg);
+        return result;
     }
 
     /**
@@ -479,7 +490,7 @@ public class BssApiService {
      * @param recive info recived
      * @return ret
      */
-    public ResponseEntity updateSbwConfig(String sbwId, ReciveOrder recive) {
+    public JSONObject updateSbwConfig(String sbwId, ReciveOrder recive) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         String retStr = HsConstants.STATUS_ACTIVE;
@@ -489,7 +500,7 @@ public class BssApiService {
                 SbwUpdateParamWrapper wrapper = new SbwUpdateParamWrapper();
                 SbwUpdateParam sbwUpdate = getSbwUpdatParmByOrder(recive);
                 wrapper.setSbw(sbwUpdate);
-                ResponseEntity updateRet=null;
+                JSONObject updateRet;
                 if (recive.getOrderType().equalsIgnoreCase("changeConfigure")) {
                     updateRet = sbwAtomService.atomUpdateSbw(sbwId, wrapper);
                 } else if (recive.getOrderType().equalsIgnoreCase("renew") && recive.getBillType().equals(HsConstants.MONTHLY)) {
@@ -498,7 +509,7 @@ public class BssApiService {
                     log.error("Not support order type:{}", recive.getOrderType());
                     updateRet = CommonUtil.handlerResopnse(null);
                 }
-                if (updateRet.getStatusCodeValue() != HttpStatus.SC_OK) {
+                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK) {
                     retStr = HsConstants.STATUS_ERROR;
                 }else {
                     log.info("update order result :{}", updateRet);
@@ -513,14 +524,16 @@ public class BssApiService {
             msg = e.getMessage() + "";
         }
         webControllerService.resultSbwReturnMq(getSbwResult(recive, sbwId, retStr));
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg),
-                org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR);
+        JSONObject result = new JSONObject();
+        result.put("code", code);
+        result.put("msg", msg);
+        return result;
     }
 
-    public ResponseEntity stopOrSoftDeleteSbw(OrderSoftDown softDown) {
+    public JSONObject stopOrSoftDeleteSbw(OrderSoftDown softDown) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-        ResponseEntity updateRet = null;
+        JSONObject updateRet = null;
         String setStatus = HsConstants.SUCCESS;
 
         String instanceStatusStr = "";
@@ -547,7 +560,7 @@ public class BssApiService {
                     instanceStatusStr = HsConstants.STATUS_DELETE;
                 }
 
-                if (updateRet.getStatusCodeValue() != org.springframework.http.HttpStatus.OK.value()) {
+                if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()) {
                     setStatus = HsConstants.FAIL;
                     instanceStatusStr = HsConstants.STATUS_ERROR;
                 }
@@ -566,8 +579,10 @@ public class BssApiService {
             msg = e.getMessage() + "";
         }
         webControllerService.resultReturnNotify(softDown);
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg),
-                org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR);
+        JSONObject result = new JSONObject();
+        result.put("code", code);
+        result.put("msg", msg);
+        return result;
     }
 
     /**
