@@ -19,7 +19,7 @@ public class HsConstants {
     public static final String IMPACTFACTOR = "impactFactor";
     public static final String BGP = "BGP";
     public static final String M = "M";
-    public static final String BANDWIDTH = "bandWidth";
+    public static final String BANDWIDTH = "bandwidth";
     public static final String NET = "net";
     public static final String FAIL = "fail";
 	public static final String BILLINGITEM = "billingItem";
