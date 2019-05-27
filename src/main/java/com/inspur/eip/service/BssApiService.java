@@ -630,6 +630,9 @@ public class BssApiService {
                 if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
                     sbwParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
                 }
+                if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.SBW_NAME)){
+                    sbwParam.setSbwName(orderProductItem.getValue());
+                }
             }
         }
         log.info("Get sbw param from order:{}", sbwParam.toString());
