@@ -1,7 +1,8 @@
-package com.inspur.eip.config.proxy.httppool;
+package com.inspur.eipatomapi.config.http;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,6 +30,9 @@ public class HttpClient {
     @Value("${http.socketTimeout}")
     private Integer socketTimeout;
 
+//    @Value("${http.staleConnectionCheckEnabled}")
+//    private boolean staleConnectionCheckEnabled;
+
     @Bean(name = "httpClientConnectionManager")
     public PoolingHttpClientConnectionManager getHttpClientConnectionManager(){
         PoolingHttpClientConnectionManager httpClientConnectionManager = new PoolingHttpClientConnectionManager();
@@ -44,6 +48,11 @@ public class HttpClient {
         httpClientBuilder.setConnectionManager(httpClientConnectionManager);
 
         return httpClientBuilder;
+    }
+//
+    @Bean(name ="closeAbleHttpClinet")
+    public CloseableHttpClient getCloseableHttpClient(@Qualifier("httpClientBuilder") HttpClientBuilder httpClientBuilder){
+        return httpClientBuilder.build();
     }
 
     @Bean(name = "builder")

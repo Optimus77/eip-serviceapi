@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '2.0.4.RELEASE'
+        springBootVersion = '2.0.5.RELEASE'
         keycloakVersion = '4.2.0.Final'
     }
     repositories {
@@ -15,7 +15,6 @@ buildscript {
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath group: 'com.inspur.cloud', name: 'cloud-gradle-plugin', version: '3.0.0-SNAPSHOT'
-
     }
 }
 
@@ -31,33 +30,55 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
 configurations.all {
+
 }
 configurations {
     all*.exclude module: 'spring-boot-starter-logging'
-    all*.exclude module: 'logback-classic'
+    all*.exclude module: 'slf4j-nop'
     all*.exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
     all*.exclude group: 'org.slf4j', module: 'slf4j-nop'
 }
 
 
+
 dependencies {
+    compile('org.springframework.boot:spring-boot-starter-data-jpa')
+    compile("org.springframework.boot:spring-boot-starter-data-rest")
     compile('org.springframework.boot:spring-boot-starter-security')
-    compile('org.springframework.boot:spring-boot-starter-web')
+    compile('org.springframework.boot:spring-boot-starter-web') {
+        exclude module: "spring-boot-starter-logging"
+    }
+    compile('org.springframework.boot:spring-boot-starter-actuator')
     compile('org.keycloak:keycloak-spring-boot-starter')
     compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
     compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
-    compile('com.alibaba:fastjson:1.2.49')
-    compile('com.inspur.cloudframework:common-utils:0.2.1-SNAPSHOT')
-
-    compile('com.inspur.icp:common-util:0.0.2-SNAPSHOT') {
+    compile group: 'com.alibaba', name: 'druid-spring-boot-starter', version: '1.1.10'
+    compile group: 'ch.ethz.ganymed', name: 'ganymed-ssh2', version: '262'
+    compile('com.inspur.icp:common-util:0.0.2-SNAPSHOT'){
         exclude(module: 'servlet-api')
         exclude(module: 'logback-classic')
     }
-
+    compile('com.inspur.cloudframework:common-utils:0.2.1-SNAPSHOT')
+    compile('com.inspur.cloud:cloud-monitor-metric:0.0.2-SNAPSHOT')
+    compile('com.github.ulisesbocchio:jasypt-spring-boot-starter:2.1.0')
+    compile('org.pacesys:openstack4j:3.1.0')
+    compile('com.alibaba:fastjson:1.2.49')
+    compile group: 'com.google.guava', name: 'guava', version: '26.0-jre'
+    compile 'com.inspur.cloud:cloud-monitor-metric:0.0.1-SNAPSHOT'
     runtime('org.springframework.boot:spring-boot-devtools')
+    runtime('mysql:mysql-connector-java')
+
+    compile group: 'ch.ethz.ganymed', name: 'ganymed-ssh2', version: '262'
     compileOnly('org.projectlombok:lombok')
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('org.springframework.security:spring-security-test')
+    // https://mvnrepository.com/artifact/org.liquibase/liquibase-core
+    runtimeOnly('org.liquibase:liquibase-core:3.6.2') {
+        exclude(module: 'logback-classic')
+    }
+    runtimeOnly("com.inspur.cloud:liquibase-schema:3.6")
+
+
 }
 
 dependencyManagement {
@@ -76,7 +97,6 @@ jacocoTestReport {
         xml.enabled false
         csv.enabled false
         html.enabled true
-
         xml.destination file("${buildDir}/reports/jacoco/jacocoReport/jacocoXml.xml")
         csv.destination file("${buildDir}/reports/jacoco/jacocoReport/jacocoCsv.csv")
         html.destination file("${buildDir}/reports/jacoco/jacocoReport/jacocoHtml")

@@ -25,6 +25,7 @@ public interface ReturnStatus {
     String SC_FORBIDDEN="106.001403" ;
 
     String SC_INTERNAL_SERVER_ERROR   = "106.999500";
+    String SC_NOT_IMPLEMENTED         ="106.999501";
     String SC_OPENSTACK_UNAVAILABLE   = "106.999503";
     String SC_FIREWALL_UNAVAILABLE    = "106.999503";
 
