@@ -58,6 +58,12 @@ dependencies {
     compileOnly('org.projectlombok:lombok')
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('org.springframework.security:spring-security-test')
+    dependencies {
+        compile('org.springframework.boot:spring-boot-starter-amqp:2.0.5.RELEASE')
+        compile('org.springframework.boot:spring-boot-autoconfigure:2.0.5.RELEASE')
+        // other dependencies
+    }
+
 }
 
 dependencyManagement {
