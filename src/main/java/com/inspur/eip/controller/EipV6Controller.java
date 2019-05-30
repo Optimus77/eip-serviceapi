@@ -140,8 +140,7 @@ public class EipV6Controller {
     @ApiOperation(value = "update eipv6", notes = "put")
     public ResponseEntity updateEip(@PathVariable("eipv6_id") String eipV6Id, @Valid  @RequestBody (required = false) EipV6UpdateParamWrapper param) {
         log.info("————update eipv6 service api———— ");
-        //String  uri =eipV6AtomUrl + "/eip/v1/eipv6/{eipId}";
-        String  uri ="http://localhost:8081/eip/v1/eipv6/{eipId}";
+        String  uri =eipV6AtomUrl + "/eip/v1/eipv6/{eipId}";
         try{
             restTemplate.setErrorHandler(new ThrowErrorHandler());
             String params = JSONObject.toJSONString(param);
