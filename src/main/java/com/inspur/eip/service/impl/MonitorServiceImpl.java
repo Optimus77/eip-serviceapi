@@ -57,6 +57,10 @@ public class MonitorServiceImpl implements MonitorService {
     @Override
     public void scheculeTask() {
 
+        if (minEipNum == null) {
+            return;
+        }
+
         log.debug("**************************start timed task : eip check**************************");
         List<MetricEntity> podMonitorMetric = Collections.synchronizedList(new ArrayList<>());
 
