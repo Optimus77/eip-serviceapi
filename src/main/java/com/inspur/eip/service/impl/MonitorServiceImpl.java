@@ -57,7 +57,7 @@ public class MonitorServiceImpl implements MonitorService {
     @Override
     public void scheculeTask() {
 
-        if (minEipNum == null) {
+        if (minEipNum.equals("0")) {
             return;
         }
 

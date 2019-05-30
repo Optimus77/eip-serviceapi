@@ -126,6 +126,6 @@ Kafka:
 
 regionCode: cn-north-3
 scheduleTime: 0 0/5 * * * ?
-#minEipNum: 50
+minEipNum: 0
 
 
