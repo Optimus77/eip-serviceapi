@@ -60,8 +60,8 @@ public class BssApiService {
                         log.info("create eip failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
                     } else {
                         JSONObject eipEntity = createRet.getJSONObject("eip");
-                        eipId = eipEntity.getString("eipId");
-                        webControllerService.returnsWebsocket(eipEntity.getString("eipId"), eipOrder, "create");
+                        eipId = eipEntity.getString("eipid");
+                        webControllerService.returnsWebsocket(eipEntity.getString("eipid"), eipOrder, "create");
                         if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
                             webControllerService.returnsIpv6Websocket("Success", "Success", "createNatWithEip");
                         }
