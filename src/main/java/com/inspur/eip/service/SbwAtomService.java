@@ -16,7 +16,7 @@ public class SbwAtomService {
     @Value("${proxy.target_url}")
     private String sbwAtomUrl;
 
-    JSONObject atomCreateSbw(SbwAtomParamWrapper wrapper) {
+    JSONObject atomCreateSbw(SbwUpdateParamWrapper wrapper) {
         String url = sbwAtomUrl + "/eip/v1/sbws";
         ReturnResult response = null;
         try {

@@ -32,6 +32,12 @@ public class HsConstants {
 	public static final String CHARGE_MODE_BANDWIDTH = "Bandwidth";
 	public static final String CHARGE_MODE_SHAREDBANDWIDTH = "SharedBandwidth";
 
+	//	orderType
+	public static final String NEW_ORDERTYPE = "new";
+	public static final String CHANGECONFIGURE_ORDERTYPE = "changeConfigure";
+	public static final String UNSUBSCRIBE_ORDERTYPE = "unsubscribe";
+	public static final String RENEW_ORDERTYPE = "renew";
+
     public static final String SUCCESS = "success";
     public static final String DELETE = "DELETE";
     public static final String DELETED = "deleted";
