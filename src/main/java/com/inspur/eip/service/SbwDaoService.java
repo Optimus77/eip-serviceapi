@@ -3,7 +3,6 @@ package com.inspur.eip.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
-import com.inspur.eip.entity.sbw.SbwAtomParam;
 import com.inspur.eip.entity.v2.MethodReturn;
 import com.inspur.eip.entity.v2.MethodSbwReturn;
 import com.inspur.eip.entity.v2.eip.Eip;
@@ -50,7 +49,7 @@ public class SbwDaoService {
     }
 
     @Transactional
-    public Sbw allocateSbw(SbwAtomParam sbwConfig) {
+    public Sbw allocateSbw(SbwUpdateParam sbwConfig) {
         Sbw sbwMo = null;
         try {
             String userId = CommonUtil.getUserId();

@@ -2,7 +2,6 @@ package com.inspur.eip.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eip.entity.sbw.SbwAtomParam;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.entity.v2.MethodSbwReturn;
 import com.inspur.eip.entity.v2.eip.Eip;
@@ -54,7 +53,7 @@ public class SbwServiceImpl implements ISbwService {
     private EipV6Repository eipV6Repository;
 
     @ICPServiceLog
-    public ResponseEntity atomCreateSbw(SbwAtomParam sbwConfig) {
+    public ResponseEntity atomCreateSbw(SbwUpdateParam sbwConfig) {
 
         String code;
         String msg;
