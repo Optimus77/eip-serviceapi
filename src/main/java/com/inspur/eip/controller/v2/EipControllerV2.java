@@ -181,11 +181,11 @@ public class EipControllerV2 {
                     msg = "need param serverid and type";
                 }
             }
-        } else {
+        } /*else {
             if(updateParam.getBillType()==null&&updateParam.getBandwidth()==0) {
                 log.info("unbind operate, eipid:{}, param:{} ", eipId, param.getEip());
                 return eipService.eipUnbindWithInstacnce(eipId, null);
-            }else if (updateParam.getBandwidth() != 0 && updateParam.getBillType() != null) {
+            }*//*else if (updateParam.getBandwidth() != 0 && updateParam.getBillType() != null) {
                 if (updateParam.getSbwId() != null) {
                     if (updateParam.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
                         log.info("add eip to shared bandWidth:{}", updateParam.toString());
@@ -194,9 +194,9 @@ public class EipControllerV2 {
                         log.info("remove eip from shared bandWidth:{}", updateParam.toString());
                         return eipService.removeEipFromSbw(eipId, updateParam);
                     }
-                }
+                }*//*
 
-               /* boolean chargeTypeFlag = false;
+               *//* boolean chargeTypeFlag = false;
                 if (updateParam.getBillType().equals(HsConstants.MONTHLY) ||
                         updateParam.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
                     chargeTypeFlag = true;
@@ -206,15 +206,15 @@ public class EipControllerV2 {
                 if (chargeTypeFlag) {
                     log.info("update bandWidth, eipid:{}, param:{} ", eipId, updateParam);
                     return eipService.updateEipBandWidth(eipId, param);
-                }*/
+                }*//*
             } else {
                 msg = "param not correct. " +
                         "to bind server,body param like{\"eip\" : {\"prot_id\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}" +
                         "to unbind server , param like {\"eip\" : {\"prot_id\":\"\"} }or   {\"eip\" : {} }" +
                         "to change bindwidht,body param like {\"eip\" : {\"bandWidth\":xxx,\"billType\":\"xxxxxx\"}" +
                         "";
-            }
-        }
+            }*/
+//        }
 
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
 

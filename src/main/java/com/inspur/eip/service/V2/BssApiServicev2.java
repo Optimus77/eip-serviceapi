@@ -165,8 +165,29 @@ public class BssApiServicev2 {
             if ((null != eipOrder) && (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS))) {
                 EipUpdateParam eipUpdate = getUpdatParmByOrder(eipOrder);
                 ResponseEntity updateRet=null;
+                boolean chargeTypeFlag = false;
                 if (eipOrder.getOrderType().equalsIgnoreCase("changeConfigure")) {
-                    updateRet = eipService.updateEipBandWidth(eipId, eipUpdate);
+                    if (eipUpdate.getSbwId() != null) {
+                        if (eipUpdate.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
+                            log.info("add eip to shared bandWidth:{}", eipUpdate.toString());
+                            return eipService.addEipToSbw(eipId, eipUpdate);
+                        } else if (eipUpdate.getChargemode().equalsIgnoreCase("Bandwidth")) {
+                            log.info("remove eip from shared bandWidth:{}", eipUpdate.toString());
+                            return eipService.removeEipFromSbw(eipId, eipUpdate);
+                        }
+                    }
+                    if (eipUpdate.getBillType().equals(HsConstants.MONTHLY) ||
+                            eipUpdate.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                        chargeTypeFlag = true;
+                    } else {
+                        msg = "chargetype must be [monthly |hourlySettlement]";
+                        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), org.springframework.http.HttpStatus.BAD_REQUEST);
+                    }
+                    if (chargeTypeFlag) {
+                        log.info("update bandWidth, eipid:{}, param:{} ", eipId, eipUpdate);
+                        return eipService.updateEipBandWidth(eipId, eipUpdate);
+                    }
+
                 } else if (eipOrder.getOrderType().equalsIgnoreCase("renew") && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
                     updateRet = eipService.renewEip(eipId, eipUpdate);
                 } else {
@@ -402,8 +423,8 @@ public class BssApiServicev2 {
                         retStr = HsConstants.STATUS_ERROR;
                         log.info("create sbw failed, return code:{}", createRet.getStatusCodeValue());
                     } else {
-                        com.inspur.eip.entity.v2.ReturnMsg body =(com.inspur.eip.entity.v2.ReturnMsg)createRet.getBody();
-                        SbwReturnBase sbw = (SbwReturnBase)body.getEip();
+                        com.inspur.eip.entity.v2.SbwReturnMsg body =(com.inspur.eip.entity.v2.SbwReturnMsg)createRet.getBody();
+                        SbwReturnBase sbw = (SbwReturnBase)body.getSbw();
                         webControllerService.returnSbwWebsocket(sbw.getSbwId(), reciveOrder, "create");
                     }
                     returnResult = webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId, retStr));
@@ -498,7 +519,13 @@ public class BssApiServicev2 {
                 wrapper.setSbw(sbwUpdate);
                 ResponseEntity updateRet=null;
                 if (recive.getOrderType().equalsIgnoreCase("changeConfigure")) {
-                    updateRet = sbwService.updateSbwBandWidth(sbwId, sbwUpdate);
+                    if (sbwUpdate.getBillType() != null ) {
+                        log.info("update bandWidth, sbwid:{}, param:{} ", sbwId, sbwUpdate);
+                        updateRet = sbwService.updateSbwBandWidth(sbwId, sbwUpdate);
+                    } else {
+                        msg = "param not correct,body param like {\"sbw\" : {\"bandWidth\":xxx,\"billType\":\"xxxxxx\"}";
+                        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), org.springframework.http.HttpStatus.BAD_REQUEST);
+                    }
                 } else if (recive.getOrderType().equalsIgnoreCase("renew") && recive.getBillType().equals(HsConstants.MONTHLY)) {
                     updateRet = sbwService.renewSbw(sbwId, sbwUpdate);
                 } else {
