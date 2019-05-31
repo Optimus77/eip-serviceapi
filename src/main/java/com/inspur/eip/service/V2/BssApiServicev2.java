@@ -410,11 +410,11 @@ public class BssApiServicev2 {
         ReturnResult returnResult = null;
         try {
             if (reciveOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
-                SbwAtomParam sbwConfig = getSbwConfigByOrder(reciveOrder);
+                SbwUpdateParam sbwConfig = getSbwConfigByOrder(reciveOrder);
                 ReturnSbwMsg checkRet = preSbwCheckParam(sbwConfig);
                 if (checkRet.getCode().equals(ReturnStatus.SC_OK)) {
                     //post request to atom
-                    SbwAtomParamWrapper sbwWrapper = new SbwAtomParamWrapper();
+                    SbwUpdateParamWrapper sbwWrapper = new SbwUpdateParamWrapper();
                     sbwWrapper.setSbw(sbwConfig);
                     createRet = sbwService.atomCreateSbw(sbwConfig);
                     String retStr = HsConstants.STATUS_ACTIVE;
@@ -608,29 +608,29 @@ public class BssApiServicev2 {
      * get eip config from order
      * @return eip param
      */
-    private SbwAtomParam getSbwConfigByOrder(ReciveOrder reciveOrder) {
-        SbwAtomParam sbwAllocatePram = new SbwAtomParam();
-        sbwAllocatePram.setBillType(reciveOrder.getBillType());
-        sbwAllocatePram.setDuration(reciveOrder.getDuration());
+    private SbwUpdateParam getSbwConfigByOrder(ReciveOrder reciveOrder) {
+        SbwUpdateParam updateParam = new SbwUpdateParam();
+        updateParam.setBillType(reciveOrder.getBillType());
+        updateParam.setDuration(reciveOrder.getDuration());
         List<OrderProduct> productList = reciveOrder.getProductList();
         for (OrderProduct orderProduct : productList) {
             if (!orderProduct.getProductLineCode().equalsIgnoreCase(HsConstants.SBW)) {
                 continue;
             }
-            sbwAllocatePram.setRegion(orderProduct.getRegion());
+            updateParam.setRegion(orderProduct.getRegion());
             List<OrderProductItem> orderProductItemList = orderProduct.getItemList();
 
             for (OrderProductItem sbwItem : orderProductItemList) {
                 if (sbwItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
-                    sbwAllocatePram.setBandwidth(Integer.parseInt(sbwItem.getValue()));
+                    updateParam.setBandwidth(Integer.parseInt(sbwItem.getValue()));
                 }else if (sbwItem.getCode().equals(HsConstants.SBW_NAME)) {
-                    sbwAllocatePram.setSbwName(sbwItem.getValue());
+                    updateParam.setSbwName(sbwItem.getValue());
                 }
             }
         }
 
-        log.info("Get sbw param from sbw Recive:{}", sbwAllocatePram.toString());
-        return sbwAllocatePram;
+        log.info("Get sbw param from sbw Recive:{}", updateParam.toString());
+        return updateParam;
     }
 
     private SbwUpdateParam getSbwUpdatParmByOrder(ReciveOrder eipOrder) {

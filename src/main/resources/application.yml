@@ -68,15 +68,7 @@ proxy:
 
 blackList: /health-status
 
-
-
-
-
-
-
-
 # Mysql
-
 # 环境 dev|prod
 spring:
   resources:
@@ -106,6 +98,39 @@ spring:
     change-log: "classpath:/db/changelog/db.changelog-master.yaml"
     contexts: dev
 
+    #Rabbit mq common config
+  rabbitmq:
+    host: 10.110.10.19
+    port: 5672
+    username: tester
+    password: 123456a?
+    #    Matchting with dead letter queue can avoid blocking of business queue message.
+    listener:
+      simple:
+        default-requeue-rejected: false
+
+
+#rabbit mq queues config
+bss:
+  queues:
+    order:
+      name: queue.eip.order
+      messageTTL: 300000
+      binding:
+        exchange: exchange.region
+        routingKey: key.eip.order
+        returnRoutingKey: key.return.order
+      deadLetterExchange: exchange.dlx
+      deadLetterRoutingKey: key.dlx
+    change:
+      name: queue.eip.change
+      messageTTL: 300000
+      binding:
+        exchange: exchange.region
+        routingKey: key.eip.change
+        returnRoutingKey: key.return.change
+      deadLetterExchange: exchange.dlx
+      deadLetterRoutingKey: key.dlx
 
 
 slbUrl: http://slb-atom.10.110.25.123.xip.io/slb/v1/slbs/members/
