@@ -3,19 +3,19 @@ package com.inspur.eip.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.*;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
-import com.inspur.eip.entity.sbw.SbwUpdateParamWrapper;
-import com.inspur.eip.util.CommonUtil;
-import com.inspur.eip.util.HsConstants;
-import com.inspur.eip.util.ReturnResult;
-import com.inspur.eip.util.ReturnStatus;
+import com.inspur.eip.entity.v2.eip.EipReturnBase;
+import com.inspur.eip.entity.v2.sbw.SbwReturnBase;
+import com.inspur.eip.service.impl.EipServiceImpl;
+import com.inspur.eip.service.impl.SbwServiceImpl;
+import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -25,7 +25,7 @@ import static com.inspur.eip.util.CommonUtil.preSbwCheckParam;
 
 /**
  * @Description convert to mq
- * @Author muning
+ * @Author Zerah
  * @Date 2019/5/28 10:59
  **/
 @Service
@@ -35,447 +35,422 @@ public class RabbitMqServiceImpl {
     private RabbitMessagingTemplate rabbitTemplate;
 
     @Autowired
-    private SbwAtomService sbwAtomService;
-
-    @Autowired
-    private EipAtomService eipAtomService;
-
-    @Autowired
     private WebControllerService webService;
 
+    @Autowired
+    private EipServiceImpl eipService;
 
-    // 发送消息的exchange
+    @Autowired
+    private SbwServiceImpl sbwService;
+
+    // 发送消息的exchange:订单消息和停服、软删消息使用同一个exchange ，如需更换，需添加停服软删的exchange配置
     @Value("${bss.queues.order.binding.exchange}")
     private String exchange;
 
-    // 发送消息的routingKey
+    // 发送订单消息的routingKey
     @Value("${bss.queues.order.binding.returnRoutingKey}")
     private String routingKey;
 
-    private void sendMessageToBss(Object obj) {
+    // 发送停服、软删消息的routingKey
+    @Value("${bss.queues.change.binding.returnRoutingKey}")
+    private String changeKey;
+
+    private void sendOrderMessageToBss(Object obj) {
         // 这里会用rabbitMessagingTemplate中配置的MessageConverter自动将obj转换为字节码
         rabbitTemplate.convertAndSend(exchange, routingKey, obj);
     }
 
+    private void sendChangeMessageToBss(Object obj) {
+        rabbitTemplate.convertAndSend(exchange, changeKey, obj);
+    }
+
     /**
-     *  create an  eip entity info
+     * create an  eip entity info
+     *
      * @param eipOrder order
      * @return return message
      */
-    public JSONObject createEipInfo(ReciveOrder eipOrder) {
+    public ResponseEntity createEipInfo(ReciveOrder eipOrder) {
 
-        String code;
-        String msg;
-        String eipId = "";
-        JSONObject createRet = null;
+        String retStr = HsConstants.FAIL;
+        ResponseEntity<EipReturnBase> response = null;
+        EipReturnBase eipBody = null;
         try {
             log.debug("Recive create order:{}", JSONObject.toJSONString(eipOrder));
             if (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
                 ReturnMsg checkRet = preCheckParam(eipConfig);
                 if (checkRet.getCode().equals(ReturnStatus.SC_OK)) {
-                    //post request to atom
-                    EipAllocateParamWrapper eipAllocateParamWrapper = new EipAllocateParamWrapper();
-                    eipAllocateParamWrapper.setEip(eipConfig);
-                    createRet = eipAtomService.atomCreateEip(eipAllocateParamWrapper);
-                    String retStr = HsConstants.SUCCESS;
-
-                    if (createRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK) {
-                        retStr = HsConstants.FAIL;
-                        log.info("create eip failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
-                    } else {
-                        JSONObject eipEntity = createRet.getJSONObject("eip");
-                        eipId = eipEntity.getString("eipid");
-                        webService.returnsWebsocket(eipEntity.getString("eipid"), eipOrder, "create");
-                        if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
-                            webService.returnsIpv6Websocket("Success", "Success", "createNatWithEip");
+                    response = eipService.atomCreateEip(eipConfig);
+                    if (response != null) {
+                        if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
+                            log.warn("create eip failed, return code:{}", response.getStatusCodeValue());
+                        } else {
+                            retStr = HsConstants.SUCCESS;
+                            eipBody = response.getBody();
+                            if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
+                                webService.returnsIpv6Websocket("Success", "Success", "createNatWithEip");
+                            } else {
+                                webService.returnsWebsocket(eipBody.getEipId(), eipOrder, "create");
+                            }
+                            sendOrderMessageToBss(getEipOrderResult(eipOrder, eipBody.getEipId(), retStr));
+                            return response;
                         }
                     }
-                    sendMessageToBss(getEipOrderResult(eipOrder, eipId, retStr));
-                    return createRet;
                 } else {
-                    code = ReturnStatus.SC_PARAM_ERROR;
-                    msg = checkRet.getMessage();
-                    log.error(msg);
+                    log.warn(checkRet.getMessage());
                 }
             } else {
-                code = ReturnStatus.SC_RESOURCE_ERROR;
-                msg = "not payed.";
-                log.info(msg);
+                log.warn(ConstantClassField.ORDER_NOT_PAYED);
             }
+
         } catch (Exception e) {
-            log.error("Exception in createEip", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage() + "";
+            log.error(ConstantClassField.EXCEPTION_EIP_CREATE, e.getMessage());
+            if (response != null && response.getStatusCodeValue() == HttpStatus.SC_OK && eipBody !=null) {
+                eipService.atomDeleteEip(eipBody.getEipId());
+            }
+            sendOrderMessageToBss(getEipOrderResult(eipOrder, "", HsConstants.FAIL));
         }
-        JSONObject result = new JSONObject();
-        result.put("code", code);
-        result.put("msg", msg);
-        return result;
+        sendOrderMessageToBss(getEipOrderResult(eipOrder, "", retStr));
+        return response;
     }
+
     /**
      * delete result form bss
+     *
      * @param eipOrder order
      * @return string
      */
-    public JSONObject deleteEipConfig(ReciveOrder eipOrder) {
-        String msg;
-        String code;
+    public ResponseEntity deleteEipConfig(ReciveOrder eipOrder) {
         String eipId = "";
+        ResponseEntity response = null;
+        String retStr = HsConstants.UNSUBSCRIBE;
+
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
             if (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
-
                 List<OrderProduct> orderProducts = eipOrder.getProductList();
                 for (OrderProduct orderProduct : orderProducts) {
                     eipId = orderProduct.getInstanceId();
                 }
-                JSONObject delResult = eipAtomService.atomDeleteEip(eipId);
-
-                if (delResult.getInteger(HsConstants.STATUSCODE) == org.springframework.http.HttpStatus.OK.value()) {
-                    if (eipOrder.getConsoleCustomization().containsKey("operateType")
-                            && eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")) {
-                        webService.returnsIpv6Websocket("Success", "Success", "deleteNatWithEip");
+                response = eipService.atomDeleteEip(eipId);
+                if (response != null) {
+                    if (response.getStatusCodeValue() == org.springframework.http.HttpStatus.OK.value()) {
+                        if (eipOrder.getConsoleCustomization().containsKey("operateType") &&
+                                eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")) {
+                            webService.returnsIpv6Websocket("Success", "Success", "deleteNatWithEip");
+                        } else {
+                            webService.returnsWebsocket(eipId, eipOrder, "delete");
+                        }
+                        sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, retStr));
+                        return response;
                     } else {
-                        webService.returnsWebsocket(eipId, eipOrder, "delete");
+                        log.warn(String.format(ConstantClassField.DELETE_EIP_CONFIG_RESULT, response.getBody()) + ReturnStatus.SC_INTERNAL_SERVER_ERROR);
                     }
-                    sendMessageToBss(getEipOrderResult(eipOrder,eipId, HsConstants.UNSUBSCRIBE));
-                    return delResult;
-                } else {
-                    msg = delResult.getString(HsConstants.STATUSCODE);
-                    code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 }
             } else {
-                msg = "Failed to delete eip,failed to create delete. orderStatus: " + eipOrder.getOrderStatus();
-                code = ReturnStatus.SC_PARAM_UNKONWERROR;
-                log.error(msg);
+                log.error(ConstantClassField.ORDER_STATUS_NOT_CORRECT + eipOrder.getOrderStatus());
             }
         } catch (Exception e) {
-            log.error("Exception in deleteEip", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage() + "";
+            sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.FAIL));
+            log.error(ConstantClassField.EXCEPTION_EIP_DELETE, e);
         }
-        sendMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.FAIL));
-        JSONObject result = new JSONObject();
-        result.put("code", code);
-        result.put("msg", msg);
-        return result;
+        sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.FAIL));
+        return response;
     }
+
     /**
      * update eip config
-     * @param eipId    id
+     *
      * @param eipOrder order
      * @return string
      */
-    public JSONObject updateEipInfoConfig(String eipId, ReciveOrder eipOrder) {
-        String msg = "";
-        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-
+    public ResponseEntity updateEipInfoConfig(ReciveOrder eipOrder) {
+        String eipId = null;
+        ResponseEntity response = null;
+        String result = HsConstants.FAIL;
         try {
+            eipId = eipOrder.getProductList().get(0).getInstanceId();
             log.debug("Recive update order:{}", JSONObject.toJSONString(eipOrder));
 
-            if ((null != eipOrder) && (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS))) {
+            if ((eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS))) {
                 EipUpdateParam eipUpdate = getUpdatParmByOrder(eipOrder);
-                JSONObject updateRet;
-                if (eipOrder.getOrderType().equalsIgnoreCase("changeConfigure")) {
-                    updateRet = eipAtomService.atomUpdateEip(eipId, eipUpdate);
-                } else if (eipOrder.getOrderType().equalsIgnoreCase("renew") && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
-                    updateRet = eipAtomService.atomRenewEip(eipId, eipUpdate);
+                if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
+                    if (eipUpdate.getSbwId() != null) {
+                        if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
+                            log.info("add eip to sbw:{}", eipUpdate.toString());
+                            response = eipService.addEipToSbw(eipId, eipUpdate);
+                        } else if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_BANDWIDTH)) {
+                            log.info("remove eip from sbw:{}", eipUpdate.toString());
+                            response = eipService.removeEipFromSbw(eipId, eipUpdate);
+                        }
+                    }
+                    if (eipUpdate.getBillType().equals(HsConstants.MONTHLY) ||
+                            eipUpdate.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                        response = eipService.updateEipBandWidth(eipId, eipUpdate);
+                    } else {
+                        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, ConstantClassField.BILL_TYPE_NOT_SUPPORT),
+                                org.springframework.http.HttpStatus.BAD_REQUEST);
+                    }
+                } else if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
+                    response = eipService.renewEip(eipId, eipUpdate);
                 } else {
-                    log.error("Not support order type:{}", eipOrder.getOrderType());
-                    updateRet = CommonUtil.handlerResopnse(null);
+                    log.error(ConstantClassField.ORDER_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
                 }
-                String retStr = HsConstants.SUCCESS;
-                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK) {
-                    retStr = HsConstants.FAIL;
+                if (response != null && response.getStatusCodeValue() == HttpStatus.SC_OK) {
+                    result = HsConstants.SUCCESS;
+                    webService.returnsWebsocket(eipId, eipOrder, "update");
+                    sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, result));
+                    return response;
                 }
-
-                log.debug("renew order result :{}", updateRet);
-                webService.returnsWebsocket(eipId, eipOrder, "update");
-                sendMessageToBss(getEipOrderResult(eipOrder,eipId, retStr));
-                return updateRet;
+            } else {
+                log.error(ConstantClassField.ORDER_STATUS_NOT_CORRECT + eipOrder.getOrderStatus());
             }
         } catch (Exception e) {
-            log.error("Exception in update eip", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage() + "";
+            log.error(ConstantClassField.EXCEPTION_EIP_UPDATE, e);
+            sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.FAIL));
         }
-        if (null != eipOrder) {
-            sendMessageToBss(getEipOrderResult(eipOrder,eipId, HsConstants.FAIL));
-        }
-        JSONObject result = new JSONObject();
-        result.put("code", code);
-        result.put("msg", msg);
-        return result;
+        log.warn(ConstantClassField.UPDATE_EIP_CONFIG_RESULT, response);
+        webService.returnsWebsocket(eipId, eipOrder, "update");
+        sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, result));
+        return response;
     }
+
     /**
      * soft down order from bss
+     *
      * @param eipOrder order
      * @return return
      */
-    public JSONObject softDowOrDeleteEip(OrderSoftDown eipOrder) {
-        String msg = "";
-        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-        JSONObject updateRet = null;
-        String retStr;
-        String iStatusStr;
+    public ResponseEntity softDowOrDeleteEip(OrderSoftDown eipOrder) {
+        ResponseEntity response = null;
+        String result = HsConstants.FAIL;
+        String insanceStatus = HsConstants.FAIL;
         try {
             log.debug("Recive soft down or delete order:{}", JSONObject.toJSONString(eipOrder));
             List<SoftDownInstance> instanceList = eipOrder.getInstanceList();
             for (SoftDownInstance softDownInstance : instanceList) {
                 String operateType = softDownInstance.getOperateType();
-                if ("delete".equalsIgnoreCase(operateType)) {
-                    updateRet = eipAtomService.atomDeleteEip(softDownInstance.getInstanceId());
-                    iStatusStr = HsConstants.DELETED;
-                    retStr = HsConstants.SUCCESS;
-                    if (updateRet.getInteger(HsConstants.STATUSCODE) !=  HttpStatus.SC_OK){
-                        retStr = HsConstants.FAIL;
-                        iStatusStr = HsConstants.FAIL;
+                if (HsConstants.DELETE.equalsIgnoreCase(operateType)) {
+                    response = eipService.atomDeleteEip(softDownInstance.getInstanceId());
+                    if (response != null && response.getStatusCodeValue() == HttpStatus.SC_OK) {
+                        insanceStatus = HsConstants.DELETED;
+                        result = HsConstants.SUCCESS;
                     }
                 } else if (HsConstants.STOPSERVER.equalsIgnoreCase(operateType)) {
                     EipUpdateParam updateParam = new EipUpdateParam();
                     updateParam.setDuration("0");
-                    updateRet = eipAtomService.atomRenewEip(softDownInstance.getInstanceId(), updateParam);
-                    if (updateRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK){
-                        iStatusStr = HsConstants.STOPSERVER;
-                        retStr = HsConstants.SUCCESS;
-                    }else if(updateRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_NOT_FOUND){
-                        iStatusStr = HsConstants.NOTFOUND;
-                        retStr = HsConstants.SUCCESS;
-                    } else {
-                        retStr = HsConstants.FAIL;
-                        iStatusStr = HsConstants.FAIL;
+                    response = eipService.renewEip(softDownInstance.getInstanceId(), updateParam);
+                    if (response != null) {
+                        if (response.getStatusCodeValue() == HttpStatus.SC_OK) {
+                            insanceStatus = HsConstants.STOPSERVER;
+                            result = HsConstants.SUCCESS;
+                        } else if (response.getStatusCodeValue() == HttpStatus.SC_NOT_FOUND) {
+                            insanceStatus = HsConstants.NOTFOUND;
+                            result = HsConstants.SUCCESS;
+                        }
                     }
-                }else if ("resumeServer".equalsIgnoreCase(operateType)){
+                } else if (HsConstants.RESUMESERVER.equalsIgnoreCase(operateType)) {
                     EipUpdateParam eipUpdate = new EipUpdateParam();
                     eipUpdate.setDuration("1");
-                    updateRet = eipAtomService.atomRenewEip(softDownInstance.getInstanceId(), eipUpdate);
-                    if (updateRet.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK){
-                        iStatusStr = HsConstants.SUCCESS;
-                        retStr = HsConstants.SUCCESS;
-                    }else {
-                        iStatusStr = HsConstants.FAIL;
-                        retStr = HsConstants.FAIL;
+                    response = eipService.renewEip(softDownInstance.getInstanceId(), eipUpdate);
+                    if (response != null && response.getStatusCodeValue() == HttpStatus.SC_OK) {
+                        insanceStatus = HsConstants.SUCCESS;
+                        result = HsConstants.SUCCESS;
                     }
-                }else {
+                } else {
                     continue;
                 }
-
-                softDownInstance.setResult(retStr);
-                softDownInstance.setInstanceStatus(iStatusStr);
+                softDownInstance.setResult(result);
+                softDownInstance.setInstanceStatus(insanceStatus);
                 softDownInstance.setStatusTime(CommonUtil.getDate());
-                log.debug("Soft down result:{}", updateRet);
+                log.debug(ConstantClassField.SOFTDOWN_OR_DELETE_EIP_CONFIG_RESULT, response);
             }
-            if (null != updateRet) {
-                sendMessageToBss(eipOrder);
-                return updateRet;
-            }
+            sendOrderMessageToBss(eipOrder);
         } catch (Exception e) {
-            log.error("Exception in soft down or delete eip", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage() + "";
+            log.error(ConstantClassField.EXCEPTION_EIP_SOFTDOWN_OR_DELETE, e);
         }
-        sendMessageToBss(eipOrder);
-        JSONObject result = new JSONObject();
-        result.put("code", code);
-        result.put("msg", msg);
-        return result;
+        return response;
     }
+
     /**
      * get create shareband result
+     *
      * @return return message
      */
-    public JSONObject createSbwInfo(ReciveOrder reciveOrder) {
+    public ResponseEntity createSbwInfo(ReciveOrder reciveOrder) {
 
-        String code;
-        String msg;
-        String sbwId = "";
-        JSONObject createRet = null;
-        ReturnResult returnResult = null;
+        ResponseEntity<SbwReturnBase> response = null;
+        String retStr = HsConstants.STATUS_ERROR;
+        SbwReturnBase sbwBody = null;
         try {
             if (reciveOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 SbwUpdateParam sbwConfig = getSbwConfigByOrder(reciveOrder);
                 ReturnSbwMsg checkRet = preSbwCheckParam(sbwConfig);
                 if (checkRet.getCode().equals(ReturnStatus.SC_OK)) {
-                    //post request to atom
-                    SbwUpdateParamWrapper sbwWrapper = new SbwUpdateParamWrapper();
-                    sbwWrapper.setSbw(sbwConfig);
-                    createRet = sbwAtomService.atomCreateSbw(sbwWrapper);
-                    String retStr = HsConstants.STATUS_ACTIVE;
-
-                    if (createRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK) {
-                        retStr = HsConstants.STATUS_ERROR;
-                        log.error("create sbw failed, return code:{}", createRet.getInteger(HsConstants.STATUSCODE));
-                    } else {
-                        JSONObject sbwEntity = createRet.getJSONObject("sbw");
-                        sbwId = sbwEntity.getString("sbwId");
-                        webService.returnSbwWebsocket(sbwEntity.getString("sbwId"), reciveOrder, "create");
+                    response = sbwService.atomCreateSbw(sbwConfig);
+                    if (response != null) {
+                        if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
+                            log.warn("create sbw failed, return code:{}", response.getStatusCodeValue());
+                        } else {
+                            retStr = HsConstants.STATUS_ACTIVE;
+                            sbwBody = response.getBody();
+                            webService.returnSbwWebsocket(sbwBody.getSbwId(), reciveOrder, "create");
+                            sendOrderMessageToBss(packageSbwReturnResult(reciveOrder, sbwBody.getSbwId(), retStr));
+                            return response;
+                        }
                     }
-                    sendMessageToBss(packageSbwReturnResult(reciveOrder, sbwId, retStr));
                 } else {
-                    msg = checkRet.getMessage();
-                    log.error(msg);
+                    log.error(checkRet.getMessage());
                 }
             } else {
-                msg = "not payed.";
-                log.info(msg);
+                log.info(ConstantClassField.ORDER_STATUS_NOT_CORRECT);
             }
+            webService.returnSbwWebsocket("", reciveOrder, "create");
+            sendOrderMessageToBss(packageSbwReturnResult(reciveOrder, "", retStr));
+            return response;
         } catch (Exception e) {
-            log.error("Exception in createSbw", e);
+            if (response != null && response.getStatusCodeValue() == HttpStatus.SC_OK && sbwBody != null) {
+                sbwService.deleteSbwInfo(sbwBody.getSbwId());
+            }
+            sendOrderMessageToBss(packageSbwReturnResult(reciveOrder, "", HsConstants.STATUS_ERROR));
+            log.error(ConstantClassField.EXCEPTION_SBW_CREATE, e);
         }
-        return createRet;
+        return response;
     }
+
     /**
      * delete result from bss
+     *
      * @param reciveOrder order
      * @return string
      */
-    public JSONObject deleteSbwConfig(ReciveOrder reciveOrder) {
-        String msg;
-        String code;
+    public ResponseEntity deleteSbwConfig(ReciveOrder reciveOrder) {
         String sbwId = "";
-        JSONObject result = new JSONObject();
+        ResponseEntity response = null;
+        String result = HsConstants.STATUS_ERROR;
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(reciveOrder));
             if (reciveOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
-
                 List<OrderProduct> productList = reciveOrder.getProductList();
                 for (OrderProduct product : productList) {
                     sbwId = product.getInstanceId();
                 }
-                JSONObject delResult = sbwAtomService.atomDeleteSbw(sbwId);
-
-                if (delResult.getInteger(HsConstants.STATUSCODE) == HttpStatus.SC_OK) {
-                    //Return message to the front des
-                    webService.returnSbwWebsocket(sbwId, reciveOrder, "delete");
-                    sendMessageToBss(packageSbwReturnResult(reciveOrder,sbwId, HsConstants.STATUS_DELETE));
-                    return delResult;
-                } else {
-                    msg = delResult.getString(HsConstants.STATUSCODE);
-                    code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+                response = sbwService.deleteSbwInfo(sbwId);
+                if (response != null) {
+                    if (response.getStatusCodeValue() == HttpStatus.SC_OK) {
+                        result = HsConstants.STATUS_DELETE;
+                        webService.returnSbwWebsocket(sbwId, reciveOrder, "delete");
+                        sendOrderMessageToBss(packageSbwReturnResult(reciveOrder, sbwId, result));
+                        return response;
+                    } else {
+                        log.warn("delete sbw failed, return code:{}" + response.getStatusCodeValue());
+                    }
                 }
             } else {
-                msg = "Failed to delete SBW,failed to create delete. orderStatus: " + reciveOrder.getOrderStatus();
-                code = ReturnStatus.SC_PARAM_UNKONWERROR;
-                log.error(msg);
+                log.warn(ConstantClassField.ORDER_STATUS_NOT_CORRECT);
             }
+            webService.returnSbwWebsocket(sbwId, reciveOrder, "delete");
+            sendOrderMessageToBss(packageSbwReturnResult(reciveOrder, sbwId, result));
         } catch (Exception e) {
-            log.error("Exception in deleteEip", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage() + "";
+            sendOrderMessageToBss(packageSbwReturnResult(reciveOrder, sbwId, HsConstants.STATUS_ERROR));
+            log.error(ConstantClassField.EXCEPTION_SBW_DELETE, e);
         }
-       sendMessageToBss(packageSbwReturnResult(reciveOrder,sbwId, HsConstants.STATUS_ERROR));
-        result.put("code", code);
-        result.put("msg", msg);
-        return result;
+        return response;
     }
+
     /**
      * update the sbw config,incloud bandWidth and eip
-     * @param sbwId  id
-     * @param recive info recived
+     *
+     * @param recive info recived.
      * @return ret
      */
-    public JSONObject updateSbwInfoConfig(String sbwId, ReciveOrder recive) {
-        String msg = "";
-        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-        String retStr = HsConstants.STATUS_ACTIVE;
+    public ResponseEntity updateSbwInfoConfig(ReciveOrder recive) {
+        String retStr = HsConstants.STATUS_ERROR;
+        ResponseEntity response = null;
+        String sbwId = recive.getProductList().get(0).getInstanceId();
         try {
             log.info("Update sbw config:{}", JSONObject.toJSONString(recive));
             if (recive.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
-                SbwUpdateParamWrapper wrapper = new SbwUpdateParamWrapper();
                 SbwUpdateParam sbwUpdate = getSbwConfigByOrder(recive);
-                wrapper.setSbw(sbwUpdate);
-                JSONObject updateRet;
-                if (recive.getOrderType().equalsIgnoreCase("changeConfigure")) {
-                    updateRet = sbwAtomService.atomUpdateSbw(sbwId, wrapper);
-                } else if (recive.getOrderType().equalsIgnoreCase("renew") && recive.getBillType().equals(HsConstants.MONTHLY)) {
-                    updateRet = sbwAtomService.atomRenewSbw(sbwId, wrapper);
+                if (recive.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
+                    response = sbwService.updateSbwConfig(sbwId, sbwUpdate);
+                } else if (recive.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && recive.getBillType().equals(HsConstants.MONTHLY)) {
+                    sbwUpdate.setDuration("1");
+                    response = sbwService.renewSbw(sbwId, sbwUpdate);
                 } else {
-                    log.error("Not support order type:{}", recive.getOrderType());
-                    updateRet = CommonUtil.handlerResopnse(null);
+                    log.warn(ConstantClassField.ORDER_STATUS_NOT_CORRECT, recive.getOrderType());
                 }
-                if (updateRet.getInteger(HsConstants.STATUSCODE) != HttpStatus.SC_OK) {
-                    retStr = HsConstants.STATUS_ERROR;
-                }else {
-                    log.info("update order result :{}", updateRet);
-                    webService.returnSbwWebsocket(sbwId, recive, "update");
+                if (response != null) {
+                    if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
+                        log.warn(ConstantClassField.OPERATION_RESULT_NOT_OK, response);
+                    } else {
+                        retStr = HsConstants.STATUS_ACTIVE;
+                        webService.returnSbwWebsocket(sbwId, recive, "update");
+                        sendOrderMessageToBss(packageSbwReturnResult(recive, sbwId, retStr));
+                        log.info(ConstantClassField.UPDATE_SBW_CONFIG_RESULT, response);
+                        return response;
+                    }
                 }
-                sendMessageToBss(packageSbwReturnResult(recive,sbwId, retStr));
-                return updateRet;
             }
+            webService.returnSbwWebsocket(sbwId, recive, "update");
+            sendOrderMessageToBss(packageSbwReturnResult(recive, sbwId, retStr));
         } catch (Exception e) {
-            log.error("Exception in update sbw", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage() + "";
+            sendOrderMessageToBss(packageSbwReturnResult(recive, sbwId, HsConstants.STATUS_ERROR));
+            log.error(ConstantClassField.EXCEPTION_SBW_UPDATE, e);
         }
-        sendMessageToBss(packageSbwReturnResult(recive, sbwId, retStr));
-        JSONObject result = new JSONObject();
-        result.put("code", code);
-        result.put("msg", msg);
-        return result;
+        return response;
     }
 
     /**
      * 停服或者删除共享带宽
+     *
      * @param softDown
      * @return
      */
-    public JSONObject softDowOrDeleteSbw(OrderSoftDown softDown) {
-        String msg = "";
-        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-        JSONObject updateRet = null;
-        String setStatus = HsConstants.SUCCESS;
-
-        String instanceStatusStr = "";
+    public ResponseEntity softDowOrDeleteSbw(OrderSoftDown softDown) {
+        String setStatus = HsConstants.FAIL;
+        String instanceStatus = HsConstants.STATUS_ERROR;
+        ResponseEntity response = null;
         try {
             log.debug("Recive soft down or delete order:{}", JSONObject.toJSONString(softDown));
             List<SoftDownInstance> instanceList = softDown.getInstanceList();
             for (SoftDownInstance instance : instanceList) {
                 String operateType = instance.getOperateType();
-                if ("delete".equalsIgnoreCase(operateType)) {
-                    updateRet = sbwAtomService.atomDeleteSbw(instance.getInstanceId());
-                } else if ("stopServer".equalsIgnoreCase(operateType)) {
-                    SbwUpdateParamWrapper wrapper = new SbwUpdateParamWrapper();
+                if (HsConstants.DELETE.equalsIgnoreCase(operateType)) {
+                    response = sbwService.deleteSbwInfo(instance.getInstanceId());
+                    if (response != null && response.getStatusCodeValue() ==HttpStatus.SC_OK){
+                        setStatus = HsConstants.SUCCESS;
+                        instanceStatus = HsConstants.STATUS_DELETE;
+                    }
+                } else if (HsConstants.STOPSERVER.equalsIgnoreCase(operateType)) {
                     SbwUpdateParam updateParam = new SbwUpdateParam();
                     updateParam.setDuration("0");
-                    wrapper.setSbw(updateParam);
-                    updateRet = sbwAtomService.atomRenewSbw(instance.getInstanceId(), wrapper);
+                    response = sbwService.renewSbw(instance.getInstanceId(), updateParam);
+                    if (response != null ){
+                        if (response.getStatusCodeValue() == HttpStatus.SC_OK || response.getStatusCodeValue() == HttpStatus.SC_NOT_FOUND){
+                            setStatus = HsConstants.SUCCESS;
+                            instanceStatus = HsConstants.STATUS_STOP;
+                        }
+                    }
                 } else {
                     continue;
                 }
-
-                if ("stopServer".equalsIgnoreCase(operateType)) {
-                    instanceStatusStr = HsConstants.STATUS_STOP;
-                } else if ("delete".equalsIgnoreCase(operateType)) {
-                    instanceStatusStr = HsConstants.STATUS_DELETE;
-                }
-
-                if (updateRet.getInteger(HsConstants.STATUSCODE) != org.springframework.http.HttpStatus.OK.value()) {
-                    setStatus = HsConstants.FAIL;
-                    instanceStatusStr = HsConstants.STATUS_ERROR;
-                }
                 instance.setResult(setStatus);
-                instance.setInstanceStatus(instanceStatusStr);
-                instance.setStatusTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-                log.info("Soft down or delete result:{}", updateRet);
+                instance.setInstanceStatus(instanceStatus);
+                instance.setStatusTime((CommonUtil.getDate()));
+                log.info(ConstantClassField.SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT, response);
             }
-            if (null != updateRet) {
-                sendMessageToBss(softDown);
-                return updateRet;
-            }
+            sendChangeMessageToBss(softDown);
         } catch (Exception e) {
-            log.error("Exception in softDowOrDeleteSbw sbw", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage() + "";
+            log.error(ConstantClassField.EXCEPTION_SBW_SOFTDOWN_OR_DELETE, e);
         }
-        sendMessageToBss(softDown);
-        JSONObject result = new JSONObject();
-        result.put("code", code);
-        result.put("msg", msg);
-        return result;
+        return response;
     }
+
     /**
      * extract create eip config from BSS MQ
+     *
      * @param eipOrder order
      * @return eip param
      */
@@ -513,8 +488,10 @@ public class RabbitMqServiceImpl {
         /*chargemode now use the default value */
         return eipAllocateParam;
     }
+
     /**
      * extract update eip config from BSS MQ
+     *
      * @param eipOrder order
      * @return eip param
      */
@@ -549,10 +526,11 @@ public class RabbitMqServiceImpl {
 
     /**
      * extract EIP message from entity to return BSS MQ
+     *
      * @param reciveOrder order
      * @return EipOrderResult
      */
-    private EipOrderResult getEipOrderResult(ReciveOrder reciveOrder,String eipId, String result) {
+    private EipOrderResult getEipOrderResult(ReciveOrder reciveOrder, String eipId, String result) {
         //must not be delete ,set the reference
         List<OrderProduct> orderProducts = reciveOrder.getProductList();
 
@@ -581,6 +559,7 @@ public class RabbitMqServiceImpl {
 
     /**
      * get SBW config from BSS
+     *
      * @return eip param
      */
     private SbwUpdateParam getSbwConfigByOrder(ReciveOrder reciveOrder) {
@@ -598,7 +577,7 @@ public class RabbitMqServiceImpl {
             for (OrderProductItem sbwItem : orderProductItemList) {
                 if (sbwItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
                     updateParam.setBandwidth(Integer.parseInt(sbwItem.getValue()));
-                }else if (sbwItem.getCode().equals(HsConstants.SBW_NAME)) {
+                } else if (sbwItem.getCode().equals(HsConstants.SBW_NAME)) {
                     updateParam.setSbwName(sbwItem.getValue());
                 }
             }
@@ -609,12 +588,13 @@ public class RabbitMqServiceImpl {
     }
 
     /**
-     *  extract SBW message from entity to return BSS MQ
+     * extract SBW message from entity to return BSS MQ
+     *
      * @param reciveOrder
      * @param result
      * @return
      */
-    private EipOrderResult packageSbwReturnResult(ReciveOrder reciveOrder,String sbwId, String result) {
+    private EipOrderResult packageSbwReturnResult(ReciveOrder reciveOrder, String sbwId, String result) {
         List<OrderProduct> productList = reciveOrder.getProductList();
 
         for (OrderProduct orderProduct : productList) {

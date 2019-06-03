@@ -1,7 +1,7 @@
 package com.inspur.eip.controller.v2;
 
 
-import com.inspur.eip.config.ConstantClassField;
+import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.v2.eipv6.EipV6AllocateParamWrapper;
 import com.inspur.eip.entity.v2.eipv6.EipV6UpdateParam;
 import com.inspur.eip.entity.v2.eipv6.EipV6UpdateParamWrapper;
@@ -29,7 +29,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping(value= ConstantClassField.VERSION_REST, produces={"application/json;charset=UTF-8"})
+@RequestMapping(value= VersionConstant.REST_VERSION_1_1, produces={"application/json;charset=UTF-8"})
 @Api(value = "/v1.1", description = "eipv6 API")
 @Validated
 public class EipV6ControllerV2 {

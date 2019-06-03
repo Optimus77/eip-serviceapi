@@ -60,9 +60,7 @@ public class BssApiServicev2 {
                 ReturnMsg checkRet = preCheckParam(eipConfig);
                 if (checkRet.getCode().equals(ReturnStatus.SC_OK)) {
                     //post request to atom
-                    EipAllocateParamWrapper eipAllocateParamWrapper = new EipAllocateParamWrapper();
-                    eipAllocateParamWrapper.setEip(eipConfig);
-                    createRet = eipService.atomCreateEip(eipAllocateParamWrapper.getEip());
+                    createRet = eipService.atomCreateEip(eipConfig);
                     String retStr = HsConstants.SUCCESS;
 
                     if (createRet.getStatusCodeValue() != HttpStatus.SC_OK) {
@@ -165,7 +163,6 @@ public class BssApiServicev2 {
             if ((null != eipOrder) && (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS))) {
                 EipUpdateParam eipUpdate = getUpdatParmByOrder(eipOrder);
                 ResponseEntity updateRet=null;
-                boolean chargeTypeFlag = false;
                 if (eipOrder.getOrderType().equalsIgnoreCase("changeConfigure")) {
                     if (eipUpdate.getSbwId() != null) {
                         if (eipUpdate.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
@@ -178,14 +175,10 @@ public class BssApiServicev2 {
                     }
                     if (eipUpdate.getBillType().equals(HsConstants.MONTHLY) ||
                             eipUpdate.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                        chargeTypeFlag = true;
+                        return eipService.updateEipBandWidth(eipId, eipUpdate);
                     } else {
                         msg = "chargetype must be [monthly |hourlySettlement]";
                         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), org.springframework.http.HttpStatus.BAD_REQUEST);
-                    }
-                    if (chargeTypeFlag) {
-                        log.info("update bandWidth, eipid:{}, param:{} ", eipId, eipUpdate);
-                        return eipService.updateEipBandWidth(eipId, eipUpdate);
                     }
 
                 } else if (eipOrder.getOrderType().equalsIgnoreCase("renew") && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
@@ -448,7 +441,7 @@ public class BssApiServicev2 {
             if ((null == returnResult) || (!returnResult.isSuccess())) {
                 if ((null != createRet) && (createRet.getStatusCodeValue() == HttpStatus.SC_OK)) {
                     log.error("Delete the allocate sbw just now for mq message error, id:{}", sbwId);
-                    sbwService.atomDeleteSbw(sbwId);
+                    sbwService.deleteSbwInfo(sbwId);
                 }
             }
         }
@@ -475,7 +468,7 @@ public class BssApiServicev2 {
                 for (OrderProduct product : productList) {
                     sbwId = product.getInstanceId();
                 }
-                ResponseEntity delResult = sbwService.atomDeleteSbw(sbwId);
+                ResponseEntity delResult = sbwService.deleteSbwInfo(sbwId);
 
                 if (delResult.getStatusCodeValue() == HttpStatus.SC_OK) {
                     //Return message to the front des
@@ -521,7 +514,7 @@ public class BssApiServicev2 {
                 if (recive.getOrderType().equalsIgnoreCase("changeConfigure")) {
                     if (sbwUpdate.getBillType() != null ) {
                         log.info("update bandWidth, sbwid:{}, param:{} ", sbwId, sbwUpdate);
-                        updateRet = sbwService.updateSbwBandWidth(sbwId, sbwUpdate);
+                        updateRet = sbwService.updateSbwConfig(sbwId, sbwUpdate);
                     } else {
                         msg = "param not correct,body param like {\"sbw\" : {\"bandWidth\":xxx,\"billType\":\"xxxxxx\"}";
                         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), org.springframework.http.HttpStatus.BAD_REQUEST);
@@ -564,7 +557,7 @@ public class BssApiServicev2 {
             for (SoftDownInstance instance : instanceList) {
                 String operateType = instance.getOperateType();
                 if ("delete".equalsIgnoreCase(operateType)) {
-                    updateRet = sbwService.atomDeleteSbw(instance.getInstanceId());
+                    updateRet = sbwService.deleteSbwInfo(instance.getInstanceId());
                 } else if ("stopServer".equalsIgnoreCase(operateType)) {
                     SbwUpdateParamWrapper wrapper = new SbwUpdateParamWrapper();
                     SbwUpdateParam updateParam = new SbwUpdateParam();

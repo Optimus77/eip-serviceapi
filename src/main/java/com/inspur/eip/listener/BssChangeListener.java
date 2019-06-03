@@ -67,6 +67,9 @@ public class BssChangeListener {
                 } else if (HsConstants.SBW.equalsIgnoreCase(instance.getProductLineCode())) {
                     rabbitMqService.softDowOrDeleteSbw(softDown);
                     return;
+                }else {
+                    log.error(ErrorStatus.NOT_SUPPORT_PRODUCT_LINE_CODE.getMessage(),instance.getProductLineCode());
+                    throw new EipBadRequestException(ErrorStatus.NOT_SUPPORT_PRODUCT_LINE_CODE.getCode(),ErrorStatus.NOT_SUPPORT_PRODUCT_LINE_CODE.getMessage());
                 }
             }else {
                 String msg = String.format(ConstantClassField.PARSE_JSON_PARAM_ERROR, message.getBody().toString());
@@ -82,7 +85,6 @@ public class BssChangeListener {
             log.error(msg, e);
             throw new EipInternalServerException(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), msg);
         }
-        return;
         // 若配置spring.rabbitmq.listener.simple.default-requeue-rejected=false，当消息处理异常，消息会被转发至死信队列，避免消息阻塞。
         // throw new RuntimeException("123");
         // TODO: 消息处理逻辑

@@ -144,7 +144,7 @@ public class SbwServiceImpl implements ISbwService {
 
     @Override
     @ICPServiceLog
-    public ResponseEntity atomDeleteSbw(String sbwId) {
+    public ResponseEntity deleteSbwInfo(String sbwId) {
         String msg;
         String code;
 
@@ -189,7 +189,7 @@ public class SbwServiceImpl implements ISbwService {
 
     @Override
     @ICPServiceLog
-    public ResponseEntity updateSbwBandWidth(String id, SbwUpdateParam param) {
+    public ResponseEntity updateSbwConfig(String id, SbwUpdateParam param) {
         String code;
         String msg;
         try {
@@ -209,7 +209,7 @@ public class SbwServiceImpl implements ISbwService {
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
             }
         } catch (Exception e) {
-            log.error("Exception in updateSbwBandWidth", e);
+            log.error("Exception in updateSbwConfig", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }

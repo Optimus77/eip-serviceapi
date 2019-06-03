@@ -74,9 +74,9 @@ public class BssOrderListener {
                     case HsConstants.CHANGECONFIGURE_ORDERTYPE:
                     case HsConstants.RENEW_ORDERTYPE:
                         if (HsConstants.EIP.equalsIgnoreCase(orderRoute)){
-                            rabbitMqService.updateEipInfoConfig("",reciveOrder);
+                            rabbitMqService.updateEipInfoConfig(reciveOrder);
                         }else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)){
-                            rabbitMqService.updateSbwInfoConfig("",reciveOrder);
+                            rabbitMqService.updateSbwInfoConfig(reciveOrder);
                         }
                         break;
                     case HsConstants.DELETE:
@@ -86,6 +86,9 @@ public class BssOrderListener {
                             rabbitMqService.deleteSbwConfig(reciveOrder);
                         }
                         break;
+                    default:
+                        log.error(ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getMessage(),orderType);
+                        throw new EipBadRequestException(ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getCode(),ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getMessage());
                 }
             }else {
                 String msg = String.format(ConstantClassField.PARSE_JSON_PARAM_ERROR, message.getBody().toString());
