@@ -53,7 +53,6 @@ public class SbwControllerV2 {
         return sbwService.atomCreateSbw(sbwConfig.getSbw());
     }
 
-
     @ICPControllerLog
     @GetMapping(value = "/sbws")
     @CrossOrigin(origins = "*", maxAge = 3000)

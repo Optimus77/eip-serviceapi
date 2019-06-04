@@ -1,7 +1,5 @@
 package com.inspur.eip.controller.v2;
 
-import com.alibaba.fastjson.JSONObject;
-import com.inspur.eip.entity.EipAllocateParam;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.config.ConstantClassField;
@@ -61,7 +59,6 @@ public class EipControllerV2 {
         return eipService.atomCreateEip(eipConfig.getEipAllocateParam());
     }
 
-
     @DeleteMapping(value = "/eips/{eip_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
@@ -101,7 +98,6 @@ public class EipControllerV2 {
         }
         return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),status);
     }
-
 
     /**
      * get eip instance detail
@@ -253,8 +249,6 @@ public class EipControllerV2 {
         return  eipService.getEipStatistics();
     }
 
-
-
     @PostMapping(value = "/eips/{eip_id}/renew")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity renewEip(@PathVariable("eip_id") String eipId,
@@ -287,7 +281,6 @@ public class EipControllerV2 {
         return new ResponseEntity<>(ReturnMsgUtil.msg(code, msg, null), HttpStatus.OK);
     }
 
-
     @CrossOrigin(origins = "*",maxAge = 3000)
     @PostMapping(value = "/eips/bind/slb/{eip_id}/{slb_id}/{ip_addr}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "eipBindWithSlb", notes = "post")
@@ -301,7 +294,6 @@ public class EipControllerV2 {
         return eipService.eipBindWithInstance(eipId, "3", slbId, null, ipAddr);
     }
 
-
     @CrossOrigin(origins = "*",maxAge = 3000)
     @PostMapping(value = "/eips/unbind/slb/{slb_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "eipBindWithSlb", notes = "post")
@@ -312,8 +304,6 @@ public class EipControllerV2 {
         log.info("unBind eip.{}, {}, {}", slbId);
         return eipService.eipUnbindWithInstacnce(null, slbId);
     }
-
-
 
     @CrossOrigin(origins = "*",maxAge = 3000)
     @PostMapping(value = "/loggers/{package}", consumes = MediaType.APPLICATION_JSON_VALUE)

@@ -3,7 +3,6 @@ package com.inspur.eip.controller.v2;
 
 import com.inspur.eip.entity.OrderSoftDown;
 import com.inspur.eip.entity.ReciveOrder;
-import com.inspur.eip.service.V2.BssApiServicev2;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-@Slf4j
+/*@Slf4j
 @RestController
 @RequestMapping(value= "/v1.1", produces={"application/json;charset=UTF-8"})
 @Api(value = "/v1.1", description = "eip API")
@@ -64,4 +63,4 @@ public class EipOrderControllerV2 {
         return bssApiService.onReciveDeleteOrderResult(reciveOrder,eipId);
 
     }
-}
+}*/

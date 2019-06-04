@@ -22,6 +22,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -302,6 +304,21 @@ public class CommonUtil {
             }
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_IMPLEMENTED, "Can not get return result."), org.springframework.http.HttpStatus.NOT_IMPLEMENTED);
+    }
+
+    public static String readRequestAsChars(HttpServletRequest request) {
+
+        StringBuilder sb = new StringBuilder();
+        try {
+            BufferedReader br = request.getReader();
+            String str;
+            while ((str = br.readLine()) != null) {
+                sb.append(str);
+            }
+        } catch (IOException e) {
+            log.error("ReadAsChars exception", e);
+        }
+        return sb.toString();
     }
 
 }

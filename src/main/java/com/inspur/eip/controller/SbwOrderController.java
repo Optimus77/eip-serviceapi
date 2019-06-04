@@ -53,15 +53,4 @@ public class SbwOrderController {
         log.info("——————delete sbw api called——————");
         return bssApiService.updateSbwConfig(sbwId, sbwRecive);
     }
-
-
-    /*@PostMapping(value = "/sbws/softdown")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value = "show all servers", notes = "get")
-    public JSONObject softDown(@RequestBody OrderSoftDown eipReciveOrder) {
-
-        log.info("——————get soft down sbw order:{}.", eipReciveOrder.toString());
-        return bssApiService.onReciveSoftDownOrder(eipReciveOrder);
-
-    }*/
 }
