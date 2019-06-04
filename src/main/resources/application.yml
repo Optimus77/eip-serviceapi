@@ -50,22 +50,12 @@ http:
 
 bssurl:
   ignoSSL: true
-  submitPay: http://117.73.2.105.xip.io:9080/order/submitpay #  //1.2.8 订单接口POST
-  quotaUrl:    http://117.73.2.105.xip.io:9080/crm/quota #//1.2.11	查询用户配额的接口
 mq:
 #hourlySettlement k8s服务
   returnMq: http://service.10.110.25.123.xip.io/mqservice/v2/messages/productreturn
 #monthly k8s服务名
   returnNotify: http://service.10.110.25.123.xip.io/mqservice/v2/messages/productnotify
   webSocket:   http://service.10.110.25.123.xip.io/console/websocket/v1/messages
-
-#proxy:
-#  target_url:  http://eip-atom.10.110.25.123.xip.io
-##  servlet_url: /v1/eips/*
-#  servlet_url: /*
-#  logging_enabled: true
-
-#  target_url:  http://127.0.0.1:8088
 
 blackList: /health-status
 
