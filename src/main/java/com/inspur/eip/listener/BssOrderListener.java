@@ -1,6 +1,7 @@
 package com.inspur.eip.listener;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inspur.eip.entity.ReciveOrder;
@@ -56,6 +57,11 @@ public class BssOrderListener {
     // 必须配置一个handler为默认handler，避免消息在未配置Content-Type头时无法被处理
     @RabbitHandler(isDefault = true)
     public void process(@Payload Message message, Channel channel) throws  IOException {
+
+        //允许使用未带引号的字段名
+        objectMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
+        //允许使用单引号
+        objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
         // 可以通过message.getBody()获取消息的字节码，并通过ObjectMapper转换成对象
         log.info(objectMapper.readValue(message.getBody(), Object.class).toString());
         try {
@@ -80,7 +86,7 @@ public class BssOrderListener {
                             rabbitMqService.updateSbwInfoConfig(reciveOrder);
                         }
                         break;
-                    case HsConstants.DELETE:
+                    case HsConstants.UNSUBSCRIBE_ORDERTYPE:
                         if (HsConstants.EIP.equalsIgnoreCase(orderRoute)){
                             rabbitMqService.deleteEipConfig(reciveOrder);
                         }else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)){
@@ -92,22 +98,15 @@ public class BssOrderListener {
                         throw new EipBadRequestException(ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getCode(),ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getMessage());
                 }
             }else {
-                String msg = String.format(ConstantClassField.PARSE_JSON_PARAM_ERROR, message.getBody().toString());
-                log.warn(msg);
+                log.warn(ConstantClassField.PARSE_JSON_PARAM_ERROR);
                 throw new EipBadRequestException(ErrorStatus.ENTITY_BADREQUEST_ERROR.getCode(),ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage());
             }
         } catch (JsonParseException |JsonMappingException  e) {
-            String msg = String.format(ConstantClassField.PARSE_JSON_PARAM_ERROR, message.getBody().toString());
-            log.error(msg, e);
-            throw new EipInternalServerException(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), msg);
-        } catch (IOException e) {
-            String msg = String.format(ConstantClassField.PARSE_JSON_IO_ERROR, message.getBody().toString());
-            log.error(msg, e);
-            throw new EipInternalServerException(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), msg);
-        }catch (Exception e){
-            String msg = String.format(ConstantClassField.EXCEPTION_EIP_CREATE, message.getBody().toString());
-            log.error(msg, e);
-            throw new EipInternalServerException(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), msg);
+            log.error(ConstantClassField.PARSE_JSON_PARAM_ERROR, message);
+            throw new EipInternalServerException(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage());
+        } catch (Exception e) {
+            log.error(ConstantClassField.PARSE_JSON_IO_ERROR, message);
+            throw new EipInternalServerException(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage());
         }
         // 若配置spring.rabbitmq.listener.simple.default-requeue-rejected=false，当消息处理异常，消息会被转发至死信队列，避免消息阻塞。
         // throw new RuntimeException("123");

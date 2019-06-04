@@ -66,7 +66,7 @@ public class SbwServiceImpl implements ISbwService {
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(sbwInfo), HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-                msg = "Failed to create sbw :" + sbwConfig.getRegion();
+                msg = "Failed to create sbw :" + sbwConfig;
                 log.error(msg);
             }
         //} catch (KeycloakTokenException e){
@@ -174,7 +174,7 @@ public class SbwServiceImpl implements ISbwService {
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                 BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
                 sbwReturnDetail.setIpCount((int)eipRepository.countBySbwIdAndIsDelete(sbwId, 0));
-                log.debug("sbwReturnDetail:{}", sbwReturnDetail.toString());
+                log.debug("sbw Detail:{}", sbwReturnDetail.toString());
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
@@ -182,7 +182,7 @@ public class SbwServiceImpl implements ISbwService {
                         HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            log.error("Exception in getSbwDetail", e);
+            log.error("Exception in get Sbw Detail", e);
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -209,7 +209,7 @@ public class SbwServiceImpl implements ISbwService {
                 return new ResponseEntity<>(SbwReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
             }
         } catch (Exception e) {
-            log.error("Exception in updateSbwConfig", e);
+            log.error("Exception in update Sbw Config", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage()+"";
         }
@@ -223,7 +223,6 @@ public class SbwServiceImpl implements ISbwService {
         try {
             String projectid = CommonUtil.getUserId();
             long num = sbwRepository.countByProjectIdAndIsDelete(projectid, 0);
-
             return new ResponseEntity<>(SbwReturnMsgUtil.msg(ReturnStatus.SC_OK, "get instance_num_success", num), HttpStatus.OK);
         } catch (KeycloakTokenException e) {
             return new ResponseEntity<>(SbwReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN, e.getMessage(), null), HttpStatus.UNAUTHORIZED);
@@ -250,7 +249,6 @@ public class SbwServiceImpl implements ISbwService {
             JSONArray sbws = new JSONArray();
             List<Sbw> sbwList = sbwDaoService.findByProjectId(projectId);
             for (Sbw sbw : sbwList) {
-
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                 long count = eipRepository.countBySbwIdAndIsDelete(sbw.getSbwId(), 0);
                 sbwReturnDetail.setIpCount((int)count);
@@ -271,11 +269,11 @@ public class SbwServiceImpl implements ISbwService {
 
 
     @ICPServiceLog
-    public ResponseEntity renewSbw(String sbwId, SbwUpdateParam sbwUpdateInfo) {
+    public ResponseEntity renewSbw(String sbwId, SbwUpdateParam updateParam) {
         String msg = "";
         String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
         try {
-            String renewTime = sbwUpdateInfo.getDuration();
+            String renewTime = updateParam.getDuration();
             if (null == renewTime) {
                 return new ResponseEntity<>(SbwReturnMsgUtil.error(code, msg), HttpStatus.BAD_REQUEST);
             } else if (renewTime.trim().equals("0")) {
