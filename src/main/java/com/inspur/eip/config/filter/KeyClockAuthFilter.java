@@ -6,10 +6,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
 import com.inspur.eip.entity.OrderSoftDown;
 import com.inspur.eip.service.BssApiService;
-import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.util.HsConstants;
 import com.inspur.eip.util.ReturnStatus;
-import com.inspur.eip.util.v2.CommonUtil;
+import com.inspur.eip.util.CommonUtil;
 import com.inspur.icp.common.util.Base64Util;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
@@ -25,9 +24,6 @@ import java.io.IOException;
 @WebFilter
 @Slf4j
 public class KeyClockAuthFilter implements Filter {
-
-    @Autowired
-    private EipServiceImpl eipService;
 
     @Autowired
     private BssApiService bssApiService;

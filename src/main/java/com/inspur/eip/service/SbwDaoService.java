@@ -12,7 +12,7 @@ import com.inspur.eip.entity.v2.sbw.Sbw;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.repository.SbwRepository;
-import com.inspur.eip.util.v2.*;
+import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -103,37 +103,37 @@ public class SbwDaoService {
     public ActionResponse deleteSbw(String sbwId) {
         String msg;
         long ipCount;
-        Sbw sbwEntity = sbwRepository.findBySbwId(sbwId);
-        if (null == sbwEntity) {
+        Sbw sbwBean = sbwRepository.findBySbwId(sbwId);
+        if (null == sbwBean ||sbwBean.getIsDelete() ==1 ) {
             msg = "Faild to find sbw by id:" + sbwId;
             log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+            return ActionResponse.actionFailed(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage(), HttpStatus.SC_NOT_FOUND);
         }
-        if (!CommonUtil.isAuthoried(sbwEntity.getProjectId())) {
+        if (!CommonUtil.isAuthoried(sbwBean.getProjectId())) {
             log.error(CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN), sbwId);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
-        ipCount = eipRepository.countBySbwIdAndIsDelete(sbwEntity.getSbwId(), 0);
+        ipCount = eipRepository.countBySbwIdAndIsDelete(sbwBean.getSbwId(), 0);
         if (ipCount != 0) {
             msg = "EIP in sbw so that sbw cannot be removed ，please remove first !,ipCount:{}" + ipCount;
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
         }
-        Firewall firewall = firewallRepository.findFirewallByRegion(sbwEntity.getRegion());
-        if (StringUtils.isBlank(sbwEntity.getPipeId())) {
-            sbwEntity.setIsDelete(1);
-            sbwEntity.setStatus(HsConstants.DELETE);
-            sbwEntity.setUpdateTime(CommonUtil.getGmtDate());
-            sbwRepository.saveAndFlush(sbwEntity);
+        Firewall firewall = firewallRepository.findFirewallByRegion(sbwBean.getRegion());
+        if (StringUtils.isBlank(sbwBean.getPipeId())) {
+            sbwBean.setIsDelete(1);
+            sbwBean.setStatus(HsConstants.DELETE);
+            sbwBean.setUpdateTime(CommonUtil.getGmtDate());
+            sbwRepository.saveAndFlush(sbwBean);
             return ActionResponse.actionSuccess();
         }
-        boolean delQos = firewallService.delQos(sbwEntity.getPipeId(), null,null,firewall.getId());
+        boolean delQos = firewallService.delQos(sbwBean.getPipeId(), null,null,firewall.getId());
         if (delQos) {
-            sbwEntity.setIsDelete(1);
-            sbwEntity.setStatus(HsConstants.DELETE);
-            sbwEntity.setUpdateTime(CommonUtil.getGmtDate());
-            sbwEntity.setPipeId(null);
-            sbwRepository.saveAndFlush(sbwEntity);
+            sbwBean.setIsDelete(1);
+            sbwBean.setStatus(HsConstants.DELETE);
+            sbwBean.setUpdateTime(CommonUtil.getGmtDate());
+            sbwBean.setPipeId(null);
+            sbwRepository.saveAndFlush(sbwBean);
             return ActionResponse.actionSuccess();
         }
         return ActionResponse.actionFailed(CodeInfo.SBW_DELETE_ERROR, HttpStatus.SC_FORBIDDEN);
@@ -145,7 +145,7 @@ public class SbwDaoService {
         String msg;
         Sbw sbw = sbwRepository.findBySbwId(sbwId);
         if (null == sbw) {
-            msg = "Faild to find sbw by id:{} in softDown method" + sbwId ;
+            msg = "Faild to find in soft Down by sbwId:{}:" + sbwId ;
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
@@ -155,9 +155,9 @@ public class SbwDaoService {
         }
         Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
         if (firewall == null) {
-            msg = "Can't find firewall by sbw region:{}" + sbw.getRegion();
-            log.error("Can't find firewall by sbw region:{}, sbwId:{}" + sbw.getRegion() + sbw.getSbwId());
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+            msg = "Can't find firewall by sbw region:{}"+ sbw.getRegion();
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
         }
         if (StringUtils.isNotEmpty(sbw.getStatus()) && HsConstants.ACTIVE.equalsIgnoreCase(sbw.getStatus()) && StringUtils.isNotEmpty(sbw.getPipeId())){
             MethodReturn methodReturn = qosService.controlPipe(firewall.getId(), sbwId, true);
@@ -182,17 +182,24 @@ public class SbwDaoService {
         String msg;
         Sbw sbw = sbwRepository.findBySbwId(sbwId);
         if (null == sbw) {
-            log.info("Faild to find sbw by id:{} in renewSbwEntity method" + sbwId );
-            return ActionResponse.actionFailed("Can not find the sbw by id:{}" + sbwId, HttpStatus.SC_NOT_FOUND);
+            msg = "Faild to find in Renew by sbwId:{}" + sbwId;
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+        }
+        if (!CommonUtil.isAuthoried(sbw.getProjectId())) {
+            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
+            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
         if (!sbw.getBillType().equals(HsConstants.MONTHLY)) {
-            return ActionResponse.actionFailed("Non - packet year - and - month Shared bandWidth cannot be renewed:{}" + sbwId, HttpStatus.SC_NOT_FOUND);
+            msg = "BillType is not monthly SBW cannot be renewed:{}" + sbwId;
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
         }
         Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
         if (firewall == null) {
-            msg = "Can't find firewall by sbw region:{}" + sbw.getRegion();
-            log.error("Can't find firewall by sbw region:{}, sbwId:{}" + sbw.getRegion() + sbw.getSbwId());
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+            msg = "Can't find firewall by sbw region:{}"+ sbw.getRegion();
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
         }
         if (StringUtils.isNotEmpty(sbw.getStatus()) && HsConstants.STOP.equalsIgnoreCase(sbw.getStatus()) && StringUtils.isNotEmpty(sbw.getPipeId())) {
             MethodReturn methodReturn = qosService.controlPipe(firewall.getId(), sbwId, false);

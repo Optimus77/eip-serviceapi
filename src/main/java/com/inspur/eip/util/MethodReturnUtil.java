@@ -1,4 +1,4 @@
-package com.inspur.eip.util.v2;
+package com.inspur.eip.util;
 
 
 import com.inspur.eip.entity.v2.MethodReturn;

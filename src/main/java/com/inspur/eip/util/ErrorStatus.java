@@ -28,9 +28,9 @@ public enum ErrorStatus {
 
 
     /**
-     * SC_NOT_FOUND
+     * ENTITY_NOT_FOND_IN_DB
      */
-    SC_NOT_FOUND("106.994404", "SC_NOT_FOUND!"),
+    ENTITY_NOT_FOND_IN_DB("106.994404", "Failed to find entity  in db!"),
 
     /**
      * SC_OPENSTACK_FIP_UNAVAILABLE
@@ -124,7 +124,15 @@ public enum ErrorStatus {
     /**
      * ENTITY_ILLEGAL_ARGUMENT_ERROR
      */
-    ENTITY_ILLEGAL_ARGUMENT_ERROR("106.000400","ENTITY_ILLEGAL_ARGUMENT_ERROR!");
+    ENTITY_ILLEGAL_ARGUMENT_ERROR("106.000400","ENTITY_ILLEGAL_ARGUMENT_ERROR!"),
+    /**
+     *
+     */
+    NOT_SUPPORT_PRODUCT_LINE_CODE("106.000400","not_support_product_line_code!"),
+    /**
+     * not support order type
+     */
+    NOT_SUPPORT_ORDER_TYPE("106.000400","Not_support_order_type!");
 
     private final String code;
 

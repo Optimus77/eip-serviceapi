@@ -8,78 +8,61 @@ package com.inspur.eip.util;
 public final class ConstantClassField {
 
     private ConstantClassField() {
-        throw new IllegalStateException("ConstantClassField class");
+        throw new IllegalStateException("VersionConstant class");
     }
 
     /**
      * EIP
      */
-    public static final String EIP_CREATE = "CreateEipEntity";
-    public static final String EIP_DELETE = "DeleteEipEntity";
-    public static final String EIPS_SHOW = "ListEipEntitys";
-    public static final String EIP_SHOW_DETAIL = "DescribeEipDetatil";
+    public static final String EXCEPTION_EIP_CREATE = " Exception in Create Eip Entity";
+    public static final String EXCEPTION_EIP_DELETE = "Exception in  DeleteEip Entity";
+    public static final String EXCEPTION_EIP_UPDATE = "Exception in  Update Eip Entity";
+    public static final String EXCEPTION_EIP_SOFTDOWN_OR_DELETE = "Exception in  softdown or delete Eip Entity";
+    public static final String Exception_EIPS_SHOW = "List Eip Entitys";
+    public static final String Exception_EIP_SHOW_DETAIL = "Describe Eip Detatil";
 
 
+    /**
+     * param not correct
+     */
     public static final String PARSE_JSON_PARAM_ERROR = "parse_message_param_error! param : %s";
     public static final String PARSE_JSON_IO_ERROR = "parse_message_io_error! param : %s";
+    public static final String BILL_TYPE_NOT_SUPPORT = "bill type not support,must be [monthly |hourlySettlement]";
+
+    public static final String CREAT_EIP_CONFIG_RESULT = "create eip config result : %s";
+    public static final String DELETE_EIP_CONFIG_RESULT = "delete eip config result : %s";
+    public static final String UPDATE_EIP_CONFIG_RESULT = "update eip config result : %s";
+    public static final String SOFTDOWN_OR_DELETE_EIP_CONFIG_RESULT = "softdown or delete eip config result : %s";
 
 
-    public static final String ISUNIDIRECTIONALAUTH_NULL  = "when protocol is https,is_unidirectional_auth cannot be empty";
-    public static final String SERVERCAID_NULL  = "when protocol is https and is_unidirectional_auth is 1,server_ca_id cannot be empty";
+    /**
+     * SBW
+     */
+    public static final String CREAT_SBW_CONFIG_RESULT = "create sbw config result : %s";
+    public static final String DELETE_SBW_CONFIG_RESULT = "delete sbw config result : %s";
+    public static final String UPDATE_SBW_CONFIG_RESULT = "update sbw config result : %s";
+    public static final String SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT = "soft down or delete sbw config result : %s";
+    public static final String FAILED_TO_DELETE_SBW = "Failed to delete SBW";
+    public static final String EXCEPTION_SBW_CREATE = " Exception in Create SBW Entity";
+    public static final String EXCEPTION_SBW_DELETE = "Exception in  Delete SBW Entity";
+    public static final String EXCEPTION_SBW_UPDATE = "Exception in  Update SBW Entity";
+    public static final String EXCEPTION_SBW_SOFTDOWN_OR_DELETE = "Exception in  soft down or delete SBW Entity";
 
-    public static final String EIP_BIND = "IntanceBindEip";
-    public static final String EIP_UNBIND = "IntanceUnBindEip";
 
-    public static final String EIP_SERVER_ID = "serverid";
-    public static final String PRIVATEIP = "privateip";
-    public static final String TYPE = "type";
+    /**
+     * order
+     */
+    public static final String ORDER_NOT_PAYED = "this order not payed :{}";
+    public static final String ORDER_STATUS_NOT_CORRECT = "this order status not support :{}";
+    public static final String ORDER_TYPE_NOT_SUPPORT = "this order type not support :{}";
 
-    public static final String AUTHORIZATION = "authorization";
-    public static final String INVOKE_URL = "Invoking url : ";
+    /**
+     * operation
+     */
+    public static final String OPERATION_RESULT_NOT_OK = "operation result not ok";
 
-    public static final String DELETE_EIP_ERROR = "delete eip error: %s";
 
-    public static final String REQUEST_ID = "Request-Id";
 
-    public static final String EIP_PRODUCTLINE_CODE = "EIP";
 
-    public static final String GROUP_ID = "groupId";
-    public static final String ITEM_ID = "itemId";
-    public static final String REGION_CODE = "regionCode";
-    public static final String VALUE = "value";
-    public static final String EIP_QUOTA = "slb-num";
-    public static final String LISTENER_QUOTA = "slb-one-listener-num";
-    public static final String MEMBER_QUOTA = "slb-one-listener-server-num";
-
-    public static final String TAG_EIP = "eip";
-    public static final String EIP_CHARGE_TYPE = "billType";
-    public static final String EIP_DURATION = "duration";
-    public static final String EMPTY = "";
-
-    public static final String CHARGE_TYPE_POSTPAID = "hourlySettlement";
-
-    public static final String EIP_NETWORK_MOD = "internet-facing";
-    public static final String EIP_INTERNAL_MOD = "internal";
-
-    public static final String CODE = "code";
-    public static final String CODE_VALUE = "200";
-    public static final String MESSAGE = "message";
-    public static final String MESSAGE_VALUE = "success";
-    public static final String MESSAGE_VALUE_FAILED = "failed";
-
-    public static final String KEYCLOAK_TOKEN_SUBPATH = "/realms/picp/protocol/openid-connect/token";
-
-    public static final String VERSION_REST = "/v2.0";
-
-    public static final String COMMAND = "command";
-    public static final String OUTERNET = "outernet";
-    public static final String INNERNET = "innernet";
-    public static final String GW = "gw";
-    public static final String CIDR = "cidr";
-    public static final String LOCALIP = "localip";
-
-    public static final String SSH_USERNAME = "SSH_USERNAME";
-    public static final String SSH_MIMA = "SSH_PASSWORD";
-    public static final String SSH_PORT = "SSH_PORT";
 
 }

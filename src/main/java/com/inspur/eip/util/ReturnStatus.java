@@ -33,4 +33,8 @@ public interface ReturnStatus {
     String SC_OPENSTACK_FIPCREATE_ERROR  = "106.102503";
     String SC_FIREWALL_SERVER_ERROR   = "106.201503";
 
+    String SC_FIREWALL_NATPT_UNAVAILABLE = "106.204404";
+    String SC_FIREWALL_NAT_UNAVAILABLE   = "106.202404";
+
+
 }

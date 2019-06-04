@@ -1,6 +1,7 @@
 package com.inspur.eip.controller.v2;
 
 
+import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.OrderSoftDown;
 import com.inspur.eip.entity.ReciveOrder;
 import io.swagger.annotations.Api;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 /*@Slf4j
 @RestController
-@RequestMapping(value= "/v1.1", produces={"application/json;charset=UTF-8"})
+@RequestMapping(value= VersionConstant.REST_VERSION_1_1, produces={"application/json;charset=UTF-8"})
 @Api(value = "/v1.1", description = "eip API")
 @Validated
 public class EipOrderControllerV2 {

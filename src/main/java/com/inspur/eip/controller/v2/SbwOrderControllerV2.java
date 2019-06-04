@@ -1,5 +1,6 @@
 package com.inspur.eip.controller.v2;
 
+import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.OrderSoftDown;
 import com.inspur.eip.entity.ReciveOrder;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
@@ -17,7 +18,7 @@ import javax.validation.Valid;
 /*
 @Slf4j
 @RestController
-@RequestMapping(value= "/v1.1", produces={"application/json;charset=UTF-8"})
+@RequestMapping(value= VersionConstant.REST_VERSION_1_1, produces={"application/json;charset=UTF-8"})
 @Api(value = "/v1.1", description = "sbw API")
 @Validated
 public class SbwOrderControllerV2 {

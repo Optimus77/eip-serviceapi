@@ -1,4 +1,4 @@
-package com.inspur.eip.util.v2;
+package com.inspur.eip.util;
 
 import lombok.Builder;
 import lombok.Data;

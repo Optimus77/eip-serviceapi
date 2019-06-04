@@ -1,10 +1,10 @@
 package com.inspur.eip.controller.v2;
 
-import com.inspur.eip.config.ConstantClassField;
+import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.ReturnStatus;
-import com.inspur.eip.util.v2.ReturnMsgUtil;
+import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -27,16 +27,16 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping(value = ConstantClassField.VERSION_REST, produces = {"application/json;charset=UTF-8"})
-@Api(value = "/v1", description = "sbw API")
+@RequestMapping(value = VersionConstant.REST_VERSION_1_1, produces = {"application/json;charset=UTF-8"})
+@Api(value = "/v1.1", description = "sbw API")
 @Validated
 public class SbwControllerV2 {
 
     @Autowired
     private SbwServiceImpl sbwService;
-
+    //todo refactor interface
     @ICPControllerLog
-    @PostMapping(value = "/sbws")
+    @PostMapping(value = "/sbwstest")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "atomCreateSbw", notes = "createSbw")
     public ResponseEntity atomAllocateSbw(@Valid @RequestBody SbwUpdateParamWrapper sbwConfig, BindingResult result) {
@@ -101,7 +101,7 @@ public class SbwControllerV2 {
     public ResponseEntity deleteSbw(@Size(min = 36, max = 36, message = "Must be uuid.")
                                         @PathVariable("sbw_id") String sbwId) {
         log.info("Atom delete the sbw , sbwId:{} ", sbwId);
-        return sbwService.atomDeleteSbw(sbwId);
+        return sbwService.deleteSbwInfo(sbwId);
     }
     /**
      * get sbw instance detail
@@ -244,7 +244,7 @@ public class SbwControllerV2 {
         String msg ;
         if (param.getSbw().getBillType() != null ) {
             log.info("update bandWidth, sbwid:{}, param:{} ", sbwId, param.getSbw());
-            return sbwService.updateSbwBandWidth(sbwId, param.getSbw());
+            return sbwService.updateSbwConfig(sbwId, param.getSbw());
         } else {
             msg = "param not correct,body param like {\"sbw\" : {\"bandWidth\":xxx,\"billType\":\"xxxxxx\"}";
         }

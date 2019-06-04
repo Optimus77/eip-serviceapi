@@ -2,12 +2,12 @@ package com.inspur.eip.controller.v2;
 
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
-import com.inspur.eip.config.ConstantClassField;
-import com.inspur.eip.entity.v2.LogLevel;
+import com.inspur.eip.config.VersionConstant;
+import com.inspur.eip.entity.LogLevel;
 import com.inspur.eip.entity.v2.eip.*;
 import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.util.HsConstants;
-import com.inspur.eip.util.v2.ReturnMsgUtil;
+import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.ReturnStatus;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
@@ -33,8 +33,8 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping(value= ConstantClassField.VERSION_REST, produces={"application/json;charset=UTF-8"})
-@Api(value = "/v1", description = "eip API")
+@RequestMapping(value= VersionConstant.REST_VERSION_1_1, produces={"application/json;charset=UTF-8"})
+@Api(value = "/v1.1")
 @Validated
 public class EipControllerV2 {
 
