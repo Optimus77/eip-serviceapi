@@ -1,10 +1,11 @@
 package com.inspur.eip.config.filter;
 
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
+import com.inspur.eip.entity.OrderSoftDown;
 import com.inspur.eip.service.BssApiService;
-import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.util.HsConstants;
 import com.inspur.eip.util.ReturnStatus;
 import com.inspur.eip.util.v2.CommonUtil;
@@ -23,9 +24,6 @@ import java.io.IOException;
 @WebFilter
 @Slf4j
 public class KeyClockAuthFilter implements Filter {
-
-    @Autowired
-    private EipServiceImpl eipService;
 
     @Autowired
     private BssApiService bssApiService;
@@ -58,6 +56,29 @@ public class KeyClockAuthFilter implements Filter {
             CommonUtil.setKeyClockInfo(Base64Util.decodeUserInfo(token));
             filterChain.doFilter(servletRequest, servletResponse);
         }
+        if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equalsIgnoreCase("/v1/orders/softdown")){
+
+            String requestBody = com.inspur.eip.util.CommonUtil.readRequestAsChars(req);
+            log.info("get softdown eip order:{}.", requestBody);
+            OrderSoftDown eipReciveOrder = JSON.parseObject(requestBody, OrderSoftDown.class);
+            JSONObject result = bssApiService.onReciveSoftDownOrder(eipReciveOrder);
+
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+        }else if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equalsIgnoreCase("/v1/sbws/softdown")){
+            String requestBody =  com.inspur.eip.util.CommonUtil.readRequestAsChars(req);
+            log.info("get softDelete sbw order:{}.", requestBody);
+            OrderSoftDown softDown = JSON.parseObject(requestBody, OrderSoftDown.class);
+            JSONObject result = bssApiService.stopOrSoftDeleteSbw(softDown);
+
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+        }else {
+            filterChain.doFilter(servletRequest, servletResponse);
+        }
+
     }
 
     @Override
