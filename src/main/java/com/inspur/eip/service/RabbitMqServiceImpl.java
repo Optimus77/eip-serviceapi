@@ -153,7 +153,7 @@ public class RabbitMqServiceImpl {
                     sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.UNSUBSCRIBE));
                     return response;
                 } else {
-                    log.warn(String.format(ConstantClassField.DELETE_EIP_CONFIG_RESULT, response.getFault()) + ReturnStatus.SC_INTERNAL_SERVER_ERROR);
+                    log.warn(String.format(ConstantClassField.DELETE_EIP_CONFIG_FAILED, response.getFault()) + ReturnStatus.SC_INTERNAL_SERVER_ERROR);
                 }
             } else {
                 log.error(ConstantClassField.ORDER_STATUS_NOT_CORRECT + eipOrder.getOrderStatus());
@@ -217,7 +217,7 @@ public class RabbitMqServiceImpl {
             log.error(ConstantClassField.EXCEPTION_EIP_UPDATE, e);
             sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.FAIL));
         }
-        log.warn(ConstantClassField.UPDATE_EIP_CONFIG_RESULT, response);
+        log.warn(ConstantClassField.UPDATE_EIP_CONFIG_FAILED, response);
         webService.returnsWebsocket(eipId, eipOrder, "update");
         sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, result));
         return response;

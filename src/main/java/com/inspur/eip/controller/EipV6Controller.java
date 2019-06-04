@@ -1,28 +1,28 @@
 package com.inspur.eip.controller;
 
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.inspur.eip.entity.ipv6.EipV6UpdateParam;
 import com.inspur.eip.entity.v2.eipv6.EipV6AllocateParamWrapper;
 import com.inspur.eip.entity.ipv6.EipV6UpdateParamWrapper;
-import com.inspur.eip.util.CustomException;
+import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.ReturnMsgUtil;
-import com.inspur.eip.util.ThrowErrorHandler;
+import com.inspur.eip.util.ReturnStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
-import java.util.HashMap;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -34,25 +34,24 @@ public class EipV6Controller {
     @Autowired
     private RestTemplate restTemplate;
 
-    @Value("${proxy.target_url}")
-    private String eipV6AtomUrl;
+    @Autowired
+    private EipV6ServiceImpl eipV6Service;
 
     @PostMapping(value = "/eipv6")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity allocateEipV6(@Valid @RequestBody EipV6AllocateParamWrapper eipV6Config) {
-        log.info("————create Eipv6 service api ————");
-        String url = eipV6AtomUrl + "/eip/v1/eipv6";
-        try {
-            restTemplate.setErrorHandler(new ThrowErrorHandler());
-            String orderStr = JSONObject.toJSONString(eipV6Config);
-            log.info("create eipv6  service api   url:{}, body:{}", url, orderStr);
-            return restTemplate.postForEntity(url, eipV6Config, JSONObject.class);
-        }catch (CustomException e){
-            JSONObject resultJson = JSON.parseObject(e.getBody());
-            log.error(resultJson.getString("message"));
-            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity allocateEipV6(@Valid @RequestBody EipV6AllocateParamWrapper eipV6Config, BindingResult result) {
+        log.info("Allocate a eipv6:{}.", eipV6Config.getEipV6AllocateParam().toString());
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+                    HttpStatus.BAD_REQUEST);
         }
+        ResponseEntity responseEntity = eipV6Service.atomCreateEipV6(eipV6Config.getEipV6AllocateParam().getEipId());
+        return responseEntity;
     }
 
 
@@ -62,23 +61,24 @@ public class EipV6Controller {
     public ResponseEntity listEipV6(@RequestParam(required = false) String currentPage ,
                                     @RequestParam(required = false )String limit,
                                     @RequestParam(required = false )String status) {
-        log.debug("————get listEipv6 service api ————");
-
-        String  uri =eipV6AtomUrl + "/eip/v1/eipv6?currentPage={currentPage}&limit={limit}&status={status}";
-        try{
-            restTemplate.setErrorHandler(new ThrowErrorHandler());
-            HashMap<String,Object> map = new HashMap();
-            map.put("currentPage",currentPage);
-            map.put("limit",limit);
-            map.put("status",status);
-            return restTemplate.getForEntity(uri, JSONObject.class,map );
-
-        }catch (CustomException e){
-            JSONObject resultJson = JSON.parseObject(e.getBody());
-            log.error(resultJson.getString("message"));
-            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+        log.debug("EipController listEipv6, currentPage:{}, limit:{}", currentPage, limit);
+        if(currentPage==null||limit==null){
+            currentPage="0";
+            limit="0";
+        }else{
+            try{
+                int currentPageNum = Integer.parseInt(currentPage);
+                int limitNum = Integer.parseInt(limit);
+                if (currentPageNum < 0 || limitNum < 0) {
+                    currentPage = "0";
+                }
+            }catch (Exception e){
+                log.error("number is not correct ");
+                currentPage="0";
+                limit="0";
+            }
         }
+        return  eipV6Service.listEipV6s(Integer.parseInt(currentPage),Integer.parseInt(limit),status);
 
     }
 
@@ -86,20 +86,9 @@ public class EipV6Controller {
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity deleteEip(@Size(min=36, max=36, message = "Must be uuid.")
                                     @PathVariable("eipv6_id") String eipV6Id) {
-        log.info("————service delete the EipV6Id :{} ",eipV6Id);
-        String url=eipV6AtomUrl + "/eip/v1/eipv6/"+eipV6Id;
-        try {
-            restTemplate.setErrorHandler(new ThrowErrorHandler());
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-            HttpEntity<String> entity = new HttpEntity<>(eipV6Id, headers);
-            return restTemplate.exchange(url, HttpMethod.DELETE, entity, JSONObject.class,eipV6Id);
-        }catch (CustomException e){
-            JSONObject resultJson = JSON.parseObject(e.getBody());
-            log.error(resultJson.getString("message"));
-            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        //Check the parameters
+        log.info("Atom delete the EipV6Id:{} ",eipV6Id);
+        return eipV6Service.atomDeleteEipV6(eipV6Id);
 
     }
 
@@ -119,40 +108,26 @@ public class EipV6Controller {
     })
     public ResponseEntity geteipV6Detail(@PathVariable("eipv6_id") String eipV6Id) {
 
-        log.info("————get EipV6Detail service api———— ");
-
-        String  uri =eipV6AtomUrl + "/eip/v1/eipv6/{eipId}";
-        try{
-            restTemplate.setErrorHandler(new ThrowErrorHandler());
-            return restTemplate.getForEntity(uri, JSONObject.class,eipV6Id );
-
-        }catch (CustomException e){
-            JSONObject resultJson = JSON.parseObject(e.getBody());
-            log.error(resultJson.getString("message"));
-            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return eipV6Service.getEipV6Detail(eipV6Id);
     }
 
 
     @PutMapping(value = "/eipv6/{eipv6_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eipv6", notes = "put")
-    public ResponseEntity updateEip(@PathVariable("eipv6_id") String eipV6Id, @Valid  @RequestBody (required = false) EipV6UpdateParamWrapper param) {
-        log.info("————update eipv6 service api———— ");
-        String  uri =eipV6AtomUrl + "/eip/v1/eipv6/{eipId}";
-        try{
-            restTemplate.setErrorHandler(new ThrowErrorHandler());
-            String params = JSONObject.toJSONString(param);
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<String> entity = new HttpEntity<>(params, headers);
-            return restTemplate.exchange(uri, HttpMethod.PUT, entity, Object.class, eipV6Id);
-        }catch (CustomException e){
-            JSONObject resultJson = JSON.parseObject(e.getBody());
-            log.error(resultJson.getString("message"));
-            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity updateEip(@PathVariable("eipv6_id") String eipV6Id,
+                                    @Valid  @RequestBody (required = false) EipV6UpdateParamWrapper param, BindingResult result) {
+        log.info("update ipv6 ");
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            log.info("{}",msgBuffer);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
         }
+        EipV6UpdateParam updateParam = param.getEipv6();
+        return eipV6Service.eipV6bindPort(eipV6Id, updateParam.getEipAddress());
     }
 }

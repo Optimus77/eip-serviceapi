@@ -65,7 +65,7 @@ public class CommonUtil {
      * get the Keycloak authorization token  from httpHeader;
      * @return  string string
      */
-    static String getKeycloackToken() {
+    public static String getKeycloackToken() {
         //important
         ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if(null != requestAttributes) {

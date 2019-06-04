@@ -1,10 +1,7 @@
 package com.inspur.eip.controller;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.inspur.eip.entity.EipDelParam;
-import com.inspur.eip.entity.EipUpdateParamWrapper;
-import com.inspur.eip.entity.LogLevel;
+import com.inspur.eip.entity.*;
+import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.util.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -15,14 +12,16 @@ import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.validation.Valid;
-import java.util.HashMap;
+import javax.validation.constraints.Size;
+import java.util.List;
 
 
 @Slf4j
@@ -35,9 +34,36 @@ public class EipController {
     @Autowired
     private RestTemplate restTemplate;
 
-    @Value("${proxy.target_url}")
-    private String eipAtomUrl;
+    @Autowired
+    private EipServiceImpl eipService;
 
+
+    @PostMapping(value = "/eips")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity atomAllocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
+        log.info("Allocate a eip:{}.", eipConfig.getEip().toString());
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+                    HttpStatus.BAD_REQUEST);
+        }
+        return eipService.atomCreateEip(eipConfig.getEip(), CommonUtil.getKeycloackToken());
+    }
+
+
+    @DeleteMapping(value = "/eips/{eip_id}")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
+                                        @PathVariable("eip_id") String eipId) {
+        //Check the parameters
+        log.info("Atom delete the Eip:{} ",eipId);
+        return eipService.atomDeleteEip(eipId);
+
+    }
 
     @GetMapping(value = "/health-status")
     @CrossOrigin(origins = "*", maxAge = 3000)
@@ -76,22 +102,20 @@ public class EipController {
     @ApiOperation(value="get number",notes="get number")
     public ResponseEntity getEipCount(@RequestParam(required = false )String DimensionName,
                                       @RequestParam(required = false )String status) {
-        try{
-            log.debug("———— get eipnumbers api called————");
-            restTemplate.setErrorHandler(new ThrowErrorHandler());
-            HashMap<String,Object> map = new HashMap();
-            map.put("DimensionName",DimensionName);
-            map.put("status",status);
-            String  uri =eipAtomUrl + "/eip/v1/eipnumbers?DimensionName={DimensionName}&status={status}";
-            ResponseEntity responseEntity = restTemplate.getForEntity(uri, JSONObject.class,map );
-            return responseEntity;
-        }catch (CustomException e){
-            JSONObject resultJson = JSON.parseObject(e.getBody());
-            log.error(resultJson.getString("message"));
-            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+        if(DimensionName == null){
+            return  eipService.getEipCount();
+        }else {
+            if(status == null){
+                if(DimensionName.equals("freeeipnumbers")){
+                    return  eipService.getFreeEipCount();
+                }else if(DimensionName.equals("totaleipnumbers")){
+                    return  eipService.getTotalEipCount();
+                }
+                return  eipService.getUsingEipCount();
+            }else{
+                return eipService.getUsingEipCountByStatus(status);
+            }
         }
-       
     }
 
     @PostMapping(value = "/deleiplist", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -99,22 +123,8 @@ public class EipController {
     @ApiOperation(value = "deleiplist")
     public ResponseEntity deleteEipList(@RequestBody EipDelParam param) {
 
-        try{
-            log.info(" ————delete EipList api called————");
-            restTemplate.setErrorHandler(new ThrowErrorHandler());
-            String params = JSONObject.toJSONString(param);
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<String> entity = new HttpEntity<>(params, headers);
-            String  uri =eipAtomUrl + "/eip/v1/deleiplist";
-            return restTemplate.exchange(uri, HttpMethod.POST,entity, Object.class);
-
-        }catch (CustomException e){
-            JSONObject resultJson = JSON.parseObject(e.getBody());
-            log.error(resultJson.getString("message"));
-            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        log.info("Delete the Eips:{}.", param.getEipids().toString());
+        return eipService.deleteEipList(param.getEipids());
     }
 
 
@@ -126,24 +136,27 @@ public class EipController {
                                   @RequestParam(required = false )String status,
                                   @RequestParam(required = false )String bandWidth) {
 
-        log.debug("————get listEip service api ————");
-
-        String  uri =eipAtomUrl + "/eip/v1/eips?currentPage={currentPage}&limit={limit}&status={status}&bandWidth={bandWidth}";
-        try{
-            restTemplate.setErrorHandler(new ThrowErrorHandler());
-            HashMap<String,Object> map = new HashMap();
-            map.put("currentPage",currentPage);
-            map.put("limit",limit);
-            map.put("status",status);
-            map.put("bandWidth",bandWidth);
-            return restTemplate.getForEntity(uri, JSONObject.class,map );
-
-        }catch (CustomException e){
-            JSONObject resultJson = JSON.parseObject(e.getBody());
-            log.error(resultJson.getString("message"));
-            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+        log.debug("EipController listEip, currentPage:{}, limit:{}", currentPage, limit);
+        if(currentPage==null||limit==null){
+            currentPage="0";
+            limit="0";
+        }else{
+            try{
+                int currentPageNum = Integer.parseInt(currentPage);
+                int limitNum = Integer.parseInt(limit);
+                if (currentPageNum < 0 || limitNum < 0) {
+                    currentPage = "0";
+                }
+            }catch (Exception e){
+                log.error("number is not correct ");
+                currentPage="0";
+                limit="0";
+            }
         }
+        if(null !=bandWidth){
+            return  eipService.listEipsByBandWidth(status);
+        }
+        return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),status);
     }
 
 
@@ -155,19 +168,7 @@ public class EipController {
     })
     public ResponseEntity getEipDetail(@PathVariable("eip_id") String eipId){
 
-        log.info("————get EipDetail service api ————");
-
-        String  uri =eipAtomUrl + "/eip/v1/eips/{eipId}";
-        try{
-            restTemplate.setErrorHandler(new ThrowErrorHandler());
-            return restTemplate.getForEntity(uri, JSONObject.class,eipId );
-
-        }catch (CustomException e){
-            JSONObject resultJson = JSON.parseObject(e.getBody());
-            log.error(resultJson.getString("message"));
-            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return eipService.getEipDetail(eipId);
     }
 
 
@@ -175,23 +176,27 @@ public class EipController {
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="getEipByInstanceId",notes="get")
     public ResponseEntity getEipByInstanceId(@RequestParam(required = false) String resourceid,
-                                             @RequestParam(required = false) String eipaddress) {
-        log.info("————getEipByInstanceId service api ————");
-        String  uri =eipAtomUrl + "/eip/v1/eips/search?resourceid={resourceid}&eipaddress={eipaddress}";
-        try{
-            restTemplate.setErrorHandler(new ThrowErrorHandler());
-            HashMap<String,Object> map = new HashMap();
-            map.put("resourceid",resourceid);
-            map.put("eipaddress",eipaddress);
-            return restTemplate.getForEntity(uri, JSONObject.class,map );
-
-        }catch (CustomException e){
-            JSONObject resultJson = JSON.parseObject(e.getBody());
-            log.error(resultJson.getString("message"));
-            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+                                             @RequestParam(required = false) String eipaddress,
+                                             @RequestParam(required = false) String key)  {
+        if((null == resourceid) && (null == eipaddress) ){
+            return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
         }
-
+        if((null != resourceid) && (null != eipaddress) ){
+            return new ResponseEntity<>("To be wrong.", HttpStatus.FORBIDDEN);
+        }
+        if(null != resourceid) {
+            log.debug("EipController get eip by instance id:{} ", resourceid);
+            return eipService.getEipByInstanceId(resourceid);
+        } else if(null != eipaddress) {
+            log.debug("EipController get eip by ip:{} ", eipaddress);
+            if(null != key){
+                if (key.equals("1709d6c6")) {
+                    return eipService.getEipDetailsByIpAddress(eipaddress);
+                }
+            }
+            return eipService.getEipByIpAddress(eipaddress);
+        }
+        return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
     }
 
 
@@ -204,18 +209,7 @@ public class EipController {
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")
     public ResponseEntity getFreeEipCount() {
-        log.info("————statistics service api ————");
-        String  uri =eipAtomUrl + "/eip/v1/statistics";
-        try{
-            restTemplate.setErrorHandler(new ThrowErrorHandler());
-            return restTemplate.getForEntity(uri, JSONObject.class );
-
-        }catch (CustomException e){
-            JSONObject resultJson = JSON.parseObject(e.getBody());
-            log.error(resultJson.getString("message"));
-            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return  eipService.getEipStatistics();
     }
 
 
@@ -223,24 +217,50 @@ public class EipController {
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eip", notes = "put")
 
-    public ResponseEntity updateEip(@PathVariable("eip_id") String eipId,  @Valid @RequestBody (required = false)  EipUpdateParamWrapper param ) {
+    public ResponseEntity updateEip(@PathVariable("eip_id") String eipId,
+                                    @Valid @RequestBody (required = false)  EipUpdateParamWrapper param ,BindingResult result) {
 
-
-        log.info("————update service api ————");
-        String  uri =eipAtomUrl + "/eip/v1/eips/{eipId}";
-        try{
-            restTemplate.setErrorHandler(new ThrowErrorHandler());
-            String params = JSONObject.toJSONString(param);
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<String> entity = new HttpEntity<>(params, headers);
-            return restTemplate.exchange(uri, HttpMethod.PUT, entity, Object.class, eipId);
-        }catch (CustomException e){
-            JSONObject resultJson = JSON.parseObject(e.getBody());
-            log.error(resultJson.getString("message"));
-            return new ResponseEntity<>(ReturnMsgUtil.error(resultJson.getString("code"), resultJson.getString("message")),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            log.info("{}",msgBuffer);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
         }
+        String msg="";
+        EipUpdateParam updateParam = param.getEip();
+
+        if (updateParam.getServerId() != null){
+            //may be unbind oprate or bind oprate,use this param ,chargetype and bindwidth do nothing
+            if (updateParam.getServerId().trim().equals("")){
+                log.info("unbind operate, eipid:{}, param:{} ", eipId, updateParam);
+                return eipService.eipUnbindWithInstacnce(eipId, null);
+            } else {
+                log.info("bind operate, eipid:{}, param:{}", eipId, updateParam);
+                if (updateParam.getType() != null) {
+                    return eipService.eipBindWithInstance(eipId, updateParam.getType(), updateParam.getServerId(),
+                            updateParam.getPortId(), updateParam.getPrivateIp());
+                } else {
+                    msg = "need param serverid and type";
+                }
+            }
+        } else {
+            if(updateParam.getBillType()==null&&updateParam.getBandwidth()==0) {
+                log.info("unbind operate, eipid:{}, param:{} ", eipId, param.getEip());
+                return eipService.eipUnbindWithInstacnce(eipId, null);
+            }else {
+
+                msg = "param not correct. " +
+                        "to bind server,body param like{\"eip\" : {\"prot_id\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}" +
+                        "to unbind server , param like {\"eip\" : {\"prot_id\":\"\"} }or   {\"eip\" : {} }" +
+                        "to change bindwidht,body param like {\"eip\" : {\"bandWidth\":xxx,\"billType\":\"xxxxxx\"}" +
+                        "";
+            }
+        }
+
+        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
 
     }
 
