@@ -1,7 +1,6 @@
 package com.inspur.eip.controller.v2;
 
-import com.inspur.eip.config.ConstantClassField;
-import com.inspur.eip.entity.v2.sbw.SbwAllocateParamWrapper;
+import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.ReturnStatus;
@@ -28,20 +27,20 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping(value = ConstantClassField.VERSION_REST, produces = {"application/json;charset=UTF-8"})
-@Api(value = "/v1", description = "sbw API")
+@RequestMapping(value = VersionConstant.REST_VERSION_1_1, produces = {"application/json;charset=UTF-8"})
+@Api(value = "/v1.1", description = "sbw API")
 @Validated
 public class SbwControllerV2 {
 
     @Autowired
     private SbwServiceImpl sbwService;
-
-   /* @ICPControllerLog
-    @PostMapping(value = "/sbws")
+    //todo refactor interface
+    @ICPControllerLog
+    @PostMapping(value = "/sbwstest")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "atomCreateSbw", notes = "createSbw")
-    public ResponseEntity atomAllocateSbw(@Valid @RequestBody SbwAllocateParamWrapper sbwConfig, BindingResult result) {
-        log.info("Create a sbws Atom param:{}.", sbwConfig.getSbwAllocateParam().toString());
+    public ResponseEntity atomAllocateSbw(@Valid @RequestBody SbwUpdateParamWrapper sbwConfig, BindingResult result) {
+        log.info("Create a sbws Atom param:{}.", sbwConfig.getSbw().toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();
@@ -51,8 +50,8 @@ public class SbwControllerV2 {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
                     HttpStatus.BAD_REQUEST);
         }
-        return sbwService.atomCreateSbw(sbwConfig.getSbwAllocateParam());
-    }*/
+        return sbwService.atomCreateSbw(sbwConfig.getSbw());
+    }
 
 
     @ICPControllerLog
@@ -97,14 +96,14 @@ public class SbwControllerV2 {
 
     }
 
-   /* @DeleteMapping(value = "/sbws/{sbw_id}")
+    @DeleteMapping(value = "/sbws/{sbw_id}")
     @ICPControllerLog
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity deleteSbw(@Size(min = 36, max = 36, message = "Must be uuid.")
                                         @PathVariable("sbw_id") String sbwId) {
         log.info("Atom delete the sbw , sbwId:{} ", sbwId);
-        return sbwService.atomDeleteSbw(sbwId);
-    }*/
+        return sbwService.deleteSbwInfo(sbwId);
+    }
     /**
      * get sbw instance detail
      *
@@ -137,14 +136,14 @@ public class SbwControllerV2 {
         return sbwService.getSbwCount();
     }
 
-    /*@ICPControllerLog
+    @ICPControllerLog
     @PostMapping(value = "/sbws/{sbw_id}/renew")
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity renewSbw(@PathVariable("sbw_id") String sbwId,
                                    @RequestBody SbwUpdateParamWrapper param) {
-        log.info("Atom renew or softdown sbw sbwId:{}, param:{}.", sbwId, param.getSbwUpdateParam().toString());
-        return sbwService.renewSbw(sbwId, param.getSbwUpdateParam());
-    }*/
+        log.info("Atom renew or softdown sbw sbwId:{}, param:{}.", sbwId, param.getSbw().toString());
+        return sbwService.renewSbw(sbwId, param.getSbw());
+    }
 
     /**
      * get the eipList in this sbw
@@ -225,7 +224,7 @@ public class SbwControllerV2 {
     }
 
 
-    /*@ICPControllerLog
+    @ICPControllerLog
     @PutMapping(value = "/sbws/{sbw_id}/update", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "update Sbw config", notes = "post")
     @ApiImplicitParams({
@@ -233,7 +232,7 @@ public class SbwControllerV2 {
     })
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity updateSbwConfig(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param, BindingResult result) {
-        log.info("Atom update sbw sbwId:{},param:{}.", sbwId, param.getSbwUpdateParam().toString());
+        log.info("Atom update sbw sbwId:{},param:{}.", sbwId, param.getSbw().toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();
@@ -244,12 +243,12 @@ public class SbwControllerV2 {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
         }
         String msg ;
-        if (param.getSbwUpdateParam().getBillType() != null ) {
-            log.info("update bandWidth, sbwid:{}, param:{} ", sbwId, param.getSbwUpdateParam());
-            return sbwService.updateSbwBandWidth(sbwId, param.getSbwUpdateParam());
+        if (param.getSbw().getBillType() != null ) {
+            log.info("update bandWidth, sbwid:{}, param:{} ", sbwId, param.getSbw());
+            return sbwService.updateSbwConfig(sbwId, param.getSbw());
         } else {
             msg = "param not correct,body param like {\"sbw\" : {\"bandWidth\":xxx,\"billType\":\"xxxxxx\"}";
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
-    }*/
+    }
 }

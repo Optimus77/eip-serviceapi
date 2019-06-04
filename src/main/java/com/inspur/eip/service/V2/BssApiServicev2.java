@@ -60,9 +60,7 @@ public class BssApiServicev2 {
                 ReturnMsg checkRet = preCheckParam(eipConfig);
                 if (checkRet.getCode().equals(ReturnStatus.SC_OK)) {
                     //post request to atom
-                    EipAllocateParamWrapper eipAllocateParamWrapper = new EipAllocateParamWrapper();
-                    eipAllocateParamWrapper.setEip(eipConfig);
-                    createRet = eipService.atomCreateEip(eipAllocateParamWrapper.getEip());
+                    createRet = eipService.atomCreateEip(eipConfig);
                     String retStr = HsConstants.SUCCESS;
 
                     if (createRet.getStatusCodeValue() != HttpStatus.SC_OK) {
@@ -166,7 +164,23 @@ public class BssApiServicev2 {
                 EipUpdateParam eipUpdate = getUpdatParmByOrder(eipOrder);
                 ResponseEntity updateRet=null;
                 if (eipOrder.getOrderType().equalsIgnoreCase("changeConfigure")) {
-                    updateRet = eipService.updateEipBandWidth(eipId, eipUpdate);
+                    if (eipUpdate.getSbwId() != null) {
+                        if (eipUpdate.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
+                            log.info("add eip to shared bandWidth:{}", eipUpdate.toString());
+                            return eipService.addEipToSbw(eipId, eipUpdate);
+                        } else if (eipUpdate.getChargemode().equalsIgnoreCase("Bandwidth")) {
+                            log.info("remove eip from shared bandWidth:{}", eipUpdate.toString());
+                            return eipService.removeEipFromSbw(eipId, eipUpdate);
+                        }
+                    }
+                    if (eipUpdate.getBillType().equals(HsConstants.MONTHLY) ||
+                            eipUpdate.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                        return eipService.updateEipBandWidth(eipId, eipUpdate);
+                    } else {
+                        msg = "chargetype must be [monthly |hourlySettlement]";
+                        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), org.springframework.http.HttpStatus.BAD_REQUEST);
+                    }
+
                 } else if (eipOrder.getOrderType().equalsIgnoreCase("renew") && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
                     updateRet = eipService.renewEip(eipId, eipUpdate);
                 } else {
@@ -402,8 +416,8 @@ public class BssApiServicev2 {
                         retStr = HsConstants.STATUS_ERROR;
                         log.info("create sbw failed, return code:{}", createRet.getStatusCodeValue());
                     } else {
-                        com.inspur.eip.entity.v2.ReturnMsg body =(com.inspur.eip.entity.v2.ReturnMsg)createRet.getBody();
-                        SbwReturnBase sbw = (SbwReturnBase)body.getEip();
+                        com.inspur.eip.entity.v2.SbwReturnMsg body =(com.inspur.eip.entity.v2.SbwReturnMsg)createRet.getBody();
+                        SbwReturnBase sbw = (SbwReturnBase)body.getSbw();
                         webControllerService.returnSbwWebsocket(sbw.getSbwId(), reciveOrder, "create");
                     }
                     returnResult = webControllerService.resultSbwReturnMq(getSbwResult(reciveOrder, sbwId, retStr));
@@ -427,7 +441,7 @@ public class BssApiServicev2 {
             if ((null == returnResult) || (!returnResult.isSuccess())) {
                 if ((null != createRet) && (createRet.getStatusCodeValue() == HttpStatus.SC_OK)) {
                     log.error("Delete the allocate sbw just now for mq message error, id:{}", sbwId);
-                    sbwService.atomDeleteSbw(sbwId);
+                    sbwService.deleteSbwInfo(sbwId);
                 }
             }
         }
@@ -454,7 +468,7 @@ public class BssApiServicev2 {
                 for (OrderProduct product : productList) {
                     sbwId = product.getInstanceId();
                 }
-                ResponseEntity delResult = sbwService.atomDeleteSbw(sbwId);
+                ResponseEntity delResult = sbwService.deleteSbwInfo(sbwId);
 
                 if (delResult.getStatusCodeValue() == HttpStatus.SC_OK) {
                     //Return message to the front des
@@ -498,7 +512,13 @@ public class BssApiServicev2 {
                 wrapper.setSbw(sbwUpdate);
                 ResponseEntity updateRet=null;
                 if (recive.getOrderType().equalsIgnoreCase("changeConfigure")) {
-                    updateRet = sbwService.updateSbwBandWidth(sbwId, sbwUpdate);
+                    if (sbwUpdate.getBillType() != null ) {
+                        log.info("update bandWidth, sbwid:{}, param:{} ", sbwId, sbwUpdate);
+                        updateRet = sbwService.updateSbwConfig(sbwId, sbwUpdate);
+                    } else {
+                        msg = "param not correct,body param like {\"sbw\" : {\"bandWidth\":xxx,\"billType\":\"xxxxxx\"}";
+                        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), org.springframework.http.HttpStatus.BAD_REQUEST);
+                    }
                 } else if (recive.getOrderType().equalsIgnoreCase("renew") && recive.getBillType().equals(HsConstants.MONTHLY)) {
                     updateRet = sbwService.renewSbw(sbwId, sbwUpdate);
                 } else {
@@ -537,7 +557,7 @@ public class BssApiServicev2 {
             for (SoftDownInstance instance : instanceList) {
                 String operateType = instance.getOperateType();
                 if ("delete".equalsIgnoreCase(operateType)) {
-                    updateRet = sbwService.atomDeleteSbw(instance.getInstanceId());
+                    updateRet = sbwService.deleteSbwInfo(instance.getInstanceId());
                 } else if ("stopServer".equalsIgnoreCase(operateType)) {
                     SbwUpdateParamWrapper wrapper = new SbwUpdateParamWrapper();
                     SbwUpdateParam updateParam = new SbwUpdateParam();

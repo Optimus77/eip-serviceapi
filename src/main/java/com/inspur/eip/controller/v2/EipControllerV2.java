@@ -1,9 +1,8 @@
 package com.inspur.eip.controller.v2;
 
-import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
-import com.inspur.eip.config.ConstantClassField;
+import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.v2.LogLevel;
 import com.inspur.eip.entity.v2.eip.*;
 import com.inspur.eip.service.impl.EipServiceImpl;
@@ -34,8 +33,8 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping(value= ConstantClassField.VERSION_REST, produces={"application/json;charset=UTF-8"})
-@Api(value = "/v1", description = "eip API")
+@RequestMapping(value= VersionConstant.REST_VERSION_1_1, produces={"application/json;charset=UTF-8"})
+@Api(value = "/v1.1")
 @Validated
 public class EipControllerV2 {
 
@@ -44,7 +43,7 @@ public class EipControllerV2 {
 
     private String authScret = "kitlv7i2";
 
-   /* @PostMapping(value = "/eips")
+    @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomAllocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
         log.info("Allocate a eip:{}.", eipConfig.getEipAllocateParam().toString());
@@ -58,10 +57,10 @@ public class EipControllerV2 {
                     HttpStatus.BAD_REQUEST);
         }
         return eipService.atomCreateEip(eipConfig.getEipAllocateParam());
-    }*/
+    }
 
 
-    /*@DeleteMapping(value = "/eips/{eip_id}")
+    @DeleteMapping(value = "/eips/{eip_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
                                         @PathVariable("eip_id") String eipId) {
@@ -69,7 +68,7 @@ public class EipControllerV2 {
         log.info("Atom delete the Eip:{} ",eipId);
         return eipService.atomDeleteEip(eipId);
 
-    }*/
+    }
 
     @GetMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
@@ -196,7 +195,7 @@ public class EipControllerV2 {
                     }
                 }
 
-               /* boolean chargeTypeFlag = false;
+               boolean chargeTypeFlag = false;
                 if (updateParam.getBillType().equals(HsConstants.MONTHLY) ||
                         updateParam.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
                     chargeTypeFlag = true;
@@ -205,8 +204,8 @@ public class EipControllerV2 {
                 }
                 if (chargeTypeFlag) {
                     log.info("update bandWidth, eipid:{}, param:{} ", eipId, updateParam);
-                    return eipService.updateEipBandWidth(eipId, param);
-                }*/
+                    return eipService.updateEipBandWidth(eipId, updateParam);
+                }
             } else {
                 msg = "param not correct. " +
                         "to bind server,body param like{\"eip\" : {\"prot_id\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}" +
@@ -214,7 +213,7 @@ public class EipControllerV2 {
                         "to change bindwidht,body param like {\"eip\" : {\"bandWidth\":xxx,\"billType\":\"xxxxxx\"}" +
                         "";
             }
-        }
+       }
 
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
 
@@ -254,13 +253,13 @@ public class EipControllerV2 {
 
 
 
-/*    @PostMapping(value = "/eips/{eip_id}/renew")
+    @PostMapping(value = "/eips/{eip_id}/renew")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity renewEip(@PathVariable("eip_id") String eipId,
-                                   @RequestBody EipAllocateParam param ) {
+                                   @RequestBody EipUpdateParam param ) {
         log.info("Renew a eip:{}, order:{}.", eipId, param.toString());
         return eipService.renewEip(eipId, param);
-    }*/
+    }
 
     @PostMapping(value = "/deleiplist", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)

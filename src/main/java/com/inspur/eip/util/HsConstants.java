@@ -29,6 +29,7 @@ public class HsConstants {
 	public static final String DURATION = "duration";
 	public static final String UNSUBSCRIBE = "unsubscribe";
 	public static final String STOPSERVER = "stopServer";
+	public static final String RESUMESERVER = "resumeServer";
 	public static final String CHARGE_MODE_BANDWIDTH = "Bandwidth";
 	public static final String CHARGE_MODE_SHAREDBANDWIDTH = "SharedBandwidth";
 

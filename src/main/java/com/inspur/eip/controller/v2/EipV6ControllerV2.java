@@ -1,7 +1,7 @@
 package com.inspur.eip.controller.v2;
 
 
-import com.inspur.eip.config.ConstantClassField;
+import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.v2.eipv6.EipV6AllocateParamWrapper;
 import com.inspur.eip.entity.v2.eipv6.EipV6UpdateParam;
 import com.inspur.eip.entity.v2.eipv6.EipV6UpdateParamWrapper;
@@ -29,7 +29,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping(value= ConstantClassField.VERSION_REST, produces={"application/json;charset=UTF-8"})
+@RequestMapping(value= VersionConstant.REST_VERSION_1_1, produces={"application/json;charset=UTF-8"})
 @Api(value = "/v1.1", description = "eipv6 API")
 @Validated
 public class EipV6ControllerV2 {
@@ -41,16 +41,16 @@ public class EipV6ControllerV2 {
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity allocateEipV6(@Valid @RequestBody EipV6AllocateParamWrapper eipV6Config, BindingResult result) {
         log.info("Allocate a eipv6:{}.", eipV6Config.getEipV6AllocateParam().toString());
-        if (result.hasErrors()) {
+        if ( result.hasErrors() ) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();
             for (FieldError fieldError : fieldErrors) {
                 msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
             }
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+            return new ResponseEntity<>( ReturnMsgUtil.error( ReturnStatus.SC_PARAM_ERROR , msgBuffer.toString() ),
                     HttpStatus.BAD_REQUEST);
         }
-        ResponseEntity responseEntity = eipV6Service.atomCreateEipV6(eipV6Config.getEipV6AllocateParam().getEipId());
+        ResponseEntity responseEntity = eipV6Service.atomCreateEipV6( eipV6Config.getEipV6AllocateParam().getEipId() );
         return responseEntity;
     }
 
@@ -58,21 +58,21 @@ public class EipV6ControllerV2 {
     @GetMapping(value = "/eipv6")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeipv6",notes="list")
-    public ResponseEntity listEipV6(@RequestParam(required = false) String currentPage ,
-                                    @RequestParam(required = false )String limit,
-                                    @RequestParam(required = false )String status) {
+    public ResponseEntity listEipV6(@RequestParam ( required = false ) String currentPage ,
+                                    @RequestParam ( required = false ) String limit,
+                                    @RequestParam ( required = false ) String status) {
         log.debug("EipController listEipv6, currentPage:{}, limit:{}", currentPage, limit);
         if(StringUtils.isBlank(currentPage)||StringUtils.isBlank(limit)){
             currentPage="0";
             limit="0";
-        }else{
-            try{
-                int currentPageNum = Integer.parseInt(currentPage);
-                int limitNum = Integer.parseInt(limit);
-                if (currentPageNum < 0 || limitNum < 0) {
+        } else {
+            try {
+                 int currentPageNum = Integer.parseInt(currentPage);
+                 int limitNum = Integer.parseInt(limit);
+                 if (currentPageNum < 0 || limitNum < 0) {
                     currentPage = "0";
                 }
-            }catch (Exception e){
+            } catch (Exception e){
                 log.error("number is not correct ");
                 currentPage="0";
                 limit="0";
