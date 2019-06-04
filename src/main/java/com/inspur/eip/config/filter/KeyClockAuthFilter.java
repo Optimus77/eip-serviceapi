@@ -79,6 +79,29 @@ public class KeyClockAuthFilter implements Filter {
         }else {
             filterChain.doFilter(servletRequest, servletResponse);
         }
+        if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equalsIgnoreCase("/v1/orders/softdown")){
+
+            String requestBody = com.inspur.eip.util.CommonUtil.readRequestAsChars(req);
+            log.info("get softdown eip order:{}.", requestBody);
+            OrderSoftDown eipReciveOrder = JSON.parseObject(requestBody, OrderSoftDown.class);
+            JSONObject result = bssApiService.onReciveSoftDownOrder(eipReciveOrder);
+
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+        }else if(method.equalsIgnoreCase(HsConstants.POST)  && req.getPathInfo().equalsIgnoreCase("/v1/sbws/softdown")){
+            String requestBody =  com.inspur.eip.util.CommonUtil.readRequestAsChars(req);
+            log.info("get softDelete sbw order:{}.", requestBody);
+            OrderSoftDown softDown = JSON.parseObject(requestBody, OrderSoftDown.class);
+            JSONObject result = bssApiService.stopOrSoftDeleteSbw(softDown);
+
+            response.setStatus(HttpStatus.SC_OK);
+            response.setContentType(HsConstants.APPLICATION_JSON);
+            response.getWriter().write(result.toJSONString());
+        }else {
+            filterChain.doFilter(servletRequest, servletResponse);
+        }
+
     }
 
     @Override
