@@ -58,7 +58,7 @@ public class EipDaoService {
      * @return result
      */
     @Transactional
-    public Eip allocateEip(EipAllocateParam eipConfig, EipPool eip, String portId) throws KeycloakTokenException {
+    public Eip allocateEip(EipAllocateParam eipConfig, EipPool eip, String portId, String token) throws KeycloakTokenException {
 
 
         if (!eip.getState().equals("0")) {
@@ -95,10 +95,10 @@ public class EipDaoService {
         eipMo.setBandWidth(eipConfig.getBandwidth());
         eipMo.setRegion(eipConfig.getRegion());
         eipMo.setSbwId(eipConfig.getSbwId());
-        String userId = CommonUtil.getUserId();
+        String userId = CommonUtil.getUserId(token);
         log.debug("get tenantid:{} from clientv3", userId);
         eipMo.setUserId(userId);
-        eipMo.setProjectId(CommonUtil.getProjectName());
+        eipMo.setProjectId(CommonUtil.getProjectName(token));
         eipMo.setIsDelete(0);
 
         eipMo.setCreateTime(CommonUtil.getGmtDate());
@@ -175,6 +175,58 @@ public class EipDaoService {
         return ActionResponse.actionSuccess();
     }
 
+    @Transactional
+    ActionResponse adminDeleteEip(String eipid)  {
+        String msg;
+        Eip eipEntity = eipRepository.findByEipId(eipid);
+        if ((null == eipEntity) || (eipEntity.getIsDelete() == 1) ){
+            msg = "Faild to find eip by id:" + eipid;
+            log.error(msg);
+            return ActionResponse.actionFailed(msg,HttpStatus.SC_NOT_FOUND);
+        }
+        if ((null != eipEntity.getPipId())
+                || (null != eipEntity.getDnatId())
+                || (null != eipEntity.getSnatId())) {
+            msg = "Failed to delete eip,please unbind eip first." + eipEntity.toString();
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        }
+
+        if (null != eipEntity.getFloatingIpId() && !neutronService.superDeleteFloatingIp(eipEntity.getFloatingIpId(), eipEntity.getInstanceId())) {
+            msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
+            log.error(msg);
+        }
+
+        ActionResponse delV6Ret = eipV6DaoService.deleteEipV6(eipEntity.getEipV6Id());
+        if(!delV6Ret.isSuccess()){
+            log.error("Faild to delete ipv6 address.");
+        }
+
+        eipEntity.setIsDelete(1);
+        eipEntity.setUpdateTime(CommonUtil.getGmtDate());
+        eipEntity.setEipV6Id(null);
+        eipRepository.saveAndFlush(eipEntity);
+        if(eipEntity.getStatus().equals(HsConstants.ERROR)){
+            return ActionResponse.actionSuccess();
+        }
+        EipPool eipPool = eipPoolRepository.findByIp(eipEntity.getEipAddress());
+        if (null != eipPool) {
+            log.error("******************************************************************************");
+            log.error("Fatal error, eip has already exist in eip pool. can not add to eip pool.{}",
+                    eipEntity.getEipAddress());
+            log.error("******************************************************************************");
+        } else {
+            EipPool eipPoolMo = new EipPool();
+            eipPoolMo.setFireWallId(eipEntity.getFirewallId());
+            eipPoolMo.setIp(eipEntity.getEipAddress());
+            eipPoolMo.setState("0");
+            eipPoolRepository.saveAndFlush(eipPoolMo);
+            log.info("Success delete eip:{}", eipEntity.getEipAddress());
+        }
+
+        return ActionResponse.actionSuccess();
+    }
+
 
     @Transactional
     public ActionResponse softDownEip(String  eipid) {
@@ -185,10 +237,10 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
-        if(!CommonUtil.isAuthoried(eipEntity.getUserId())){
-            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
-            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
-        }
+//        if(!CommonUtil.isAuthoried(eipEntity.getUserId())){
+//            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
+//            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
+//        }
         eipEntity.setStatus(HsConstants.STOP);
         eipEntity.setUpdateTime(CommonUtil.getGmtDate());
         MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
@@ -364,28 +416,25 @@ public class EipDaoService {
     }
 
     @Transactional
-    public MethodReturn updateEipEntity(String eipid, EipUpdateParam param) {
+    ActionResponse updateEipEntity(String eipid, EipUpdateParam param) {
 
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if (null == eipEntity) {
             log.error("updateEipEntity In disassociate process,failed to find the eip by id:{} ", eipid);
-            return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
-                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
+            return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND), HttpStatus.SC_NOT_FOUND);
         }
         if(StringUtils.isNotBlank(eipEntity.getEipV6Id())){
             log.error("EIP is already bound to eipv6");
-            return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
-                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR));
+            return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR), HttpStatus.SC_NOT_FOUND);
         }
         if(!CommonUtil.isAuthoried(eipEntity.getUserId())){
             log.error("User have no write to operate eip:{}", eipid);
-            return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
-                    CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
+            return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN), HttpStatus.SC_FORBIDDEN);
         }
         if(param.getBillType().equals(HsConstants.MONTHLY)&&param.getBandwidth()<eipEntity.getBandWidth()){
             //can’t sub
-                return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.SC_PARAM_ERROR,
-                        CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR));
+            return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDHT_PREPAID_INCREASE_ERROR),
+                    HttpStatus.SC_BAD_REQUEST);
         }
         boolean updateStatus;
         if(null == eipEntity.getPipId() || eipEntity.getPipId().isEmpty()){
@@ -403,10 +452,9 @@ public class EipDaoService {
             eipEntity.setBillType(param.getBillType());
             eipEntity.setUpdateTime(CommonUtil.getGmtDate());
             eipRepository.saveAndFlush(eipEntity);
-            return MethodReturnUtil.success(eipEntity);
+            return ActionResponse.actionSuccess();
         }else{
-            return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_SERVER_ERROR,
-                    CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDTH_ERROR));
+            return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDTH_ERROR), HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
 
     }

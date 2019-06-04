@@ -10,6 +10,7 @@ import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
+import org.openstack4j.model.common.ActionResponse;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +42,12 @@ public class RabbitMqServiceImpl {
     private EipServiceImpl eipService;
 
     @Autowired
+    private EipDaoService eipDaoService;
+
+    @Autowired
+    private SbwDaoService sbwDaoService;
+
+    @Autowired
     private SbwServiceImpl sbwService;
 
     // 发送消息的exchange:订单消息和停服、软删消息使用同一个exchange ，如需更换，需添加停服软删的exchange配置
@@ -70,49 +77,51 @@ public class RabbitMqServiceImpl {
      * @param eipOrder order
      * @return return message
      */
-    public ResponseEntity createEipInfo(ReciveOrder eipOrder) {
+    public String createEipInfo(ReciveOrder eipOrder) {
 
-        String retStr = HsConstants.FAIL;
-        ResponseEntity<EipReturnBase> response = null;
-        EipReturnBase eipBody = null;
+        ResponseEntity response;
+        EipReturnBase eipBody;
+        String eipId = null;
         try {
-            log.debug("Recive create order:{}", JSONObject.toJSONString(eipOrder));
-            if (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
-                EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
-                ReturnMsg checkRet = preCheckParam(eipConfig);
-                if (checkRet.getCode().equals(ReturnStatus.SC_OK)) {
-                    response = eipService.atomCreateEip(eipConfig);
-                    if (response != null) {
-                        if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
-                            log.warn("create eip failed, return code:{}", response.getStatusCodeValue());
-                        } else {
-                            retStr = HsConstants.SUCCESS;
-                            eipBody = response.getBody();
-                            if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
-                                webService.returnsIpv6Websocket("Success", "Success", "createNatWithEip");
-                            } else {
-                                webService.returnsWebsocket(eipBody.getEipId(), eipOrder, "create");
-                            }
-                            sendOrderMessageToBss(getEipOrderResult(eipOrder, eipBody.getEipId(), retStr));
-                            return response;
-                        }
-                    }
-                } else {
-                    log.warn(checkRet.getMessage());
-                }
-            } else {
-                log.warn(ConstantClassField.ORDER_NOT_PAYED);
+            log.debug("Recive create mq:{}", JSONObject.toJSONString(eipOrder));
+            EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
+            ReturnMsg checkRet = preCheckParam(eipConfig);
+            if (!(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) || !(checkRet.getCode().equals(ReturnStatus.SC_OK)) ) {
+                log.warn(checkRet.getMessage());
+                return null;
             }
 
+            response = eipService.atomCreateEip(eipConfig, eipOrder.getToken());
+            if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
+                log.warn("create eip failed, return code:{}", response.getStatusCodeValue());
+            } else {
+                eipBody = (EipReturnBase) response.getBody();
+                if(null != eipBody) {
+                    eipId = eipBody.getEipId();
+                }
+
+                if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
+                    webService.returnsIpv6Websocket("Success", "Success", "createNatWithEip");
+                } else {
+                    webService.returnsWebsocket(eipId, eipOrder, "create");
+                }
+                return eipId;
+            }
         } catch (Exception e) {
             log.error(ConstantClassField.EXCEPTION_EIP_CREATE, e.getMessage());
-            if (response != null && response.getStatusCodeValue() == HttpStatus.SC_OK && eipBody !=null) {
-                eipService.atomDeleteEip(eipBody.getEipId());
+            if(null != eipId) {
+                eipDaoService.adminDeleteEip(eipId);
+                eipId = null;
             }
-            sendOrderMessageToBss(getEipOrderResult(eipOrder, "", HsConstants.FAIL));
+        }finally {
+            if(null == eipId) {
+                sendOrderMessageToBss(getEipOrderResult(eipOrder, "", HsConstants.FAIL));
+            }else {
+                sendOrderMessageToBss(getEipOrderResult(eipOrder,eipId, HsConstants.SUCCESS));
+            }
         }
-        sendOrderMessageToBss(getEipOrderResult(eipOrder, "", retStr));
-        return response;
+
+        return eipId;
     }
 
     /**
@@ -121,10 +130,9 @@ public class RabbitMqServiceImpl {
      * @param eipOrder order
      * @return string
      */
-    public ResponseEntity deleteEipConfig(ReciveOrder eipOrder) {
+    public ActionResponse deleteEipConfig(ReciveOrder eipOrder) {
         String eipId = "";
-        ResponseEntity response = null;
-        String retStr = HsConstants.UNSUBSCRIBE;
+        ActionResponse response = null;
 
         try {
             log.debug("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
@@ -133,20 +141,18 @@ public class RabbitMqServiceImpl {
                 for (OrderProduct orderProduct : orderProducts) {
                     eipId = orderProduct.getInstanceId();
                 }
-                response = eipService.atomDeleteEip(eipId);
-                if (response != null) {
-                    if (response.getStatusCodeValue() == org.springframework.http.HttpStatus.OK.value()) {
-                        if (eipOrder.getConsoleCustomization().containsKey("operateType") &&
-                                eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")) {
-                            webService.returnsIpv6Websocket("Success", "Success", "deleteNatWithEip");
-                        } else {
-                            webService.returnsWebsocket(eipId, eipOrder, "delete");
-                        }
-                        sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, retStr));
-                        return response;
+                response = eipDaoService.adminDeleteEip(eipId);
+                if (response.isSuccess()){
+                    if (eipOrder.getConsoleCustomization().containsKey("operateType") &&
+                            eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")) {
+                        webService.returnsIpv6Websocket("Success", "Success", "deleteNatWithEip");
                     } else {
-                        log.warn(String.format(ConstantClassField.DELETE_EIP_CONFIG_RESULT, response.getBody()) + ReturnStatus.SC_INTERNAL_SERVER_ERROR);
+                        webService.returnsWebsocket(eipId, eipOrder, "delete");
                     }
+                    sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.UNSUBSCRIBE));
+                    return response;
+                } else {
+                    log.warn(String.format(ConstantClassField.DELETE_EIP_CONFIG_RESULT, response.getFault()) + ReturnStatus.SC_INTERNAL_SERVER_ERROR);
                 }
             } else {
                 log.error(ConstantClassField.ORDER_STATUS_NOT_CORRECT + eipOrder.getOrderStatus());
@@ -165,9 +171,9 @@ public class RabbitMqServiceImpl {
      * @param eipOrder order
      * @return string
      */
-    public ResponseEntity updateEipInfoConfig(ReciveOrder eipOrder) {
+    public ActionResponse updateEipInfoConfig(ReciveOrder eipOrder) {
         String eipId = null;
-        ResponseEntity response = null;
+        ActionResponse response = null;
         String result = HsConstants.FAIL;
         try {
             eipId = eipOrder.getProductList().get(0).getInstanceId();
@@ -179,25 +185,24 @@ public class RabbitMqServiceImpl {
                     if (eipUpdate.getSbwId() != null) {
                         if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
                             log.info("add eip to sbw:{}", eipUpdate.toString());
-                            response = eipService.addEipToSbw(eipId, eipUpdate);
+                            response = sbwDaoService.addEipIntoSbw(eipId, eipUpdate);
                         } else if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_BANDWIDTH)) {
                             log.info("remove eip from sbw:{}", eipUpdate.toString());
-                            response = eipService.removeEipFromSbw(eipId, eipUpdate);
+                            response = sbwDaoService.removeEipFromSbw(eipId, eipUpdate);
                         }
                     }
                     if (eipUpdate.getBillType().equals(HsConstants.MONTHLY) ||
                             eipUpdate.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                        response = eipService.updateEipBandWidth(eipId, eipUpdate);
+                        response = eipDaoService.updateEipEntity(eipId, eipUpdate);
                     } else {
-                        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, ConstantClassField.BILL_TYPE_NOT_SUPPORT),
-                                org.springframework.http.HttpStatus.BAD_REQUEST);
+                        return ActionResponse.actionFailed(ConstantClassField.BILL_TYPE_NOT_SUPPORT, HttpStatus.SC_BAD_REQUEST);
                     }
                 } else if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
                     response = eipService.renewEip(eipId, eipUpdate);
                 } else {
                     log.error(ConstantClassField.ORDER_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
                 }
-                if (response != null && response.getStatusCodeValue() == HttpStatus.SC_OK) {
+                if (response != null && response.isSuccess()) {
                     result = HsConstants.SUCCESS;
                     webService.returnsWebsocket(eipId, eipOrder, "update");
                     sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, result));
@@ -222,8 +227,8 @@ public class RabbitMqServiceImpl {
      * @param eipOrder order
      * @return return
      */
-    public ResponseEntity softDowOrDeleteEip(OrderSoftDown eipOrder) {
-        ResponseEntity response = null;
+    public ActionResponse softDowOrDeleteEip(OrderSoftDown eipOrder) {
+        ActionResponse response = null;
         String result = HsConstants.FAIL;
         String insanceStatus = HsConstants.FAIL;
         try {
@@ -232,8 +237,8 @@ public class RabbitMqServiceImpl {
             for (SoftDownInstance softDownInstance : instanceList) {
                 String operateType = softDownInstance.getOperateType();
                 if (HsConstants.DELETE.equalsIgnoreCase(operateType)) {
-                    response = eipService.atomDeleteEip(softDownInstance.getInstanceId());
-                    if (response != null && response.getStatusCodeValue() == HttpStatus.SC_OK) {
+                    response =  eipDaoService.adminDeleteEip(softDownInstance.getInstanceId());
+                    if (response.isSuccess()) {
                         insanceStatus = HsConstants.DELETED;
                         result = HsConstants.SUCCESS;
                     }
@@ -242,10 +247,10 @@ public class RabbitMqServiceImpl {
                     updateParam.setDuration("0");
                     response = eipService.renewEip(softDownInstance.getInstanceId(), updateParam);
                     if (response != null) {
-                        if (response.getStatusCodeValue() == HttpStatus.SC_OK) {
+                        if (response.isSuccess()) {
                             insanceStatus = HsConstants.STOPSERVER;
                             result = HsConstants.SUCCESS;
-                        } else if (response.getStatusCodeValue() == HttpStatus.SC_NOT_FOUND) {
+                        } else if (response.getCode() == HttpStatus.SC_NOT_FOUND) {
                             insanceStatus = HsConstants.NOTFOUND;
                             result = HsConstants.SUCCESS;
                         }
@@ -254,7 +259,7 @@ public class RabbitMqServiceImpl {
                     EipUpdateParam eipUpdate = new EipUpdateParam();
                     eipUpdate.setDuration("1");
                     response = eipService.renewEip(softDownInstance.getInstanceId(), eipUpdate);
-                    if (response != null && response.getStatusCodeValue() == HttpStatus.SC_OK) {
+                    if (response != null && response.isSuccess()) {
                         insanceStatus = HsConstants.SUCCESS;
                         result = HsConstants.SUCCESS;
                     }
@@ -295,8 +300,12 @@ public class RabbitMqServiceImpl {
                         } else {
                             retStr = HsConstants.STATUS_ACTIVE;
                             sbwBody = response.getBody();
-                            webService.returnSbwWebsocket(sbwBody.getSbwId(), reciveOrder, "create");
-                            sendOrderMessageToBss(packageSbwReturnResult(reciveOrder, sbwBody.getSbwId(), retStr));
+                            String sbwId = null;
+                            if(null != sbwBody){
+                                sbwId = sbwBody.getSbwId();
+                            }
+                            webService.returnSbwWebsocket(sbwId, reciveOrder, "create");
+                            sendOrderMessageToBss(packageSbwReturnResult(reciveOrder, sbwId, retStr));
                             return response;
                         }
                     }

@@ -65,7 +65,7 @@ public class CommonUtil {
      * get the Keycloak authorization token  from httpHeader;
      * @return  string string
      */
-    public static String getKeycloackToken() {
+    static String getKeycloackToken() {
         //important
         ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if(null != requestAttributes) {
@@ -96,6 +96,26 @@ public class CommonUtil {
     public static String getUserId()throws KeycloakTokenException {
 
         String token = getKeycloackToken();
+        if(null == token){
+            throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
+        }else{
+            JSONObject jsonObject = decodeUserInfo(token);
+            if (jsonObject !=null){
+                String sub = (String) jsonObject.get("sub");
+                if (sub != null) {
+                    log.info("getUserId:{}", sub);
+                    return sub;
+                } else {
+                    throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
+                }
+            }else {
+                log.info("jsonObject is null");
+                throw new KeycloakTokenException("400-Bad request:can't get jsonObject info from header,please check");
+            }
+        }
+    }
+    public static String getUserId(String token)throws KeycloakTokenException {
+
         if(null == token){
             throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
         }else{

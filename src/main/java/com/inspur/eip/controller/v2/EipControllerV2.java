@@ -7,6 +7,7 @@ import com.inspur.eip.entity.v2.LogLevel;
 import com.inspur.eip.entity.v2.eip.*;
 import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.util.HsConstants;
+import com.inspur.eip.util.v2.CommonUtil;
 import com.inspur.eip.util.v2.ReturnMsgUtil;
 import com.inspur.eip.util.ReturnStatus;
 import io.swagger.annotations.*;
@@ -56,7 +57,7 @@ public class EipControllerV2 {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
                     HttpStatus.BAD_REQUEST);
         }
-        return eipService.atomCreateEip(eipConfig.getEipAllocateParam());
+        return eipService.atomCreateEip(eipConfig.getEipAllocateParam(), CommonUtil.getKeycloackToken());
     }
 
 
@@ -185,27 +186,9 @@ public class EipControllerV2 {
                 log.info("unbind operate, eipid:{}, param:{} ", eipId, param.getEip());
                 return eipService.eipUnbindWithInstacnce(eipId, null);
             }else if (updateParam.getBandwidth() != 0 && updateParam.getBillType() != null) {
-                if (updateParam.getSbwId() != null) {
-                    if (updateParam.getChargemode().equalsIgnoreCase("SharedBandwidth")) {
-                        log.info("add eip to shared bandWidth:{}", updateParam.toString());
-                        return eipService.addEipToSbw(eipId, updateParam);
-                    } else if (updateParam.getChargemode().equalsIgnoreCase("Bandwidth")) {
-                        log.info("remove eip from shared bandWidth:{}", updateParam.toString());
-                        return eipService.removeEipFromSbw(eipId, updateParam);
-                    }
-                }
 
-               boolean chargeTypeFlag = false;
-                if (updateParam.getBillType().equals(HsConstants.MONTHLY) ||
-                        updateParam.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                    chargeTypeFlag = true;
-                } else {
-                    msg = "chargetype must be [monthly |hourlySettlement]";
-                }
-                if (chargeTypeFlag) {
-                    log.info("update bandWidth, eipid:{}, param:{} ", eipId, updateParam);
-                    return eipService.updateEipBandWidth(eipId, updateParam);
-                }
+                log.error("Param error. eipid:{}, param:{} ", eipId, updateParam);
+
             } else {
                 msg = "param not correct. " +
                         "to bind server,body param like{\"eip\" : {\"prot_id\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}" +
@@ -253,13 +236,13 @@ public class EipControllerV2 {
 
 
 
-    @PostMapping(value = "/eips/{eip_id}/renew")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity renewEip(@PathVariable("eip_id") String eipId,
-                                   @RequestBody EipUpdateParam param ) {
-        log.info("Renew a eip:{}, order:{}.", eipId, param.toString());
-        return eipService.renewEip(eipId, param);
-    }
+//    @PostMapping(value = "/eips/{eip_id}/renew")
+//    @CrossOrigin(origins = "*",maxAge = 3000)
+//    public ResponseEntity renewEip(@PathVariable("eip_id") String eipId,
+//                                   @RequestBody EipUpdateParam param ) {
+//        log.info("Renew a eip:{}, order:{}.", eipId, param.toString());
+//        return eipService.renewEip(eipId, param);
+//    }
 
     @PostMapping(value = "/deleiplist", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)

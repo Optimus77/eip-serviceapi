@@ -3,7 +3,6 @@ package com.inspur.eip.config.filter;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
-import com.inspur.eip.service.BssApiService;
 import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.util.HsConstants;
 import com.inspur.eip.util.ReturnStatus;
@@ -27,9 +26,6 @@ public class KeyClockAuthFilter implements Filter {
     @Autowired
     private EipServiceImpl eipService;
 
-    @Autowired
-    private BssApiService bssApiService;
-
     @Override
     public void init(FilterConfig filterConfig)  {
         log.info("******************KeyClockAuthFilter init");
@@ -51,7 +47,6 @@ public class KeyClockAuthFilter implements Filter {
             response.setStatus(HttpStatus.SC_BAD_REQUEST);
             response.setContentType(HsConstants.APPLICATION_JSON);
             response.getWriter().write(result.toJSONString());
-            return;
         }else{
             String token = req.getHeader("Authorization");
             log.debug("get authorization {}",token);

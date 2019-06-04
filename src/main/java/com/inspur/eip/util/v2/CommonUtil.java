@@ -19,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
@@ -214,6 +213,21 @@ public class CommonUtil {
             }
         }
     }
+    public static String getUserId(String token)throws KeycloakTokenException {
+
+        if(null == token){
+            throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NULL));
+        }else{
+            org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+            String sub = (String) jsonObject.get("sub");
+            if(sub!=null){
+                log.debug("getUserId:{}", sub);
+                return sub;
+            }else{
+                throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_TOKEN_EXPIRED));
+            }
+        }
+    }
     public static String getRegionName() {
 
         return userConfig.get("debugRegionS");
@@ -221,6 +235,23 @@ public class CommonUtil {
     public static String getProjectName()throws KeycloakTokenException {
 
         String token = getKeycloackToken();
+        if(null == token){
+            throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NULL));
+        }
+        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+        String projectName = null;
+        if (jsonObject.has("project")) {
+            projectName = (String) jsonObject.get("project");
+        } else if (jsonObject.has("preferred_username")) {
+            projectName = (String) jsonObject.get("preferred_username");
+        }
+        if (projectName != null) {
+            log.info("getProjectName:{}", projectName);
+        }
+        return projectName;
+    }
+    public static String getProjectName(String token)throws KeycloakTokenException {
+
         if(null == token){
             throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NULL));
         }
