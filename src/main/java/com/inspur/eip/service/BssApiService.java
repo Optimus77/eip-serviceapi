@@ -1,6 +1,5 @@
 package com.inspur.eip.service;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import com.inspur.eip.entity.*;
@@ -9,7 +8,6 @@ import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -344,13 +342,13 @@ public class BssApiService {
     }
 
     /**
-     * constructe EipOrderResult form order
+     * constructe Console2BssResult form order
      * @param reciveOrder order
      * @param eipId       id
      * @param result      result
-     * @return EipOrderResult
+     * @return Console2BssResult
      */
-    private EipOrderResult getEipOrderResult(ReciveOrder reciveOrder, String eipId, String result) {
+    private Console2BssResult getEipOrderResult(ReciveOrder reciveOrder, String eipId, String result) {
         List<OrderProduct> orderProducts = reciveOrder.getProductList();
 
         for (OrderProduct orderProduct : orderProducts) {
@@ -359,10 +357,10 @@ public class BssApiService {
             orderProduct.setStatusTime(reciveOrder.getStatusTime());
         }
 
-        EipOrderResult eipOrderResult = new EipOrderResult();
-        eipOrderResult.setUserId(reciveOrder.getUserId());
-        eipOrderResult.setConsoleOrderFlowId(reciveOrder.getConsoleOrderFlowId());
-        eipOrderResult.setOrderId(reciveOrder.getOrderId());
+        Console2BssResult console2BssResult = new Console2BssResult();
+        console2BssResult.setUserId(reciveOrder.getUserId());
+        console2BssResult.setConsoleOrderFlowId(reciveOrder.getConsoleOrderFlowId());
+        console2BssResult.setOrderId(reciveOrder.getOrderId());
 
         List<OrderResultProduct> orderResultProducts = new ArrayList<>();
         OrderResultProduct orderResultProduct = new OrderResultProduct();
@@ -373,8 +371,8 @@ public class BssApiService {
         }
         orderResultProduct.setProductList(reciveOrder.getProductList());
         orderResultProducts.add(orderResultProduct);
-        eipOrderResult.setProductSetList(orderResultProducts);
-        return eipOrderResult;
+        console2BssResult.setProductSetList(orderResultProducts);
+        return console2BssResult;
     }
 
     /**
@@ -640,7 +638,7 @@ public class BssApiService {
         return sbwParam;
     }
 
-    private EipOrderResult getSbwResult(ReciveOrder reciveOrder, String sbwId, String result) {
+    private Console2BssResult getSbwResult(ReciveOrder reciveOrder, String sbwId, String result) {
         List<OrderProduct> productList = reciveOrder.getProductList();
 
         for (OrderProduct orderProduct : productList) {
@@ -649,10 +647,10 @@ public class BssApiService {
             orderProduct.setStatusTime(reciveOrder.getStatusTime());
         }
 
-        EipOrderResult eipOrderResult = new EipOrderResult();
-        eipOrderResult.setUserId(reciveOrder.getUserId());
-        eipOrderResult.setConsoleOrderFlowId(reciveOrder.getConsoleOrderFlowId());
-        eipOrderResult.setOrderId(reciveOrder.getOrderId());
+        Console2BssResult console2BssResult = new Console2BssResult();
+        console2BssResult.setUserId(reciveOrder.getUserId());
+        console2BssResult.setConsoleOrderFlowId(reciveOrder.getConsoleOrderFlowId());
+        console2BssResult.setOrderId(reciveOrder.getOrderId());
 
         List<OrderResultProduct> orderResultProducts = new ArrayList<>();
         OrderResultProduct resultProduct = new OrderResultProduct();
@@ -664,7 +662,7 @@ public class BssApiService {
         resultProduct.setProductList(reciveOrder.getProductList());
 
         orderResultProducts.add(resultProduct);
-        eipOrderResult.setProductSetList(orderResultProducts);
-        return eipOrderResult;
+        console2BssResult.setProductSetList(orderResultProducts);
+        return console2BssResult;
     }
 }

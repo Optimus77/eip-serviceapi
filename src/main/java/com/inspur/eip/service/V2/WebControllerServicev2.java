@@ -34,7 +34,7 @@ class WebControllerServicev2 {
      * @param orderResult  result
      * @return return
      */
-    ReturnResult resultReturnMq(EipOrderResult orderResult)   {
+    ReturnResult resultReturnMq(Console2BssResult orderResult)   {
         String url=returnMq;
         String orderStr=JSONObject.toJSONString(orderResult);
         try {
@@ -152,12 +152,12 @@ class WebControllerServicev2 {
 
     /**
      * 订单返回给控制台的消息
-     * @param eipOrderResult  result
+     * @param console2BssResult  result
      * @return return
      */
-    ReturnResult resultSbwReturnMq(EipOrderResult eipOrderResult)   {
+    ReturnResult resultSbwReturnMq(Console2BssResult console2BssResult)   {
         String url=returnMq;
-        String mqStr=JSONObject.toJSONString(eipOrderResult);
+        String mqStr=JSONObject.toJSONString(console2BssResult);
         try {
             Map<String, String> header = new HashMap<>();
             header.put(HsConstants.AUTHORIZATION, "bearer "+ clientTokenUtil.getAdminToken().trim());

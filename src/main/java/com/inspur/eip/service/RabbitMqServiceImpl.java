@@ -1,5 +1,6 @@
 package com.inspur.eip.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.*;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
@@ -54,12 +55,14 @@ public class RabbitMqServiceImpl {
     @Value("${bss.queues.change.binding.returnRoutingKey}")
     private String changeKey;
 
-    private void sendOrderMessageToBss(Object obj) {
+    private void sendOrderMessageToBss(Console2BssResult obj) {
         // 这里会用rabbitMessagingTemplate中配置的MessageConverter自动将obj转换为字节码
+        log.info("+++++++Send order message to Console：+++++++",obj);
         rabbitTemplate.convertAndSend(exchange, routingKey, obj);
     }
 
-    private void sendChangeMessageToBss(Object obj) {
+    private void sendChangeMessageToBss(OrderSoftDown obj) {
+        log.info("-------Send change message to Console：-------",obj);
         rabbitTemplate.convertAndSend(exchange, changeKey, obj);
     }
 
@@ -220,16 +223,16 @@ public class RabbitMqServiceImpl {
     /**
      * soft down order from bss
      *
-     * @param eipOrder order
+     * @param softDown order
      * @return return
      */
-    public ResponseEntity softDowOrDeleteEip(OrderSoftDown eipOrder) {
+    public ResponseEntity softDowOrDeleteEip(OrderSoftDown softDown) {
         ResponseEntity response = null;
         String result = HsConstants.FAIL;
         String insanceStatus = HsConstants.FAIL;
         try {
-            log.debug("Recive soft down or delete order:{}", JSONObject.toJSONString(eipOrder));
-            List<SoftDownInstance> instanceList = eipOrder.getInstanceList();
+            log.debug("Recive soft down or delete order:{}", JSONObject.toJSONString(softDown));
+            List<SoftDownInstance> instanceList = softDown.getInstanceList();
             for (SoftDownInstance softDownInstance : instanceList) {
                 String operateType = softDownInstance.getOperateType();
                 if (HsConstants.DELETE.equalsIgnoreCase(operateType)) {
@@ -267,7 +270,7 @@ public class RabbitMqServiceImpl {
                 softDownInstance.setStatusTime(CommonUtil.getDate());
             }
             log.info(ConstantClassField.SOFTDOWN_OR_DELETE_EIP_CONFIG_RESULT, response);
-            sendChangeMessageToBss(eipOrder);
+            sendChangeMessageToBss(softDown);
         } catch (Exception e) {
             log.error(ConstantClassField.EXCEPTION_EIP_SOFTDOWN_OR_DELETE, e);
         }
@@ -533,9 +536,9 @@ public class RabbitMqServiceImpl {
      * extract EIP message from entity to return BSS MQ
      *
      * @param reciveOrder order
-     * @return EipOrderResult
+     * @return Console2BssResult
      */
-    private EipOrderResult getEipOrderResult(ReciveOrder reciveOrder, String eipId, String result) {
+    private Console2BssResult getEipOrderResult(ReciveOrder reciveOrder, String eipId, String result) {
         //must not be delete ,set the reference
         List<OrderProduct> orderProducts = reciveOrder.getProductList();
 
@@ -544,10 +547,10 @@ public class RabbitMqServiceImpl {
             orderProduct.setInstanceStatus(result);
             orderProduct.setStatusTime(reciveOrder.getStatusTime());
         }
-        EipOrderResult eipOrderResult = new EipOrderResult();
-        eipOrderResult.setUserId(reciveOrder.getUserId());
-        eipOrderResult.setConsoleOrderFlowId(reciveOrder.getConsoleOrderFlowId());
-        eipOrderResult.setOrderId(reciveOrder.getOrderId());
+        Console2BssResult console2BssResult = new Console2BssResult();
+        console2BssResult.setUserId(reciveOrder.getUserId());
+        console2BssResult.setConsoleOrderFlowId(reciveOrder.getConsoleOrderFlowId());
+        console2BssResult.setOrderId(reciveOrder.getOrderId());
 
         List<OrderResultProduct> orderResultProducts = new ArrayList<>();
         OrderResultProduct orderResultProduct = new OrderResultProduct();
@@ -558,8 +561,8 @@ public class RabbitMqServiceImpl {
         }
         orderResultProduct.setProductList(reciveOrder.getProductList());
         orderResultProducts.add(orderResultProduct);
-        eipOrderResult.setProductSetList(orderResultProducts);
-        return eipOrderResult;
+        console2BssResult.setProductSetList(orderResultProducts);
+        return console2BssResult;
     }
 
     /**
@@ -599,7 +602,7 @@ public class RabbitMqServiceImpl {
      * @param result
      * @return
      */
-    private EipOrderResult packageSbwReturnResult(ReciveOrder reciveOrder, String sbwId, String result) {
+    private Console2BssResult packageSbwReturnResult(ReciveOrder reciveOrder, String sbwId, String result) {
         List<OrderProduct> productList = reciveOrder.getProductList();
 
         for (OrderProduct orderProduct : productList) {
@@ -608,10 +611,10 @@ public class RabbitMqServiceImpl {
             orderProduct.setStatusTime(reciveOrder.getStatusTime());
         }
 
-        EipOrderResult eipOrderResult = new EipOrderResult();
-        eipOrderResult.setUserId(reciveOrder.getUserId());
-        eipOrderResult.setConsoleOrderFlowId(reciveOrder.getConsoleOrderFlowId());
-        eipOrderResult.setOrderId(reciveOrder.getOrderId());
+        Console2BssResult console2BssResult = new Console2BssResult();
+        console2BssResult.setUserId(reciveOrder.getUserId());
+        console2BssResult.setConsoleOrderFlowId(reciveOrder.getConsoleOrderFlowId());
+        console2BssResult.setOrderId(reciveOrder.getOrderId());
 
         List<OrderResultProduct> orderResultProducts = new ArrayList<>();
         OrderResultProduct resultProduct = new OrderResultProduct();
@@ -623,7 +626,7 @@ public class RabbitMqServiceImpl {
         resultProduct.setProductList(reciveOrder.getProductList());
 
         orderResultProducts.add(resultProduct);
-        eipOrderResult.setProductSetList(orderResultProducts);
-        return eipOrderResult;
+        console2BssResult.setProductSetList(orderResultProducts);
+        return console2BssResult;
     }
 }

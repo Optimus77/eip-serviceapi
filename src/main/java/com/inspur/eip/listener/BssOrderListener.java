@@ -103,7 +103,7 @@ public class BssOrderListener {
         } catch (JsonParseException |JsonMappingException  e) {
             log.error(ConstantClassField.PARSE_JSON_PARAM_ERROR, message);
             throw new EipInternalServerException(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage());
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error(ConstantClassField.PARSE_JSON_IO_ERROR, message);
             throw new EipInternalServerException(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage());
         }
