@@ -296,7 +296,7 @@ public class SbwDaoService {
     }
 
     @Transactional
-    public MethodReturn addEipIntoSbw(String eipid, EipUpdateParam eipUpdateParam) {
+    public ActionResponse addEipIntoSbw(String eipid, EipUpdateParam eipUpdateParam) {
 
 
         String sbwId = eipUpdateParam.getSbwId();
@@ -304,43 +304,36 @@ public class SbwDaoService {
         String pipeId;
         if (null == eipEntity) {
             log.error("In addEipIntoSbw process,failed to find the eip by id:{} ", eipid);
-            return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
-                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
+            return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND), HttpStatus.SC_NOT_FOUND);
         }
         if (StringUtils.isNotBlank(eipEntity.getEipV6Id())) {
             log.error("EIP is already bound to eipv6");
-            return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
-                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR));
+            return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR), HttpStatus.SC_NOT_FOUND);
         }
         if (!CommonUtil.isAuthoried(eipEntity.getUserId())) {
             log.error("User have no write to operate eip:{}", eipid);
-            return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
-                    CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
+            return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN), HttpStatus.SC_FORBIDDEN);
         }
         //1.ensure eip is billed on hourlySettlement
         if (eipEntity.getBillType().equals(HsConstants.MONTHLY)) {
             log.error("The eip billType isn't hourlySettment!", eipEntity.getBillType());
-            return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.SC_PARAM_ERROR,
-                    CodeInfo.getCodeMessage(CodeInfo.EIP_BILLTYPE_NOT_HOURLYSETTLEMENT));
+            return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_BILLTYPE_NOT_HOURLYSETTLEMENT), HttpStatus.SC_BAD_REQUEST);
         }
         //3.check eip had not adding any Shared bandWidth
         if (StringUtils.isNotBlank(eipEntity.getSbwId())) {
             log.error("The shared band id not null, this mean the eip had already added other SBW !", eipEntity.getSbwId());
-            return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.SC_PARAM_ERROR,
-                    CodeInfo.getCodeMessage(CodeInfo.EIP_SHARED_BAND_WIDTH_ID_NOT_NULL));
+            return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_SHARED_BAND_WIDTH_ID_NOT_NULL), HttpStatus.SC_BAD_REQUEST);
         }
         Sbw sbwEntiy = sbwRepository.findBySbwId(sbwId);
         if (null == sbwEntiy) {
             log.error("Failed to find sbw by id:{} ", sbwId);
-            return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
-                    CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID));
+            return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID), HttpStatus.SC_NOT_FOUND);
         }
         boolean updateStatus = true;
         if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)) {
             log.info("FirewallId: " + eipEntity.getFirewallId() + " FloatingIp: " + eipEntity.getFloatingIp() + " sbwId: " + sbwId);
             if (eipUpdateParam.getBandwidth() != sbwEntiy.getBandWidth()){
-                return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
-                        CodeInfo.getCodeMessage(CodeInfo.SBW_THE_NEW_BANDWIDTH_VALUE_ERROR));
+                return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.SBW_THE_NEW_BANDWIDTH_VALUE_ERROR), HttpStatus.SC_NOT_FOUND);
             }
             pipeId = firewallService.addFloatingIPtoQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbwEntiy.getPipeId());
             if (null != pipeId) {
@@ -365,11 +358,9 @@ public class SbwDaoService {
             sbwEntiy.setUpdateTime(new Date());
             sbwRepository.saveAndFlush(sbwEntiy);
 
-            return MethodReturnUtil.success(eipEntity);
+            return ActionResponse.actionSuccess();
         }
-
-        return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_SERVER_ERROR,
-                CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDTH_ERROR));
+        return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDTH_ERROR), HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
     }
 

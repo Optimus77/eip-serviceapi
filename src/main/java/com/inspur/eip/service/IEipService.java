@@ -38,15 +38,6 @@ public interface IEipService {
 
 
     /**
-     * update eip band width
-     * @param id    id
-     * @param param param
-     * @return      result
-     */
-    ResponseEntity updateEipBandWidth(String id, EipUpdateParam param);
-
-
-    /**
      * eip bind with port
      * @param id      id
      * @param serverId  server id

@@ -4,10 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
-import com.inspur.eip.entity.v2.eip.*;
 import com.inspur.eip.entity.EipAllocateParam;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.v2.MethodReturn;
+import com.inspur.eip.entity.v2.eip.*;
 import com.inspur.eip.entity.v2.eipv6.EipV6;
 import com.inspur.eip.entity.v2.sbw.Sbw;
 import com.inspur.eip.repository.EipRepository;
@@ -61,7 +61,7 @@ public class EipServiceImpl implements IEipService {
      * @param eipConfig          config
      * @return                   json info of eip
      */
-    public ResponseEntity atomCreateEip(EipAllocateParam eipConfig) {
+    public ResponseEntity atomCreateEip(EipAllocateParam eipConfig, String token) {
 
         String code;
         String msg;
@@ -69,7 +69,7 @@ public class EipServiceImpl implements IEipService {
             String sbwId = eipConfig.getSbwId();
             if (null != sbwId) {
                 Sbw sbwEntity = sbwDaoService.getSbwById(sbwId);
-                if (null == sbwEntity || (!sbwEntity.getProjectId().equalsIgnoreCase(CommonUtil.getUserId()))) {
+                if (null == sbwEntity || (!sbwEntity.getProjectId().equalsIgnoreCase(CommonUtil.getUserId(token)))) {
                     log.warn(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
                     return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_RESOURCE_NOTENOUGH,
                             "Can not find sbw"), HttpStatus.FAILED_DEPENDENCY);
@@ -83,7 +83,7 @@ public class EipServiceImpl implements IEipService {
                         HttpStatus.FAILED_DEPENDENCY);
             }
 
-            Eip eipMo = eipDaoService.allocateEip(eipConfig, eip, null);
+            Eip eipMo = eipDaoService.allocateEip(eipConfig, eip, null, token);
             if (null != eipMo) {
                 EipReturnBase eipInfo = new EipReturnBase();
                 BeanUtils.copyProperties(eipMo, eipInfo);
@@ -172,41 +172,25 @@ public class EipServiceImpl implements IEipService {
     }
 
 
-    public ResponseEntity renewEip(String eipId, EipUpdateParam eipUpdateInfo) {
-        String msg = "";
-        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-
+    public ActionResponse renewEip(String eipId, EipUpdateParam eipUpdateInfo) {
+        String msg ;
+        ActionResponse actionResponse;
         try {
 
             String addTime = eipUpdateInfo.getDuration();
             if (null == addTime) {
-                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.BAD_REQUEST);
+                return ActionResponse.actionFailed("Bad request,need duration.", org.apache.http.HttpStatus.SC_BAD_REQUEST);
             } else if (addTime.trim().equals("0")) {
-
-                ActionResponse actionResponse = eipDaoService.softDownEip(eipId);
-                if (actionResponse.isSuccess()) {
-                    return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-                } else if (actionResponse.getCode() == HttpStatus.NOT_FOUND.value()) {
-                    return new ResponseEntity<>(ReturnMsgUtil.error(
-                            String.valueOf(actionResponse.getCode()), actionResponse.getFault()),
-                            HttpStatus.NOT_FOUND);
-                }
+                actionResponse = eipDaoService.softDownEip(eipId);
             } else {
-                ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
-                if (actionResponse.isSuccess()) {
-                    log.info("renew eip:{} , add duration:{}", eipId, addTime);
-
-                    return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-                } else {
-                    msg = actionResponse.getFault();
-                    log.error(msg);
-                }
+                actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
             }
+            return actionResponse;
         } catch (Exception e) {
             log.error("Exception in deleteEip", e);
             msg = e.getMessage() + "";
         }
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+        return ActionResponse.actionFailed(msg, org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
 
@@ -391,44 +375,6 @@ public class EipServiceImpl implements IEipService {
             log.error("Exception in getEipByIpAddress", e);
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-
-
-    /**
-     * update eip band width
-     *
-     * @param id    id
-     * @param param param
-     * @return result
-     */
-    @Override
-    public ResponseEntity updateEipBandWidth(String id, EipUpdateParam param) {
-        String code;
-        String msg;
-        try {
-            MethodReturn result = eipDaoService.updateEipEntity(id, param);
-            if (!result.getInnerCode().equals(ReturnStatus.SC_OK)) {
-                code = result.getInnerCode();
-                int httpResponseCode = result.getHttpCode();
-                msg = result.getMessage();
-                log.error(msg);
-                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
-            } else {
-                EipReturnDetail eipReturnDetail = new EipReturnDetail();
-                Eip eipEntity = (Eip) result.getEip();
-                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
-                eipReturnDetail.setResourceset(Resourceset.builder()
-                        .resourceid(eipEntity.getInstanceId())
-                        .resourcetype(eipEntity.getInstanceType()).build());
-                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
-            }
-        } catch (Exception e) {
-            log.error("Exception in updateEipBandWidth", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage() + "";
-        }
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
-
     }
 
     /**
@@ -630,14 +576,14 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity addEipToSbw(String eipId, EipUpdateParam eipUpdateParam) {
         String code;
         String msg;
-        MethodReturn result;
+        ActionResponse result;
         try {
             result = sbwDaoService.addEipIntoSbw(eipId, eipUpdateParam);
-            if (!result.getInnerCode().equals(ReturnStatus.SC_OK)) {
-                msg = result.getMessage();
+            if (!result.isSuccess()) {
+                msg = result.getFault();
                 log.error(msg);
-                return new ResponseEntity<>(ReturnMsgUtil.error(result.getInnerCode(), msg),
-                        HttpStatus.valueOf(result.getHttpCode()));
+                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(result.getCode()), msg),
+                        HttpStatus.valueOf(result.getCode()));
             } else {
                 msg = "The Eip add to shared band succeeded";
                 log.info(msg);
@@ -696,8 +642,8 @@ public class EipServiceImpl implements IEipService {
             }
             JSONObject data = new JSONObject();
             JSONArray eips = new JSONArray();
-            ArrayList<Eip> newList = new ArrayList();
-            ArrayList<Eip> newEipList = new ArrayList();
+            ArrayList<Eip> newList = new ArrayList<>();
+            ArrayList<Eip> newEipList = new ArrayList<>();
             List<Eip> eipList = eipDaoService.findByUserId(userId);
             for (Eip eip : eipList) {
                 String eipAddress = eip.getEipAddress();
