@@ -67,7 +67,7 @@ public class SbwDaoService {
 
             Firewall firewall = firewallRepository.findFirewallByRegion(sbwConfig.getRegion());
 
-            String pipeId = firewallService.addQos(null, sbw.getSbwId(), String.valueOf(sbw.getBandWidth()), firewall.getId());
+            String pipeId = firewallService.cmdAddSbwQos(sbw.getSbwId(),String.valueOf(sbw.getBandWidth()), firewall.getId());
             if (StringUtils.isNotBlank(pipeId)) {
                 sbwMo.setPipeId(pipeId);
                 sbwRepository.saveAndFlush(sbwMo);
@@ -127,7 +127,7 @@ public class SbwDaoService {
             sbwRepository.saveAndFlush(sbwBean);
             return ActionResponse.actionSuccess();
         }
-        boolean delQos = firewallService.delQos(sbwBean.getPipeId(), null,null,firewall.getId());
+        boolean delQos = firewallService.cmdDelSbwQos(sbwBean.getSbwId(),firewall.getId());
         if (delQos) {
             sbwBean.setIsDelete(1);
             sbwBean.setStatus(HsConstants.DELETE);
