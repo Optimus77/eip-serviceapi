@@ -63,12 +63,12 @@ public class RabbitMqServiceImpl {
 
     private void sendOrderMessageToBss(Console2BssResult obj) {
         // 这里会用rabbitMessagingTemplate中配置的MessageConverter自动将obj转换为字节码
-        log.info("+++++++Send order message to Console：+++++++",obj);
+        log.info("+++++++Send Order message to Console：+++++++:{}",JSONObject.toJSONString(obj));
         rabbitTemplate.convertAndSend(exchange, routingKey, obj);
     }
 
     private void sendChangeMessageToBss(OrderSoftDown obj) {
-        log.info("-------Send change message to Console：-------",obj);
+        log.info("-------Send Change message to Console：-------:{}",JSONObject.toJSONString(obj));
         rabbitTemplate.convertAndSend(exchange, changeKey, obj);
     }
 
@@ -84,7 +84,7 @@ public class RabbitMqServiceImpl {
         EipReturnBase eipBody;
         String eipId = null;
         try {
-            log.debug("Recive create mq:{}", JSONObject.toJSONString(eipOrder));
+            log.info("Recive create mq:{}", JSONObject.toJSONString(eipOrder));
             EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
             ReturnMsg checkRet = preCheckParam(eipConfig);
             if (!(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) || !(checkRet.getCode().equals(ReturnStatus.SC_OK)) ) {
@@ -109,7 +109,7 @@ public class RabbitMqServiceImpl {
                 return eipId;
             }
         } catch (Exception e) {
-            log.error(ConstantClassField.EXCEPTION_EIP_CREATE, e.getMessage());
+            log.error(ConstantClassField.EXCEPTION_EIP_CREATE, e);
             if(null != eipId) {
                 eipDaoService.deleteEip(eipId, eipOrder.getToken());
                 eipId = null;
@@ -136,7 +136,7 @@ public class RabbitMqServiceImpl {
         ActionResponse response = null;
 
         try {
-            log.debug("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
+            log.info("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
             if (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 List<OrderProduct> orderProducts = eipOrder.getProductList();
                 for (OrderProduct orderProduct : orderProducts) {
@@ -179,7 +179,7 @@ public class RabbitMqServiceImpl {
         String result = HsConstants.FAIL;
         try {
             eipId = eipOrder.getProductList().get(0).getInstanceId();
-            log.debug("Recive update order:{}", JSONObject.toJSONString(eipOrder));
+            log.info("Recive update order:{}", JSONObject.toJSONString(eipOrder));
 
             if ((eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS))) {
                 EipUpdateParam eipUpdate = getUpdatParmByOrder(eipOrder);
@@ -234,7 +234,7 @@ public class RabbitMqServiceImpl {
         String result = HsConstants.FAIL;
         String insanceStatus = HsConstants.FAIL;
         try {
-            log.debug("Recive soft down or delete order:{}", JSONObject.toJSONString(eipOrder));
+            log.info("Recive soft down or delete order:{}", JSONObject.toJSONString(eipOrder));
             List<SoftDownInstance> instanceList = eipOrder.getInstanceList();
             for (SoftDownInstance softDownInstance : instanceList) {
                 String operateType = softDownInstance.getOperateType();
@@ -291,6 +291,7 @@ public class RabbitMqServiceImpl {
         String retStr = HsConstants.STATUS_ERROR;
         SbwReturnBase sbwBody = null;
         try {
+            log.info("Recive create sbw order:{}", JSONObject.toJSONString(reciveOrder));
             if (reciveOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 SbwUpdateParam sbwConfig = getSbwConfigByOrder(reciveOrder);
                 ReturnSbwMsg checkRet = preSbwCheckParam(sbwConfig);
@@ -321,7 +322,6 @@ public class RabbitMqServiceImpl {
             webService.returnSbwWebsocket("", reciveOrder, "create");
             sendOrderMessageToBss(packageSbwReturnResult(reciveOrder, "", retStr));
             log.warn(ConstantClassField.CREAT_SBW_CONFIG_FAILED, response);
-            return response;
         } catch (Exception e) {
             if (response != null && response.getStatusCodeValue() == HttpStatus.SC_OK && sbwBody != null) {
                 sbwService.deleteSbwInfo(sbwBody.getSbwId(), reciveOrder.getToken());
@@ -343,7 +343,7 @@ public class RabbitMqServiceImpl {
         ResponseEntity response = null;
         String result = HsConstants.STATUS_ERROR;
         try {
-            log.debug("Recive delete order:{}", JSONObject.toJSONString(reciveOrder));
+            log.info("Recive delete sbw order:{}", JSONObject.toJSONString(reciveOrder));
             if (reciveOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 List<OrderProduct> productList = reciveOrder.getProductList();
                 for (OrderProduct product : productList) {
@@ -428,7 +428,7 @@ public class RabbitMqServiceImpl {
         String instanceStatus = HsConstants.STATUS_ERROR;
         ResponseEntity response = null;
         try {
-            log.debug("Recive soft down or delete order:{}", JSONObject.toJSONString(softDown));
+            log.info("Recive soft down or delete order:{}", JSONObject.toJSONString(softDown));
             List<SoftDownInstance> instanceList = softDown.getInstanceList();
             for (SoftDownInstance instance : instanceList) {
                 String operateType = instance.getOperateType();

@@ -16,7 +16,6 @@ public class EipV6ReturnDetail implements Serializable {
     @JsonProperty("id")
     private String eipV6Id;
 
-    @Column(name="ipv6")
     @JsonProperty("ipv6")
     private String ipv6;
 
