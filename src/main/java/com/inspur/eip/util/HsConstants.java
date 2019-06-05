@@ -22,6 +22,7 @@ public class HsConstants {
     public static final String BANDWIDTH = "bandwidth";
     public static final String NET = "net";
     public static final String FAIL = "fail";
+    public static final String BINDING ="BINDING";
 	public static final String BILLINGITEM = "billingItem";
 	public static final String TRANSFER = "transfer";
 	public static final String REGION = "region";
