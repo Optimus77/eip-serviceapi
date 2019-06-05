@@ -111,7 +111,7 @@ public class RabbitMqServiceImpl {
         } catch (Exception e) {
             log.error(ConstantClassField.EXCEPTION_EIP_CREATE, e.getMessage());
             if(null != eipId) {
-                eipDaoService.adminDeleteEip(eipId);
+                eipDaoService.deleteEip(eipId, eipOrder.getToken());
                 eipId = null;
             }
         }finally {
@@ -142,7 +142,7 @@ public class RabbitMqServiceImpl {
                 for (OrderProduct orderProduct : orderProducts) {
                     eipId = orderProduct.getInstanceId();
                 }
-                response = eipDaoService.adminDeleteEip(eipId);
+                response = eipDaoService.deleteEip(eipId, eipOrder.getToken());
                 if (response.isSuccess()){
                     if (eipOrder.getConsoleCustomization().containsKey("operateType") &&
                             eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")) {

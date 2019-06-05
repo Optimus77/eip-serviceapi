@@ -152,6 +152,42 @@ public class CommonUtil {
 
     }
 
+
+    public static OSClientV3 getOsClientV3Util(String userRegion, String token) throws KeycloakTokenException {
+
+        if(null == token){
+            log.error("can't get token.");
+            return getOsClientV3();
+        }
+
+        if(isDebug){
+            userRegion = userConfig.get("debugRegionS");
+            log.debug("=============={}", userRegion);
+        }
+        if(token.startsWith("Bearer Bearer")){
+            token = token.substring(7);
+        }
+        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+        setKeyClockInfo(jsonObject);
+        log.info("decode::"+jsonObject);
+        if(jsonObject.has("project")){
+            String project = (String) jsonObject.get("project");
+            log.debug("Get openstack ip:{}, region:{}, project:{}.",userConfig.get("openstackIp"), userRegion, project);
+            return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
+        }else {
+            String clientId = jsonObject.getString("clientId");
+            if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
+                log.info("Client token, User has right to operation, client:{}", clientId);
+                return getOsClientV3();
+            }else{
+                log.error("User has no right to operation.{}", jsonObject.toString());
+                throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NO_PROJECT));
+            }
+        }
+
+    }
+
+
     public static JSONObject getTokenInfo(){
 
         return KeyClockInfo;
@@ -290,6 +326,17 @@ public class CommonUtil {
             log.error("User has no right to operation.{}", jsonObject.toString());
             return false;
         }
+    }
+    public static boolean verifyToken(String token, String userId){
+        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+
+        String userIdInToken = (String) jsonObject.get("sub");
+        if(userIdInToken.equals(userId)){
+            return true;
+        }
+
+        return false;
+
     }
 
     /**

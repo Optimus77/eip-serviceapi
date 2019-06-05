@@ -5,6 +5,7 @@ import com.inspur.eip.util.v2.KeycloakTokenException;
 import com.inspur.eip.util.v2.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
+import org.hibernate.boot.spi.InFlightMetadataCollector;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.options.PortListOptions;
@@ -65,28 +66,32 @@ public  class NeutronService {
     }
 
     /**
-     * 删除FloatingIp
+     * delete fip
      * @param region
      * @param fipId
      * @param instanceId
+     * @param token
      * @return
-     * @throws KeycloakTokenException
      */
-    synchronized Boolean deleteFloatingIp(String region, String fipId, String instanceId) throws KeycloakTokenException {
+    synchronized Boolean deleteFloatingIp(String region, String fipId, String instanceId, String token) {
 
         if (slbService.isFipInUse(instanceId)) {
             return true;
         }
 
-        OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
-        return osClientV3.networking().floatingip().delete(fipId).isSuccess();
+        try {
+            OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region, token);
+            return osClientV3.networking().floatingip().delete(fipId).isSuccess();
+        }catch (Exception e){
+            log.error("get os client fialed", e);
+        }
+        return false;
     }
     /**
      * 超级管理员删除FloatingIp
      * @param fipId
      * @param instanceId
      * @return
-     * @throws KeycloakTokenException
      */
     synchronized Boolean superDeleteFloatingIp( String fipId, String instanceId) {
 
@@ -208,7 +213,7 @@ public  class NeutronService {
     }
 
     /**
-     * 分离实例和FloatingIp
+     * dis associate
      * @param floatingIp
      * @param serverId
      * @param region
@@ -311,11 +316,6 @@ public  class NeutronService {
         return eip.getPrivateIpAddress();
     }
 
-    /**
-     * 通过portId获取FloatingIp 地址
-     * @return
-     * @throws KeycloakTokenException
-     */
     private NetFloatingIP getFloatingIpAddrByPortId(OSClientV3 osClientV3, String portId) {
 
         Map<String, String> filteringParams = new HashMap<>(4);

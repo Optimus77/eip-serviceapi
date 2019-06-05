@@ -117,7 +117,7 @@ public class EipServiceImpl implements IEipService {
         String code;
 
         try {
-            ActionResponse actionResponse = eipDaoService.deleteEip(eipId);
+            ActionResponse actionResponse = eipDaoService.deleteEip(eipId, CommonUtil.getKeycloackToken());
             if (actionResponse.isSuccess()) {
                 log.info("Atom delete eip successfully, eipId:{}", eipId);
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
@@ -147,10 +147,11 @@ public class EipServiceImpl implements IEipService {
         String errorMsg;
         try {
             ActionResponse actionResponse;
+            String token = CommonUtil.getKeycloackToken();
             List<String> failedIds = new ArrayList<>();
             for (String eipId : eipIds) {
                 log.info("delete eip {}", eipId);
-                actionResponse = eipDaoService.deleteEip(eipId);
+                actionResponse = eipDaoService.deleteEip(eipId,token);
                 if (!actionResponse.isSuccess()) {
                     failedIds.add(eipId);
                     log.error("delete eip error, eipId:{}", eipId);
