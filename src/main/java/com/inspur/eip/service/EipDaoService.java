@@ -124,7 +124,11 @@ public class EipDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
-
+        if(eipEntity.getBillType().equals(HsConstants.MONTHLY)){
+            msg = "Failed to delete ,monthly eip can not delete by user." + eipEntity.toString();
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
+        }
         if (!CommonUtil.verifyToken(token, eipEntity.getUserId()) ){
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);

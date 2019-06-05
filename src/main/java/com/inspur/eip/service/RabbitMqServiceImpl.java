@@ -197,7 +197,7 @@ public class RabbitMqServiceImpl {
                             eipUpdate.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
                         response = eipDaoService.updateEipEntity(eipId, eipUpdate);
                     } else {
-                        return ActionResponse.actionFailed(ConstantClassField.BILL_TYPE_NOT_SUPPORT, HttpStatus.SC_BAD_REQUEST);
+                        log.error(ConstantClassField.BILL_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
                     }
                 } else if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
                     response = eipService.renewEip(eipId, eipUpdate);

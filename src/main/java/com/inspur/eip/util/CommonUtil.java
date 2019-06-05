@@ -394,6 +394,42 @@ public class CommonUtil {
 
     }
 
+
+    public static OSClient.OSClientV3 getOsClientV3Util(String userRegion, String token) throws KeycloakTokenException {
+
+        if(null == token){
+            log.error("can't get token.");
+            return getOsClientV3();
+        }
+
+        if(isDebug){
+            userRegion = userConfig.get("debugRegionS");
+            log.debug("=============={}", userRegion);
+        }
+        if(token.startsWith("Bearer Bearer")){
+            token = token.substring(7);
+        }
+        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+        setKeyClockInfo(jsonObject);
+        log.info("decode::"+jsonObject);
+        if(jsonObject.has("project")){
+            String project = (String) jsonObject.get("project");
+            log.debug("Get openstack ip:{}, region:{}, project:{}.",userConfig.get("openstackIp"), userRegion, project);
+            return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
+        }else {
+            String clientId = jsonObject.getString("clientId");
+            if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
+                log.info("Client token, User has right to operation, client:{}", clientId);
+                return getOsClientV3();
+            }else{
+                log.error("User has no right to operation.{}", jsonObject.toString());
+                throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NO_PROJECT));
+            }
+        }
+
+    }
+
+
     public static org.json.JSONObject getTokenInfo(){
 
         return KeyClockInfo;
@@ -442,6 +478,23 @@ public class CommonUtil {
         }
         return projectName;
     }
+    public static String getProjectName(String token)throws KeycloakTokenException {
+
+        if(null == token){
+            throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NULL));
+        }
+        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+        String projectName = null;
+        if (jsonObject.has("project")) {
+            projectName = (String) jsonObject.get("project");
+        } else if (jsonObject.has("preferred_username")) {
+            projectName = (String) jsonObject.get("preferred_username");
+        }
+        if (projectName != null) {
+            log.info("getProjectName:{}", projectName);
+        }
+        return projectName;
+    }
     public static boolean isAuthoried(String projectId) {
 
         String token = getKeycloackToken();
@@ -467,6 +520,17 @@ public class CommonUtil {
         }
     }
 
+    public static boolean verifyToken(String token, String userId){
+        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+
+        String userIdInToken = (String) jsonObject.get("sub");
+        if(userIdInToken.equals(userId)){
+            return true;
+        }
+
+        return false;
+
+    }
     /**
      * 是否是超级管理员权限
      * @return
