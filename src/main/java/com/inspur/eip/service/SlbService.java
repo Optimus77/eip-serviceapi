@@ -2,9 +2,9 @@ package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.util.HsConstants;
-import com.inspur.eip.util.v2.CommonUtil;
-import com.inspur.eip.util.v2.HttpResponse;
-import com.inspur.eip.util.v2.HttpUtil;
+import com.inspur.eip.util.CommonUtil;
+import com.inspur.eip.util.HttpResponse;
+import com.inspur.eip.util.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.protocol.HTTP;
 import org.springframework.beans.factory.annotation.Value;

@@ -10,7 +10,7 @@ import com.inspur.eip.entity.v2.MethodReturn;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.ExtNetRepository;
-import com.inspur.eip.util.v2.*;
+import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;

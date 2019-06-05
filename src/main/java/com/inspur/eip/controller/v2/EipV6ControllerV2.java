@@ -7,7 +7,7 @@ import com.inspur.eip.entity.v2.eipv6.EipV6UpdateParam;
 import com.inspur.eip.entity.v2.eipv6.EipV6UpdateParamWrapper;
 import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.ReturnStatus;
-import com.inspur.eip.util.v2.ReturnMsgUtil;
+import com.inspur.eip.util.ReturnMsgUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -54,7 +54,6 @@ public class EipV6ControllerV2 {
         return responseEntity;
     }
 
-
     @GetMapping(value = "/eipv6")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeipv6",notes="list")
@@ -91,8 +90,6 @@ public class EipV6ControllerV2 {
 
     }
 
-
-
     /**
      * get eipV6 instance detail
      *
@@ -108,7 +105,6 @@ public class EipV6ControllerV2 {
     public ResponseEntity geteipV6Detail(@PathVariable("eipv6_id") String eipV6Id) {
         return eipV6Service.getEipV6Detail(eipV6Id);
     }
-
 
     @PutMapping(value = "/eipv6/{eipv6_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
@@ -130,8 +126,5 @@ public class EipV6ControllerV2 {
         EipV6UpdateParam updateParam = param.getEipV6UpdateParam();
         return eipV6Service.eipV6bindPort(eipV6Id, updateParam.getEipAddress());
     }
-
-
-
 
 }

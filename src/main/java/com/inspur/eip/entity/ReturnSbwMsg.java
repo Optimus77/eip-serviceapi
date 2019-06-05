@@ -9,5 +9,7 @@ public class ReturnSbwMsg<T> {
     private String code;
     private String message;
     private T sbw;
+    private T data;
+
 
 }

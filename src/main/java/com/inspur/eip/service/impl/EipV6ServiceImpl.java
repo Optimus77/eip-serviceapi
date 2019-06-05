@@ -10,7 +10,7 @@ import com.inspur.eip.service.EipV6DaoService;
 import com.inspur.eip.service.FireWallCommondService;
 import com.inspur.eip.service.IEipV6Service;
 import com.inspur.eip.service.NatPtService;
-import com.inspur.eip.util.v2.*;
+import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.model.common.ActionResponse;

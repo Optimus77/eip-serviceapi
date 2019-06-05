@@ -1,9 +1,10 @@
-package com.inspur.eip.util.v2;
+package com.inspur.eip.util;
 
 import com.google.gson.Gson;
 import com.inspur.eip.entity.v2.fw.Cookie;
 import com.inspur.eip.entity.v2.fw.FwLogin;
 import com.inspur.eip.entity.v2.fw.FwLoginResponseBody;
+import com.inspur.eip.util.HsConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -30,7 +31,6 @@ import org.json.JSONObject;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.net.ssl.SSLContext;
-import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.net.URI;
 import java.security.KeyManagementException;
@@ -238,12 +238,12 @@ public class HsHttpClient {
         PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(registry);
 
         return HttpClientBuilder.create().setConnectionManager(connManager).build();
-    }    
-	
+    }
+
 	private static boolean httpLogin(String url, String ip, String json) throws Exception {
 		CloseableHttpClient httpclient = getHttpsClient();
 		log.debug("httpLogin：start login,URL:{} ip:{}",url ,ip );
-		
+
 		HttpPost httpPost = new HttpPost(url);
 		httpPost.addHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
 
@@ -306,7 +306,7 @@ public class HsHttpClient {
 	@SuppressWarnings("finally")
 	private static boolean login(String ip, String port, String login, int tryTimes) throws Exception {
 		log.debug("Login firewall:{}:{}" , ip ,port);
-		
+
 		StringBuffer url = new StringBuffer();
 		url.append(HsConstants.HTTPS).append(ip);
 		if (null != port && !"".equals(port)) {
@@ -357,7 +357,7 @@ public class HsHttpClient {
 				return "";
 			}
 		}
-		
+
 		StringBuffer url = new StringBuffer();
 		url.append(HsConstants.HTTPS).append(ip);
 		if (null != port && !"".equals(port)) {
@@ -458,17 +458,17 @@ public class HsHttpClient {
 				return "";
 			}
 		}
-		
+
 		StringBuffer url = new StringBuffer();
 		url.append(HsConstants.HTTPS).append(ip);
 		if (null != port && !"".equals(port)) {
 			url.append(HsConstants.COLON+port);
 		}
 		url.append(rest);
-		
+
 		CloseableHttpClient client = getHttpsClient();
 		HttpPost httpPost = new HttpPost(url.toString());
-		
+
 		httpPost.setHeader(HTTP.CONTENT_TYPE, HsConstants.APPLICATION_JSON);
 		httpPost.setHeader("Cookie", getCookie(ip));
 
@@ -557,14 +557,14 @@ public class HsHttpClient {
 				return "";
 			}
 		}
-		
+
 		StringBuffer url = new StringBuffer();
 		url.append(HsConstants.HTTPS).append(ip);
 		if (null != port && !"".equals(port)) {
 			url.append(HsConstants.COLON+port);
 		}
 		url.append(rest);
-		
+
 		CloseableHttpClient client = getHttpsClient();
 		HttpPut httpPut = new HttpPut(url.toString());
 

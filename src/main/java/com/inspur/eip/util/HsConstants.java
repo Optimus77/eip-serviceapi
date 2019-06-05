@@ -226,4 +226,35 @@ public class HsConstants {
 	public static final String REST_URL_SERVICE = "/rest/doc/servicebook";
 
 	public static final String COLON = ":";
+
+
+
+	public static final String SHAREDBANDWIDTH = "SharedBandwidth";
+	public static final String FORBIDEN = "Forbiden";
+	public static final String EXCEPTION = "exception";
+	public static final String ACTIVE = "ACTIVE";
+	public static final String DOWN = "DOWN";
+	public static final String STOP = "STOP";
+	public static final String ERROR = "ERROR";
+	public static final String SCHEDULETIME = "scheduleTime";
+
+	public static final String ADD_EIP_TO_SBW_METHOD = "addEIPtoSBW";
+	public static final String REMOVE_EIP_FROM_SBW_METHOD = "removeEIPfromSBW";
+	public static final String ADJUST_BANDWIDTH_SBW_METHOD = "adjustBandwidthSbw";
+
+	public static final String TOTAL_PAGES = "totalPages";
+	public static final String TOTAL_ELEMENTS = "totalElements";
+	public static final String CURRENT_PAGE = "currentPage";
+	public static final String CURRENT_PAGEPER = "currentPagePer";
+	public static final String RESULT = "result";
+	public static final String PIPE_NAME= "pipeName";
+	public static final String FALSE = "false";
+	public static final String TRUE = "true";
+	public static final String BAND_WIDTH = "bandWidth";
+	public static final String IN_BAND_WIDTH = "inBandWidth";
+	public static final String REASON = "reason";
+	public static final String HTTP_CODE = "httpCode";
+	public static final String INTER_CODE = "interCode";
+	public static final String REST_IQOS_ROOT = "/rest/iQos?target=root.rule";
+	public static final String FLOATIP = "floatIp: ";
 }

@@ -4,7 +4,7 @@ import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.ReturnStatus;
-import com.inspur.eip.util.v2.ReturnMsgUtil;
+import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -52,7 +52,6 @@ public class SbwControllerV2 {
         }
         return sbwService.atomCreateSbw(sbwConfig.getSbw());
     }
-
 
     @ICPControllerLog
     @GetMapping(value = "/sbws")

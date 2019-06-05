@@ -9,7 +9,7 @@ import com.inspur.eip.entity.v2.sbw.Sbw;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.repository.SbwRepository;
-import com.inspur.eip.util.v2.*;
+import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -17,16 +17,10 @@ import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Service
