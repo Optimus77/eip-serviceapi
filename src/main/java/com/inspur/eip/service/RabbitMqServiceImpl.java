@@ -3,6 +3,7 @@ package com.inspur.eip.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.*;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
+import com.inspur.eip.entity.v2.eip.Eip;
 import com.inspur.eip.entity.v2.eip.EipReturnBase;
 import com.inspur.eip.entity.v2.sbw.SbwReturnBase;
 import com.inspur.eip.service.impl.EipServiceImpl;
@@ -79,12 +80,11 @@ public class RabbitMqServiceImpl {
      * @return return message
      */
     public String createEipInfo(ReciveOrder eipOrder) {
-
-        ResponseEntity response;
-        EipReturnBase eipBody;
+        ResponseEntity<ReturnMsg<EipReturnBase>> response;
+        EipReturnBase eipReturn = null;
         String eipId = null;
         try {
-            log.info("Recive create mq:{}", JSONObject.toJSONString(eipOrder));
+            log.info("Recive create mq:{}", JSONObject.toJSONString(eipOrder.getProductList()));
             EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
             ReturnMsg checkRet = preCheckParam(eipConfig);
             if (!(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) || !(checkRet.getCode().equals(ReturnStatus.SC_OK)) ) {
@@ -96,11 +96,10 @@ public class RabbitMqServiceImpl {
             if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
                 log.warn("create eip failed, return code:{}", response.getStatusCodeValue());
             } else {
-                eipBody = (EipReturnBase) response.getBody();
-                if(null != eipBody) {
-                    eipId = eipBody.getEipId();
+                eipReturn =  response.getBody().getEip();
+                if(null != eipReturn) {
+                    eipId = eipReturn.getEipId();
                 }
-
                 if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
                     webService.returnsIpv6Websocket("Success", "Success", "createNatWithEip");
                 } else {
@@ -287,14 +286,15 @@ public class RabbitMqServiceImpl {
      */
     public ResponseEntity createSbwInfo(ReciveOrder reciveOrder) {
 
-        ResponseEntity<SbwReturnBase> response = null;
+        ResponseEntity<ReturnMsg<SbwReturnBase>> response = null;
+        SbwReturnBase sbwReturn = null;
         String retStr = HsConstants.STATUS_ERROR;
-        SbwReturnBase sbwBody = null;
+
         try {
             log.info("Recive create sbw order:{}", JSONObject.toJSONString(reciveOrder));
             if (reciveOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 SbwUpdateParam sbwConfig = getSbwConfigByOrder(reciveOrder);
-                ReturnSbwMsg checkRet = preSbwCheckParam(sbwConfig);
+                ReturnMsg checkRet = preSbwCheckParam(sbwConfig);
                 if (checkRet.getCode().equals(ReturnStatus.SC_OK)) {
                     response = sbwService.atomCreateSbw(sbwConfig,reciveOrder.getToken());
                     if (response != null) {
@@ -302,10 +302,10 @@ public class RabbitMqServiceImpl {
                             log.warn("create sbw failed, return code:{}", response.getStatusCodeValue());
                         } else {
                             retStr = HsConstants.STATUS_ACTIVE;
-                            sbwBody = response.getBody();
-                            String sbwId = null;
-                            if(null != sbwBody){
-                                sbwId = sbwBody.getSbwId();
+                            sbwReturn = response.getBody().getEip();
+                            String sbwId  =null;
+                            if(null != sbwReturn){
+                                sbwId = sbwReturn.getSbwId();
                             }
                             webService.returnSbwWebsocket(sbwId, reciveOrder, "create");
                             sendOrderMessageToBss(packageSbwReturnResult(reciveOrder, sbwId, retStr));
@@ -323,8 +323,8 @@ public class RabbitMqServiceImpl {
             sendOrderMessageToBss(packageSbwReturnResult(reciveOrder, "", retStr));
             log.warn(ConstantClassField.CREAT_SBW_CONFIG_FAILED, response);
         } catch (Exception e) {
-            if (response != null && response.getStatusCodeValue() == HttpStatus.SC_OK && sbwBody != null) {
-                sbwService.deleteSbwInfo(sbwBody.getSbwId(), reciveOrder.getToken());
+            if (response != null && response.getStatusCodeValue() == HttpStatus.SC_OK && sbwReturn.getSbwId() != null) {
+                sbwService.deleteSbwInfo(sbwReturn.getSbwId(), reciveOrder.getToken());
             }
             sendOrderMessageToBss(packageSbwReturnResult(reciveOrder, "", HsConstants.STATUS_ERROR));
             log.error(ConstantClassField.EXCEPTION_SBW_CREATE, e);

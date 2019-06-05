@@ -84,7 +84,7 @@ public class CommonUtil {
             if (jsonObject !=null){
                 String sub = (String) jsonObject.get("sub");
                 if (sub != null) {
-                    log.info("getUserId:{}", sub);
+                    log.debug("getUserId:{}", sub);
                     return sub;
                 } else {
                     throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
@@ -248,10 +248,10 @@ public class CommonUtil {
      * @param param param
      * @return return
      */
-    public static ReturnSbwMsg preSbwCheckParam(SbwUpdateParam param){
+    public static ReturnMsg preSbwCheckParam(SbwUpdateParam param){
         String errorMsg = " ";
         if(null == param){
-            return ReturnMsgUtil.errorSbw(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
+            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
         }
         if((5 > param.getBandwidth()) || (param.getBandwidth() > 500)){
             errorMsg = "value must be 5-500.";
@@ -267,10 +267,10 @@ public class CommonUtil {
         }
         if(errorMsg.equals(" ")) {
             log.info(errorMsg);
-            return ReturnMsgUtil.errorSbw(ReturnStatus.SC_OK, errorMsg);
+            return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
         }else {
             log.error(errorMsg);
-            return ReturnMsgUtil.errorSbw(ReturnStatus.SC_PARAM_ERROR,errorMsg);
+            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,errorMsg);
         }
     }
 

@@ -20,22 +20,4 @@ public class ReturnMsgUtil {
         return ReturnMsg.builder().code(code).message(message).data(t).build();
     }
 
-    /**
-     * sbw return
-     * @param t
-     * @param <T>
-     * @return
-     */
-    public static <T> ReturnSbwMsg successSbw(T t) {
-        return ReturnSbwMsg.builder().sbw(t).build();
-    }
-
-    public static ReturnSbwMsg successSbw() {
-        return successSbw(null);
-    }
-
-    public static ReturnSbwMsg errorSbw(String code, String msg) {
-        return ReturnSbwMsg.builder().code(code).message(msg).build();
-    }
-
 }
