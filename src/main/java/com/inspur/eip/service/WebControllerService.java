@@ -81,16 +81,16 @@ class WebControllerService {
      */
     void returnsWebsocket(String eipId, ReciveOrder eipOrder, String type){
             try {
-                SendMQEIP sendMQEIP = new SendMQEIP();
-                sendMQEIP.setUserName(CommonUtil.getUsername());
-                sendMQEIP.setHandlerName("operateEipHandler");
-                sendMQEIP.setInstanceId(eipId);
-                sendMQEIP.setInstanceStatus("active");
-                sendMQEIP.setOperateType(type);
-                sendMQEIP.setMessageType("success");
-                sendMQEIP.setMessage("Flexible public network IP updated successfully");
+                WebSocketEntity wbEntity = new WebSocketEntity();
+                wbEntity.setUserName(CommonUtil.getUsername());
+                wbEntity.setHandlerName("operateEipHandler");
+                wbEntity.setInstanceId(eipId);
+                wbEntity.setInstanceStatus("active");
+                wbEntity.setOperateType(type);
+                wbEntity.setMessageType("success");
+                wbEntity.setMessage("Flexible public network IP updated successfully");
                 String url=pushMq;
-                String orderStr=JSONObject.toJSONString(sendMQEIP);
+                String orderStr=JSONObject.toJSONString(wbEntity);
                 log.info("websocket send return: {} {}", url, orderStr);
                 ReturnResult response = HttpsClientUtil.doPostJson(url,null,orderStr);
                 log.debug("websocket respons:{}", response.getMessage());
@@ -101,19 +101,19 @@ class WebControllerService {
     }
     void returnsIpv6Websocket(String eipResult, String eipV6Reuslt, String type){
         try {
-            SendMQEIP sendMQEIP = new SendMQEIP();
-            sendMQEIP.setUserName(CommonUtil.getUsername());
-            sendMQEIP.setHandlerName("operateNatHandler");
-            sendMQEIP.setOperateType(type);
+            WebSocketEntity wbEntity = new WebSocketEntity();
+            wbEntity.setUserName(CommonUtil.getUsername());
+            wbEntity.setHandlerName("operateNatHandler");
+            wbEntity.setOperateType(type);
             String retMessage;
             if(type.equalsIgnoreCase("createNatWithEip")) {
                 retMessage = "createNat" + eipV6Reuslt + "&" + "createEIP" + eipResult;
             }else {
                 retMessage = "deleteNat" + eipV6Reuslt + "&" + "deleteEIP" + eipResult;
             }
-            sendMQEIP.setMessage(retMessage);
+            wbEntity.setMessage(retMessage);
             String url=pushMq;
-            String orderStr=JSONObject.toJSONString(sendMQEIP);
+            String orderStr=JSONObject.toJSONString(wbEntity);
             log.info("websocket send return: {} {}", url, orderStr);
             ReturnResult response = HttpsClientUtil.doPostJson(url,null,orderStr);
             log.debug("websocket respons:{}", response.getMessage());
@@ -132,16 +132,16 @@ class WebControllerService {
     void returnSbwWebsocket(String sbwId, ReciveOrder reciveOrder, String type){
 
             try {
-                SendMQEIP sendMQEIP = new SendMQEIP();
-                sendMQEIP.setUserName(CommonUtil.getUsername());
-                sendMQEIP.setHandlerName("operateSbwHandler");
-                sendMQEIP.setInstanceId(sbwId);
-                sendMQEIP.setInstanceStatus("active");
-                sendMQEIP.setOperateType(type);
-                sendMQEIP.setMessageType("success");
-                sendMQEIP.setMessage("Config update successfully");
+                WebSocketEntity wbEntity = new WebSocketEntity();
+                wbEntity.setUserName(CommonUtil.getUsername());
+                wbEntity.setHandlerName("operateSbwHandler");
+                wbEntity.setInstanceId(sbwId);
+                wbEntity.setInstanceStatus("active");
+                wbEntity.setOperateType(type);
+                wbEntity.setMessageType("success");
+                wbEntity.setMessage("Config update successfully");
                 String url=pushMq;
-                String socketStr=JSONObject.toJSONString(sendMQEIP);
+                String socketStr=JSONObject.toJSONString(wbEntity);
                 log.info("websocket send return: {} {}", url, socketStr);
                 ReturnResult response = HttpsClientUtil.doPostJson(url,null,socketStr);
                 log.debug("websocket respons:{}", response.getMessage());

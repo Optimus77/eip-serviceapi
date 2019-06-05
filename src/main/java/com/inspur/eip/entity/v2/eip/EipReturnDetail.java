@@ -13,20 +13,19 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EipReturnDetail implements Serializable {
 
-    @JsonProperty("eipId")
+    @JsonProperty("eipid")
     private String eipId;
 
-    @Column(name="eip_address")
-    @JsonProperty("eipAddress")
+    @JsonProperty("eip_address")
     private String eipAddress;
 
     @JsonProperty("billType")
     private String billType;
 
-    @JsonProperty("chargeMode")
+    @JsonProperty("chargemode")
     private String chargeMode;
 
-    @JsonProperty("bandWidth")
+    @JsonProperty("bandwidth")
     private int bandWidth;
 
     @JsonProperty("oldBandwidth")
@@ -35,29 +34,29 @@ public class EipReturnDetail implements Serializable {
     @JsonProperty("duration")
     private String duration;
 
-    @JsonProperty("ipType")
+    @JsonProperty("iptype")
     private String ipType;
 
     @JsonProperty("sbwId")
     private String sbwId;
 
-    @JsonProperty("privateIpAddress")
+    @JsonProperty("private_ip_address")
     private String privateIpAddress;
 
-    @JsonProperty("resourceSet")
+    @JsonProperty("resourceset")
     private Resourceset resourceset;
 
     @JsonProperty("status")
     private String status;
 
-    @JsonProperty("createTime")
+    @JsonProperty("create_at")
     @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     @JsonProperty("region")
     private String region;
 
-    @JsonProperty("eipv6Id")
+    @JsonProperty("eipv6id")
     private String eipV6Id;
 
     @JsonProperty("ipv6Address")
