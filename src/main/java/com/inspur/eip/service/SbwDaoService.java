@@ -49,10 +49,10 @@ public class SbwDaoService {
     }
 
     @Transactional
-    public Sbw allocateSbw(SbwUpdateParam sbwConfig) {
+    public Sbw allocateSbw(SbwUpdateParam sbwConfig , String token) {
         Sbw sbwMo = null;
         try {
-            String userId = CommonUtil.getUserId();
+            String userId = CommonUtil.getUserId(token);
             sbwMo = new Sbw();
             sbwMo.setRegion(sbwConfig.getRegion());
             sbwMo.setSbwName(sbwConfig.getSbwName());
@@ -60,7 +60,7 @@ public class SbwDaoService {
             sbwMo.setBillType(sbwConfig.getBillType());
             sbwMo.setDuration(sbwConfig.getDuration());
             sbwMo.setProjectId(userId);
-            sbwMo.setProjectName(CommonUtil.getProjectName());
+            sbwMo.setProjectName(CommonUtil.getProjectName(token));
             sbwMo.setIsDelete(0);
             sbwMo.setCreateTime(CommonUtil.getGmtDate());
             Sbw sbw = sbwRepository.saveAndFlush(sbwMo);
@@ -100,7 +100,7 @@ public class SbwDaoService {
      * @return ret
      */
     @Transactional
-    public ActionResponse deleteSbw(String sbwId) {
+    public ActionResponse deleteSbw(String sbwId, String token) {
         String msg;
         long ipCount;
         Sbw sbwBean = sbwRepository.findBySbwId(sbwId);
@@ -109,7 +109,7 @@ public class SbwDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage(), HttpStatus.SC_NOT_FOUND);
         }
-        if (!CommonUtil.isAuthoried(sbwBean.getProjectId())) {
+        if (!CommonUtil.verifyToken(token, sbwBean.getProjectId()) ) {
             log.error(CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN), sbwId);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
@@ -138,7 +138,45 @@ public class SbwDaoService {
         }
         return ActionResponse.actionFailed(CodeInfo.SBW_DELETE_ERROR, HttpStatus.SC_FORBIDDEN);
     }
-
+    /**
+     * mq have no token
+     * @return
+     */
+    @Transactional
+    public ActionResponse adminDeleteSbw(String sbwId){
+        String msg;
+        long ipCount;
+        Sbw sbwBean = sbwRepository.findBySbwId(sbwId);
+        if (null == sbwBean ||sbwBean.getIsDelete() ==1 ) {
+            msg = "Faild to find sbw by id:" + sbwId;
+            log.error(msg);
+            return ActionResponse.actionFailed(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage(), HttpStatus.SC_NOT_FOUND);
+        }
+        ipCount = eipRepository.countBySbwIdAndIsDelete(sbwBean.getSbwId(), 0);
+        if (ipCount != 0) {
+            msg = "EIP in sbw so that sbw cannot be removed ，please remove first !,ipCount:{}" + ipCount;
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
+        }
+        Firewall firewall = firewallRepository.findFirewallByRegion(sbwBean.getRegion());
+        if (StringUtils.isBlank(sbwBean.getPipeId())) {
+            sbwBean.setIsDelete(1);
+            sbwBean.setStatus(HsConstants.DELETE);
+            sbwBean.setUpdateTime(CommonUtil.getGmtDate());
+            sbwRepository.saveAndFlush(sbwBean);
+            return ActionResponse.actionSuccess();
+        }
+        boolean delQos = firewallService.delQos(sbwBean.getPipeId(), null,null,firewall.getId());
+        if (delQos) {
+            sbwBean.setIsDelete(1);
+            sbwBean.setStatus(HsConstants.DELETE);
+            sbwBean.setUpdateTime(CommonUtil.getGmtDate());
+            sbwBean.setPipeId(null);
+            sbwRepository.saveAndFlush(sbwBean);
+            return ActionResponse.actionSuccess();
+        }
+        return ActionResponse.actionFailed(CodeInfo.SBW_DELETE_ERROR, HttpStatus.SC_FORBIDDEN);
+    }
 
     @Transactional
     public ActionResponse softDownSbw(String sbwId) {
@@ -149,10 +187,10 @@ public class SbwDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
-        if (!CommonUtil.isAuthoried(sbw.getProjectId())) {
-            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
-            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
-        }
+//        if (!CommonUtil.isAuthoried(sbw.getProjectId())) {
+//            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
+//            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
+//        }
         Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
         if (firewall == null) {
             msg = "Can't find firewall by sbw region:{}"+ sbw.getRegion();
@@ -186,10 +224,10 @@ public class SbwDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
-        if (!CommonUtil.isAuthoried(sbw.getProjectId())) {
-            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
-            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
-        }
+//        if (!CommonUtil.verifyToken(token, sbw.getProjectId())) {
+//            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
+//            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
+//        }
         if (!sbw.getBillType().equals(HsConstants.MONTHLY)) {
             msg = "BillType is not monthly SBW cannot be renewed:{}" + sbwId;
             log.error(msg);
@@ -249,7 +287,7 @@ public class SbwDaoService {
     }
 
     @Transactional
-    public MethodSbwReturn updateSbwEntity(String sbwId, SbwUpdateParam param) {
+    public MethodSbwReturn updateSbwEntity(String sbwId, SbwUpdateParam param, String token) {
 
         Sbw sbwEntity = sbwRepository.findBySbwId(sbwId);
         if (null == sbwEntity) {
@@ -257,7 +295,7 @@ public class SbwDaoService {
             return MethodReturnUtil.errorSbw(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
                     CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID));
         }
-        if (!CommonUtil.isAuthoried(sbwEntity.getProjectId())) {
+        if (!CommonUtil.verifyToken(token, sbwEntity.getProjectId())) {
             log.error("User  not have permission to update sbw bandWidth sbwId:{}", sbwId);
             return MethodReturnUtil.errorSbw(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
                     CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN));

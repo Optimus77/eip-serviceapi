@@ -153,7 +153,7 @@ public class RabbitMqServiceImpl {
                     sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.UNSUBSCRIBE));
                     return response;
                 } else {
-                    log.warn(String.format(ConstantClassField.DELETE_EIP_CONFIG_FAILED, response.getFault()) + ReturnStatus.SC_INTERNAL_SERVER_ERROR);
+                    log.warn(ConstantClassField.DELETE_EIP_CONFIG_FAILED, response.getFault() + ReturnStatus.SC_INTERNAL_SERVER_ERROR);
                 }
             } else {
                 log.error(ConstantClassField.ORDER_STATUS_NOT_CORRECT + eipOrder.getOrderStatus());
@@ -295,7 +295,7 @@ public class RabbitMqServiceImpl {
                 SbwUpdateParam sbwConfig = getSbwConfigByOrder(reciveOrder);
                 ReturnSbwMsg checkRet = preSbwCheckParam(sbwConfig);
                 if (checkRet.getCode().equals(ReturnStatus.SC_OK)) {
-                    response = sbwService.atomCreateSbw(sbwConfig);
+                    response = sbwService.atomCreateSbw(sbwConfig,reciveOrder.getToken());
                     if (response != null) {
                         if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
                             log.warn("create sbw failed, return code:{}", response.getStatusCodeValue());
@@ -324,7 +324,7 @@ public class RabbitMqServiceImpl {
             return response;
         } catch (Exception e) {
             if (response != null && response.getStatusCodeValue() == HttpStatus.SC_OK && sbwBody != null) {
-                sbwService.deleteSbwInfo(sbwBody.getSbwId());
+                sbwService.deleteSbwInfo(sbwBody.getSbwId(), reciveOrder.getToken());
             }
             sendOrderMessageToBss(packageSbwReturnResult(reciveOrder, "", HsConstants.STATUS_ERROR));
             log.error(ConstantClassField.EXCEPTION_SBW_CREATE, e);
@@ -349,7 +349,7 @@ public class RabbitMqServiceImpl {
                 for (OrderProduct product : productList) {
                     sbwId = product.getInstanceId();
                 }
-                response = sbwService.deleteSbwInfo(sbwId);
+                response = sbwService.deleteSbwInfo(sbwId, reciveOrder.getToken());
                 if (response != null) {
                     if (response.getStatusCodeValue() == HttpStatus.SC_OK) {
                         result = HsConstants.STATUS_DELETE;
@@ -388,7 +388,7 @@ public class RabbitMqServiceImpl {
             if (recive.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 SbwUpdateParam sbwUpdate = getSbwConfigByOrder(recive);
                 if (recive.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
-                    response = sbwService.updateSbwConfig(sbwId, sbwUpdate);
+                    response = sbwService.updateSbwConfig(sbwId, sbwUpdate, recive.getToken());
                 } else if (recive.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && recive.getBillType().equals(HsConstants.MONTHLY)) {
                     sbwUpdate.setDuration("1");
                     response = sbwService.renewSbw(sbwId, sbwUpdate);
@@ -433,7 +433,7 @@ public class RabbitMqServiceImpl {
             for (SoftDownInstance instance : instanceList) {
                 String operateType = instance.getOperateType();
                 if (HsConstants.DELETE.equalsIgnoreCase(operateType)) {
-                    response = sbwService.deleteSbwInfo(instance.getInstanceId());
+                    response = sbwService.bssSoftDeleteSbw(instance.getInstanceId());
                     if (response != null && response.getStatusCodeValue() ==HttpStatus.SC_OK){
                         setStatus = HsConstants.SUCCESS;
                         instanceStatus = HsConstants.STATUS_DELETE;

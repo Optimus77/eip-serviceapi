@@ -74,16 +74,6 @@ public class CommonUtil {
         return null;
     }
 
-
-    /**
-     * get the region info from httpHeader;
-     * @return ret
-     */
-    //TODO region is not correct for now
-    public static String getReginInfo()  {
-        return region1;
-    }
-
     public static String getUserId()throws KeycloakTokenException {
 
         String token = getKeycloackToken();
