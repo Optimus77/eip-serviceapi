@@ -4,7 +4,7 @@ import lombok.Data;
 
 
 @Data
-public class SendMQEIP {
+public class WebSocketEntity {
 
     private String userName;
 

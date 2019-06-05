@@ -170,6 +170,7 @@ public class EipDaoService {
         return ActionResponse.actionSuccess();
     }
 
+
     @Transactional
     ActionResponse adminDeleteEip(String eipid)  {
         String msg;

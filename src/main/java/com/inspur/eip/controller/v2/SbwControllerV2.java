@@ -3,6 +3,7 @@ package com.inspur.eip.controller.v2;
 import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eip.service.impl.SbwServiceImpl;
+import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.ReturnStatus;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
@@ -50,7 +51,7 @@ public class SbwControllerV2 {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
                     HttpStatus.BAD_REQUEST);
         }
-        return sbwService.atomCreateSbw(sbwConfig.getSbw());
+        return sbwService.atomCreateSbw(sbwConfig.getSbw(), CommonUtil.getKeycloackToken());
     }
 
     @ICPControllerLog
@@ -101,7 +102,7 @@ public class SbwControllerV2 {
     public ResponseEntity deleteSbw(@Size(min = 36, max = 36, message = "Must be uuid.")
                                         @PathVariable("sbw_id") String sbwId) {
         log.info("Atom delete the sbw , sbwId:{} ", sbwId);
-        return sbwService.deleteSbwInfo(sbwId);
+        return sbwService.deleteSbwInfo(sbwId, CommonUtil.getKeycloackToken());
     }
     /**
      * get sbw instance detail
@@ -244,7 +245,7 @@ public class SbwControllerV2 {
         String msg ;
         if (param.getSbw().getBillType() != null ) {
             log.info("update bandWidth, sbwid:{}, param:{} ", sbwId, param.getSbw());
-            return sbwService.updateSbwConfig(sbwId, param.getSbw());
+            return sbwService.updateSbwConfig(sbwId, param.getSbw(),CommonUtil.getKeycloackToken());
         } else {
             msg = "param not correct,body param like {\"sbw\" : {\"bandWidth\":xxx,\"billType\":\"xxxxxx\"}";
         }
