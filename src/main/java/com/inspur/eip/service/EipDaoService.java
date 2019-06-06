@@ -172,7 +172,7 @@ public class EipDaoService {
 
 
     @Transactional
-    ActionResponse adminDeleteEip(String eipid)  {
+    public ActionResponse adminDeleteEip(String eipid)  {
         String msg;
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if ((null == eipEntity) || (eipEntity.getIsDelete() == 1) ){
@@ -419,7 +419,7 @@ public class EipDaoService {
     }
 
     @Transactional
-    ActionResponse updateEipEntity(String eipid, EipUpdateParam param) {
+    public ActionResponse updateEipEntity(String eipid, EipUpdateParam param) {
 
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if (null == eipEntity) {
