@@ -419,8 +419,8 @@ public class EipDaoService {
         }
     }
 
-    @Transactional(propagation= Propagation.REQUIRED)
-    ActionResponse updateEipEntity(String eipid, EipUpdateParam param) {
+    @Transactional
+    ActionResponse updateEipEntity(String eipid, EipUpdateParam param,String token) {
 
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if (null == eipEntity) {
@@ -431,7 +431,7 @@ public class EipDaoService {
             log.error("EIP is already bound to eipv6");
             return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR), HttpStatus.SC_NOT_FOUND);
         }
-        if(!CommonUtil.isAuthoried(eipEntity.getUserId())){
+        if(!CommonUtil.verifyToken(token,eipEntity.getUserId())){
             log.error("User have no write to operate eip:{}", eipid);
             return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN), HttpStatus.SC_FORBIDDEN);
         }

@@ -379,6 +379,7 @@ public class CommonUtil {
         }
         return projectName;
     }
+
     public static boolean isAuthoried(String projectId) {
 
         String token = getKeycloackToken();
