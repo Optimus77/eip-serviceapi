@@ -19,6 +19,7 @@ import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.openstack.OSFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -32,11 +33,53 @@ import java.util.*;
 import static com.inspur.eip.util.HsConstants.SCHEDULETIME;
 
 @Slf4j
+@Component
 public class CommonUtil {
 
     public static boolean isDebug = true;
     public static boolean qosDebug = false;
 
+    @Setter
+    private static org.json.JSONObject KeyClockInfo;
+    @Value("${openstackIp}")
+    private String openstackIp;
+    @Value("${openstackUrl}")
+    private String openstackUrl;
+    @Value("${userNameS}")
+    private String userNameS;
+    @Value("${passwordS}")
+    private String passwordS;
+    @Value("${projectIdS}")
+    private String projectIdS;
+    @Value("${userDomainIdS}")
+    private String userDomainIdS;
+    @Value("${debugRegionS}")
+    private String debugRegionS;
+
+    @Value("${scheduleTime}")
+    private String scheduleTime;
+
+    private static Config config = Config.newConfig().withSSLVerificationDisabled();
+    private static Map<String,String> userConfig = new HashMap<>(16);
+
+    @PostConstruct
+    public void init(){
+        userConfig.put("openstackIp",openstackIp);
+        userConfig.put("userNameS",userNameS);
+        userConfig.put("passwordS",passwordS);
+        userConfig.put("projectIdS",projectIdS);
+        userConfig.put("userDomainIdS",userDomainIdS);
+        userConfig.put("debugRegionS",debugRegionS);
+        userConfig.put("openstackUrl",openstackUrl);
+        userConfig.put(SCHEDULETIME, scheduleTime);
+    }
+
+
+    //    Greenwich mean time
+    public static Date getGmtDate() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        return new Date();
+    }
     /**
      * get the Keycloak authorization token  from httpHeader;
      * @return  string string
@@ -224,47 +267,6 @@ public class CommonUtil {
         return formatter.format(currentTime);
     }
 
-    //    Greenwich mean time
-    public static Date getGmtDate() {
-        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-        return new Date();
-    }
-
-
-    @Setter
-    private static org.json.JSONObject KeyClockInfo;
-    @Value("${openstackIp}")
-    private String openstackIp;
-    @Value("${openstackUrl}")
-    private String openstackUrl;
-    @Value("${userNameS}")
-    private String userNameS;
-    @Value("${passwordS}")
-    private String passwordS;
-    @Value("${projectIdS}")
-    private String projectIdS;
-    @Value("${userDomainIdS}")
-    private String userDomainIdS;
-    @Value("${debugRegionS}")
-    private String debugRegionS;
-
-    @Value("${scheduleTime}")
-    private String scheduleTime;
-
-    private static Config config = Config.newConfig().withSSLVerificationDisabled();
-    private static Map<String,String> userConfig = new HashMap<>(16);
-
-    @PostConstruct
-    public void init(){
-        userConfig.put("openstackIp",openstackIp);
-        userConfig.put("userNameS",userNameS);
-        userConfig.put("passwordS",passwordS);
-        userConfig.put("projectIdS",projectIdS);
-        userConfig.put("userDomainIdS",userDomainIdS);
-        userConfig.put("debugRegionS",debugRegionS);
-        userConfig.put("openstackUrl",openstackUrl);
-        userConfig.put(SCHEDULETIME, scheduleTime);
-    }
 
     public static Map<String, String> getUserConfig(){
         return userConfig;
