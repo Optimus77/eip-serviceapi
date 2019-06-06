@@ -101,7 +101,7 @@ public class RabbitMqServiceImpl {
                     eipId = eipReturn.getEipId();
                 }
                 if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
-                    webService.returnsIpv6Websocket("Success", "Success", "createNatWithEip");
+                    webService.returnsIpv6Websocket( "Success", "createNatWithEip", eipOrder.getToken());
                 } else {
                     webService.returnsWebsocket(eipId, eipOrder, "create");
                 }
@@ -145,7 +145,7 @@ public class RabbitMqServiceImpl {
                 if (response.isSuccess()){
                     if (eipOrder.getConsoleCustomization().containsKey("operateType") &&
                             eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")) {
-                        webService.returnsIpv6Websocket("Success", "Success", "deleteNatWithEip");
+                        webService.returnsIpv6Websocket( "Success", "deleteNatWithEip",eipOrder.getToken());
                     } else {
                         webService.returnsWebsocket(eipId, eipOrder, "delete");
                     }

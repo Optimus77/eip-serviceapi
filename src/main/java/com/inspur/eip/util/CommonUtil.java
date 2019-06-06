@@ -43,15 +43,6 @@ public class CommonUtil {
         return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
     }
 
-    private static String authUrl = "https://10.110.25.117:5000/v3"; //endpoint Url
-    private static String user = "admin";
-    private static String password = "89rqdHLMN5rm0x1P";
-    private static String projectId = "140785795de64945b02363661eb9e769";
-    private static String userDomainId = "default";
-    private static String region="RegionOne";
-    private static String region1="cn-north-3";
-
-
     /**
      * get the Keycloak authorization token  from httpHeader;
      * @return  string string
@@ -148,9 +139,8 @@ public class CommonUtil {
     }
 
 
-    public static String getUsername()throws KeycloakTokenException {
+    public static String getUsername(String token)throws KeycloakTokenException {
 
-        String token = getKeycloackToken();
         if(null == token){
             throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
         }else{
