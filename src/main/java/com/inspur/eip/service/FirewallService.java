@@ -694,9 +694,9 @@ public class FirewallService {
                         + "end",
                 null);
         if(strResult == null){
-            log.error("Failed to del cmd sbw qos", strResult);
             return true;
         }
+        log.error("Failed to del cmd sbw qos", strResult);
         return false;
     }
     private String cmdAddIp2SbwPipe(String rootPipeName, String fip, String fireWallId)  {
@@ -714,7 +714,7 @@ public class FirewallService {
         if(strResult != null && strResult.contains(retCheck)){
             pipeMapId = "";
         }
-        String retString = "Root pipe \""+rootPipeName+"\" is enabled";
+
         String addResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
                         + "qos-engine first\r"
@@ -722,12 +722,12 @@ public class FirewallService {
                         + "pipe-map "+pipeMapId+"\r"
                         + "dst-ip " + fip + "/32\r"
                         + "end",
-                        retString);
-        if(addResult == null || !addResult.contains(retString)){
-            log.error("Failed to add cmd qos", strResult);
-            return null;
+                        null);
+        if(addResult == null){
+            return rootPipeName;
         }
-        return rootPipeName;
+        log.error("Failed to add cmd qos", strResult);
+        return null;
     }
     private boolean cmdDelIpInSbwPipe(String rootPipeName,String fip, String fireWallId)  {
 

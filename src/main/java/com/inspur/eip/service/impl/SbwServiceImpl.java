@@ -377,7 +377,7 @@ public class SbwServiceImpl implements ISbwService {
                 data.put("currentPage", 1);
                 data.put("currentPagePer", eips.size());
             }
-            log.info("data:{}", data.toString());
+            log.debug("data:{}", data.toString());
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (KeycloakTokenException e) {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
