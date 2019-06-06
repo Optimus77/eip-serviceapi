@@ -737,7 +737,6 @@ public class FirewallService {
                         + "root-pipe  " + rootPipeName + "\r"
                         + "pipe-map 1\r"
                         + "no dst-ip " + fip + "/32\r"
-                        + "src-addr Any\r"
                         + "end",
                 null);
         if(strResult != null){
