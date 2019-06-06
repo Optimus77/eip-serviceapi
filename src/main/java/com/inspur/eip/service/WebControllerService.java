@@ -82,7 +82,7 @@ class WebControllerService {
     void returnsWebsocket(String eipId, ReciveOrder eipOrder, String type){
             try {
                 WebSocketEntity wbEntity = new WebSocketEntity();
-                wbEntity.setUserName(CommonUtil.getUsername());
+                wbEntity.setUserName(CommonUtil.getUsername(eipOrder.getToken()));
                 wbEntity.setHandlerName("operateEipHandler");
                 wbEntity.setInstanceId(eipId);
                 wbEntity.setInstanceStatus("active");
@@ -99,17 +99,17 @@ class WebControllerService {
             }
 
     }
-    void returnsIpv6Websocket(String eipResult, String eipV6Reuslt, String type){
+    void returnsIpv6Websocket( String result, String type, String token){
         try {
             WebSocketEntity wbEntity = new WebSocketEntity();
-            wbEntity.setUserName(CommonUtil.getUsername());
+            wbEntity.setUserName(CommonUtil.getUsername(token));
             wbEntity.setHandlerName("operateNatHandler");
             wbEntity.setOperateType(type);
             String retMessage;
             if(type.equalsIgnoreCase("createNatWithEip")) {
-                retMessage = "createNat" + eipV6Reuslt + "&" + "createEIP" + eipResult;
+                retMessage = "createNat" + result + "&" + "createEIP" + result;
             }else {
-                retMessage = "deleteNat" + eipV6Reuslt + "&" + "deleteEIP" + eipResult;
+                retMessage = "deleteNat" + result + "&" + "deleteEIP" + result;
             }
             wbEntity.setMessage(retMessage);
             String url=pushMq;
@@ -133,7 +133,7 @@ class WebControllerService {
 
             try {
                 WebSocketEntity wbEntity = new WebSocketEntity();
-                wbEntity.setUserName(CommonUtil.getUsername());
+                wbEntity.setUserName(CommonUtil.getUsername(reciveOrder.getToken()));
                 wbEntity.setHandlerName("operateSbwHandler");
                 wbEntity.setInstanceId(sbwId);
                 wbEntity.setInstanceStatus("active");

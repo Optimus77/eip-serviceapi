@@ -52,7 +52,7 @@ public class EipV6DaoService {
      * @return result
      */
     @Transactional
-    public EipV6 allocateEipV6(String  eipV4Id, EipPoolV6 eipPoolv6) throws KeycloakTokenException {
+    public EipV6 allocateEipV6(String  eipV4Id, EipPoolV6 eipPoolv6, String token) throws KeycloakTokenException {
 
         Eip eip = eipRepository.findByEipId(eipV4Id);
         if(null == eip){
@@ -112,7 +112,7 @@ public class EipV6DaoService {
         eipMo.setFirewallId(eipPoolv6.getFireWallId());
         eipMo.setRegion(eip.getRegion());
         eipMo.setIpv4(eip.getEipAddress());
-        String userId = CommonUtil.getUserId();
+        String userId = CommonUtil.getUserId(token);
         log.debug("get tenantid:{} from clientv3", userId);
         eipMo.setUserId(userId);
         eipMo.setIsDelete(0);

@@ -63,7 +63,7 @@ public class BssOrderListener {
         //允许使用单引号
         objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
         // 可以通过message.getBody()获取消息的字节码，并通过ObjectMapper转换成对象
-        log.info(objectMapper.readValue(message.getBody(), Object.class).toString());
+        log.debug(objectMapper.readValue(message.getBody(), Object.class).toString());
         try {
             ReciveOrder reciveOrder = objectMapper.readValue(message.getBody(), ReciveOrder.class);
             Optional<ReciveOrder> optional = Optional.ofNullable(reciveOrder);
