@@ -33,14 +33,24 @@ import java.util.Optional;
 // 可以通过注解完成队列的绑定，如果队列不存在，则会自动新建
 @RabbitListener(
         bindings = {
+
                 @QueueBinding(
-                        value = @Queue(name = "${bss.queues.change.name}", arguments = {
+                        value = @Queue(name = "${bss.queues.change.name.eip}", arguments = {
                                 @Argument(name = "x-message-ttl", value = "${bss.queues.change.messageTTL}", type = "java.lang.Integer"),
                                 @Argument(name = "x-dead-letter-exchange", value = "${bss.queues.change.deadLetterExchange}"),
                                 @Argument(name = "x-dead-letter-routing-key", value = "${bss.queues.change.deadLetterRoutingKey}")
                         }),
                         exchange = @Exchange(name = "${bss.queues.change.binding.exchange}", type = ExchangeTypes.TOPIC),
-                        key = "${bss.queues.change.binding.routingKey}"
+                        key = "${bss.queues.change.binding.routingKey.eip}"
+                ),
+                @QueueBinding(
+                        value = @Queue(name = "${bss.queues.change.name.sbw}", arguments = {
+                                @Argument(name = "x-message-ttl", value = "${bss.queues.change.messageTTL}", type = "java.lang.Integer"),
+                                @Argument(name = "x-dead-letter-exchange", value = "${bss.queues.change.deadLetterExchange}"),
+                                @Argument(name = "x-dead-letter-routing-key", value = "${bss.queues.change.deadLetterRoutingKey}")
+                        }),
+                        exchange = @Exchange(name = "${bss.queues.change.binding.exchange}", type = ExchangeTypes.TOPIC),
+                        key = "${bss.queues.change.binding.routingKey.sbw}"
                 )
         }
 )
@@ -61,7 +71,7 @@ public class BssChangeListener {
         //允许使用单引号
         objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
         // 可以通过message.getBody()获取消息的字节码，并通过ObjectMapper转换成对象
-        log.info(objectMapper.readValue(message.getBody(), Object.class).toString());
+//        log.info(objectMapper.readValue(message.getBody(), Object.class).toString());
         try {
             OrderSoftDown softDown = objectMapper.readValue(message.getBody(), OrderSoftDown.class);
             Optional<OrderSoftDown> optional = Optional.ofNullable(softDown);

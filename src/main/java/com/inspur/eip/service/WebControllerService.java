@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 
 @Service
@@ -29,49 +30,6 @@ class WebControllerService {
 
     @Value("${mq.returnMq}")
     private   String returnMq;
-
-    /**
-     * 订单返回给控制台的消息
-     * @param orderResult  result
-     * @return return
-     */
-    ReturnResult resultReturnMq(Console2BssResult orderResult)   {
-        String url=returnMq;
-        String orderStr=JSONObject.toJSONString(orderResult);
-        try {
-            Map<String, String> header = new HashMap<>();
-            header.put(HsConstants.AUTHORIZATION, "bearer "+ clientTokenUtil.getAdminToken().trim());
-            header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
-
-            log.info("ReturnMq Url:{} body:{}", url, orderStr);
-            return  HttpsClientUtil.doPostJson(url, header, orderStr);
-        }catch (Exception e){
-            log.error("In return mq, get token exception:{}", e);
-        }
-        return ReturnResult.actionFailed("Return mq failed ", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-    }
-
-    /**
-     *  notify
-     * @param orderResult result
-     * @return code and message
-     */
-    ReturnResult resultReturnNotify(OrderSoftDown orderResult)  {
-        String url=returnNotify;
-        try {
-            Map<String, String> header = new HashMap<>();
-            header.put(HsConstants.AUTHORIZATION, clientTokenUtil.getAdminToken());
-            header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
-
-            String orderStr = JSONObject.toJSONString(orderResult);
-            log.info("ReturnNotify Url:{} body:{}", url, orderStr);
-            return   HttpsClientUtil.doPostJson(url, null, orderStr);
-        }catch (Exception e){
-            log.error("In return from notify mq, get token exception:{}", e);
-        }
-        return ReturnResult.actionFailed("Notify failed ", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-    }
-
 
     /**
      *  websocket return
@@ -92,7 +50,8 @@ class WebControllerService {
                 String url=pushMq;
                 String orderStr=JSONObject.toJSONString(wbEntity);
                 log.info("websocket send return: {} {}", url, orderStr);
-                ReturnResult response = HttpsClientUtil.doPostJson(url,null,orderStr);
+                Map<String, String> header = this.getHeader(eipOrder.getToken());
+                ReturnResult response = HttpsClientUtil.doPostJson(url,header,orderStr);
                 log.debug("websocket respons:{}", response.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -115,7 +74,8 @@ class WebControllerService {
             String url=pushMq;
             String orderStr=JSONObject.toJSONString(wbEntity);
             log.info("websocket send return: {} {}", url, orderStr);
-            ReturnResult response = HttpsClientUtil.doPostJson(url,null,orderStr);
+            Map<String, String> header = this.getHeader(token);
+            ReturnResult response = HttpsClientUtil.doPostJson(url,header,orderStr);
             log.debug("websocket respons:{}", response.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
@@ -123,6 +83,18 @@ class WebControllerService {
 
     }
 
+    /**
+     * get token from mq
+     * @param token
+     * @return
+     */
+    private  Map<String,String> getHeader(String token){
+        Map<String,String> header=new HashMap<String,String>();
+        header.put("requestId", UUID.randomUUID().toString());
+        header.put(HsConstants.AUTHORIZATION, token);
+        header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
+        return header;
+    }
     /**
      * sbw webSocket
      * @param sbwId id
@@ -143,32 +115,11 @@ class WebControllerService {
                 String url=pushMq;
                 String socketStr=JSONObject.toJSONString(wbEntity);
                 log.info("websocket send return: {} {}", url, socketStr);
-                ReturnResult response = HttpsClientUtil.doPostJson(url,null,socketStr);
+                Map<String, String> header = this.getHeader(reciveOrder.getToken());
+                ReturnResult response = HttpsClientUtil.doPostJson(url,header,socketStr);
                 log.debug("websocket respons:{}", response.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-
-
-    /**
-     * 订单返回给控制台的消息
-     * @param console2BssResult  result
-     * @return return
-     */
-    ReturnResult resultSbwReturnMq(Console2BssResult console2BssResult)   {
-        String url=returnMq;
-        String mqStr=JSONObject.toJSONString(console2BssResult);
-        try {
-            Map<String, String> header = new HashMap<>();
-            header.put(HsConstants.AUTHORIZATION, "bearer "+ clientTokenUtil.getAdminToken().trim());
-            header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
-
-            log.info("ReturnMq Url:{} body:{}", url, mqStr);
-            return  HttpsClientUtil.doPostJson(url, header, mqStr);
-        }catch (Exception e){
-            log.error("In return mq, get token exception:{}", e);
-        }
-        return ReturnResult.actionFailed("Return mq failed ", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-    }
 }
