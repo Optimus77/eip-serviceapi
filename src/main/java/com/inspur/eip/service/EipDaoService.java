@@ -419,7 +419,7 @@ public class EipDaoService {
     }
 
     @Transactional
-    public ActionResponse updateEipEntity(String eipid, EipUpdateParam param) {
+    public ActionResponse updateEipEntity(String eipid, EipUpdateParam param,String token) {
 
         Eip eipEntity = eipRepository.findByEipId(eipid);
         if (null == eipEntity) {
