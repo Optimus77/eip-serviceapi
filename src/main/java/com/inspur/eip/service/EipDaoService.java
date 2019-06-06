@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -418,7 +419,7 @@ public class EipDaoService {
         }
     }
 
-    @Transactional
+    @Transactional(propagation= Propagation.REQUIRED)
     ActionResponse updateEipEntity(String eipid, EipUpdateParam param) {
 
         Eip eipEntity = eipRepository.findByEipId(eipid);
