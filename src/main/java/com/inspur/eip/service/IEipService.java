@@ -65,10 +65,6 @@ public interface IEipService {
 
     ResponseEntity getEipCount();
 
-    ResponseEntity addEipToSbw(String eipId,  EipUpdateParam eipUpdateParam);
-
-    ResponseEntity removeEipFromSbw(String eipId, EipUpdateParam eipUpdateParam);
-
     /**
      *   the eipV6
      * @return       result
