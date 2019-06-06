@@ -100,28 +100,36 @@ spring:
       simple:
         default-requeue-rejected: false
 
-
 #rabbit mq queues config
 bss:
   queues:
     order:
-      name: queue.eip.order
+      name:
+        eip: queue.eip.order
+        sbw: queue.sbw.order
       messageTTL: 300000
       binding:
         exchange: exchange.region
-        routingKey: key.eip.order
+        routingKey:
+          eip: key.eip.order
+          sbw: key.sbw.order
         returnRoutingKey: key.return.order
       deadLetterExchange: exchange.dlx
       deadLetterRoutingKey: key.dlx
     change:
-      name: queue.eip.change
+      name:
+        eip: queue.eip.change
+        sbw: queue.sbw.change
       messageTTL: 300000
       binding:
         exchange: exchange.region
-        routingKey: key.eip.change
+        routingKey:
+          eip: key.eip.change
+          sbw: key.sbw.change
         returnRoutingKey: key.return.change
       deadLetterExchange: exchange.dlx
       deadLetterRoutingKey: key.dlx
+
 
 
 slbUrl: http://slb-atom.10.110.25.123.xip.io/slb/v1/slbs/members/

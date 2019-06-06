@@ -35,13 +35,22 @@ import java.util.Optional;
 @RabbitListener(
         bindings = {
                 @QueueBinding(
-                        value = @Queue(name = "${bss.queues.order.name}", arguments = {
+                        value = @Queue(name = "${bss.queues.order.name.eip}", arguments = {
                                 @Argument(name = "x-message-ttl", value = "${bss.queues.order.messageTTL}", type = "java.lang.Integer"),
                                 @Argument(name = "x-dead-letter-exchange", value = "${bss.queues.order.deadLetterExchange}"),
                                 @Argument(name = "x-dead-letter-routing-key", value = "${bss.queues.order.deadLetterRoutingKey}")
                         }),
                         exchange = @Exchange(name = "${bss.queues.order.binding.exchange}", type = ExchangeTypes.TOPIC),
-                        key = "${bss.queues.order.binding.routingKey}"
+                        key = "${bss.queues.order.binding.routingKey.eip}"
+                ),
+                @QueueBinding(
+                        value = @Queue(name = "${bss.queues.order.name.sbw}", arguments = {
+                                @Argument(name = "x-message-ttl", value = "${bss.queues.order.messageTTL}", type = "java.lang.Integer"),
+                                @Argument(name = "x-dead-letter-exchange", value = "${bss.queues.order.deadLetterExchange}"),
+                                @Argument(name = "x-dead-letter-routing-key", value = "${bss.queues.order.deadLetterRoutingKey}")
+                        }),
+                        exchange = @Exchange(name = "${bss.queues.order.binding.exchange}", type = ExchangeTypes.TOPIC),
+                        key = "${bss.queues.order.binding.routingKey.sbw}"
                 )
         }
 )
@@ -63,7 +72,7 @@ public class BssOrderListener {
         //允许使用单引号
         objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
         // 可以通过message.getBody()获取消息的字节码，并通过ObjectMapper转换成对象
-        log.debug(objectMapper.readValue(message.getBody(), Object.class).toString());
+//        log.info(objectMapper.readValue(message.getBody(), Object.class).toString());
         try {
             ReciveOrder reciveOrder = objectMapper.readValue(message.getBody(), ReciveOrder.class);
             Optional<ReciveOrder> optional = Optional.ofNullable(reciveOrder);
