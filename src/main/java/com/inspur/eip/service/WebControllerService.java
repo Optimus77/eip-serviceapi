@@ -91,7 +91,7 @@ class WebControllerService {
     private  Map<String,String> getHeader(String token){
         Map<String,String> header=new HashMap<String,String>();
         header.put("requestId", UUID.randomUUID().toString());
-        header.put(HsConstants.AUTHORIZATION, token);
+        header.put(HsConstants.AUTHORIZATION, "bearer "+token);
         header.put(HTTP.CONTENT_TYPE, "application/json; charset=utf-8");
         return header;
     }

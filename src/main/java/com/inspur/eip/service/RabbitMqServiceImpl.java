@@ -312,7 +312,7 @@ public class RabbitMqServiceImpl {
             if (null == sbwId) {
                 sendOrderMessageToBss(getSbwReturnResult(reciveOrder, "", HsConstants.STATUS_ERROR));
             } else {
-                sendOrderMessageToBss(getSbwReturnResult(reciveOrder, "", HsConstants.STATUS_ACTIVE));
+                sendOrderMessageToBss(getSbwReturnResult(reciveOrder, sbwId, HsConstants.STATUS_ACTIVE));
             }
         }
         return response;
