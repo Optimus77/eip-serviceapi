@@ -53,7 +53,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
      * @param eipV4Id          eipV4Id
      * @return                   json info of eip
      */
-    public ResponseEntity atomCreateEipV6(String eipV4Id) {
+    public ResponseEntity atomCreateEipV6(String eipV4Id, String token) {
 
         String code;
         String msg;
@@ -66,7 +66,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         HttpStatus.FAILED_DEPENDENCY);
             }
 
-            EipV6 eipMo = eipV6DaoService.allocateEipV6(eipV4Id, eipV6);
+            EipV6 eipMo = eipV6DaoService.allocateEipV6(eipV4Id, eipV6, token);
             if (null != eipMo) {
                 EipV6ReturnBase eipInfo = new EipV6ReturnBase();
                 BeanUtils.copyProperties(eipMo, eipInfo);

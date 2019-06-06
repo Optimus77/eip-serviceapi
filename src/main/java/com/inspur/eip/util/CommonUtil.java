@@ -37,12 +37,6 @@ public class CommonUtil {
     public static boolean isDebug = true;
     public static boolean qosDebug = false;
 
-
-    public static String getGmtDateString() {
-        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-    }
-
     /**
      * get the Keycloak authorization token  from httpHeader;
      * @return  string string
@@ -70,20 +64,8 @@ public class CommonUtil {
         String token = getKeycloackToken();
         if(null == token){
             throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
-        }else{
-            JSONObject jsonObject = decodeUserInfo(token);
-            if (jsonObject !=null){
-                String sub = (String) jsonObject.get("sub");
-                if (sub != null) {
-                    log.debug("getUserId:{}", sub);
-                    return sub;
-                } else {
-                    throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
-                }
-            }else {
-                log.info("jsonObject is null");
-                throw new KeycloakTokenException("400-Bad request:can't get jsonObject info from header,please check");
-            }
+        }else {
+            return getUserId(token);
         }
     }
     public static String getUserId(String token)throws KeycloakTokenException {
@@ -95,7 +77,7 @@ public class CommonUtil {
             if (jsonObject !=null){
                 String sub = (String) jsonObject.get("sub");
                 if (sub != null) {
-                    log.info("getUserId:{}", sub);
+                    log.debug("getUserId:{}", sub);
                     return sub;
                 } else {
                     throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
@@ -138,7 +120,6 @@ public class CommonUtil {
         return sb.toString();
     }
 
-
     public static String getUsername(String token)throws KeycloakTokenException {
 
         if(null == token){
@@ -158,34 +139,6 @@ public class CommonUtil {
                 throw new KeycloakTokenException("400-Bad request:can't get jsonObject info from header,please check");
             }
         }
-    }
-
-    public static JSONObject handlerResopnse(ReturnResult response){
-
-        if(response!=null) {
-
-            try {
-                JSONObject returnInfo;
-                if(response.getCode() == HttpStatus.SC_OK) {
-                    returnInfo = JSONObject.parseObject(response.getMessage());
-                    returnInfo.put("statusCode", HttpStatus.SC_OK);
-                }else{
-                    returnInfo = new JSONObject();
-                    returnInfo.put("statusCode", response.getCode());
-                    returnInfo.put("message", response.getMessage());
-                }
-
-                log.info("RETURN ==>{}", returnInfo);
-                return returnInfo;
-            }catch (Exception e){
-                log.error("handlerResopnse exception:", e);
-            }
-        }
-        JSONObject result=new JSONObject();
-        result.put(HsConstants.SUCCESS,false);
-        result.put("statusCode", HttpStatus.SC_NOT_IMPLEMENTED);
-        result.put("message","Can not get return result.");
-        return result;
     }
 
 
@@ -277,15 +230,6 @@ public class CommonUtil {
         return new Date();
     }
 
-    /*
-     *获取当天日期:yyyy-MM-dd
-     */
-    public static String getToday() {
-        Date currentTime = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-ss");
-        return formatter.format(currentTime);
-    }
-
 
     @Setter
     private static org.json.JSONObject KeyClockInfo;
@@ -346,32 +290,7 @@ public class CommonUtil {
             log.error("can't get token.");
             return getOsClientV3();
         }
-
-        if(isDebug){
-            userRegion = userConfig.get("debugRegionS");
-            log.debug("=============={}", userRegion);
-        }
-        if(token.startsWith("Bearer Bearer")){
-            token = token.substring(7);
-        }
-        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-        setKeyClockInfo(jsonObject);
-        log.info("decode::"+jsonObject);
-        if(jsonObject.has("project")){
-            String project = (String) jsonObject.get("project");
-            log.debug("Get openstack ip:{}, region:{}, project:{}.",userConfig.get("openstackIp"), userRegion, project);
-            return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
-        }else {
-            String clientId = jsonObject.getString("clientId");
-            if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
-                log.info("Client token, User has right to operation, client:{}", clientId);
-                return getOsClientV3();
-            }else{
-                log.error("User has no right to operation.{}", jsonObject.toString());
-                throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NO_PROJECT));
-            }
-        }
-
+        return getOsClientV3Util(userRegion, token);
     }
 
 
@@ -440,24 +359,7 @@ public class CommonUtil {
 
         return userConfig.get("debugRegionS");
     }
-    public static String getProjectName()throws KeycloakTokenException {
 
-        String token = getKeycloackToken();
-        if(null == token){
-            throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NULL));
-        }
-        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-        String projectName = null;
-        if (jsonObject.has("project")) {
-            projectName = (String) jsonObject.get("project");
-        } else if (jsonObject.has("preferred_username")) {
-            projectName = (String) jsonObject.get("preferred_username");
-        }
-        if (projectName != null) {
-            log.info("getProjectName:{}", projectName);
-        }
-        return projectName;
-    }
     public static String getProjectName(String token)throws KeycloakTokenException {
 
         if(null == token){
@@ -510,30 +412,6 @@ public class CommonUtil {
 
         return false;
 
-    }
-    /**
-     * 是否是超级管理员权限
-     * @return
-     */
-    public static boolean isSuperAccount() {
-
-        String token = getKeycloackToken();
-        if(null == token){
-            log.error("User has no token.");
-            return false;
-        }
-        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-        String  realmAccess = null;
-        if (jsonObject.has("realm_access")){
-            realmAccess = jsonObject.getJSONObject("realm_access").toString();
-        }
-        if (realmAccess!= null && realmAccess.contains("OPERATE_ADMIN")){
-            log.info("Client token, User has right to operation, realmAccess:{}", realmAccess);
-            return true;
-        }else{
-            log.error("User has no right to operation.{}", jsonObject.toString());
-            return false;
-        }
     }
 
 

@@ -499,7 +499,7 @@ public class RabbitMqServiceImpl {
                 }
             }
         }
-        log.info("Get eip param from order:{}", eipAllocateParam.toString());
+        log.info("Get eip param from order:{}", JSONObject.toJSONString( eipAllocateParam));
         /*chargemode now use the default value */
         return eipAllocateParam;
     }

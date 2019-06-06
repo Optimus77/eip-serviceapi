@@ -5,6 +5,7 @@ import com.inspur.eip.entity.ipv6.EipV6UpdateParam;
 import com.inspur.eip.entity.v2.eipv6.EipV6AllocateParamWrapper;
 import com.inspur.eip.entity.ipv6.EipV6UpdateParamWrapper;
 import com.inspur.eip.service.impl.EipV6ServiceImpl;
+import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.ReturnStatus;
 import io.swagger.annotations.Api;
@@ -50,7 +51,7 @@ public class EipV6Controller {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
                     HttpStatus.BAD_REQUEST);
         }
-        ResponseEntity responseEntity = eipV6Service.atomCreateEipV6(eipV6Config.getEipV6AllocateParam().getEipId());
+        ResponseEntity responseEntity = eipV6Service.atomCreateEipV6(eipV6Config.getEipV6AllocateParam().getEipId(), CommonUtil.getKeycloackToken());
         return responseEntity;
     }
 
