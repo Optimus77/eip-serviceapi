@@ -334,7 +334,7 @@ public class SbwDaoService {
     }
 
     @Transactional
-    public ActionResponse addEipIntoSbw(String eipid, EipUpdateParam eipUpdateParam) {
+    public ActionResponse addEipIntoSbw(String eipid, EipUpdateParam eipUpdateParam,String token) {
 
 
         String sbwId = eipUpdateParam.getSbwId();
@@ -348,7 +348,7 @@ public class SbwDaoService {
             log.error("EIP is already bound to eipv6");
             return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR), HttpStatus.SC_NOT_FOUND);
         }
-        if (!CommonUtil.isAuthoried(eipEntity.getUserId())) {
+        if (!CommonUtil.verifyToken(token,eipEntity.getUserId())) {
             log.error("User have no write to operate eip:{}", eipid);
             return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN), HttpStatus.SC_FORBIDDEN);
         }
@@ -403,7 +403,7 @@ public class SbwDaoService {
     }
 
     @Transactional
-    public ActionResponse removeEipFromSbw(String eipid, EipUpdateParam eipUpdateParam) {
+    public ActionResponse removeEipFromSbw(String eipid, EipUpdateParam eipUpdateParam,String token) {
         Eip eipEntity = eipRepository.findByEipId(eipid);
         String msg;
         String sbwId = eipUpdateParam.getSbwId();
@@ -417,7 +417,7 @@ public class SbwDaoService {
             return ActionResponse.actionFailed("Eip Not found.", HttpStatus.SC_NOT_FOUND);
         }
 
-        if (!CommonUtil.isAuthoried(eipEntity.getUserId())) {
+        if (!CommonUtil.verifyToken(token,eipEntity.getUserId())) {
             log.error("User have no write to delete eip:{}", eipid);
             return ActionResponse.actionFailed("Forbiden.", HttpStatus.SC_FORBIDDEN);
         }

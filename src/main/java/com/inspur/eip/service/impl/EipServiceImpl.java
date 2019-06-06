@@ -571,61 +571,6 @@ public class EipServiceImpl implements IEipService {
         }
     }
 
-
-    @ICPServiceLog
-    @Override
-    public ResponseEntity addEipToSbw(String eipId, EipUpdateParam eipUpdateParam) {
-        String code;
-        String msg;
-        ActionResponse result;
-        try {
-            result = sbwDaoService.addEipIntoSbw(eipId, eipUpdateParam);
-            if (!result.isSuccess()) {
-                msg = result.getFault();
-                log.error(msg);
-                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(result.getCode()), msg),
-                        HttpStatus.valueOf(result.getCode()));
-            } else {
-                msg = "The Eip add to shared band succeeded";
-                log.info(msg);
-                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_OK, msg), HttpStatus.OK);
-            }
-
-        } catch (Exception e) {
-            log.error("eip add to shared band exception", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage() + "";
-        }
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-
-    @Override
-    public ResponseEntity removeEipFromSbw(String eipId, EipUpdateParam eipUpdateParam) {
-        String code;
-        String msg;
-
-        try {
-            ActionResponse actionResponse = sbwDaoService.removeEipFromSbw(eipId, eipUpdateParam);
-            if (actionResponse.isSuccess()) {
-                code = ReturnStatus.SC_OK;
-                msg = ("remove from shared successfully");
-                log.info(code + ":" + msg);
-                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
-            } else {
-                code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
-                msg = actionResponse.getFault();
-                log.info(code + ":" + msg);
-            }
-        } catch (Exception e) {
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage() + "";
-            log.error("code:{}, msg:{},remove from sbw  exception", code, msg, e);
-        }
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-
     /**
      * the eipV6
      *
