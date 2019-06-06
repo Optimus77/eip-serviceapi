@@ -313,7 +313,7 @@ public class CommonUtil {
         log.info("decode::"+jsonObject);
         if(jsonObject.has("project")){
             String project = (String) jsonObject.get("project");
-            log.debug("Get openstack ip:{}, region:{}, project:{}.",userConfig.get("openstackIp"), userRegion, project);
+            log.info("Get openstack ip:{}, region:{}, project:{}.",userConfig.get("openstackIp"), userRegion, project);
             return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
         }else {
             String clientId = jsonObject.getString("clientId");
