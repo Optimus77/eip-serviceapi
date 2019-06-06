@@ -59,7 +59,7 @@ public class EipReturnDetail implements Serializable {
     @JsonProperty("eipv6id")
     private String eipV6Id;
 
-    @JsonProperty("ipv6Address")
+    @JsonProperty("v6Address")
     private String ipv6;
 
 }
