@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-class WebControllerService {
+public class WebControllerService {
 
     @Autowired
     private ClientTokenUtil clientTokenUtil;
@@ -37,7 +37,7 @@ class WebControllerService {
      * @param eipOrder  order
      * @param type type
      */
-    void returnsWebsocket(String eipId, ReciveOrder eipOrder, String type){
+    public void returnsWebsocket(String eipId, ReciveOrder eipOrder, String type){
             try {
                 WebSocketEntity wbEntity = new WebSocketEntity();
                 wbEntity.setUserName(CommonUtil.getUsername(eipOrder.getToken()));
@@ -58,7 +58,7 @@ class WebControllerService {
             }
 
     }
-    void returnsIpv6Websocket( String result, String type, String token){
+    public void returnsIpv6Websocket( String result, String type, String token){
         try {
             WebSocketEntity wbEntity = new WebSocketEntity();
             wbEntity.setUserName(CommonUtil.getUsername(token));
@@ -101,7 +101,7 @@ class WebControllerService {
      * @param reciveOrder order
      * @param type tyep
      */
-    void returnSbwWebsocket(String sbwId, ReciveOrder reciveOrder, String type){
+    public void returnSbwWebsocket(String sbwId, ReciveOrder reciveOrder, String type){
 
             try {
                 WebSocketEntity wbEntity = new WebSocketEntity();

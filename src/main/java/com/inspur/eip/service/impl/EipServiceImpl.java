@@ -15,10 +15,7 @@ import com.inspur.eip.repository.EipV6Repository;
 import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.IEipService;
 import com.inspur.eip.service.SbwDaoService;
-import com.inspur.eip.util.KeycloakTokenException;
-import com.inspur.eip.util.CommonUtil;
-import com.inspur.eip.util.ReturnMsgUtil;
-import com.inspur.eip.util.ReturnStatus;
+import com.inspur.eip.util.*;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -173,20 +170,26 @@ public class EipServiceImpl implements IEipService {
     }
 
 
-    public ActionResponse renewEip(String eipId, EipUpdateParam eipUpdateInfo) {
+    public ActionResponse renewEip(String eipId, EipUpdateParam eipUpdateInfo, String token) {
         String msg ;
         ActionResponse actionResponse;
         try {
-
-            String addTime = eipUpdateInfo.getDuration();
-            if (null == addTime) {
-                return ActionResponse.actionFailed("Bad request,need duration.", org.apache.http.HttpStatus.SC_BAD_REQUEST);
-            } else if (addTime.trim().equals("0")) {
-                actionResponse = eipDaoService.softDownEip(eipId);
-            } else {
-                actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
+            Eip eipEntity = eipRepository.findByEipId(eipId);
+            if (null != eipEntity) {
+                if(CommonUtil.verifyToken(token, eipEntity.getUserId())) {
+                    String addTime = eipUpdateInfo.getDuration();
+                    if (null == addTime || addTime.trim().equals("0")) {
+                        return ActionResponse.actionFailed("Bad request,need duration.", org.apache.http.HttpStatus.SC_BAD_REQUEST);
+                    } else {
+                        return  eipDaoService.reNewEipEntity(eipId, addTime);
+                    }
+                }else {
+                    msg="Forbiden, user:{} has no right to operate"+CommonUtil.getProjectName(token)+ " ";
+                }
+            }else {
+                msg = "Faild to find eip by id:" + eipId + " ";
+                log.error(msg);
             }
-            return actionResponse;
         } catch (Exception e) {
             log.error("Exception in deleteEip", e);
             msg = e.getMessage() + "";
@@ -403,15 +406,15 @@ public class EipServiceImpl implements IEipService {
         }
 
         switch (type) {
-            case "1":
+            case HsConstants.ECS:
                 log.debug("bind a server:{} port:{} with eipId:{}", serverId, portId, id);
                 // 1：ecs
                 if (!StringUtils.isEmpty(portId)) {
                     result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId, null);
                 }
                 break;
-            case "2":
-            case "3":
+            case HsConstants.CPS:
+            case HsConstants.SLB:
                 if (!StringUtils.isEmpty(addrIp)) {
                     result = eipDaoService.associateInstanceWithEip(id, serverId, type, null, addrIp);
                 }
@@ -451,12 +454,12 @@ public class EipServiceImpl implements IEipService {
                 String instanceType = eipEntity.getInstanceType();
                 if (null != instanceType) {
                     switch (instanceType) {
-                        case "1":
+                        case HsConstants.ECS:
                             // 1：ecs
                             actionResponse = eipDaoService.disassociateInstanceWithEip(eipEntity);
                             break;
-                        case "2":
-                        case "3":
+                        case HsConstants.CPS:
+                        case HsConstants.SLB:
                             actionResponse = eipDaoService.disassociateInstanceWithEip(eipEntity);
                             break;
                         default:
@@ -643,23 +646,6 @@ public class EipServiceImpl implements IEipService {
                     HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(data, HttpStatus.OK);
-    }
-    public String setLogLevel(String requestBody, String  packageName){
-        log.info("Set debug level to:{}", requestBody);
-
-        JSONObject jsonObject = JSON.parseObject(requestBody);
-        String debugLevel = jsonObject.getString("level");
-        if(null == debugLevel){
-            return "failed";
-        }
-        try{
-            Level level = Level.toLevel(debugLevel);
-            Logger logger = LogManager.getLogger(packageName);
-            logger.setLevel(level);
-        }catch (Exception e){
-            log.error("Set log level error", e);
-        }
-        return "Set log level seccessfully.";
     }
 
 

@@ -8,7 +8,7 @@ import com.inspur.eip.entity.OrderSoftDown;
 import com.inspur.eip.entity.SoftDownInstance;
 import com.inspur.eip.exception.EipBadRequestException;
 import com.inspur.eip.exception.EipInternalServerException;
-import com.inspur.eip.service.RabbitMqServiceImpl;
+import com.inspur.eip.service.impl.RabbitMqServiceImpl;
 import com.inspur.eip.util.ConstantClassField;
 import com.inspur.eip.util.ErrorStatus;
 import com.inspur.eip.util.HsConstants;
@@ -64,7 +64,7 @@ public class BssChangeListener {
 
     // 必须配置一个handler为默认handler，避免消息在未配置Content-Type头时无法被处理
     @RabbitHandler(isDefault = true)
-    public void process(@Payload Message message, Channel channel) throws JsonParseException, JsonMappingException, IOException {
+    public void process(@Payload Message message, Channel channel)  {
 
         //允许使用未带引号的字段名
         objectMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
@@ -79,10 +79,8 @@ public class BssChangeListener {
                 SoftDownInstance instance = softDown.getInstanceList().get(0);
                 if (HsConstants.EIP.equalsIgnoreCase(instance.getProductLineCode())) {
                     rabbitMqService.softDowOrDeleteEip(softDown);
-                    return;
                 } else if (HsConstants.SBW.equalsIgnoreCase(instance.getProductLineCode())) {
                     rabbitMqService.softDowOrDeleteSbw(softDown);
-                    return;
                 }else {
                     log.error(ErrorStatus.NOT_SUPPORT_PRODUCT_LINE_CODE.getMessage(),softDown);
                     throw new EipBadRequestException(ErrorStatus.NOT_SUPPORT_PRODUCT_LINE_CODE.getCode(),ErrorStatus.NOT_SUPPORT_PRODUCT_LINE_CODE.getMessage());

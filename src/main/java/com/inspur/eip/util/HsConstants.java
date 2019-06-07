@@ -5,6 +5,9 @@ public class HsConstants {
 	public static final String VSYS = "0";
 	public static final String VRID = "1";
 	public static final String LANG = "zh_CN";
+    public static final String ECS = "1";
+    public static final String CPS = "2";
+    public static final String SLB = "3";
     public static final String VERSION_REST = "/v2.0";
 	public static final String IS_SBW = "is_SBW";
 	public static final String YES = "yes";

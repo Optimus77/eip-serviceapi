@@ -184,8 +184,11 @@ public class EipDaoService {
                 || (null != eipEntity.getDnatId())
                 || (null != eipEntity.getSnatId())) {
             msg = "Failed to delete eip,please unbind eip first." + eipEntity.toString();
+            firewallService.delNatAndQos(eipEntity);
+            eipEntity.setPipId(null);
+            eipEntity.setSnatId(null);
+            eipEntity.setDnatId(null);
             log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
 
         if (null != eipEntity.getFloatingIpId() && !neutronService.superDeleteFloatingIp(eipEntity.getFloatingIpId(), eipEntity.getInstanceId())) {
@@ -256,7 +259,7 @@ public class EipDaoService {
      * @param instanceType instance type
      * @return             true or false
      */
-    @Transactional
+    @Transactional(rollbackFor=Exception.class)
     public MethodReturn associateInstanceWithEip(String eipid, String serverId, String instanceType, String portId, String fip){
         NetFloatingIP floatingIP ;
         String returnStat;
@@ -284,7 +287,7 @@ public class EipDaoService {
                         CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
             }
 
-            if(null == fip && instanceType.equals("1")) {
+            if(null == fip && instanceType.equals(HsConstants.ECS)) {
                 String networkId = getExtNetId(eip.getRegion());
                 if (null == networkId) {
                     log.error("Failed to get external net in region:{}. ", eip.getRegion());
@@ -475,7 +478,7 @@ public class EipDaoService {
             if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK){
                 log.info("renew eip entity add nat and qos,{}.  ", eipEntity);
                 eipEntity.setStatus(HsConstants.ACTIVE);
-                eipEntity.setDuration("1");
+                eipEntity.setDuration(addTime);
                 eipEntity.setUpdateTime(CommonUtil.getGmtDate());
                 eipRepository.saveAndFlush(eipEntity);
             }else{

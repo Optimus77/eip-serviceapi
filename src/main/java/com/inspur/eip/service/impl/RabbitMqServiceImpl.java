@@ -1,12 +1,13 @@
-package com.inspur.eip.service;
+package com.inspur.eip.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.*;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.entity.v2.eip.EipReturnBase;
 import com.inspur.eip.entity.v2.sbw.SbwReturnBase;
-import com.inspur.eip.service.impl.EipServiceImpl;
-import com.inspur.eip.service.impl.SbwServiceImpl;
+import com.inspur.eip.service.EipDaoService;
+import com.inspur.eip.service.SbwDaoService;
+import com.inspur.eip.service.WebControllerService;
 import com.inspur.eip.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
@@ -71,7 +72,7 @@ public class RabbitMqServiceImpl {
      */
     public String createEipInfo(ReciveOrder eipOrder) {
         ResponseEntity<ReturnMsg<EipReturnBase>> response;
-        EipReturnBase eipReturn = null;
+        EipReturnBase eipReturn;
         String eipId = null;
         try {
             log.info("Recive create mq:{}", JSONObject.toJSONString(eipOrder));
@@ -188,7 +189,7 @@ public class RabbitMqServiceImpl {
                         log.error(ConstantClassField.BILL_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
                     }
                 } else if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
-                    response = eipService.renewEip(eipId, eipUpdate);
+                    response = eipService.renewEip(eipId, eipUpdate, eipOrder.getToken());
                 } else {
                     log.error(ConstantClassField.ORDER_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
                 }
@@ -233,9 +234,7 @@ public class RabbitMqServiceImpl {
                         result = HsConstants.SUCCESS;
                     }
                 } else if (HsConstants.STOPSERVER.equalsIgnoreCase(operateType)) {
-                    EipUpdateParam updateParam = new EipUpdateParam();
-                    updateParam.setDuration("0");
-                    response = eipService.renewEip(softDownInstance.getInstanceId(), updateParam);
+                    response = eipDaoService.softDownEip(softDownInstance.getInstanceId());
                     if (response != null) {
                         if (response.isSuccess()) {
                             insanceStatus = HsConstants.STOPSERVER;
@@ -246,9 +245,7 @@ public class RabbitMqServiceImpl {
                         }
                     }
                 } else if (HsConstants.RESUMESERVER.equalsIgnoreCase(operateType)) {
-                    EipUpdateParam eipUpdate = new EipUpdateParam();
-                    eipUpdate.setDuration("1");
-                    response = eipService.renewEip(softDownInstance.getInstanceId(), eipUpdate);
+                    response = eipDaoService.reNewEipEntity(softDownInstance.getInstanceId(), "1");
                     if (response != null && response.isSuccess()) {
                         insanceStatus = HsConstants.SUCCESS;
                         result = HsConstants.SUCCESS;

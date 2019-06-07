@@ -100,21 +100,11 @@ public class EipController {
     @GetMapping(value = "/eipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")
-    public ResponseEntity getEipCount(@RequestParam(required = false )String DimensionName,
-                                      @RequestParam(required = false )String status) {
-        if(DimensionName == null){
+    public ResponseEntity getEipCount(@RequestParam(required = false )String status) {
+        if(status == null){
             return  eipService.getEipCount();
         }else {
-            if(status == null){
-                if(DimensionName.equals("freeeipnumbers")){
-                    return  eipService.getFreeEipCount();
-                }else if(DimensionName.equals("totaleipnumbers")){
-                    return  eipService.getTotalEipCount();
-                }
-                return  eipService.getUsingEipCount();
-            }else{
-                return eipService.getUsingEipCountByStatus(status);
-            }
+            return eipService.getUsingEipCountByStatus(status);
         }
     }
 
@@ -207,7 +197,6 @@ public class EipController {
      */
     @GetMapping(value = "/statistics")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="get number",notes="get number")
     public ResponseEntity getFreeEipCount() {
         return  eipService.getEipStatistics();
     }
@@ -216,7 +205,6 @@ public class EipController {
     @PutMapping(value = "/eips/{eip_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eip", notes = "put")
-
     public ResponseEntity updateEip(@PathVariable("eip_id") String eipId,
                                     @Valid @RequestBody (required = false)  EipUpdateParamWrapper param ,BindingResult result) {
 
