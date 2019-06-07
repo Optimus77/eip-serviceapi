@@ -50,6 +50,15 @@ import java.util.Optional;
                         }),
                         exchange = @Exchange(name = "${bss.queues.order.binding.exchange}", type = ExchangeTypes.TOPIC),
                         key = "${bss.queues.order.binding.routingKey.sbw}"
+                ),
+                @QueueBinding(
+                        value = @Queue(name = "${bss.queues.order.name.ipts}", arguments = {
+                                @Argument(name = "x-message-ttl", value = "${bss.queues.order.messageTTL}", type = "java.lang.Integer"),
+                                @Argument(name = "x-dead-letter-exchange", value = "${bss.queues.order.deadLetterExchange}"),
+                                @Argument(name = "x-dead-letter-routing-key", value = "${bss.queues.order.deadLetterRoutingKey}")
+                        }),
+                        exchange = @Exchange(name = "${bss.queues.order.binding.exchange}", type = ExchangeTypes.TOPIC),
+                        key = "${bss.queues.order.binding.routingKey.ipts}"
                 )
         }
 )
@@ -80,7 +89,7 @@ public class BssOrderListener {
                 String orderRoute = reciveOrder.getOrderRoute();
                 switch (orderType){
                     case HsConstants.NEW_ORDERTYPE:
-                        if (HsConstants.EIP.equalsIgnoreCase(orderRoute)){
+                        if (HsConstants.EIP.equalsIgnoreCase(orderRoute) || HsConstants.IPTS.equalsIgnoreCase(orderRoute)){
                             rabbitMqService.createEipInfo(reciveOrder);
                         }else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)){
                             rabbitMqService.createSbwInfo(reciveOrder);
@@ -95,7 +104,7 @@ public class BssOrderListener {
                         }
                         break;
                     case HsConstants.UNSUBSCRIBE_ORDERTYPE:
-                        if (HsConstants.EIP.equalsIgnoreCase(orderRoute)){
+                        if (HsConstants.EIP.equalsIgnoreCase(orderRoute)|| HsConstants.IPTS.equalsIgnoreCase(orderRoute)){
                             rabbitMqService.deleteEipConfig(reciveOrder);
                         }else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)){
                             rabbitMqService.deleteSbwConfig(reciveOrder);

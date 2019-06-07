@@ -107,12 +107,14 @@ bss:
       name:
         eip: queue.eip.order
         sbw: queue.sbw.order
+        ipts: queue.ipts.order
       messageTTL: 300000
       binding:
         exchange: exchange.region
         routingKey:
           eip: key.eip.order
           sbw: key.sbw.order
+          ipts: key.ipts.order
         returnRoutingKey: key.return.order
       deadLetterExchange: exchange.dlx
       deadLetterRoutingKey: key.dlx
@@ -120,12 +122,14 @@ bss:
       name:
         eip: queue.eip.change
         sbw: queue.sbw.change
+        ipts: queue.ipts.change
       messageTTL: 300000
       binding:
         exchange: exchange.region
         routingKey:
           eip: key.eip.change
           sbw: key.sbw.change
+          ipts: key.ipts.change
         returnRoutingKey: key.return.change
       deadLetterExchange: exchange.dlx
       deadLetterRoutingKey: key.dlx

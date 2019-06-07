@@ -172,7 +172,6 @@ public class EipServiceImpl implements IEipService {
 
     public ActionResponse renewEip(String eipId, EipUpdateParam eipUpdateInfo, String token) {
         String msg ;
-        ActionResponse actionResponse;
         try {
             Eip eipEntity = eipRepository.findByEipId(eipId);
             if (null != eipEntity) {

@@ -142,7 +142,7 @@ public class SbwControllerV2 {
     public ResponseEntity renewSbw(@PathVariable("sbw_id") String sbwId,
                                    @RequestBody SbwUpdateParamWrapper param) {
         log.info("Atom renew or softdown sbw sbwId:{}, param:{}.", sbwId, param.getSbw().toString());
-        return sbwService.renewSbw(sbwId, param.getSbw());
+        return sbwService.restartSbwService(sbwId, param.getSbw(),CommonUtil.getKeycloackToken());
     }
 
     /**

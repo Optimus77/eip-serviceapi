@@ -179,23 +179,21 @@ public class SbwDaoService {
     }
 
     @Transactional
-    public ActionResponse softDownSbw(String sbwId) {
-        String msg;
+    public ActionResponse stopSbwService(String sbwId) {
         Sbw sbw = sbwRepository.findBySbwId(sbwId);
         if (null == sbw) {
-            msg = "Faild to find in soft Down by sbwId:{}:" + sbwId ;
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+            log.error(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage() + sbwId);
+            return ActionResponse.actionFailed(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage(), HttpStatus.SC_NOT_FOUND);
         }
+        // 订单测主动发起MQ，无token
 //        if (!CommonUtil.isAuthoried(sbw.getProjectId())) {
 //            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
 //            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
 //        }
         Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
         if (firewall == null) {
-            msg = "Can't find firewall by sbw region:{}"+ sbw.getRegion();
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
+            log.error(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage()+ sbw.getRegion());
+            return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage()+ sbw.getRegion(), HttpStatus.SC_BAD_REQUEST);
         }
         if (StringUtils.isNotEmpty(sbw.getStatus()) && HsConstants.ACTIVE.equalsIgnoreCase(sbw.getStatus()) && StringUtils.isNotEmpty(sbw.getPipeId())){
             MethodReturn methodReturn = qosService.controlPipe(firewall.getId(), sbwId, true);
@@ -216,7 +214,7 @@ public class SbwDaoService {
     }
 
     @Transactional
-    public ActionResponse renewSbwEntity(String sbwId) {
+    public ActionResponse renewSbwEntity(String sbwId, String token) {
         String msg;
         Sbw sbw = sbwRepository.findBySbwId(sbwId);
         if (null == sbw) {
@@ -224,10 +222,10 @@ public class SbwDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
-//        if (!CommonUtil.verifyToken(token, sbw.getProjectId())) {
-//            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
-//            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
-//        }
+        if (!CommonUtil.verifyToken(token, sbw.getProjectId())) {
+            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
+            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
+        }
         if (!sbw.getBillType().equals(HsConstants.MONTHLY)) {
             msg = "BillType is not monthly SBW cannot be renewed:{}" + sbwId;
             log.error(msg);

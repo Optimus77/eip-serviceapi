@@ -31,6 +31,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import scala.Int;
 
 import java.util.List;
 
@@ -289,38 +290,55 @@ public class SbwServiceImpl implements ISbwService {
         }
     }
 
-
+    /**
+     * 包年包月续费/自动续费
+     * @param sbwId
+     * @param updateParam
+     * @return
+     */
     @ICPServiceLog
-    public ResponseEntity renewSbw(String sbwId, SbwUpdateParam updateParam) {
-        String msg = "";
-        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+    public ResponseEntity restartSbwService(String sbwId, SbwUpdateParam updateParam, String token) {
+        ActionResponse actionResponse = null;
         try {
             String renewTime = updateParam.getDuration();
-            if (null == renewTime) {
-                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.BAD_REQUEST);
-            } else if (renewTime.trim().equals("0")) {
-                ActionResponse actionResponse = sbwDaoService.softDownSbw(sbwId);
-                if (actionResponse.isSuccess()) {
-                    return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-                } else {
-                    return new ResponseEntity<>(ReturnMsgUtil.error(
-                            String.valueOf(actionResponse.getCode()), actionResponse.getFault()),
-                            HttpStatus.BAD_REQUEST);
+            if (StringUtils.isBlank(renewTime)) {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.SC_PARAM_ERROR.getCode(), ErrorStatus.SC_PARAM_ERROR.getMessage()), HttpStatus.BAD_REQUEST);
+            } else if (Integer.parseInt(renewTime)>0){
+                actionResponse = sbwDaoService.renewSbwEntity(sbwId, token);
+                if (actionResponse.isSuccess()){
+                    log.info("renew sbw success:{} , add duration:{}", sbwId, renewTime);
+                    return new ResponseEntity(ReturnMsgUtil.success(),HttpStatus.OK);
                 }
             }
-            ActionResponse actionResponse = sbwDaoService.renewSbwEntity(sbwId);
-            if (actionResponse.isSuccess()) {
-                log.info("renew sbw success:{} , add duration:{}", sbwId, renewTime);
-                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-            } else {
-                msg = actionResponse.getFault();
-                log.error(msg);
+        } catch (Exception e) {
+            log.error("Exception in restart sbw service:{}", e);
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * 包年包月停服
+     * @param sbwId
+     * @param updateParam
+     * @return
+     */
+    @ICPServiceLog
+    public ResponseEntity stopSbwService(String sbwId, SbwUpdateParam updateParam) {
+        ActionResponse actionResponse = null;
+        try {
+            String renewTime = updateParam.getDuration();
+            if (StringUtils.isBlank(renewTime)) {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.SC_PARAM_ERROR.getCode(), ErrorStatus.SC_PARAM_ERROR.getMessage()), HttpStatus.BAD_REQUEST);
+            } else if (renewTime.trim().equals("0")) {
+                actionResponse = sbwDaoService.stopSbwService(sbwId);
+                if (actionResponse.isSuccess()) {
+                    return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+                }
             }
         } catch (Exception e) {
-            log.error("Exception in deleteSbw", e);
-            msg = e.getMessage() + "";
+            log.error("Exception in stop sbw Service Sbw:{}", e);
         }
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 

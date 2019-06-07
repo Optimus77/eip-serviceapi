@@ -30,7 +30,7 @@ public enum ErrorStatus {
     /**
      * ENTITY_NOT_FOND_IN_DB
      */
-    ENTITY_NOT_FOND_IN_DB("106.994404", "Failed to find entity  in db!"),
+    ENTITY_NOT_FOND_IN_DB("106.994404", "Failed to find entity  in db! -"),
 
     /**
      * SC_OPENSTACK_FIP_UNAVAILABLE
@@ -132,7 +132,11 @@ public enum ErrorStatus {
     /**
      * not support order type
      */
-    NOT_SUPPORT_ORDER_TYPE("106.000400","Not_support_order_type!");
+    NOT_SUPPORT_ORDER_TYPE("106.000400","Not_support_order_type!"),
+    /**
+     * FireWall config error
+     */
+    FIREWALL_NOT_FOND_IN_DB("106.994400", "Failed to find FireWall config  in db!");
 
     private final String code;
 

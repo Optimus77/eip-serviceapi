@@ -370,8 +370,7 @@ public class RabbitMqServiceImpl {
                 if (recive.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
                     response = sbwService.updateSbwConfig(sbwId, sbwUpdate, recive.getToken());
                 } else if (recive.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && recive.getBillType().equals(HsConstants.MONTHLY)) {
-                    sbwUpdate.setDuration("1");
-                    response = sbwService.renewSbw(sbwId, sbwUpdate);
+                    response = sbwService.restartSbwService(sbwId, sbwUpdate,recive.getToken());
                 } else {
                     log.warn(ConstantClassField.ORDER_STATUS_NOT_CORRECT, recive.getOrderType());
                 }
@@ -387,13 +386,13 @@ public class RabbitMqServiceImpl {
                     }
                 }
             }
-            webService.returnSbwWebsocket(sbwId, recive, "update");
-            sendOrderMessageToBss(getSbwReturnResult(recive, sbwId, retStr));
-            log.warn(ConstantClassField.SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT, response);
         } catch (Exception e) {
             sendOrderMessageToBss(getSbwReturnResult(recive, sbwId, HsConstants.STATUS_ERROR));
             log.error(ConstantClassField.EXCEPTION_SBW_UPDATE, e);
         }
+        webService.returnSbwWebsocket(sbwId, recive, "update");
+        sendOrderMessageToBss(getSbwReturnResult(recive, sbwId, retStr));
+        log.warn(ConstantClassField.SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT, response);
         return response;
     }
 
@@ -420,8 +419,7 @@ public class RabbitMqServiceImpl {
                     }
                 } else if (HsConstants.STOPSERVER.equalsIgnoreCase(operateType)) {
                     SbwUpdateParam updateParam = new SbwUpdateParam();
-                    updateParam.setDuration("0");
-                    response = sbwService.renewSbw(instance.getInstanceId(), updateParam);
+                    response = sbwService.stopSbwService(instance.getInstanceId(), updateParam);
                     if (response != null) {
                         if (response.getStatusCodeValue() == HttpStatus.SC_OK || response.getStatusCodeValue() == HttpStatus.SC_NOT_FOUND) {
                             setStatus = HsConstants.SUCCESS;
