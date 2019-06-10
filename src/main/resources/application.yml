@@ -48,14 +48,7 @@ http:
   statleConnectionCheckEnabled: true
 
 
-bssurl:
-  ignoSSL: true
-mq:
-#hourlySettlement k8s服务
-  returnMq: http://service.10.110.25.123.xip.io/mqservice/v2/messages/productreturn
-#monthly k8s服务名
-  returnNotify: http://service.10.110.25.123.xip.io/mqservice/v2/messages/productnotify
-  webSocket:   http://service.10.110.25.123.xip.io/console/websocket/v1/messages
+webSocket:   http://service.10.110.25.123.xip.io/console/websocket/v1/messages
 
 blackList: /health-status
 
