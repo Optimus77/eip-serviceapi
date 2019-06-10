@@ -197,7 +197,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
         String code;
 
         try {
-            ActionResponse actionResponse =  eipV6DaoService.deleteEipV6(eipV6Id);
+            ActionResponse actionResponse =  eipV6DaoService.deleteEipV6(eipV6Id,CommonUtil.getKeycloackToken());
             if (actionResponse.isSuccess()){
                 log.info("Atom delete eipV6 successfully, eipV6Id:{}", eipV6Id);
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
