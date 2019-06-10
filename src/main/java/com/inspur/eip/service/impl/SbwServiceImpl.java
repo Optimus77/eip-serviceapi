@@ -3,7 +3,6 @@ package com.inspur.eip.service.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
-import com.inspur.eip.entity.v2.MethodSbwReturn;
 import com.inspur.eip.entity.v2.eip.Eip;
 import com.inspur.eip.entity.v2.eip.EipReturnDetail;
 import com.inspur.eip.entity.v2.eip.Resourceset;
@@ -31,7 +30,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import scala.Int;
 
 import java.util.List;
 
@@ -71,8 +69,6 @@ public class SbwServiceImpl implements ISbwService {
                 msg = "Failed to create sbw :" + sbwConfig;
                 log.error(msg);
             }
-            //} catch (KeycloakTokenException e){
-            // return new ResponseEntity<>(SbwReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -146,47 +142,30 @@ public class SbwServiceImpl implements ISbwService {
 
     @Override
     @ICPServiceLog
-    public ResponseEntity deleteSbwInfo(String sbwId, String token) {
-        String msg;
-        String code;
-
+    public ActionResponse deleteSbwInfo(String sbwId, String token) {
         try {
-            ActionResponse actionResponse = sbwDaoService.deleteSbw(sbwId, token);
-            if (actionResponse.isSuccess()) {
-                log.info("Atom user delete sbw successfully, sbwId:{}", sbwId);
-                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-            } else {
-                msg = actionResponse.getFault();
-                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-                log.info("Atom user delete sbw failed,{}", msg);
+            if (StringUtils.isBlank(sbwId)){
+                return ActionResponse.actionFailed(ErrorStatus.PARAM_CAN_NOT_BE_NULL.getMessage()+ sbwId,HttpStatus.BAD_REQUEST.value());
+            }else {
+                return sbwDaoService.deleteSbw(sbwId, token);
             }
         } catch (Exception e) {
-            log.error("Exception in atomDeleteSBW", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage() + "";
+            log.error("Exception in atom Delete SBW", e);
         }
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+        return ActionResponse.actionFailed(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
 
-    public ResponseEntity bssSoftDeleteSbw(String sbwId) {
-        String code;
-        String msg;
+    public ActionResponse bssSoftDeleteSbw(String sbwId) {
         try {
-            ActionResponse actionResponse = sbwDaoService.adminDeleteSbw(sbwId);
-            if (actionResponse.isSuccess()) {
-                log.info("Atom soft delete sbw successfully, sbwId:{}", sbwId);
-                return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-            } else {
-                msg = actionResponse.getFault();
-                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-                log.info("Atom soft delete sbw failed,{}", actionResponse.getFault());
+            if (StringUtils.isBlank(sbwId)){
+                return ActionResponse.actionFailed(ErrorStatus.PARAM_CAN_NOT_BE_NULL.getMessage()+ sbwId,HttpStatus.BAD_REQUEST.value());
+            }else {
+                return sbwDaoService.adminDeleteSbw(sbwId);
             }
         } catch (Exception e) {
-            log.error("Exception in atomDeleteSBW", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage() + "";
+            log.error("Exception in atom delete Sbw", e);
         }
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+        return ActionResponse.actionFailed(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
 
     public ResponseEntity getSbwDetail(String sbwId) {
@@ -211,31 +190,17 @@ public class SbwServiceImpl implements ISbwService {
 
     @Override
     @ICPServiceLog
-    public ResponseEntity updateSbwConfig(String id, SbwUpdateParam param, String token) {
-        String code;
-        String msg;
+    public ActionResponse updateSbwConfig(String sbwId, SbwUpdateParam param, String token) {
         try {
-            MethodSbwReturn result = sbwDaoService.updateSbwEntity(id, param, token);
-            if (!result.getInnerCode().equals(ReturnStatus.SC_OK)) {
-                code = result.getInnerCode();
-                int httpResponseCode = result.getHttpCode();
-                msg = result.getMessage();
-                log.error(msg);
-                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
-            } else {
-                SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
-                Sbw sbwEntity = (Sbw) result.getSbw();
-                BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
-                int count = eipDaoService.statisEipCountBySbw(sbwEntity.getSbwId(), 0);
-                sbwReturnDetail.setIpCount(count);
-                return new ResponseEntity<>(ReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
+            if (StringUtils.isBlank(sbwId)){
+                ActionResponse.actionFailed(ErrorStatus.PARAM_CAN_NOT_BE_NULL.getMessage()+" sbwId:"+ sbwId+ " bandWidth:"+param.getBandwidth(),HttpStatus.BAD_REQUEST.value());
+            }else {
+               return sbwDaoService.updateSbwEntity(sbwId, param, token);
             }
         } catch (Exception e) {
             log.error("Exception in update Sbw Config", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage() + "";
         }
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+        return ActionResponse.actionFailed(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
 
 
@@ -246,7 +211,7 @@ public class SbwServiceImpl implements ISbwService {
             String projectid = CommonUtil.getUserId();
             long num = sbwRepository.countByProjectIdAndIsDelete(projectid, 0);
 
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, "get instance_num_success", num), HttpStatus.OK);
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, "get instance num success", num), HttpStatus.OK);
         } catch (KeycloakTokenException e) {
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN, e.getMessage(), null), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
@@ -292,53 +257,46 @@ public class SbwServiceImpl implements ISbwService {
 
     /**
      * 包年包月续费/自动续费
+     *
      * @param sbwId
      * @param updateParam
      * @return
      */
     @ICPServiceLog
-    public ResponseEntity restartSbwService(String sbwId, SbwUpdateParam updateParam, String token) {
-        ActionResponse actionResponse = null;
+    public ActionResponse restartSbwService(String sbwId, SbwUpdateParam updateParam, String token) {
         try {
             String renewTime = updateParam.getDuration();
-            if (StringUtils.isBlank(renewTime)) {
-                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.SC_PARAM_ERROR.getCode(), ErrorStatus.SC_PARAM_ERROR.getMessage()), HttpStatus.BAD_REQUEST);
-            } else if (Integer.parseInt(renewTime)>0){
-                actionResponse = sbwDaoService.renewSbwEntity(sbwId, token);
-                if (actionResponse.isSuccess()){
-                    log.info("renew sbw success:{} , add duration:{}", sbwId, renewTime);
-                    return new ResponseEntity(ReturnMsgUtil.success(),HttpStatus.OK);
-                }
+            if (StringUtils.isBlank(sbwId)|| StringUtils.isBlank(renewTime)) {
+                return ActionResponse.actionFailed(ErrorStatus.PARAM_CAN_NOT_BE_NULL.getMessage()+" sbwId:"+ sbwId+ " duration:"+ updateParam.getDuration(),HttpStatus.BAD_REQUEST.value());
+            } else if (Integer.parseInt(renewTime) > 0) {
+                return sbwDaoService.renewSbwEntity(sbwId, token);
             }
         } catch (Exception e) {
             log.error("Exception in restart sbw service:{}", e);
         }
-        return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()), HttpStatus.INTERNAL_SERVER_ERROR);
+        return ActionResponse.actionFailed(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
 
     /**
      * 包年包月停服
+     *
      * @param sbwId
      * @param updateParam
      * @return
      */
     @ICPServiceLog
-    public ResponseEntity stopSbwService(String sbwId, SbwUpdateParam updateParam) {
-        ActionResponse actionResponse = null;
+    public ActionResponse stopSbwService(String sbwId, SbwUpdateParam updateParam) {
         try {
             String renewTime = updateParam.getDuration();
             if (StringUtils.isBlank(renewTime)) {
-                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.SC_PARAM_ERROR.getCode(), ErrorStatus.SC_PARAM_ERROR.getMessage()), HttpStatus.BAD_REQUEST);
+                return ActionResponse.actionFailed(HttpStatus.BAD_REQUEST.getReasonPhrase(), HttpStatus.BAD_REQUEST.value());
             } else if (renewTime.trim().equals("0")) {
-                actionResponse = sbwDaoService.stopSbwService(sbwId);
-                if (actionResponse.isSuccess()) {
-                    return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
-                }
+                return sbwDaoService.stopSbwService(sbwId);
             }
         } catch (Exception e) {
             log.error("Exception in stop sbw Service Sbw:{}", e);
         }
-        return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()), HttpStatus.INTERNAL_SERVER_ERROR);
+        return ActionResponse.actionFailed(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
 
 

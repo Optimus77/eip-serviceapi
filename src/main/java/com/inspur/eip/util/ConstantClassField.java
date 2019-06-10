@@ -36,10 +36,10 @@ public final class ConstantClassField {
     /**
      * SBW
      */
-    public static final String CREAT_SBW_CONFIG_FAILED = "Create sbw config result Failed";
-    public static final String DELETE_SBW_CONFIG_FAILED = "Delete sbw config result Failed";
-    public static final String UPDATE_SBW_CONFIG_FAILED = "Update sbw config result Failed";
-    public static final String SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT = "Soft down or delete sbw config result Result";
+    public static final String CREAT_SBW_CONFIG_FAILED = "Create sbw config result Failed:{}";
+    public static final String DELETE_SBW_CONFIG_FAILED = "Delete sbw config result Failed:{}";
+    public static final String UPDATE_SBW_CONFIG_FAILED = "Update sbw config result Failed:{}";
+    public static final String SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT = "Soft down or delete sbw config result Result:{}";
 
 
 

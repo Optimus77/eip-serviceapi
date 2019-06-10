@@ -74,6 +74,7 @@ public class HsConstants {
 	
 	public static final int STATUS_CODE_200 = 200;
 	public static final int STATUS_CODE_204 = 204;
+	public static final int STATUS_CODE_404 = 404;
 
 	public static final String TH_0 = "0";
 	public static final String TH_1 = "1";

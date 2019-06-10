@@ -120,11 +120,16 @@ public class SbwDaoService {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
         }
         Firewall firewall = firewallRepository.findFirewallByRegion(sbwBean.getRegion());
+        if (firewall == null) {
+            log.warn(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage()+ sbwBean.getRegion());
+            return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage()+ sbwBean.getRegion(), HttpStatus.SC_BAD_REQUEST);
+        }
         if (StringUtils.isBlank(sbwBean.getPipeId())) {
             sbwBean.setIsDelete(1);
             sbwBean.setStatus(HsConstants.DELETE);
             sbwBean.setUpdateTime(CommonUtil.getGmtDate());
             sbwRepository.saveAndFlush(sbwBean);
+            log.info("Atom user delete sbw successfully, sbwId:{}", sbwId);
             return ActionResponse.actionSuccess();
         }
         boolean delQos = firewallService.cmdDelSbwQos(sbwBean.getSbwId(),firewall.getId());
@@ -134,9 +139,10 @@ public class SbwDaoService {
             sbwBean.setUpdateTime(CommonUtil.getGmtDate());
             sbwBean.setPipeId(null);
             sbwRepository.saveAndFlush(sbwBean);
+            log.info("Atom user delete sbw And delete sbw qos successfully, sbwId:{}", sbwId);
             return ActionResponse.actionSuccess();
         }
-        return ActionResponse.actionFailed(CodeInfo.SBW_DELETE_ERROR, HttpStatus.SC_FORBIDDEN);
+        return ActionResponse.actionFailed(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage(), HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
     /**
      * mq have no token
@@ -144,21 +150,22 @@ public class SbwDaoService {
      */
     @Transactional
     public ActionResponse adminDeleteSbw(String sbwId){
-        String msg;
         long ipCount;
         Sbw sbwBean = sbwRepository.findBySbwId(sbwId);
         if (null == sbwBean ||sbwBean.getIsDelete() ==1 ) {
-            msg = "Faild to find sbw by id:" + sbwId;
-            log.error(msg);
+            log.warn(ErrorStatus.ENTITY_NOT_FOND_IN_DB + sbwId);
             return ActionResponse.actionFailed(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage(), HttpStatus.SC_NOT_FOUND);
         }
         ipCount = eipRepository.countBySbwIdAndIsDelete(sbwBean.getSbwId(), 0);
         if (ipCount != 0) {
-            msg = "EIP in sbw so that sbw cannot be removed ，please remove first !,ipCount:{}" + ipCount;
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
+            log.error(ErrorStatus.EIP_IN_SBW_SO_THAT_CAN_NOT_DELETE.getMessage(),HttpStatus.SC_BAD_REQUEST);
+            return ActionResponse.actionFailed(ErrorStatus.EIP_IN_SBW_SO_THAT_CAN_NOT_DELETE.getMessage(), HttpStatus.SC_FORBIDDEN);
         }
         Firewall firewall = firewallRepository.findFirewallByRegion(sbwBean.getRegion());
+        if (firewall == null) {
+            log.warn(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage()+ sbwBean.getRegion());
+            return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage()+ sbwBean.getRegion(), HttpStatus.SC_BAD_REQUEST);
+        }
         if (StringUtils.isBlank(sbwBean.getPipeId())) {
             sbwBean.setIsDelete(1);
             sbwBean.setStatus(HsConstants.DELETE);
@@ -173,9 +180,10 @@ public class SbwDaoService {
             sbwBean.setUpdateTime(CommonUtil.getGmtDate());
             sbwBean.setPipeId(null);
             sbwRepository.saveAndFlush(sbwBean);
+            log.info("Atom soft admin delete sbw successfully, sbwId:{}", sbwId);
             return ActionResponse.actionSuccess();
         }
-        return ActionResponse.actionFailed(CodeInfo.SBW_DELETE_ERROR, HttpStatus.SC_FORBIDDEN);
+        return ActionResponse.actionFailed(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage(), HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
     @Transactional
@@ -192,7 +200,7 @@ public class SbwDaoService {
 //        }
         Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
         if (firewall == null) {
-            log.error(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage()+ sbw.getRegion());
+            log.warn(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage()+ sbw.getRegion());
             return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage()+ sbw.getRegion(), HttpStatus.SC_BAD_REQUEST);
         }
         if (StringUtils.isNotEmpty(sbw.getStatus()) && HsConstants.ACTIVE.equalsIgnoreCase(sbw.getStatus()) && StringUtils.isNotEmpty(sbw.getPipeId())){
@@ -285,30 +293,27 @@ public class SbwDaoService {
     }
 
     @Transactional
-    public MethodSbwReturn updateSbwEntity(String sbwId, SbwUpdateParam param, String token) {
+    public ActionResponse updateSbwEntity(String sbwId, SbwUpdateParam param, String token) {
 
         Sbw sbwEntity = sbwRepository.findBySbwId(sbwId);
         if (null == sbwEntity) {
             log.error("In update sbw bandWidth  process,failed to find the sbw by id:{} ", sbwId);
-            return MethodReturnUtil.errorSbw(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
-                    CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID));
+            return ActionResponse.actionFailed(ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage(), HttpStatus.SC_BAD_REQUEST);
         }
         if (!CommonUtil.verifyToken(token, sbwEntity.getProjectId())) {
             log.error("User  not have permission to update sbw bandWidth sbwId:{}", sbwId);
-            return MethodReturnUtil.errorSbw(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
-                    CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN));
+            return ActionResponse.actionFailed(ErrorStatus.SC_FORBIDDEN.getMessage(),HttpStatus.SC_FORBIDDEN);
         }
         if (param.getBillType().equals(HsConstants.MONTHLY) && param.getBandwidth() < sbwEntity.getBandWidth()) {
             //can’t  modify
-            return MethodReturnUtil.errorSbw(HttpStatus.SC_BAD_REQUEST, ReturnStatus.SC_PARAM_ERROR,
-                    CodeInfo.getCodeMessage(CodeInfo.SBW_THE_NEW_BANDWIDTH_VALUE_ERROR));
+            return ActionResponse.actionFailed(ErrorStatus.BILL_TYPE_NOT_CORRECT.getMessage(),HttpStatus.SC_NOT_ACCEPTABLE);
         }
         if (sbwEntity.getPipeId() == null) {
             sbwEntity.setBandWidth(param.getBandwidth());
             sbwEntity.setBillType(param.getBillType());
             sbwEntity.setUpdateTime(CommonUtil.getGmtDate());
             sbwRepository.saveAndFlush(sbwEntity);
-            return MethodReturnUtil.successSbw(sbwEntity);
+            return ActionResponse.actionSuccess();
         }
         Firewall firewall = firewallRepository.findFirewallByRegion(sbwEntity.getRegion());
         boolean updateStatus = firewallService.updateQosBandWidth(firewall.getId(), sbwEntity.getPipeId(), sbwEntity.getSbwId(), String.valueOf(param.getBandwidth()), null, null);
@@ -324,11 +329,10 @@ public class SbwDaoService {
                 eip.setUpdateTime(CommonUtil.getGmtDate());
                 eipRepository.saveAndFlush(eip);
             });
-            return MethodReturnUtil.successSbw(sbwEntity);
+            log.info("update sbw qos bandwidth  and eip bandwidth success, sbwId:{}",sbwId);
+            return ActionResponse.actionSuccess();
         }
-        return MethodReturnUtil.errorSbw(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_FIREWALL_SERVER_ERROR,
-                CodeInfo.getCodeMessage(CodeInfo.SBW_CHANGE_BANDWIDTH_ERROR));
-
+        return ActionResponse.actionFailed(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage(), HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
     @Transactional
@@ -381,7 +385,6 @@ public class SbwDaoService {
                 updateStatus = false;
             }
         }
-
         if (updateStatus || CommonUtil.qosDebug) {
             eipEntity.setPipId(sbwEntiy.getPipeId());
             eipEntity.setUpdateTime(new Date());
@@ -396,7 +399,7 @@ public class SbwDaoService {
 
             return ActionResponse.actionSuccess();
         }
-        return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_CHANGE_BANDWIDTH_ERROR), HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        return ActionResponse.actionFailed(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage(), HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
     }
 

@@ -128,15 +128,25 @@ public enum ErrorStatus {
     /**
      *
      */
-    NOT_SUPPORT_PRODUCT_LINE_CODE("106.000400","not_support_product_line_code!"),
+    NOT_SUPPORT_PRODUCT_LINE_CODE("106.000400","Not support product line code!"),
     /**
      * not support order type
      */
-    NOT_SUPPORT_ORDER_TYPE("106.000400","Not_support_order_type!"),
+    NOT_SUPPORT_ORDER_TYPE("106.000400","Not support order type!"),
+    /**
+     * eip in sbw so that can not delete sbw
+     */
+    EIP_IN_SBW_SO_THAT_CAN_NOT_DELETE("106.000400","EIP in sbw so that sbw cannot be removed!"),
+    /**
+     * param can not be null
+     */
+    PARAM_CAN_NOT_BE_NULL("106.000400","param can not be null! -"),
+
+    BILL_TYPE_NOT_CORRECT("106.000400","bill type not correct! -"),
     /**
      * FireWall config error
      */
-    FIREWALL_NOT_FOND_IN_DB("106.994400", "Failed to find FireWall config  in db!");
+    FIREWALL_NOT_FOND_IN_DB("106.994400", "Failed to find FireWall config  in db! -");
 
     private final String code;
 

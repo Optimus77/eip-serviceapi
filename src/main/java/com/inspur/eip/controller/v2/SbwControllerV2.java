@@ -13,6 +13,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -43,12 +44,12 @@ public class SbwControllerV2 {
     public ResponseEntity atomAllocateSbw(@Valid @RequestBody SbwUpdateParamWrapper sbwConfig, BindingResult result) {
         log.info("Create a sbws Atom param:{}.", sbwConfig.getSbw().toString());
         if (result.hasErrors()) {
-            StringBuffer msgBuffer = new StringBuffer();
+            StringBuilder builder = new StringBuilder();
             List<FieldError> fieldErrors = result.getFieldErrors();
             for (FieldError fieldError : fieldErrors) {
-                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+                builder.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
             }
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, builder.toString()),
                     HttpStatus.BAD_REQUEST);
         }
         return sbwService.atomCreateSbw(sbwConfig.getSbw(), CommonUtil.getKeycloackToken());
@@ -102,7 +103,11 @@ public class SbwControllerV2 {
     public ResponseEntity deleteSbw(@Size(min = 36, max = 36, message = "Must be uuid.")
                                         @PathVariable("sbw_id") String sbwId) {
         log.info("Atom delete the sbw , sbwId:{} ", sbwId);
-        return sbwService.deleteSbwInfo(sbwId, CommonUtil.getKeycloackToken());
+        ActionResponse actionResponse = sbwService.deleteSbwInfo(sbwId, CommonUtil.getKeycloackToken());
+        if (actionResponse.isSuccess()){
+            return new ResponseEntity(ReturnMsgUtil.success(),HttpStatus.OK);
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(actionResponse.getCode()), actionResponse.getFault()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
     /**
      * get sbw instance detail
@@ -142,7 +147,11 @@ public class SbwControllerV2 {
     public ResponseEntity renewSbw(@PathVariable("sbw_id") String sbwId,
                                    @RequestBody SbwUpdateParamWrapper param) {
         log.info("Atom renew or softdown sbw sbwId:{}, param:{}.", sbwId, param.getSbw().toString());
-        return sbwService.restartSbwService(sbwId, param.getSbw(),CommonUtil.getKeycloackToken());
+        ActionResponse actionResponse = sbwService.restartSbwService(sbwId, param.getSbw(), CommonUtil.getKeycloackToken());
+        if (actionResponse.isSuccess()) {
+            return new ResponseEntity(ReturnMsgUtil.success(),HttpStatus.OK);
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(actionResponse.getCode()), actionResponse.getFault()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -234,21 +243,22 @@ public class SbwControllerV2 {
     public ResponseEntity updateSbwConfig(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param, BindingResult result) {
         log.info("Atom update sbw sbwId:{},param:{}.", sbwId, param.getSbw().toString());
         if (result.hasErrors()) {
-            StringBuffer msgBuffer = new StringBuffer();
+            StringBuilder builder = new StringBuilder();
             List<FieldError> fieldErrors = result.getFieldErrors();
             for (FieldError fieldError : fieldErrors) {
-                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+                builder.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
             }
-            log.info("{}", msgBuffer);
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
+            log.info("{}", builder);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, builder.toString()), HttpStatus.BAD_REQUEST);
         }
-        String msg ;
+        ActionResponse actionResponse;
         if (param.getSbw().getBillType() != null ) {
             log.info("update bandWidth, sbwid:{}, param:{} ", sbwId, param.getSbw());
-            return sbwService.updateSbwConfig(sbwId, param.getSbw(),CommonUtil.getKeycloackToken());
-        } else {
-            msg = "param not correct,body param like {\"sbw\" : {\"bandWidth\":xxx,\"billType\":\"xxxxxx\"}";
+             actionResponse = sbwService.updateSbwConfig(sbwId, param.getSbw(), CommonUtil.getKeycloackToken());
+             if (actionResponse.isSuccess()){
+                 return new ResponseEntity(ReturnMsgUtil.success(),HttpStatus.OK);
+             }
         }
-        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()), HttpStatus.BAD_REQUEST);
     }
 }
