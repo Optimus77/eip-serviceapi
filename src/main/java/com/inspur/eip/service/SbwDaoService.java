@@ -9,6 +9,8 @@ import com.inspur.eip.entity.v2.eip.Eip;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.v2.fw.Firewall;
 import com.inspur.eip.entity.v2.sbw.Sbw;
+import com.inspur.eip.exception.EipNotFoundException;
+import com.inspur.eip.exception.EipUnauthorizedException;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.repository.SbwRepository;
@@ -20,6 +22,7 @@ import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -264,32 +267,26 @@ public class SbwDaoService {
     }
 
     @Transactional
-    public JSONObject renameSbw(String sbwId, SbwUpdateParam param) {
-        JSONObject data = new JSONObject();
+    public Sbw renameSbw(String sbwId, SbwUpdateParam param) {
         String newSbwName = param.getSbwName();
-        Sbw sbw = sbwRepository.findBySbwId(sbwId);
-        if (null == sbw) {
-            log.error("In rename sbw process,failed to find the sbw by id:{} ", sbwId);
-            data.put(HsConstants.REASON, CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID));
-            data.put(HsConstants.HTTP_CODE, HttpStatus.SC_NOT_FOUND);
-            data.put(HsConstants.INTER_CODE, ReturnStatus.SC_NOT_FOUND);
-            return data;
+        Sbw sbw = null;
+        try {
+            sbw = sbwRepository.findBySbwId(sbwId);
+            if (null == sbw) {
+                log.warn("In rename sbw process,failed to find the sbw by id:{} ", sbwId);
+                throw new EipNotFoundException(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getCode(),ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage());
+            }
+            if (!CommonUtil.isAuthoried(sbw.getProjectId())) {
+                log.warn("User have no write to operate sbw:{}", sbwId);
+                throw new EipUnauthorizedException(HttpStatus.SC_FORBIDDEN,ErrorStatus.SC_FORBIDDEN.getCode(),ErrorStatus.SC_FORBIDDEN.getMessage(),CommonUtil.getUserId());
+            }
+            sbw.setSbwName(newSbwName);
+            sbw.setUpdateTime(CommonUtil.getGmtDate());
+            sbwRepository.saveAndFlush(sbw);
+        } catch (KeycloakTokenException e) {
+            log.error(ConstantClassField.EXCEPTION_SBW_RENAEM,e);
         }
-        if (!CommonUtil.isAuthoried(sbw.getProjectId())) {
-            log.error("User have no write to operate sbw:{}", sbwId);
-            data.put(HsConstants.REASON, CodeInfo.getCodeMessage(CodeInfo.SBW_FORBIDDEN));
-            data.put(HsConstants.HTTP_CODE, HttpStatus.SC_FORBIDDEN);
-            data.put(HsConstants.INTER_CODE, ReturnStatus.SC_FORBIDDEN);
-            return data;
-        }
-        sbw.setSbwName(newSbwName);
-        sbw.setUpdateTime(CommonUtil.getGmtDate());
-        sbwRepository.saveAndFlush(sbw);
-        data.put(HsConstants.REASON, "");
-        data.put(HsConstants.HTTP_CODE, HttpStatus.SC_OK);
-        data.put(HsConstants.INTER_CODE, ReturnStatus.SC_OK);
-        data.put("data", sbw);
-        return data;
+        return sbw;
     }
 
     @Transactional

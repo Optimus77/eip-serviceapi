@@ -178,14 +178,12 @@ public class SbwServiceImpl implements ISbwService {
                 log.debug("sbw Detail:{}", sbwReturnDetail.toString());
                 return new ResponseEntity<>(ReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
             } else {
-                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
-                        "Can not find sbw by id:" + sbwId + "."),
-                        HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getCode(), ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage()), HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
             log.error("Exception in get Sbw Detail", e);
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
@@ -369,29 +367,20 @@ public class SbwServiceImpl implements ISbwService {
      * @return ret
      */
     public ResponseEntity renameSbw(String sbwId, SbwUpdateParam param) {
-        String code;
-        String msg;
         try {
-            JSONObject result = sbwDaoService.renameSbw(sbwId, param);
-            if (!result.getString("interCode").equals(ReturnStatus.SC_OK)) {
-                code = result.getString("interCode");
-                int httpResponseCode = result.getInteger("httpCode");
-                msg = result.getString("reason");
-                log.error(msg);
-                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
-            } else {
+            if (StringUtils.isBlank(sbwId) || StringUtils.isBlank(param.getSbwName())){
+               return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.SC_PARAM_ERROR.getCode(), ErrorStatus.SC_PARAM_ERROR.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            }else {
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
-                Sbw sbwEntity = (Sbw) result.get("data");
-                BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
+                Sbw sbwBean = sbwDaoService.renameSbw(sbwId, param);
+                BeanUtils.copyProperties(sbwBean, sbwReturnDetail);
                 sbwReturnDetail.setIpCount((int) eipRepository.countBySbwIdAndIsDelete(sbwId, 0));
-                return new ResponseEntity<>(ReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
+                return new ResponseEntity<>(ReturnMsgUtil.success(sbwReturnDetail),HttpStatus.OK);
             }
         } catch (Exception e) {
             log.error("Exception in rename sbw", e);
-            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-            msg = e.getMessage() + "";
         }
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(),ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**

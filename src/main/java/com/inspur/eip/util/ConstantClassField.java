@@ -43,10 +43,11 @@ public final class ConstantClassField {
 
 
 
-    public static final String EXCEPTION_SBW_CREATE = " Exception in Create Sbw Entity";
-    public static final String EXCEPTION_SBW_DELETE = "Exception in  Delete Sbw Entity";
-    public static final String EXCEPTION_SBW_UPDATE = "Exception in  Update Sbw Entity";
-    public static final String EXCEPTION_SBW_SOFTDOWN_OR_DELETE = "Exception in  soft down or delete Sbw Entity";
+    public static final String EXCEPTION_SBW_CREATE = " Exception in Create Sbw Entity:{}";
+    public static final String EXCEPTION_SBW_DELETE = "Exception in  Delete Sbw Entity:{}";
+    public static final String EXCEPTION_SBW_UPDATE = "Exception in  Update Sbw Entity:{}";
+    public static final String EXCEPTION_SBW_RENAEM= "Exception in  soft down or delete Sbw Entity:{}";
+    public static final String EXCEPTION_SBW_SOFTDOWN_OR_DELETE = "Exception in  soft down or delete Sbw Entity:{}";
 
 
     /**
