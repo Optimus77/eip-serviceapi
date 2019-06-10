@@ -146,7 +146,7 @@ public class EipV6DaoService {
 
 
     @Transactional
-    public ActionResponse deleteEipV6(String eipv6id)  {
+    public ActionResponse deleteEipV6(String eipv6id,String token)  {
         String msg;
         if(null == eipv6id) {
             return ActionResponse.actionSuccess();
@@ -158,7 +158,7 @@ public class EipV6DaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
-        if(!CommonUtil.isAuthoried(eipV6Entity.getUserId())){
+        if(!CommonUtil.verifyToken(eipV6Entity.getUserId(),token)){
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipv6id);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
@@ -209,6 +209,69 @@ public class EipV6DaoService {
         }
         return ActionResponse.actionSuccess();
     }
+
+    @Transactional
+    public ActionResponse adminDeleteEipV6(String eipv6id)  {
+        String msg;
+        if(null == eipv6id) {
+            return ActionResponse.actionSuccess();
+        }
+
+        EipV6 eipV6Entity = eipV6Repository.findByEipV6IdAndIsDelete(eipv6id,0);
+        if (null == eipV6Entity) {
+            msg= "Faild to find eipV6 by id:"+eipv6id;
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+        }
+        try {
+            if (eipV6Entity.getDnatptId() != null && eipV6Entity.getSnatptId() != null) {
+                Boolean flag = natPtService.delNatPt(eipV6Entity.getSnatptId(),eipV6Entity.getDnatptId(),eipV6Entity.getFirewallId());
+                if (flag) {
+                    log.info("delete natPt success");
+                } else {
+                    msg = "Failed to delete natPtId";
+                    log.error(msg);
+                    return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+                }
+            }
+        } catch (Exception e) {
+            msg = "delete natPtId exception";
+            log.error(msg, e);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+        }
+        eipV6Entity.setFloatingIp(null);
+        eipV6Entity.setDnatptId(null);
+        eipV6Entity.setSnatptId(null);
+        eipV6Entity.setIsDelete(1);
+        eipV6Entity.setUpdateTime(CommonUtil.getGmtDate());
+        eipV6Repository.saveAndFlush(eipV6Entity);
+        Eip eip = eipRepository.findByEipAddressAndUserIdAndIsDelete(eipV6Entity.getIpv4(), eipV6Entity.getUserId(), 0);
+        if(eip == null){
+            msg = "Failed to fetch eip based on ipv4";
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
+        }
+        eip.setEipV6Id(null);
+        eip.setUpdateTime(CommonUtil.getGmtDate());
+        eipRepository.saveAndFlush(eip);
+        EipPoolV6 eipV6Pool = eipPoolV6Repository.findByIp(eipV6Entity.getIpv6());
+        if(null != eipV6Pool){
+            log.error("******************************************************************************");
+            log.error("Fatal error, eipV6 has already exist in eipV6 pool. can not add to eipV6 pool.{}",
+                    eipV6Entity.getIpv6());
+            log.error("******************************************************************************");
+        }else {
+            EipPoolV6 eipPoolV6Mo = new EipPoolV6();
+            eipPoolV6Mo.setFireWallId(eipV6Entity.getFirewallId());
+            eipPoolV6Mo.setIp(eipV6Entity.getIpv6());
+            eipPoolV6Mo.setState("0");
+            eipPoolV6Repository.saveAndFlush(eipPoolV6Mo);
+            log.info("Success delete eipV6:{}",eipV6Entity.getIpv6());
+        }
+        return ActionResponse.actionSuccess();
+    }
+
+
 
 
     boolean bindIpv6WithInstance(String eipAddress, String floatingIp, String userId) throws Exception{
