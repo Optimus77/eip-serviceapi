@@ -140,9 +140,11 @@ public class EipDaoService {
             log.error(msg);
         }
 
-        ActionResponse delV6Ret = eipV6DaoService.deleteEipV6(eipEntity.getEipV6Id());
+        ActionResponse delV6Ret = eipV6DaoService.deleteEipV6(eipEntity.getEipV6Id(),token);
         if(!delV6Ret.isSuccess()){
-            log.error("Faild to delete ipv6 address.");
+            msg="Faild to delete ipv6 address.";
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
 
         eipEntity.setIsDelete(1);
@@ -196,9 +198,11 @@ public class EipDaoService {
             log.error(msg);
         }
 
-        ActionResponse delV6Ret = eipV6DaoService.deleteEipV6(eipEntity.getEipV6Id());
+        ActionResponse delV6Ret = eipV6DaoService.adminDeleteEipV6(eipEntity.getEipV6Id());
         if(!delV6Ret.isSuccess()){
-            log.error("Faild to delete ipv6 address.");
+            msg="Faild to delete ipv6 address.";
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
         }
 
         eipEntity.setIsDelete(1);
