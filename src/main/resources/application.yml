@@ -2,10 +2,12 @@
 server:
   tomcat:
     uri-encoding: UTF-8
+    max-connections: 400
+    max-threads: 300
+
   port: 8080
   servlet:
     context-path: /eip
-
 springfox:
   documentation:
     swagger:
@@ -46,23 +48,105 @@ http:
   statleConnectionCheckEnabled: true
 
 
-bssurl:
-  ignoSSL: true
-  submitPay: http://117.73.2.105.xip.io:9080/order/submitpay #  //1.2.8 订单接口POST
-  quotaUrl:    http://117.73.2.105.xip.io:9080/crm/quota #//1.2.11	查询用户配额的接口
-mq:
-#hourlySettlement k8s服务
-  returnMq: http://service.10.110.25.123.xip.io/mqservice/v2/messages/productreturn
-#monthly k8s服务名
-  returnNotify: http://service.10.110.25.123.xip.io/mqservice/v2/messages/productnotify
-  webSocket:   http://service.10.110.25.123.xip.io/console/websocket/v1/messages
-
-proxy:
-#  servlet_url: /v1/eips/*
-  servlet_url: /*
-  logging_enabled: true
-  target_url:  http://eip-atom.10.110.25.123.xip.io
-#  target_url:  http://127.0.0.1:8088
+webSocket:   http://service.10.110.25.123.xip.io/console/websocket/v1/messages
 
 blackList: /health-status
+
+# Mysql
+# 环境 dev|prod
+spring:
+  resources:
+    # Swagger
+    add-mappings: true
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+    druid:
+      url: jdbc:mysql://10.110.1.26:3306/icp_eip?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8
+      username: eip
+      password: eip0914
+      initialSize: 5
+      minIdle: 3
+      maxActive: 200
+      maxWait: 60000
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: none
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+  data:
+    rest:
+      base-path: /dbstructapi
+  liquibase:
+    enabled: true
+    change-log: "classpath:/db/changelog/db.changelog-master.yaml"
+    contexts: dev
+
+    #Rabbit mq common config
+  rabbitmq:
+    host: 10.110.10.19
+    port: 5672
+    username: tester
+    password: 123456a?
+    #    Matchting with dead letter queue can avoid blocking of business queue message.
+    listener:
+      simple:
+        default-requeue-rejected: false
+
+#rabbit mq queues config
+bss:
+  queues:
+    order:
+      name:
+        eip: queue.eip.order
+        sbw: queue.sbw.order
+        ipts: queue.ipts.order
+      messageTTL: 300000
+      binding:
+        exchange: exchange.region
+        routingKey:
+          eip: key.eip.order
+          sbw: key.sbw.order
+          ipts: key.ipts.order
+        returnRoutingKey: key.return.order
+      deadLetterExchange: exchange.dlx
+      deadLetterRoutingKey: key.dlx
+    change:
+      name:
+        eip: queue.eip.change
+        sbw: queue.sbw.change
+        ipts: queue.ipts.change
+      messageTTL: 300000
+      binding:
+        exchange: exchange.region
+        routingKey:
+          eip: key.eip.change
+          sbw: key.sbw.change
+          ipts: key.ipts.change
+        returnRoutingKey: key.return.change
+      deadLetterExchange: exchange.dlx
+      deadLetterRoutingKey: key.dlx
+
+
+
+slbUrl: http://slb-atom.10.110.25.123.xip.io/slb/v1/slbs/members/
+
+#administrator rights
+openstackIp: 10.110.28.35
+openstackUrl: https://10.110.28.35:5000/v3
+userNameS: admineip
+passwordS: eip1qaz2wsx
+projectIdS: f9ba41b61a6146c1a392815ea088c437
+userDomainIdS: default
+debugRegionS: inspurtest
+
+
+Kafka:
+  servers: 10.110.25.107:9092,10.10.6.6:9092,10.110.25.105:9092
+  topic: monitor-metrics
+
+regionCode: cn-north-3
+scheduleTime: 0 0/5 * * * ?
+minEipNum: 0
+
 

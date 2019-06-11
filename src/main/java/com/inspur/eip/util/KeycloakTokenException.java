@@ -7,7 +7,7 @@ package com.inspur.eip.util;
  */
 public class KeycloakTokenException extends Exception {
 
-    KeycloakTokenException(String message){
+    public KeycloakTokenException(String message){
         super(message);
     }
 
