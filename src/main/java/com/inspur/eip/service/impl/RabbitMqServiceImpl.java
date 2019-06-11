@@ -187,7 +187,7 @@ public class RabbitMqServiceImpl {
                         log.error(ConstantClassField.BILL_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
                     }
                 } else if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
-                    response = eipService.renewEip(eipId, eipUpdate, eipOrder.getToken());
+                    response = eipDaoService.reNewEipEntity(eipId, eipOrder.getDuration(), eipOrder.getToken());
                 } else {
                     log.error(ConstantClassField.ORDER_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
                 }
@@ -233,14 +233,12 @@ public class RabbitMqServiceImpl {
                     }
                 } else if (HsConstants.STOPSERVER.equalsIgnoreCase(operateType)) {
                     response = eipDaoService.softDownEip(softDownInstance.getInstanceId());
-                    if (response != null) {
-                        if (response.isSuccess()) {
-                            insanceStatus = HsConstants.STOPSERVER;
-                            result = HsConstants.SUCCESS;
-                        } else if (response.getCode() == HttpStatus.SC_NOT_FOUND) {
-                            insanceStatus = HsConstants.NOTFOUND;
-                            result = HsConstants.SUCCESS;
-                        }
+                    if (response.isSuccess()) {
+                        insanceStatus = HsConstants.STOPSERVER;
+                        result = HsConstants.SUCCESS;
+                    } else if (response.getCode() == HttpStatus.SC_NOT_FOUND) {
+                        insanceStatus = HsConstants.NOTFOUND;
+                        result = HsConstants.SUCCESS;
                     }
                 } else if (HsConstants.RESUMESERVER.equalsIgnoreCase(operateType)) {
                     response = eipDaoService.reNewEipEntity(softDownInstance.getInstanceId(), "1");
@@ -271,7 +269,7 @@ public class RabbitMqServiceImpl {
     public ResponseEntity createSbwInfo(ReciveOrder reciveOrder) {
 
         ResponseEntity<ReturnMsg<SbwReturnBase>> response = null;
-        SbwReturnBase sbwReturn = null;
+        SbwReturnBase sbwReturn;
         String sbwId = null;
 
         try {
@@ -376,7 +374,7 @@ public class RabbitMqServiceImpl {
                     retStr = HsConstants.STATUS_ACTIVE;
                     webService.returnSbwWebsocket(sbwId, recive, "update");
                     sendOrderMessageToBss(getSbwReturnResult(recive, sbwId, retStr));
-                    log.info(ConstantClassField.UPDATE_SBW_CONFIG_FAILED, response);
+                    log.info(ConstantClassField.UPDATE_SBW_CONFIG_SUCCESS, response);
                     return response;
                 } else {
                     log.warn(ConstantClassField.OPERATION_RESULT_NOT_OK, response);
@@ -395,8 +393,8 @@ public class RabbitMqServiceImpl {
     /**
      * 停服或者删除共享带宽
      *
-     * @param softDown
-     * @return
+     * @param softDown softdown
+     * @return ret
      */
     public ActionResponse softDowOrDeleteSbw(OrderSoftDown softDown) {
         String setStatus = HsConstants.FAIL;
@@ -420,6 +418,13 @@ public class RabbitMqServiceImpl {
                     if (response.isSuccess() || response.getCode() == HttpStatus.SC_NOT_FOUND) {
                         setStatus = HsConstants.SUCCESS;
                         instanceStatus = HsConstants.STATUS_STOP;
+                    }
+                    //停服重开
+                } else if (HsConstants.RESUMESERVER.equalsIgnoreCase(operateType)) {
+                    response = sbwDaoService.resumeSbwInfo(instance.getInstanceId());
+                    if (response != null && response.isSuccess()) {
+                        setStatus = HsConstants.SUCCESS;
+                        instanceStatus = HsConstants.ACTIVE;
                     }
                 } else {
                     continue;

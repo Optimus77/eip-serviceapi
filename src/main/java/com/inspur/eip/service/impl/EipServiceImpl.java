@@ -170,33 +170,6 @@ public class EipServiceImpl implements IEipService {
     }
 
 
-    public ActionResponse renewEip(String eipId, EipUpdateParam eipUpdateInfo, String token) {
-        String msg ;
-        try {
-            Eip eipEntity = eipRepository.findByEipId(eipId);
-            if (null != eipEntity) {
-                if(CommonUtil.verifyToken(token, eipEntity.getUserId())) {
-                    String addTime = eipUpdateInfo.getDuration();
-                    if (null == addTime || addTime.trim().equals("0")) {
-                        return ActionResponse.actionFailed("Bad request,need duration.", org.apache.http.HttpStatus.SC_BAD_REQUEST);
-                    } else {
-                        return  eipDaoService.reNewEipEntity(eipId, addTime);
-                    }
-                }else {
-                    msg="Forbiden, user:{} has no right to operate"+CommonUtil.getProjectName(token)+ " ";
-                }
-            }else {
-                msg = "Faild to find eip by id:" + eipId + " ";
-                log.error(msg);
-            }
-        } catch (Exception e) {
-            log.error("Exception in deleteEip", e);
-            msg = e.getMessage() + "";
-        }
-        return ActionResponse.actionFailed(msg, org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR);
-    }
-
-
     /**
      * listShareBandWidth the eip
      *
