@@ -187,7 +187,7 @@ public class RabbitMqServiceImpl {
                         log.error(ConstantClassField.BILL_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
                     }
                 } else if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
-                    response = eipService.renewEip(eipId, eipUpdate, eipOrder.getToken());
+                    response = eipDaoService.reNewEipEntity(eipId, eipOrder.getDuration(), eipOrder.getToken());
                 } else {
                     log.error(ConstantClassField.ORDER_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
                 }
@@ -271,7 +271,7 @@ public class RabbitMqServiceImpl {
     public ResponseEntity createSbwInfo(ReciveOrder reciveOrder) {
 
         ResponseEntity<ReturnMsg<SbwReturnBase>> response = null;
-        SbwReturnBase sbwReturn = null;
+        SbwReturnBase sbwReturn;
         String sbwId = null;
 
         try {
@@ -395,8 +395,8 @@ public class RabbitMqServiceImpl {
     /**
      * 停服或者删除共享带宽
      *
-     * @param softDown
-     * @return
+     * @param softDown softdown
+     * @return ret
      */
     public ActionResponse softDowOrDeleteSbw(OrderSoftDown softDown) {
         String setStatus = HsConstants.FAIL;
