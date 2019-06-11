@@ -28,8 +28,11 @@ public final class ConstantClassField {
     public static final String BILL_TYPE_NOT_SUPPORT = "bill type not support,must be [monthly |hourlySettlement]";
 
     public static final String CREAT_EIP_CONFIG_FAILED = "Create eip config result Failed";
+    public static final String CREAT_EIP_CONFIG_SUCCESS = "Create eip config result Success";
     public static final String DELETE_EIP_CONFIG_FAILED = "Delete eip config result Failed";
+    public static final String DELETE_EIP_CONFIG_SUCCESS = "Delete eip config result Success";
     public static final String UPDATE_EIP_CONFIG_FAILED = "Update eip config result Failed";
+    public static final String UPDATE_EIP_CONFIG_SUCCESS = "Update eip config result Success";
     public static final String SOFTDOWN_OR_DELETE_EIP_CONFIG_RESULT = "Softdown or delete eip config result Result";
 
 
@@ -37,8 +40,11 @@ public final class ConstantClassField {
      * SBW
      */
     public static final String CREAT_SBW_CONFIG_FAILED = "Create sbw config result Failed:{}";
+    public static final String CREAT_SBW_CONFIG_SUCCESS = "Create sbw config result Success:{}";
     public static final String DELETE_SBW_CONFIG_FAILED = "Delete sbw config result Failed:{}";
+    public static final String DELETE_SBW_CONFIG_SUCCESS = "Delete sbw config result Success:{}";
     public static final String UPDATE_SBW_CONFIG_FAILED = "Update sbw config result Failed:{}";
+    public static final String UPDATE_SBW_CONFIG_SUCCESS = "Update sbw config result Success:{}";
     public static final String SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT = "Soft down or delete sbw config result Result:{}";
 
 

@@ -267,6 +267,44 @@ public class SbwDaoService {
     }
 
     @Transactional
+    public ActionResponse resumeSbwInfo(String sbwId) {
+        String msg;
+        Sbw sbw = sbwRepository.findBySbwId(sbwId);
+        if (null == sbw) {
+            msg = "Faild to find in Renew by sbwId:{}" + sbwId;
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
+        }
+        if (!sbw.getBillType().equals(HsConstants.MONTHLY)) {
+            msg = "BillType is not monthly SBW cannot be renewed:{}" + sbwId;
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
+        }
+        Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
+        if (firewall == null) {
+            msg = "Can't find firewall by sbw region:{}"+ sbw.getRegion();
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
+        }
+        if (StringUtils.isNotEmpty(sbw.getStatus()) && HsConstants.STOP.equalsIgnoreCase(sbw.getStatus()) && StringUtils.isNotEmpty(sbw.getPipeId())) {
+            MethodReturn methodReturn = qosService.controlPipe(firewall.getId(), sbwId, false);
+            if (methodReturn.getHttpCode() == HttpStatus.SC_OK) {
+                sbw.setUpdateTime(CommonUtil.getGmtDate());
+                sbw.setStatus("ACTIVE");
+                sbwRepository.saveAndFlush(sbw);
+                return ActionResponse.actionSuccess();
+            } else {
+                return ActionResponse.actionFailed(methodReturn.getMessage(), methodReturn.getHttpCode());
+            }
+        } else {
+            sbw.setUpdateTime(CommonUtil.getGmtDate());
+            sbw.setStatus("ACTIVE");
+            sbwRepository.saveAndFlush(sbw);
+            return ActionResponse.actionSuccess();
+        }
+    }
+
+    @Transactional
     public Sbw renameSbw(String sbwId, SbwUpdateParam param) {
         String newSbwName = param.getSbwName();
         Sbw sbw = null;
