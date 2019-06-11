@@ -491,6 +491,33 @@ public class EipDaoService {
         }
         return ActionResponse.actionSuccess();
     }
+    @Transactional
+    public ActionResponse reNewEipEntity(String eipId, String addTime, String token)  {
+
+        Eip eipEntity = eipRepository.findByEipId(eipId);
+        if (null == eipEntity) {
+            return ActionResponse.actionFailed("Can not find the eip by id:{}"+eipId, HttpStatus.SC_NOT_FOUND);
+        }
+        if (!CommonUtil.verifyToken(token, eipEntity.getUserId())) {
+            log.error("User have no write to renew eip:{}", eipId);
+            return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN), HttpStatus.SC_FORBIDDEN);
+        }
+
+        if((null ==eipEntity.getSnatId()) && (null == eipEntity.getDnatId()) && (null != eipEntity.getFloatingIp())){
+            MethodReturn fireWallReturn =  firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
+                    eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId() );
+            if(fireWallReturn.getHttpCode() == HttpStatus.SC_OK){
+                log.info("renew eip entity add nat and qos,{}.  ", eipEntity);
+                eipEntity.setStatus(HsConstants.ACTIVE);
+                eipEntity.setDuration(addTime);
+                eipEntity.setUpdateTime(CommonUtil.getGmtDate());
+                eipRepository.saveAndFlush(eipEntity);
+            }else{
+                log.error("renew eip error {}", fireWallReturn.getMessage());
+            }
+        }
+        return ActionResponse.actionSuccess();
+    }
 
     public List<Eip> findByUserId(String projectId){
         return eipRepository.findByUserIdAndIsDelete(projectId,0);

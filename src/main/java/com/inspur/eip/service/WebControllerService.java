@@ -22,14 +22,8 @@ public class WebControllerService {
     @Autowired
     private ClientTokenUtil clientTokenUtil;
 
-    @Value("${mq.webSocket}")
+    @Value("${webSocket}")
     private String pushMq;
-
-    @Value("${mq.returnNotify}")
-    private   String returnNotify;
-
-    @Value("${mq.returnMq}")
-    private   String returnMq;
 
     /**
      *  websocket return
