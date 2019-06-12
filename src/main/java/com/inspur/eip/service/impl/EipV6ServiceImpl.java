@@ -141,7 +141,6 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 data.put("totalCount",page.getTotalElements());
                 data.put("pageNo",pageNo);
                 data.put("pageSize",pageSize);
-                data.put("totalPages",page.getTotalPages());
                 data.put("data", eipv6s);
             }else{
                 List<EipV6> eipV6List=eipV6DaoService.findEipV6ByUserId(userId);
@@ -173,7 +172,6 @@ public class EipV6ServiceImpl implements IEipV6Service {
 
                 }
                 data.put("data", eipv6s);
-                data.put("totalPages",1);
                 data.put("totalCount",eipv6s.size());
                 data.put("pageNo",1);
                 data.put("pageSize",eipv6s.size());
