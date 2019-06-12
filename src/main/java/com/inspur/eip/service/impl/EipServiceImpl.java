@@ -204,11 +204,11 @@ public class EipServiceImpl implements IEipService {
                     }
                     eips.add(eipReturnDetail);
                 }
-                data.put("eips", eips);
-                data.put("totalPages", page.getTotalPages());
-                data.put("totalElements", page.getTotalElements());
-                data.put("currentPage", currentPage);
-                data.put("currentPagePer", limit);
+                data.put("data", eips);
+                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
+                data.put(HsConstants.TOTAL_COUNT, page.getTotalElements());
+                data.put(HsConstants.PAGE_NO, currentPage);
+                data.put(HsConstants.PAGE_SIZE, limit);
             } else {
                 List<Eip> eipList = eipDaoService.findByUserId(projcectid);
                 for (Eip eip : eipList) {
@@ -228,11 +228,11 @@ public class EipServiceImpl implements IEipService {
                     }
                     eips.add(eipReturnDetail);
                 }
-                data.put("eips", eips);
-                data.put("totalPages", 1);
-                data.put("totalElements", eips.size());
-                data.put("currentPage", 1);
-                data.put("currentPagePer", eips.size());
+                data.put("data", eips);
+                data.put(HsConstants.TOTAL_PAGES, 1);
+                data.put(HsConstants.TOTAL_COUNT, eips.size());
+                data.put(HsConstants.PAGE_NO, 1);
+                data.put(HsConstants.PAGE_SIZE, eips.size());
             }
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (KeycloakTokenException e) {
