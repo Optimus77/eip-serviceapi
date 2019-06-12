@@ -2,7 +2,7 @@ package com.inspur.eip.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eip.entity.v2.eip.Eip;
+import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.ipv6.*;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.EipV6Repository;

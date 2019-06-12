@@ -5,7 +5,7 @@ import com.inspur.eip.config.CodeInfo;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.entity.v2.MethodReturn;
 import com.inspur.eip.entity.v2.MethodSbwReturn;
-import com.inspur.eip.entity.v2.eip.Eip;
+import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.v2.fw.Firewall;
 import com.inspur.eip.entity.v2.sbw.Sbw;

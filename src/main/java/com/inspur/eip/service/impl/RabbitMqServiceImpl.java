@@ -3,7 +3,7 @@ package com.inspur.eip.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.*;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
-import com.inspur.eip.entity.v2.eip.EipReturnBase;
+import com.inspur.eip.entity.eip.EipReturnBase;
 import com.inspur.eip.entity.v2.sbw.SbwReturnBase;
 import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.SbwDaoService;

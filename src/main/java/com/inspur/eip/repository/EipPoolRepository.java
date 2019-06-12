@@ -1,6 +1,6 @@
 package com.inspur.eip.repository;
 
-import com.inspur.eip.entity.v2.eip.EipPool;
+import com.inspur.eip.entity.eip.EipPool;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;

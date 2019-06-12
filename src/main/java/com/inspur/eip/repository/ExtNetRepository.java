@@ -1,6 +1,6 @@
 package com.inspur.eip.repository;
 
-import com.inspur.eip.entity.v2.eip.ExtNet;
+import com.inspur.eip.entity.eip.ExtNet;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.stereotype.Repository;

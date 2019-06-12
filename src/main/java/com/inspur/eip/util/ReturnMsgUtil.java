@@ -1,6 +1,7 @@
 package com.inspur.eip.util;
 
 import com.inspur.eip.entity.ReturnMsg;
+import com.inspur.eip.entity.ReturnSbwMsg;
 
 public class ReturnMsgUtil {
     public static <T> ReturnMsg success(T t) {

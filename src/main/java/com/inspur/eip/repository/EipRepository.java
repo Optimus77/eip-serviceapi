@@ -1,6 +1,6 @@
 package com.inspur.eip.repository;
 
-import com.inspur.eip.entity.v2.eip.Eip;
+import com.inspur.eip.entity.eip.Eip;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

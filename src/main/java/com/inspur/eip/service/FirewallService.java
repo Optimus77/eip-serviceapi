@@ -3,7 +3,7 @@ package com.inspur.eip.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
 import com.inspur.eip.entity.v2.MethodReturn;
-import com.inspur.eip.entity.v2.eip.Eip;
+import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.v2.fw.*;
 import com.inspur.eip.entity.v2.sbw.Sbw;
 import com.inspur.eip.repository.EipRepository;

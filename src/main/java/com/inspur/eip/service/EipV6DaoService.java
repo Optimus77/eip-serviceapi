@@ -1,7 +1,7 @@
 package com.inspur.eip.service;
 
 import com.inspur.eip.config.CodeInfo;
-import com.inspur.eip.entity.v2.eip.Eip;
+import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.ipv6.EipPoolV6;
 import com.inspur.eip.entity.ipv6.EipV6;
 import com.inspur.eip.entity.ipv6.NatPtV6;
