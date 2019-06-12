@@ -76,63 +76,6 @@ public class HsConstants {
 	public static final int STATUS_CODE_204 = 204;
 	public static final int STATUS_CODE_404 = 404;
 
-	public static final String TH_0 = "0";
-	public static final String TH_1 = "1";
-	public static final String TH_2 = "2";
-	public static final String TH_3 = "3";
-	public static final String TH_4 = "4";
-	public static final String TH_5 = "5";
-	public static final String TH_6 = "6";
-	public static final String TH_7 = "7";
-	public static final String TH_8 = "8";
-	public static final String TH_9 = "9";
-	public static final String TH_10 = "10";
-	public static final String TH_11 = "11";
-	public static final String TH_17 = "17";
-	public static final String TH_1500 = "1500";
-
-	public static final String ITEM_0 = "0";
-	public static final String ITEM_1 = "1";
-	public static final String ITEM_2 = "2";
-	public static final String ITEM_3 = "3";
-	public static final String ITEM_4 = "4";
-	public static final String ITEM_5 = "5";
-	public static final String ITEM_6 = "6";
-	public static final String ITEM_7 = "7";
-	public static final String ITEM_8 = "8";
-	public static final String ITEM_9 = "9";
-	public static final String ITEM_10 = "10";
-	public static final String ITEM_11 = "11";
-	public static final String ITEM_12 = "12";
-	public static final String ITEM_13 = "13";
-	public static final String ITEM_14 = "14";
-	public static final String ITEM_15 = "15";
-	public static final String ITEM_16 = "16";
-	public static final String ITEM_17 = "17";
-	public static final String ITEM_18 = "18";
-	public static final String ITEM_19 = "19";
-	public static final String ITEM_20 = "20";
-	public static final String ITEM_21 = "21";
-	public static final String ITEM_22 = "22";
-	public static final String ITEM_23 = "23";
-	public static final String ITEM_24 = "24";
-
-	public static final String OPERATION_100 = "100";
-	public static final String OPERATION_101 = "101";
-	public static final String OPERATION_102 = "102";
-	public static final String SERVICE_TCP = "TCP";
-	public static final String SERVICE_UDP = "UDP";
-	public static final String SERVICE_ICMP = "ICMP";
-	public static final String SERVICE_OTHER = "Other";
-	
-	public static final String MAN_INAME = "ethernet0/0";
-	public static final String FUN_INAME = "ethernet0/1";
-	public static final String CONN_INAME = "ethernet0/2";
-	public static final String MASK = "24";
-	
-	public static final String VR_NAME = "trust-vr";
-	public static final String DEFAULT_NEXTHOP = "172.23.10.254";
-	
 	/////////////////////////R2P2 version/////////////////////////
 
 	public static final String COLON = ":";
@@ -146,9 +89,9 @@ public class HsConstants {
 	public static final String SCHEDULETIME = "scheduleTime";
 
 	public static final String TOTAL_PAGES = "totalPages";
-	public static final String TOTAL_ELEMENTS = "totalElements";
-	public static final String CURRENT_PAGE = "currentPage";
-	public static final String CURRENT_PAGEPER = "currentPagePer";
+	public static final String TOTAL_COUNT = "totalCount";
+	public static final String PAGE_NO = "pageNo";
+	public static final String PAGE_SIZE = "pageSize";
 	public static final String RESULT = "result";
 	public static final String PIPE_NAME= "pipeName";
 	public static final String FALSE = "false";
@@ -160,4 +103,6 @@ public class HsConstants {
 	public static final String INTER_CODE = "interCode";
 	public static final String REST_IQOS_ROOT = "/rest/iQos?target=root.rule";
 	public static final String FLOATIP = "floatIp: ";
+	//Url constant
+	public static final String EIP_NUMBERS = "eipNumbers";
 }
