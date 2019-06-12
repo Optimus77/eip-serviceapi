@@ -1,4 +1,4 @@
-package com.inspur.eip.entity.v2.eipv6;
+package com.inspur.eip.entity.ipv6;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -18,6 +18,7 @@ public class EipPoolV6 implements Serializable {
     private Integer id;
 
     private String fireWallId;
+
     @Column(nullable = false, updatable = false)
     private String ip;
 

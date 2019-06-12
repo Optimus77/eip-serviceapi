@@ -1,15 +1,16 @@
-package com.inspur.eip.entity.v2.eipv6;
+package com.inspur.eip.entity.ipv6;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.Valid;
+import java.io.Serializable;
 
 @Getter
 @Setter
-public class EipV6UpdateParamWrapper {
+public class EipV6AllocateParamWrapper implements Serializable {
     @JsonProperty("eipv6")
     @Valid
-    private EipV6UpdateParam eipV6UpdateParam;
+    private EipV6AllocateParam eipV6AllocateParam;
 }

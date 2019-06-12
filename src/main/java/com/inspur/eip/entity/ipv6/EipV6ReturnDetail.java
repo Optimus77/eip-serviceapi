@@ -1,21 +1,20 @@
-package com.inspur.eip.entity.v2.eipv6;
+package com.inspur.eip.entity.ipv6;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import javax.persistence.Column;
 import java.io.Serializable;
 import java.util.Date;
 
-@Getter
-@Setter
+@Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class EipV6ReturnBase implements Serializable {
-    @JsonProperty("eip_v6_id")
-    private String eipV6Id;
+public class EipV6ReturnDetail implements Serializable {
+
+    @JsonProperty("id")
+    private String eipv6Id;
 
     @JsonProperty("ipv6")
     private String ipv6;
@@ -23,10 +22,30 @@ public class EipV6ReturnBase implements Serializable {
     @JsonProperty("status")
     private String status;
 
-    @JsonProperty("create_at")
+    @JsonProperty("createTime")
     @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
+    @JsonProperty("region")
+    private String region;
+
+    @JsonProperty("eipBandwidth")
+    private int eipBandwidth;
+
+
+    @JsonProperty("eipBillType")
+    private String eipChargeType;
+
+    @JsonProperty("eipv6Bandwidth")
+    private int eipv6Bandwidth;
+
+
+    @JsonProperty("eipId")
+    private String eipId;
+
+
+    @Column(name="ipv4")
     @JsonProperty("ipv4")
     private String ipv4;
+
 }

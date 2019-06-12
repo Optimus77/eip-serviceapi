@@ -1,4 +1,4 @@
-package com.inspur.eip.entity.v2.eipv6;
+package com.inspur.eip.entity.ipv6;
 
 import lombok.Data;
 

@@ -2,9 +2,9 @@ package com.inspur.eip.controller.v2;
 
 
 import com.inspur.eip.config.VersionConstant;
-import com.inspur.eip.entity.v2.eipv6.EipV6AllocateParamWrapper;
-import com.inspur.eip.entity.v2.eipv6.EipV6UpdateParam;
-import com.inspur.eip.entity.v2.eipv6.EipV6UpdateParamWrapper;
+import com.inspur.eip.entity.ipv6.EipV6AllocateParamWrapper;
+import com.inspur.eip.entity.ipv6.EipV6UpdateParam;
+import com.inspur.eip.entity.ipv6.EipV6UpdateParamWrapper;
 import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.ReturnStatus;
@@ -124,7 +124,7 @@ public class EipV6ControllerV2 {
             log.info("{}",msgBuffer);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
         }
-        EipV6UpdateParam updateParam = param.getEipV6UpdateParam();
+        EipV6UpdateParam updateParam = param.getEipv6();
         return eipV6Service.eipV6bindPort(eipV6Id, updateParam.getEipAddress());
     }
 

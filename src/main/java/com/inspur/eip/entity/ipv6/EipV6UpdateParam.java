@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class EipV6UpdateParam {
 
-    @JsonProperty("eipaddress")
+    @JsonProperty("eipAddress")
     private String eipAddress;
 
 

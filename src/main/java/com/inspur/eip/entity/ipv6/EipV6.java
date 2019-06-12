@@ -1,4 +1,4 @@
-package com.inspur.eip.entity.v2.eipv6;;
+package com.inspur.eip.entity.ipv6;;
 
 
 import lombok.Data;
@@ -16,7 +16,7 @@ public class EipV6 {
     @GenericGenerator(name = "system-uuid", strategy = "uuid2")
     @GeneratedValue(generator = "system-uuid")
     @Column(name ="eip_v6_id",nullable = false, insertable = false, updatable = false)
-    private String eipV6Id;
+    private String eipv6Id;
 
     private String ipVersion="IPv6";
 
