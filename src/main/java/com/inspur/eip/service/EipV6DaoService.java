@@ -2,9 +2,9 @@ package com.inspur.eip.service;
 
 import com.inspur.eip.config.CodeInfo;
 import com.inspur.eip.entity.v2.eip.Eip;
-import com.inspur.eip.entity.v2.eipv6.EipPoolV6;
-import com.inspur.eip.entity.v2.eipv6.EipV6;
-import com.inspur.eip.entity.v2.eipv6.NatPtV6;
+import com.inspur.eip.entity.ipv6.EipPoolV6;
+import com.inspur.eip.entity.ipv6.EipV6;
+import com.inspur.eip.entity.ipv6.NatPtV6;
 import com.inspur.eip.repository.EipPoolV6Repository;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.EipV6Repository;
@@ -83,7 +83,7 @@ public class EipV6DaoService {
         EipV6 eipV6Entity = eipV6Repository.findByIpv6AndIsDelete(eipPoolv6.getIp(), 0);
         if(null != eipV6Entity){
             log.error("Fatal Error! get a duplicate eipv6 from eip pool v6, eip_v6_address:{} eipv6Id:{}.",
-                    eipV6Entity.getIpv6(), eipV6Entity.getEipV6Id());
+                    eipV6Entity.getIpv6(), eipV6Entity.getEipv6Id());
             return null;
         }
         EipV6 eipMo = new EipV6();
@@ -118,10 +118,10 @@ public class EipV6DaoService {
         eipMo.setIsDelete(0);
         eipMo.setCreateTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipMo);
-        eip.setEipV6Id(eipMo.getEipV6Id());
+        eip.setEipV6Id(eipMo.getEipv6Id());
         eip.setUpdateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eip);
-        log.info("User:{} success allocate eipv6:{}",userId, eipMo.getEipV6Id());
+        log.info("User:{} success allocate eipv6:{}",userId, eipMo.getEipv6Id());
         return eipMo;
     }
 
@@ -141,7 +141,7 @@ public class EipV6DaoService {
     }
 
     public EipV6 findByEipV6IdAndIsDelete(String eipV6Id, int isDelete){
-        return eipV6Repository.findByEipV6IdAndIsDelete(eipV6Id,0);
+        return eipV6Repository.findByEipv6IdAndIsDelete(eipV6Id,0);
     }
 
 
@@ -152,7 +152,7 @@ public class EipV6DaoService {
             return ActionResponse.actionSuccess();
         }
 
-        EipV6 eipV6Entity = eipV6Repository.findByEipV6IdAndIsDelete(eipv6id,0);
+        EipV6 eipV6Entity = eipV6Repository.findByEipv6IdAndIsDelete(eipv6id,0);
         if (null == eipV6Entity) {
             msg= "Faild to find eipV6 by id:"+eipv6id;
             log.error(msg);
@@ -217,7 +217,7 @@ public class EipV6DaoService {
             return ActionResponse.actionSuccess();
         }
 
-        EipV6 eipV6Entity = eipV6Repository.findByEipV6IdAndIsDelete(eipv6id,0);
+        EipV6 eipV6Entity = eipV6Repository.findByEipv6IdAndIsDelete(eipv6id,0);
         if (null == eipV6Entity) {
             msg= "Faild to find eipV6 by id:"+eipv6id;
             log.error(msg);

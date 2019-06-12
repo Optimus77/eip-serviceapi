@@ -2,8 +2,9 @@ package com.inspur.eip.controller;
 
 
 import com.inspur.eip.entity.ipv6.EipV6UpdateParam;
-import com.inspur.eip.entity.v2.eipv6.EipV6AllocateParamWrapper;
+import com.inspur.eip.entity.ipv6.EipV6AllocateParam;
 import com.inspur.eip.entity.ipv6.EipV6UpdateParamWrapper;
+import com.inspur.eip.entity.ipv6.EipV6AllocateParamWrapper;
 import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.ReturnMsgUtil;

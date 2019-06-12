@@ -6,7 +6,7 @@ import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.entity.v2.eip.Eip;
 import com.inspur.eip.entity.v2.eip.EipReturnDetail;
 import com.inspur.eip.entity.v2.eip.Resourceset;
-import com.inspur.eip.entity.v2.eipv6.EipV6;
+import com.inspur.eip.entity.ipv6.EipV6;
 import com.inspur.eip.entity.v2.sbw.Sbw;
 import com.inspur.eip.entity.v2.sbw.SbwReturnBase;
 import com.inspur.eip.entity.v2.sbw.SbwReturnDetail;

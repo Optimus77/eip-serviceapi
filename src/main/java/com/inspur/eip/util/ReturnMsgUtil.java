@@ -1,7 +1,6 @@
 package com.inspur.eip.util;
 
 import com.inspur.eip.entity.ReturnMsg;
-import com.inspur.eip.entity.ReturnSbwMsg;
 
 public class ReturnMsgUtil {
     public static <T> ReturnMsg success(T t) {
@@ -18,6 +17,10 @@ public class ReturnMsgUtil {
 
     public static <T> ReturnMsg msg(String code, String message , T t){
         return ReturnMsg.builder().code(code).message(message).data(t).build();
+    }
+
+    public static <T> ReturnMsg successEipv6(T t) {
+        return ReturnMsg.builder().eipv6(t).build();
     }
 
 }

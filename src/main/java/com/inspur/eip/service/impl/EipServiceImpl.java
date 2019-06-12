@@ -8,7 +8,7 @@ import com.inspur.eip.entity.EipAllocateParam;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.v2.MethodReturn;
 import com.inspur.eip.entity.v2.eip.*;
-import com.inspur.eip.entity.v2.eipv6.EipV6;
+import com.inspur.eip.entity.ipv6.EipV6;
 import com.inspur.eip.entity.v2.sbw.Sbw;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.EipV6Repository;

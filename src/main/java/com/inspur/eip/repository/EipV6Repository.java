@@ -1,6 +1,6 @@
 package com.inspur.eip.repository;
 
-import com.inspur.eip.entity.v2.eipv6.EipV6;
+import com.inspur.eip.entity.ipv6.EipV6;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,9 +13,9 @@ import java.util.List;
 @RepositoryRestResource(collectionResourceRel = "eipv6", path = "eipv6")
 public interface EipV6Repository extends JpaRepository<EipV6,String> {
 
-    EipV6 findByEipV6Id(String id);
+    EipV6 findByEipv6Id(String id);
 
-    EipV6 findByEipV6IdAndIsDelete(String eipV6Id,int isDelete);
+    EipV6 findByEipv6IdAndIsDelete(String eipv6Id,int isDelete);
 
     List<EipV6> findByUserIdAndIsDelete(String projectId, int isDelete);
 
