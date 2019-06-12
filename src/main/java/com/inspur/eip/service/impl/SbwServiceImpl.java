@@ -176,7 +176,7 @@ public class SbwServiceImpl implements ISbwService {
                 BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
                 sbwReturnDetail.setIpCount((int) eipRepository.countBySbwIdAndIsDelete(sbwId, 0));
                 log.debug("sbw Detail:{}", sbwReturnDetail.toString());
-                return new ResponseEntity<>(ReturnMsgUtil.success(sbwReturnDetail), HttpStatus.OK);
+                return new ResponseEntity<>(ReturnMsgUtil.successSbw(sbwReturnDetail), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getCode(), ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage()), HttpStatus.NOT_FOUND);
             }
@@ -254,7 +254,7 @@ public class SbwServiceImpl implements ISbwService {
     }
 
     /**
-     * 包年包月续费/自动续费
+     * 包年包月续费
      *
      * @param sbwId
      * @param updateParam
