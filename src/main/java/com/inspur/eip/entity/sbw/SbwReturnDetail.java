@@ -20,19 +20,19 @@ public class SbwReturnDetail implements Serializable {
     @JsonProperty("billType")
     private String billType;
 
-    @JsonProperty("chargemode")
+    @JsonProperty("chargeMode")
     private String chargeMode ="Bandwidth";
 
-    @JsonProperty("bandwidth")
+    @JsonProperty("bandWidth")
     private int bandWidth;
 
     @JsonProperty("duration")
     private String duration;
 
-    @JsonProperty("ipcount")
+    @JsonProperty("ipCount")
     private int ipCount = 0;
 
-    @JsonProperty("create_at")
+    @JsonProperty("createTime")
     @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 

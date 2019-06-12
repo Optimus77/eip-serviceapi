@@ -109,11 +109,11 @@ public class SbwServiceImpl implements ISbwService {
                     sbwReturnDetail.setIpCount((int) ipCount);
                     sbws.add(sbwReturnDetail);
                 }
-                data.put("sbws", sbws);
+                data.put("data", sbws);
                 data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
-                data.put(HsConstants.TOTAL_ELEMENTS, page.getTotalElements());
-                data.put(HsConstants.CURRENT_PAGE, pageIndex);
-                data.put(HsConstants.CURRENT_PAGEPER, pageSize);
+                data.put(HsConstants.TOTAL_COUNT, page.getTotalElements());
+                data.put(HsConstants.PAGE_NO, pageIndex);
+                data.put(HsConstants.PAGE_SIZE, pageSize);
             } else {
                 List<Sbw> sbwList = sbwDaoService.findByProjectId(projectid);
                 for (Sbw sbw : sbwList) {
@@ -126,11 +126,11 @@ public class SbwServiceImpl implements ISbwService {
                     sbwReturnDetail.setIpCount((int) ipCount);
                     sbws.add(sbwReturnDetail);
                 }
-                data.put("sbws", sbws);
+                data.put("data", sbws);
                 data.put(HsConstants.TOTAL_PAGES, 1);
-                data.put(HsConstants.TOTAL_ELEMENTS, sbws.size());
-                data.put(HsConstants.CURRENT_PAGE, 1);
-                data.put(HsConstants.CURRENT_PAGEPER, sbws.size());
+                data.put(HsConstants.TOTAL_COUNT, sbws.size());
+                data.put(HsConstants.PAGE_NO, 1);
+                data.put(HsConstants.PAGE_SIZE, sbws.size());
             }
             log.debug("data :{}", data.toString());
             return new ResponseEntity<>(data, HttpStatus.OK);
@@ -176,7 +176,7 @@ public class SbwServiceImpl implements ISbwService {
                 BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
                 sbwReturnDetail.setIpCount((int) eipRepository.countBySbwIdAndIsDelete(sbwId, 0));
                 log.debug("sbw Detail:{}", sbwReturnDetail.toString());
-                return new ResponseEntity<>(ReturnMsgUtil.successSbw(sbwReturnDetail), HttpStatus.OK);
+                return new ResponseEntity<>(sbwReturnDetail, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getCode(), ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage()), HttpStatus.NOT_FOUND);
             }
@@ -243,9 +243,9 @@ public class SbwServiceImpl implements ISbwService {
             }
             data.put("sbws", sbws);
             data.put(HsConstants.TOTAL_PAGES, 1);
-            data.put(HsConstants.TOTAL_ELEMENTS, sbws.size());
-            data.put(HsConstants.CURRENT_PAGE, 1);
-            data.put(HsConstants.CURRENT_PAGEPER, sbws.size());
+            data.put(HsConstants.TOTAL_COUNT, sbws.size());
+            data.put(HsConstants.PAGE_NO, 1);
+            data.put(HsConstants.PAGE_SIZE, sbws.size());
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Exception in listShareBandWidth", e);
