@@ -5,7 +5,7 @@ package com.inspur.eip.service;
 import com.inspur.eip.config.CodeInfo;
 import com.inspur.eip.entity.eip.*;
 import com.inspur.eip.entity.EipUpdateParam;
-import com.inspur.eip.entity.EipAllocateParam;
+import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.v2.MethodReturn;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;

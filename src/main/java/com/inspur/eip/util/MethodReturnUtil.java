@@ -3,7 +3,7 @@ package com.inspur.eip.util;
 
 import com.inspur.eip.entity.v2.MethodReturn;
 import com.inspur.eip.entity.v2.MethodSbwReturn;
-import com.inspur.eip.entity.v2.sbw.MethodEipV6Return;
+import com.inspur.eip.entity.sbw.MethodEipV6Return;
 
 public class MethodReturnUtil {
 

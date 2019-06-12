@@ -2,7 +2,7 @@ package com.inspur.eip.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.inspur.eip.entity.v2.fw.*;
+import com.inspur.eip.entity.fw.*;
 import com.inspur.eip.util.HsConstants;
 import com.inspur.eip.util.HsHttpClient;
 import lombok.extern.slf4j.Slf4j;

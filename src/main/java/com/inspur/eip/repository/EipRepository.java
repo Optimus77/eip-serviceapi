@@ -29,8 +29,6 @@ public interface EipRepository extends JpaRepository<Eip,String> {
 
     Page<Eip> findByUserIdAndIsDelete(String projectId, int isDelete, Pageable pageable);
 
-    List<Eip> findBySbwIdAndIsDelete(String sharedBandWidthId, int isDelete);
-
     long countBySbwIdAndIsDelete(String sharedBandWidthId, int isDelete);
 
     long countByPipId(String pipeId);

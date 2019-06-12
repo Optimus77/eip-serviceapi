@@ -1,6 +1,7 @@
 package com.inspur.eip.controller;
 
 import com.inspur.eip.entity.*;
+import com.inspur.eip.entity.eip.EipAllocateParamWrapper;
 import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.util.*;
 import io.swagger.annotations.Api;
@@ -41,7 +42,7 @@ public class EipController {
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomAllocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
-        log.info("Allocate a eip:{}.", eipConfig.getEip().toString());
+        log.info("Allocate a eip:{}.", eipConfig.getEipAllocateParam().toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
             List<FieldError> fieldErrors = result.getFieldErrors();
@@ -51,7 +52,7 @@ public class EipController {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
                     HttpStatus.BAD_REQUEST);
         }
-        return eipService.atomCreateEip(eipConfig.getEip(), CommonUtil.getKeycloackToken());
+        return eipService.atomCreateEip(eipConfig.getEipAllocateParam(), CommonUtil.getKeycloackToken());
     }
 
 

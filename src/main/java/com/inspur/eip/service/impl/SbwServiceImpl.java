@@ -2,14 +2,14 @@ package com.inspur.eip.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.inspur.eip.entity.ipv6.EipV6;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.eip.EipReturnDetail;
 import com.inspur.eip.entity.eip.Resourceset;
-import com.inspur.eip.entity.ipv6.EipV6;
-import com.inspur.eip.entity.v2.sbw.Sbw;
-import com.inspur.eip.entity.v2.sbw.SbwReturnBase;
-import com.inspur.eip.entity.v2.sbw.SbwReturnDetail;
+import com.inspur.eip.entity.sbw.Sbw;
+import com.inspur.eip.entity.sbw.SbwReturnBase;
+import com.inspur.eip.entity.sbw.SbwReturnDetail;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.EipV6Repository;
 import com.inspur.eip.repository.SbwRepository;
@@ -63,7 +63,7 @@ public class SbwServiceImpl implements ISbwService {
                 SbwReturnBase sbwInfo = new SbwReturnBase();
                 BeanUtils.copyProperties(sbwMo, sbwInfo);
                 log.info("Atom create a sbw success:{}", sbwMo);
-                return new ResponseEntity<>(ReturnMsgUtil.success(sbwInfo), HttpStatus.OK);
+                return new ResponseEntity<>(sbwInfo, HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 msg = "Failed to create sbw :" + sbwConfig;
@@ -286,8 +286,8 @@ public class SbwServiceImpl implements ISbwService {
     public ActionResponse stopSbwService(String sbwId, SbwUpdateParam updateParam) {
         try {
             String renewTime = updateParam.getDuration();
-            if (StringUtils.isBlank(renewTime)) {
-                return ActionResponse.actionFailed(HttpStatus.BAD_REQUEST.getReasonPhrase(), HttpStatus.BAD_REQUEST.value());
+            if (StringUtils.isBlank(renewTime) || StringUtils.isBlank(sbwId)) {
+                return ActionResponse.actionFailed(HttpStatus.BAD_REQUEST.getReasonPhrase()+"sbwId:"+sbwId + "duration:"+renewTime, HttpStatus.BAD_REQUEST.value());
             } else if (renewTime.trim().equals("0")) {
                 return sbwDaoService.stopSbwService(sbwId);
             }

@@ -4,16 +4,14 @@ package com.inspur.eip.util;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
-import com.inspur.eip.entity.EipAllocateParam;
+import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.ReturnMsg;
-import com.inspur.eip.entity.ReturnSbwMsg;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.icp.common.util.Base64Util;
 import com.inspur.icp.common.util.OSClientUtil;
 import lombok.Setter;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpStatus;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;

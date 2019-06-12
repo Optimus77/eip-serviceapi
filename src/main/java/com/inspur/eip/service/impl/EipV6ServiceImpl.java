@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+
 @Slf4j
 @Service
 public class EipV6ServiceImpl implements IEipV6Service {
@@ -71,7 +72,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 EipV6ReturnBase eipInfo = new EipV6ReturnBase();
                 BeanUtils.copyProperties(eipMo, eipInfo);
                 log.info("Atom create a eipv6 success:{}", eipMo);
-                return new ResponseEntity<>(eipInfo, HttpStatus.OK);
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 msg = "Failed to create eipv6 " ;
@@ -141,7 +142,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 data.put("pageNo",currentPage);
                 data.put("pageSize",limit);
                 data.put("totalPages",page.getTotalPages());
-                data.put("data", eipv6s);
+                data.put("eipv6s", eipv6s);
             }else{
                 List<EipV6> eipV6List=eipV6DaoService.findEipV6ByUserId(userId);
                 for(EipV6 eipV6:eipV6List){
@@ -171,7 +172,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                     }
 
                 }
-                data.put("data", eipv6s);
+                data.put("eipv6s", eipv6s);
                 data.put("totalPages",1);
                 data.put("totalCount",eipv6s.size());
                 data.put("pageNo",1);
@@ -241,7 +242,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                     eipV6ReturnDetail.setEipChargeType(eip.getBillType());
                     eipV6ReturnDetail.setEipId(eip.getEipId());
 
-                    return new ResponseEntity<>(eipV6ReturnDetail, HttpStatus.OK);
+                    return new ResponseEntity<>(ReturnMsgUtil.success(eipV6ReturnDetail), HttpStatus.OK);
                 }
             } else {
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,

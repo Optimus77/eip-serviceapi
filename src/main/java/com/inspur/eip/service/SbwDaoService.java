@@ -1,14 +1,12 @@
 package com.inspur.eip.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.entity.v2.MethodReturn;
-import com.inspur.eip.entity.v2.MethodSbwReturn;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.EipUpdateParam;
-import com.inspur.eip.entity.v2.fw.Firewall;
-import com.inspur.eip.entity.v2.sbw.Sbw;
+import com.inspur.eip.entity.fw.Firewall;
+import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.exception.EipNotFoundException;
 import com.inspur.eip.exception.EipUnauthorizedException;
 import com.inspur.eip.repository.EipRepository;
@@ -22,7 +20,6 @@ import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
