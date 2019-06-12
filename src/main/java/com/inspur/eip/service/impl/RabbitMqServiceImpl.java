@@ -2,9 +2,10 @@ package com.inspur.eip.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.*;
+import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
-import com.inspur.eip.entity.v2.eip.EipReturnBase;
-import com.inspur.eip.entity.v2.sbw.SbwReturnBase;
+import com.inspur.eip.entity.eip.EipReturnBase;
+import com.inspur.eip.entity.sbw.SbwReturnBase;
 import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.SbwDaoService;
 import com.inspur.eip.service.WebControllerService;
@@ -62,6 +63,11 @@ public class RabbitMqServiceImpl {
     @Value("${bss.queues.change.binding.returnRoutingKey}")
     private String changeKey;
 
+    /**
+     * ==================================================================================================================================
+     * \\                                                          EIP                                                                  \\
+     * ==================================================================================================================================
+     */
 
     /**
      * create an  eip entity info
@@ -77,6 +83,7 @@ public class RabbitMqServiceImpl {
             log.info("Recive create mq:{}", JSONObject.toJSONString(eipOrder));
             EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
             ReturnMsg checkRet = preCheckParam(eipConfig);
+            //订单状态，必须支付成功，下同
             if (!(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) || !(checkRet.getCode().equals(ReturnStatus.SC_OK))) {
                 log.warn(checkRet.getMessage());
                 return null;
@@ -130,6 +137,7 @@ public class RabbitMqServiceImpl {
                 for (OrderProduct orderProduct : orderProducts) {
                     eipId = orderProduct.getInstanceId();
                 }
+                //软删除实例，用户主动发起，必须带token
                 response = eipDaoService.deleteEip(eipId, eipOrder.getToken());
                 if (response.isSuccess()) {
                     if (eipOrder.getConsoleCustomization().containsKey("operateType") &&
@@ -171,6 +179,7 @@ public class RabbitMqServiceImpl {
 
             if ((eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS))) {
                 EipUpdateParam eipUpdate = getUpdatParmByOrder(eipOrder);
+                //更配操作
                 if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
                     if (eipUpdate.getSbwId() != null) {
                         if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
@@ -186,8 +195,10 @@ public class RabbitMqServiceImpl {
                     } else {
                         log.error(ConstantClassField.BILL_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
                     }
+                    //用户主动发起的包年包月实例续费操作
                 } else if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
                     response = eipDaoService.reNewEipEntity(eipId, eipOrder.getDuration(), eipOrder.getToken());
+                    //不支持的订单类型
                 } else {
                     log.error(ConstantClassField.ORDER_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
                 }
@@ -211,8 +222,7 @@ public class RabbitMqServiceImpl {
     }
 
     /**
-     * soft down order from bss
-     *
+     * stop server or soft delete order from bss
      * @param eipOrder order
      * @return return
      */
@@ -225,12 +235,14 @@ public class RabbitMqServiceImpl {
             List<SoftDownInstance> instanceList = eipOrder.getInstanceList();
             for (SoftDownInstance softDownInstance : instanceList) {
                 String operateType = softDownInstance.getOperateType();
+                //订单测发起的软删操作，不带token，需要通过admin权限操作
                 if (HsConstants.DELETE.equalsIgnoreCase(operateType)) {
                     response = eipDaoService.adminDeleteEip(softDownInstance.getInstanceId());
                     if (response.isSuccess()) {
                         insanceStatus = HsConstants.DELETED;
                         result = HsConstants.SUCCESS;
                     }
+                    //订单测主动发起的停服操作，不带toekn,即包年包月实例到期 ，订单测发起停服订单
                 } else if (HsConstants.STOPSERVER.equalsIgnoreCase(operateType)) {
                     response = eipDaoService.softDownEip(softDownInstance.getInstanceId());
                     if (response.isSuccess()) {
@@ -240,6 +252,7 @@ public class RabbitMqServiceImpl {
                         insanceStatus = HsConstants.NOTFOUND;
                         result = HsConstants.SUCCESS;
                     }
+                    //停服重开，即停服之后，用户又进行了充值操作，订单测主动发起重开请求，业务侧进行续费操作，不带token
                 } else if (HsConstants.RESUMESERVER.equalsIgnoreCase(operateType)) {
                     response = eipDaoService.reNewEipEntity(softDownInstance.getInstanceId(), "1");
                     if (response != null && response.isSuccess()) {
@@ -260,20 +273,30 @@ public class RabbitMqServiceImpl {
         }
         return response;
     }
+    /**
+     * ==================================================================================================================================
+     * \\                                                          SBW                                                                  \\
+     * \\                     Bss暂支持的InstanceStatus状态                 productSetStatus状态(不一一对应)                             \\
+     * \\                         ACTIVE                                         success                                                \\
+     * \\                         ERROR                                           fail                                                  \\
+     * \\                         PENDING_CREATE                                                                                        \\
+     * \\                         STOP                                                                                                  \\
+     * \\                         DELETE                                                                                                \\
+     * ==================================================================================================================================
+     */
+
 
     /**
      * get create shareband result
-     *
      * @return return message
      */
     public ResponseEntity createSbwInfo(ReciveOrder reciveOrder) {
-
         ResponseEntity<ReturnMsg<SbwReturnBase>> response = null;
         SbwReturnBase sbwReturn;
         String sbwId = null;
-
         try {
             log.info("Recive create sbw order:{}", JSONObject.toJSONString(reciveOrder));
+            //订单状态，必须支付成功
             if (reciveOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 SbwUpdateParam sbwConfig = getSbwConfigByOrder(reciveOrder);
                 ReturnMsg checkRet = preSbwCheckParam(sbwConfig);
@@ -327,6 +350,7 @@ public class RabbitMqServiceImpl {
                 for (OrderProduct product : productList) {
                     sbwId = product.getInstanceId();
                 }
+                //业务侧执行软删操作，即按需退订，用户主动发起，带token
                 response = sbwService.deleteSbwInfo(sbwId, reciveOrder.getToken());
                 if (response.isSuccess()) {
                     result = HsConstants.STATUS_DELETE;
@@ -363,10 +387,13 @@ public class RabbitMqServiceImpl {
             log.info("Update sbw config:{}", JSONObject.toJSONString(recive));
             if (recive.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 SbwUpdateParam sbwUpdate = getSbwConfigByOrder(recive);
+                //sbw 实例更配操作，目前只支持更配带宽
                 if (recive.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
                     response = sbwService.updateSbwConfig(sbwId, sbwUpdate, recive.getToken());
+                    //续费操作，用户主动发起，即包年包月实例，用户可以主动发起续费请求，带token
                 } else if (recive.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && recive.getBillType().equals(HsConstants.MONTHLY)) {
                     response = sbwService.restartSbwService(sbwId, sbwUpdate, recive.getToken());
+                    //不支持的订单类型
                 } else {
                     log.warn(ConstantClassField.ORDER_STATUS_NOT_CORRECT, recive.getOrderType());
                 }
@@ -405,12 +432,14 @@ public class RabbitMqServiceImpl {
             List<SoftDownInstance> instanceList = softDown.getInstanceList();
             for (SoftDownInstance instance : instanceList) {
                 String operateType = instance.getOperateType();
+                //订单测主动发起的软删请求，不带toekn
                 if (HsConstants.DELETE.equalsIgnoreCase(operateType)) {
                     response = sbwService.bssSoftDeleteSbw(instance.getInstanceId());
                     if (response.isSuccess()) {
                         setStatus = HsConstants.SUCCESS;
                         instanceStatus = HsConstants.STATUS_DELETE;
                     }
+                    //订单测主动发起的停服操作，不带toekn,即包年包月实例到期 ，订单测发起停服请求
                 } else if (HsConstants.STOPSERVER.equalsIgnoreCase(operateType)) {
                     SbwUpdateParam updateParam = new SbwUpdateParam();
                     updateParam.setDuration("0");
@@ -440,7 +469,7 @@ public class RabbitMqServiceImpl {
         }
         return response;
     }
-
+    // Json str parse or packing
     /**
      * extract create eip config from BSS MQ
      *

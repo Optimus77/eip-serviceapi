@@ -1,4 +1,4 @@
-package com.inspur.eipatomapi.config.http;
+package com.inspur.eip.config.proxy.httppool;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;

@@ -4,7 +4,7 @@ import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.LogLevel;
-import com.inspur.eip.entity.v2.eip.*;
+import com.inspur.eip.entity.eip.*;
 import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.ReturnMsgUtil;
