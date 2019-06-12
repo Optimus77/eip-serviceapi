@@ -6,7 +6,7 @@ import com.inspur.eip.config.CodeInfo;
 import com.inspur.eip.entity.eip.*;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.eip.EipAllocateParam;
-import com.inspur.eip.entity.v2.MethodReturn;
+import com.inspur.eip.entity.MethodReturn;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.ExtNetRepository;

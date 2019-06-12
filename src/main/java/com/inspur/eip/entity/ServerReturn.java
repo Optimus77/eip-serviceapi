@@ -1,4 +1,4 @@
-package com.inspur.eip.entity.v2;
+package com.inspur.eip.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.AllArgsConstructor;
