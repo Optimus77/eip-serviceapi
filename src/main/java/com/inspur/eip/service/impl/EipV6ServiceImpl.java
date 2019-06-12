@@ -138,8 +138,8 @@ public class EipV6ServiceImpl implements IEipV6Service {
 
                 }
                 data.put("totalCount",page.getTotalElements());
-                data.put("currentPage",currentPage);
-                data.put("limit",limit);
+                data.put("pageNo",currentPage);
+                data.put("pageSize",limit);
                 data.put("totalPages",page.getTotalPages());
                 data.put("data", eipv6s);
             }else{
@@ -174,8 +174,8 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 data.put("data", eipv6s);
                 data.put("totalPages",1);
                 data.put("totalCount",eipv6s.size());
-                data.put("currentPage",1);
-                data.put("limit",eipv6s.size());
+                data.put("pageNo",1);
+                data.put("pageSize",eipv6s.size());
             }
             return new ResponseEntity<>(data, HttpStatus.OK);
         }catch(KeycloakTokenException e){
