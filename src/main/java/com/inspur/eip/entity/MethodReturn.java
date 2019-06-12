@@ -1,4 +1,4 @@
-package com.inspur.eip.entity.v2;
+package com.inspur.eip.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MethodSbwReturn<T> {
+public class MethodReturn<T> {
 
     int httpCode;
     String innerCode;
     String message;
-    private T sbw;
+    private T eip;
 }

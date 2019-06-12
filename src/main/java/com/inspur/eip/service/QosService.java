@@ -10,7 +10,7 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.util.*;
 
-import com.inspur.eip.entity.v2.MethodReturn;
+import com.inspur.eip.entity.MethodReturn;
 import com.inspur.eip.entity.Qos.*;
 import com.inspur.eip.util.*;
 import org.apache.commons.lang3.StringUtils;
