@@ -1,8 +1,8 @@
 package com.inspur.eip.service;
 
 
-import com.inspur.eip.entity.v2.eipv6.NatPtV6;
 import com.inspur.eip.entity.fw.FwNatV6Excvption;
+import com.inspur.eip.entity.ipv6.NatPtV6;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

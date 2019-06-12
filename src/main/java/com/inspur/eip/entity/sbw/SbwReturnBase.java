@@ -15,13 +15,13 @@ public class SbwReturnBase implements Serializable {
     @JsonProperty("sbwId")
     private String sbwId;
 
-    @JsonProperty("bandwidth")
+    @JsonProperty("bandWidth")
     private int bandWidth;
 
     @JsonProperty("sbwName")
     private String sbwName;
 
-    @JsonProperty("create_at")
+    @JsonProperty("createTime")
     @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 

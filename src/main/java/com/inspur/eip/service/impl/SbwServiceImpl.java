@@ -2,11 +2,11 @@ package com.inspur.eip.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.inspur.eip.entity.ipv6.EipV6;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.eip.EipReturnDetail;
 import com.inspur.eip.entity.eip.Resourceset;
-import com.inspur.eip.entity.v2.eipv6.EipV6;
 import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.entity.sbw.SbwReturnBase;
 import com.inspur.eip.entity.sbw.SbwReturnDetail;
@@ -63,7 +63,7 @@ public class SbwServiceImpl implements ISbwService {
                 SbwReturnBase sbwInfo = new SbwReturnBase();
                 BeanUtils.copyProperties(sbwMo, sbwInfo);
                 log.info("Atom create a sbw success:{}", sbwMo);
-                return new ResponseEntity<>(ReturnMsgUtil.success(sbwInfo), HttpStatus.OK);
+                return new ResponseEntity<>(sbwInfo, HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 msg = "Failed to create sbw :" + sbwConfig;
