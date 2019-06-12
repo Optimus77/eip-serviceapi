@@ -90,12 +90,12 @@ public class EipV6ServiceImpl implements IEipV6Service {
 
     /**
      *   the eipV6
-     * @param currentPage  the current page
-     * @param limit  element of per page
+     * @param pageNo  the current page
+     * @param pageSize  element of per page
      * @return       result
      */
     @Override
-    public ResponseEntity listEipV6s(int currentPage,int limit, String status){
+    public ResponseEntity listEipV6s(int pageNo,int pageSize, String status){
 
         try {
             String userId= CommonUtil.getUserId();
@@ -106,9 +106,9 @@ public class EipV6ServiceImpl implements IEipV6Service {
             }
             JSONObject data=new JSONObject();
             JSONArray eipv6s=new JSONArray();
-            if(currentPage!=0){
+            if(pageNo!=0){
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
-                Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
+                Pageable pageable =PageRequest.of(pageNo-1,pageSize,sort);
                 Page<EipV6> page=eipV6Repository.findByUserIdAndIsDelete(userId, 0, pageable);
                 for(EipV6 eipV6:page.getContent()){
                     if (eipV6.getIpv4() == null || eipV6.getIpv4().equals("")) {
@@ -139,8 +139,8 @@ public class EipV6ServiceImpl implements IEipV6Service {
 
                 }
                 data.put("totalCount",page.getTotalElements());
-                data.put("pageNo",currentPage);
-                data.put("pageSize",limit);
+                data.put("pageNo",pageNo);
+                data.put("pageSize",pageSize);
                 data.put("totalPages",page.getTotalPages());
                 data.put("data", eipv6s);
             }else{
