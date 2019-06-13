@@ -13,6 +13,6 @@ import java.io.Serializable;
 @Builder
 @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
 public class Resourceset implements Serializable {
-    public String resourcetype;
-    public String resourceid;
+    public String resourceType;
+    public String resourceId;
 }
