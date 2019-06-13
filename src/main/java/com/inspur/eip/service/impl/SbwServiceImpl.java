@@ -209,11 +209,11 @@ public class SbwServiceImpl implements ISbwService {
             String projectid = CommonUtil.getUserId();
             long num = sbwRepository.countByProjectIdAndIsDelete(projectid, 0);
 
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, "get instance num success", num), HttpStatus.OK);
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, HsConstants.SUCCESS, num), HttpStatus.OK);
         } catch (KeycloakTokenException e) {
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN, e.getMessage(), null), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ErrorStatus.SC_FORBIDDEN.getCode(), ErrorStatus.SC_FORBIDDEN.getMessage(), null), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ErrorStatus.SC_INTERNAL_SERVER_ERROR.getCode(),ErrorStatus.SC_INTERNAL_SERVER_ERROR.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -329,11 +329,11 @@ public class SbwServiceImpl implements ISbwService {
                             .resourcetype(eip.getInstanceType()).build());
                     eips.add(eipReturnDetail);
                 }
-                data.put("eips", eips);
-                data.put("totalPages", page.getTotalPages());
-                data.put("totalElements", page.getTotalElements());
-                data.put("currentPage", currentPage);
-                data.put("currentPagePer", limit);
+                data.put("data", eips);
+                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
+                data.put(HsConstants.TOTAL_COUNT, page.getTotalElements());
+                data.put(HsConstants.PAGE_NO, currentPage);
+                data.put(HsConstants.PAGE_SIZE, limit);
             } else {
                 List<Eip> eipList = eipRepository.findByUserIdAndIsDeleteAndSbwId(projcectid, 0, sbwId);
                 for (Eip eip : eipList) {
@@ -345,11 +345,11 @@ public class SbwServiceImpl implements ISbwService {
                             .resourcetype(eip.getInstanceType()).build());
                     eips.add(eipReturnDetail);
                 }
-                data.put("eips", eips);
-                data.put("totalPages", 1);
-                data.put("totalElements", eips.size());
-                data.put("currentPage", 1);
-                data.put("currentPagePer", eips.size());
+                data.put("data", eips);
+                data.put(HsConstants.TOTAL_PAGES, 1);
+                data.put(HsConstants.TOTAL_COUNT, eips.size());
+                data.put(HsConstants.PAGE_NO, 1);
+                data.put(HsConstants.PAGE_SIZE, eips.size());
             }
             log.debug("data:{}", data.toString());
             return new ResponseEntity<>(data, HttpStatus.OK);
@@ -411,7 +411,7 @@ public class SbwServiceImpl implements ISbwService {
                     eips.add(eipReturn);
                 }
             }
-            data.put("eips", eips);
+            data.put("data", eips);
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (KeycloakTokenException e) {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
