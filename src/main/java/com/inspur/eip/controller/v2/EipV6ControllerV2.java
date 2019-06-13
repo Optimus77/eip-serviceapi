@@ -51,8 +51,7 @@ public class EipV6ControllerV2 {
             return new ResponseEntity<>( ReturnMsgUtil.error( ReturnStatus.SC_PARAM_ERROR , msgBuffer.toString() ),
                     HttpStatus.BAD_REQUEST);
         }
-        ResponseEntity responseEntity = eipV6Service.atomCreateEipV6( eipV6Config.getEipV6AllocateParam().getEipId(), CommonUtil.getKeycloackToken());
-        return responseEntity;
+        return eipV6Service.atomCreateEipV6( eipV6Config.getEipV6AllocateParam().getEipId(), CommonUtil.getKeycloackToken());
     }
 
     @GetMapping(value = "/eipv6/{pageNo}/{pageSize}")

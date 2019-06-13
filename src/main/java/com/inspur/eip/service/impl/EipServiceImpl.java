@@ -82,7 +82,7 @@ public class EipServiceImpl implements IEipService {
                 if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
                     eipV6Service.atomCreateEipV6(eipMo.getEipId(), token);
                 }
-                return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
+                return new ResponseEntity<>(eipInfo, HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
                 msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
@@ -266,7 +266,7 @@ public class EipServiceImpl implements IEipService {
                         eipReturnDetail.setIpv6(eipV6.getIpv6());
                     }
                 }
-                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+                return new ResponseEntity<>(eipReturnDetail, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
                         "Can not find eip by id:" + eipId + "."),
