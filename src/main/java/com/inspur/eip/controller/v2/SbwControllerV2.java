@@ -36,7 +36,7 @@ public class SbwControllerV2 {
     private SbwServiceImpl sbwService;
     //todo refactor interface
     @ICPControllerLog
-    @PostMapping(value = "/sbwsCreate")
+    @PostMapping(value = "/sbws")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "atomCreateSbw", notes = "createSbw")
     public ResponseEntity atomAllocateSbw(@Valid @RequestBody SbwUpdateParamWrapper sbwConfig, BindingResult result) {
@@ -111,7 +111,7 @@ public class SbwControllerV2 {
     }
 
     /**
-     * get sbw number of user
+     * 当前用户sbw数量，概览页显示
      *
      * @return response
      */
@@ -143,35 +143,35 @@ public class SbwControllerV2 {
     /**
      * get the eipList in this sbw
      * @param sbwId id
-     * @param pageIndex index
+     * @param pageNo index
      * @param pageSize size
      * @return ret
      */
     @ICPControllerLog
-    @GetMapping(value = "/sbws/{sbw_id}/eips")
+    @GetMapping(value = "/sbws/{sbw_id}/eips/{pageNo}/{pageSize}")
     @CrossOrigin(origins = "*", maxAge = 3000)
-    @ApiOperation(value = "sbwListEip", notes = "listEip")
+    @ApiOperation(value = "sbwListEip", notes = "listE  ip")
     public ResponseEntity sbwListEip(@PathVariable( name = "sbw_id") String sbwId,
-                                     @RequestParam(required = false, name = "currentPageIndex", defaultValue = "1") String pageIndex,
-                                     @RequestParam(required = false, name = "currentPageSize", defaultValue = "10") String pageSize) {
-        log.info("Atom get EIP list in this Sbw sbwId:{},currentPageIndex:{}, currentPageSize:{}",sbwId, pageIndex, pageSize);
-        if (pageIndex == null || pageSize == null) {
-            pageIndex = "0";
+                                     @PathVariable(required = false, name = "pageNo") String pageNo,
+                                     @PathVariable(required = false, name = "pageSize") String pageSize) {
+        log.info("Atom get EIP list in this Sbw sbwId:{},currentPageIndex:{}, currentPageSize:{}",sbwId, pageNo, pageSize);
+        if (pageNo == null || pageSize == null) {
+            pageNo = "0";
             pageSize = "0";
         } else {
             try {
-                int currentPageNum = Integer.parseInt(pageIndex);
+                int currentPageNum = Integer.parseInt(pageNo);
                 int limitNum = Integer.parseInt(pageSize);
                 if (currentPageNum < 0 || limitNum < 0) {
-                    pageIndex = "0";
+                    pageNo = "0";
                 }
             } catch (Exception e) {
                 log.error("number is not correct ");
-                pageIndex = "0";
+                pageNo = "0";
                 pageSize = "0";
             }
         }
-        return sbwService.sbwListEip(sbwId ,Integer.parseInt(pageIndex), Integer.parseInt(pageSize));
+        return sbwService.sbwListEip(sbwId ,Integer.parseInt(pageNo), Integer.parseInt(pageSize));
     }
 
     /**
