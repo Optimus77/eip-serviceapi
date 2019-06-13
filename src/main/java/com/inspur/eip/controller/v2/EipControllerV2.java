@@ -118,7 +118,6 @@ public class EipControllerV2 {
 
     /**
      * get eip instance detail
-     * @param eipid  the id of eip
      * @param eipaddress  the id of eip
      * @param resourceid  the id of eip
      * @return  retrun
@@ -129,14 +128,10 @@ public class EipControllerV2 {
     @ApiOperation(value="getEipByInstanceId",notes="get")
     public ResponseEntity getEipByInstanceIdSecond(@RequestParam(required = false) String resourceid,
                                                    @RequestParam(required = false) String eipaddress,
-                                                   @RequestParam(required = false) String eipid,
                                                    @RequestParam(required = false) String key)  {
 
         if((null != resourceid) && (null != eipaddress) ){
             return new ResponseEntity<>("To be wrong.", HttpStatus.FORBIDDEN);
-        }else if (eipid != null){
-            log.info("EipId:",eipid);
-            return eipService.getEipDetail(eipid);
         } else if(resourceid != null) {
             log.info("EipController get eip by instance id:{} ", resourceid);
             return eipService.getEipByInstanceId(resourceid);
@@ -173,39 +168,26 @@ public class EipControllerV2 {
             log.info("{}",msgBuffer);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
         }
-        String msg="";
+        String msg;
         EipUpdateParam updateParam = param.getEip();
 
-        if (updateParam.getServerId() != null){
-            //may be unbind oprate or bind oprate,use this param ,chargetype and bindwidth do nothing
-            if (updateParam.getServerId().trim().equals("")&& "unbind".equals(action)){
-                log.info("unbind operate, eipid:{}, param:{} ", eipId, updateParam);
-                return eipService.eipUnbindWithInstacnce(eipId, null);
-            } else {
+        switch (action){
+            case "bind":
                 log.info("bind operate, eipid:{}, param:{}", eipId, updateParam);
-                if (updateParam.getType() != null && "bind".equals(action)) {
+                if (updateParam.getType() != null) {
                     return eipService.eipBindWithInstance(eipId, updateParam.getType(), updateParam.getServerId(),
                             updateParam.getPortId(), updateParam.getPrivateIp());
                 } else {
                     msg = "need param serverid and type";
                 }
-            }
-        } else {
-            if(updateParam.getBillType()==null&&updateParam.getBandwidth()==0 && "unbind".equals(action)) {
-                log.info("unbind operate, eipid:{}, param:{} ", eipId, param.getEip());
+                break;
+            case "unbind":
+                log.info("unbind operate, eipid:{}, param:{} ", eipId, updateParam);
                 return eipService.eipUnbindWithInstacnce(eipId, null);
-            }else if (updateParam.getBandwidth() != 0 && updateParam.getBillType() != null) {
-
-                log.error("Param error. eipid:{}, param:{} ", eipId, updateParam);
-
-            } else {
-                msg = "param not correct. " +
-                        "to bind server,body param like{\"eip\" : {\"prot_id\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}" +
-                        "to unbind server , param like {\"eip\" : {\"prot_id\":\"\"} }or   {\"eip\" : {} }" +
-                        "to change bindwidht,body param like {\"eip\" : {\"bandWidth\":xxx,\"billType\":\"xxxxxx\"}" +
-                        "";
-            }
-       }
+            default:
+                msg="Param error, unknow action type"+action+"";
+                log.error("Param error, unknow action type. eipid:{}, param:{} ", eipId, updateParam);
+        }
 
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
 
