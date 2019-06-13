@@ -13,22 +13,22 @@ import java.util.Date;
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EipReturnBase implements Serializable {
-    @JsonProperty("eipid")
+    @JsonProperty("eipId")
     private String eipId;
 
-    @JsonProperty("eip_address")
+    @JsonProperty("eipAddress")
     private String eipAddress;
 
     @JsonProperty("bandwidth")
     private int bandWidth;
 
-    @JsonProperty("iptype")
+    @JsonProperty("ipType")
     private String ipType;
 
     @JsonProperty("status")
     private String status;
 
-    @JsonProperty("create_at")
+    @JsonProperty("createdTime")
     @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 }

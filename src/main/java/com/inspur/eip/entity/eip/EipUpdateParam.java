@@ -9,7 +9,7 @@ public class EipUpdateParam {
     private String billType;
 
     //@Range(min=1,max=500)
-    @JsonProperty("bandWidth")
+    @JsonProperty("bandwidth")
     private int bandWidth;
 
     @JsonProperty("serverId")
