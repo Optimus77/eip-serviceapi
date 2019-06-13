@@ -325,8 +325,8 @@ public class SbwServiceImpl implements ISbwService {
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eipReturnDetail.setResourceset(Resourceset.builder()
-                            .resourceid(eip.getInstanceId())
-                            .resourcetype(eip.getInstanceType()).build());
+                            .resourceId(eip.getInstanceId())
+                            .resourceType(eip.getInstanceType()).build());
                     eips.add(eipReturnDetail);
                 }
                 data.put("data", eips);
@@ -341,8 +341,8 @@ public class SbwServiceImpl implements ISbwService {
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eipReturnDetail.setResourceset(Resourceset.builder()
-                            .resourceid(eip.getInstanceId())
-                            .resourcetype(eip.getInstanceType()).build());
+                            .resourceId(eip.getInstanceId())
+                            .resourceType(eip.getInstanceType()).build());
                     eips.add(eipReturnDetail);
                 }
                 data.put("data", eips);
