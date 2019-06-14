@@ -76,7 +76,7 @@ public class RabbitMqServiceImpl {
      * @return return message
      */
     public String createEipInfo(ReciveOrder eipOrder) {
-        ResponseEntity<ReturnMsg<EipReturnBase>> response;
+        ResponseEntity<EipReturnBase> response;
         EipReturnBase eipReturn;
         String eipId = null;
         try {
@@ -92,7 +92,7 @@ public class RabbitMqServiceImpl {
             if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
                 log.warn("create eip failed, return code:{}", response.getStatusCodeValue());
             } else {
-                eipReturn = response.getBody().getEip();
+                eipReturn = response.getBody();
                 if (null != eipReturn) {
                     eipId = eipReturn.getEipId();
                 }
@@ -116,7 +116,6 @@ public class RabbitMqServiceImpl {
                 sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
             }
         }
-
         return eipId;
     }
 
@@ -291,7 +290,7 @@ public class RabbitMqServiceImpl {
      * @return return message
      */
     public ResponseEntity createSbwInfo(ReciveOrder reciveOrder) {
-        ResponseEntity<ReturnMsg<SbwReturnBase>> response = null;
+        ResponseEntity<SbwReturnBase> response = null;
         SbwReturnBase sbwReturn;
         String sbwId = null;
         try {
@@ -305,7 +304,7 @@ public class RabbitMqServiceImpl {
                     if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
                         log.warn("create sbw failed, return code:{}", response.getStatusCodeValue());
                     } else {
-                        sbwReturn = response.getBody().getEip();
+                        sbwReturn = response.getBody();
                         if (null != sbwReturn) {
                             sbwId = sbwReturn.getSbwId();
                         }
@@ -321,6 +320,7 @@ public class RabbitMqServiceImpl {
         } catch (Exception e) {
             if (sbwId != null) {
                 sbwService.deleteSbwInfo(sbwId, reciveOrder.getToken());
+                sbwId = null;
             }
             log.error(ConstantClassField.EXCEPTION_SBW_CREATE, e);
         } finally {
@@ -363,13 +363,13 @@ public class RabbitMqServiceImpl {
             } else {
                 log.warn(ConstantClassField.ORDER_STATUS_NOT_CORRECT);
             }
-            webService.returnSbwWebsocket(sbwId, reciveOrder, "delete");
-            sendOrderMessageToBss(getSbwReturnResult(reciveOrder, sbwId, result));
-            log.warn(ConstantClassField.DELETE_SBW_CONFIG_FAILED);
         } catch (Exception e) {
             sendOrderMessageToBss(getSbwReturnResult(reciveOrder, sbwId, HsConstants.STATUS_ERROR));
             log.error(ConstantClassField.EXCEPTION_SBW_DELETE, e);
         }
+        webService.returnSbwWebsocket(sbwId, reciveOrder, "delete");
+        sendOrderMessageToBss(getSbwReturnResult(reciveOrder, sbwId, result));
+        log.warn(ConstantClassField.DELETE_SBW_CONFIG_FAILED);
         return response;
     }
 
