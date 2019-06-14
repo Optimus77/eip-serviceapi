@@ -23,7 +23,7 @@ public class SbwReturnDetail implements Serializable {
     @JsonProperty("chargeMode")
     private String chargeMode ="Bandwidth";
 
-    @JsonProperty("bandWidth")
+    @JsonProperty("bandwidth")
     private int bandWidth;
 
     @JsonProperty("duration")

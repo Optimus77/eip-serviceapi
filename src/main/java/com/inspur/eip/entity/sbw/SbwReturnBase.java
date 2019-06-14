@@ -15,7 +15,7 @@ public class SbwReturnBase implements Serializable {
     @JsonProperty("sbwId")
     private String sbwId;
 
-    @JsonProperty("bandWidth")
+    @JsonProperty("bandwidth")
     private int bandWidth;
 
     @JsonProperty("sbwName")
