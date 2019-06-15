@@ -165,7 +165,7 @@ public class EipServiceImpl implements IEipService {
 
 
     /**
-     * listShareBandWidth the eip
+     * listShareBandWidth the eipv1.1
      *
      * @param currentPage the current page
      * @param limit       element of per page
@@ -242,6 +242,96 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+    /**
+     * listShareBandWidth the eipV1.0
+     *
+     * @param currentPage the current page
+     * @param limit       element of per page
+     * @return result
+     */
+    @Override
+    public ResponseEntity listEipsV(int currentPage, int limit, String status) {
+
+        try {
+            String projcectid = CommonUtil.getUserId();
+            log.debug("listEips  of user, userId:{}", projcectid);
+            if (projcectid == null) {
+                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
+                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+            }
+            JSONObject data = new JSONObject();
+            JSONArray eips = new JSONArray();
+            if (currentPage != 0) {
+                Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+                Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
+                Page<Eip> page = eipRepository.findByUserIdAndIsDelete(projcectid, 0, pageable);
+                for (Eip eip : page.getContent()) {
+                    if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
+                        continue;
+                    }
+                    com.inspur.eip.entity.eipv1.EipReturnDetail eipReturnDetail = new com.inspur.eip.entity.eipv1.EipReturnDetail();
+                    BeanUtils.copyProperties(eip, eipReturnDetail);
+                    eipReturnDetail.setResourceset(com.inspur.eip.entity.eipv1.Resourceset.builder()
+                            .resourceid(eip.getInstanceId())
+                            .resourcetype(eip.getInstanceType()).build());
+                    if (StringUtils.isNotBlank(eip.getEipV6Id())) {
+                        EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                        if (eipV6 != null) {
+                            eipReturnDetail.setIpv6(eipV6.getIpv6());
+                        }
+                    }
+                    eips.add(eipReturnDetail);
+                }
+                data.put("eips", eips);
+                data.put("totalPages", page.getTotalPages());
+                data.put("totalElements", page.getTotalElements());
+                data.put("currentPage", currentPage);
+                data.put("currentPagePer", limit);
+            } else {
+                List<Eip> eipList = eipDaoService.findByUserId(projcectid);
+                for (Eip eip : eipList) {
+                    if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
+                        continue;
+                    }
+                    com.inspur.eip.entity.eipv1.EipReturnDetail eipReturnDetail = new com.inspur.eip.entity.eipv1.EipReturnDetail();
+                    BeanUtils.copyProperties(eip, eipReturnDetail);
+                    eipReturnDetail.setResourceset(com.inspur.eip.entity.eipv1.Resourceset.builder()
+                            .resourceid(eip.getInstanceId())
+                            .resourcetype(eip.getInstanceType()).build());
+                    if (StringUtils.isNotBlank(eip.getEipV6Id())) {
+                        EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                        if (eipV6 != null) {
+                            eipReturnDetail.setIpv6(eipV6.getIpv6());
+                        }
+                    }
+                    eips.add(eipReturnDetail);
+                }
+                data.put("eips", eips);
+                data.put("totalPages", 1);
+                data.put("totalElements", eips.size());
+                data.put("currentPage", 1);
+                data.put("currentPagePer", eips.size());
+            }
+            return new ResponseEntity<>(data, HttpStatus.OK);
+        } catch (KeycloakTokenException e) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            log.error("Exception in listEips", e);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
 
     /**
      * get detail of the eip

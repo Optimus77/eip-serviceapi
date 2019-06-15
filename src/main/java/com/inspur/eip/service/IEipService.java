@@ -29,6 +29,8 @@ public interface IEipService {
      */
     ResponseEntity listEips(int currentPage,int limit, String status);
 
+    ResponseEntity listEipsV(int currentPage, int limit, String status);
+
     /**
      * get detail of the eip
      * @param eipId  the id of the eip instance

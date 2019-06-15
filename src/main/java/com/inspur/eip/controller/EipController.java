@@ -147,7 +147,7 @@ public class EipController {
         if(null !=bandWidth){
             return  eipService.listEipsByBandWidth(status);
         }
-        return  eipService.listEips(Integer.parseInt(currentPage),Integer.parseInt(limit),status);
+        return  eipService.listEipsV(Integer.parseInt(currentPage),Integer.parseInt(limit),status);
     }
 
 
