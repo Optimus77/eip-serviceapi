@@ -213,10 +213,10 @@ public class EipControllerV2 {
 
     }
 
-    /**
+   /* *//**
      * get number of user
      * @return response
-     */
+     *//*
     @GetMapping(value = "/eipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")
@@ -226,7 +226,7 @@ public class EipControllerV2 {
         }else {
             return eipService.getUsingEipCountByStatus(status);
         }
-    }
+    }*/
 
     @GetMapping(value = "/statistics")
     @CrossOrigin(origins = "*",maxAge = 3000)
