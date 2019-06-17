@@ -3,7 +3,7 @@ package com.inspur.eip.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.cloud.cloudmonitormetric.entity.MetricEntity;
 import com.inspur.cloud.cloudmonitormetric.handler.ProducerHandler;
-import com.inspur.eip.entity.v2.fw.Firewall;
+import com.inspur.eip.entity.fw.Firewall;
 import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.FirewallService;

@@ -2,10 +2,10 @@ package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
-import com.inspur.eip.entity.v2.MethodReturn;
-import com.inspur.eip.entity.v2.eip.Eip;
-import com.inspur.eip.entity.v2.fw.*;
-import com.inspur.eip.entity.v2.sbw.Sbw;
+import com.inspur.eip.entity.MethodReturn;
+import com.inspur.eip.entity.eip.Eip;
+import com.inspur.eip.entity.fw.*;
+import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.repository.SbwRepository;
@@ -542,7 +542,12 @@ public class FirewallService {
             log.error("Failed to add dnat", strDnatPtId);
             return null;
         }
-        return strDnatPtId.split("=")[1].trim();
+        if(strDnatPtId.contains("=")) {
+            return strDnatPtId.split("=")[1].trim();
+        }else {
+            log.error("cmd add dnat error, return:{}", strDnatPtId);
+            return null;
+        }
     }
 
     private String cmdAddSnat(String fip, String eip, String fireWallId)  {

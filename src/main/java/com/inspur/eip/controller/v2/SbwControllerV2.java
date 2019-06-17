@@ -3,9 +3,7 @@ package com.inspur.eip.controller.v2;
 import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eip.service.impl.SbwServiceImpl;
-import com.inspur.eip.util.CommonUtil;
-import com.inspur.eip.util.ReturnStatus;
-import com.inspur.eip.util.ReturnMsgUtil;
+import com.inspur.eip.util.*;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -38,7 +36,7 @@ public class SbwControllerV2 {
     private SbwServiceImpl sbwService;
     //todo refactor interface
     @ICPControllerLog
-    @PostMapping(value = "/sbwstest")
+    @PostMapping(value = "/sbws")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "atomCreateSbw", notes = "createSbw")
     public ResponseEntity atomAllocateSbw(@Valid @RequestBody SbwUpdateParamWrapper sbwConfig, BindingResult result) {
@@ -56,45 +54,30 @@ public class SbwControllerV2 {
     }
 
     @ICPControllerLog
-    @GetMapping(value = "/sbws")
+    @GetMapping(value = "/sbws/{pageNo}/{pageSize}")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "listsbw", notes = "list")
-    public ResponseEntity listSbw(@RequestParam(required = false, name = "currentPageIndex") String pageIndex,
-                                  @RequestParam(required = false, name = "currentPageSize") String pageSize,
+    public ResponseEntity listSbw(@PathVariable( required = false, name = "pageNo") String pageNo,
+                                  @PathVariable( required = false, name = "pageSize") String pageSize,
                                   @RequestParam(required = false, name = "searchValue") String searchValue) {
-        log.debug("Atom listSbw method param currentPageIndex:{}, currentPageSize:{}, searchValue:{}", pageIndex, pageSize, searchValue);
-        if (StringUtils.isEmpty(pageIndex) || StringUtils.isEmpty(pageSize)) {
-            pageIndex = "0";
+        log.debug("Atom listSbw method param pageNo:{}, pageSize:{}, searchValue:{}", pageNo, pageSize, searchValue);
+        if (StringUtils.isEmpty(pageNo) || StringUtils.isEmpty(pageSize)) {
+            pageNo = "0";
             pageSize = "0";
         } else {
             try {
-                int currentPageNum = Integer.parseInt(pageIndex);
+                int currentPageNum = Integer.parseInt(pageNo);
                 int limitNum = Integer.parseInt(pageSize);
                 if (currentPageNum < 0 || limitNum < 0) {
-                    pageIndex = "0";
+                    pageNo = "0";
                 }
             } catch (Exception e) {
                 log.error("number is not correct ");
-                pageIndex = "0";
+                pageNo = "0";
                 pageSize = "0";
             }
         }
-        return sbwService.listShareBandWidth(Integer.parseInt(pageIndex), Integer.parseInt(pageSize), searchValue);
-    }
-
-
-    @ICPControllerLog
-    @GetMapping(value = "/sbws/search")
-    @CrossOrigin(origins = "*", maxAge = 3000)
-    @ApiOperation(value = "getSbwByProjectId", notes = "get")
-    public ResponseEntity getSbwByProjectId(@RequestParam(required = false) String projectId) {
-        log.info("Atom param get Sbw by project Id project:{}",projectId);
-        if (null == projectId) {
-            return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
-        }
-
-        return sbwService.getSbwByProjectId(projectId);
-
+        return sbwService.listShareBandWidth(Integer.parseInt(pageNo), Integer.parseInt(pageSize), searchValue);
     }
 
     @DeleteMapping(value = "/sbws/{sbw_id}")
@@ -128,21 +111,24 @@ public class SbwControllerV2 {
     }
 
     /**
-     * get sbw number of user
+     * 当前用户sbw数量，概览页显示
      *
      * @return response
      */
     @ICPControllerLog
-    @GetMapping(value = "/sbwnumbers")
+    @GetMapping(value = "/sbws/instance-num")
     @CrossOrigin(origins = "*", maxAge = 3000)
-    @ApiOperation(value = "getSbwCount", notes = "get number")
-    public ResponseEntity getSbwCount() {
+    @ApiOperation(value = "get Sbw Count", notes = "get number")
+    public ResponseEntity getSbwCount(@RequestParam(required = false, name = "dimensionName") String dimensionName) {
         log.info("Atom get Sbw Count loading……");
-        return sbwService.getSbwCount();
+        if (StringUtils.isNotBlank(dimensionName) && HsConstants.EIP_NUMBERS.equalsIgnoreCase(dimensionName)){
+            return sbwService.getSbwCount();
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ICPControllerLog
-    @PostMapping(value = "/sbws/{sbw_id}/renew")
+    @PostMapping(value = "/sbws/{sbw_id}/action/renewals")
     @CrossOrigin(origins = "*", maxAge = 3000)
     public ResponseEntity renewSbw(@PathVariable("sbw_id") String sbwId,
                                    @RequestBody SbwUpdateParamWrapper param) {
@@ -157,35 +143,35 @@ public class SbwControllerV2 {
     /**
      * get the eipList in this sbw
      * @param sbwId id
-     * @param pageIndex index
+     * @param pageNo index
      * @param pageSize size
      * @return ret
      */
     @ICPControllerLog
-    @GetMapping(value = "/sbws/{sbw_id}/eips")
+    @GetMapping(value = "/sbws/{sbw_id}/eips/{pageNo}/{pageSize}")
     @CrossOrigin(origins = "*", maxAge = 3000)
-    @ApiOperation(value = "sbwListEip", notes = "listEip")
+    @ApiOperation(value = "sbwListEip", notes = "listE  ip")
     public ResponseEntity sbwListEip(@PathVariable( name = "sbw_id") String sbwId,
-                                     @RequestParam(required = false, name = "currentPageIndex", defaultValue = "1") String pageIndex,
-                                     @RequestParam(required = false, name = "currentPageSize", defaultValue = "10") String pageSize) {
-        log.info("Atom get EIP list in this Sbw sbwId:{},currentPageIndex:{}, currentPageSize:{}",sbwId, pageIndex, pageSize);
-        if (pageIndex == null || pageSize == null) {
-            pageIndex = "0";
+                                     @PathVariable(required = false, name = "pageNo") String pageNo,
+                                     @PathVariable(required = false, name = "pageSize") String pageSize) {
+        log.info("Atom get EIP list in this Sbw sbwId:{},currentPageIndex:{}, currentPageSize:{}",sbwId, pageNo, pageSize);
+        if (pageNo == null || pageSize == null) {
+            pageNo = "0";
             pageSize = "0";
         } else {
             try {
-                int currentPageNum = Integer.parseInt(pageIndex);
+                int currentPageNum = Integer.parseInt(pageNo);
                 int limitNum = Integer.parseInt(pageSize);
                 if (currentPageNum < 0 || limitNum < 0) {
-                    pageIndex = "0";
+                    pageNo = "0";
                 }
             } catch (Exception e) {
                 log.error("number is not correct ");
-                pageIndex = "0";
+                pageNo = "0";
                 pageSize = "0";
             }
         }
-        return sbwService.sbwListEip(sbwId ,Integer.parseInt(pageIndex), Integer.parseInt(pageSize));
+        return sbwService.sbwListEip(sbwId ,Integer.parseInt(pageNo), Integer.parseInt(pageSize));
     }
 
     /**
@@ -193,7 +179,7 @@ public class SbwControllerV2 {
      * @return ret
      */
     @ICPControllerLog
-    @PutMapping(value = "/sbws/{sbw_id}/rename", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/sbws/{sbw_id}/action/rename", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "rename sbw name", notes = "put")
     @ApiImplicitParams({
@@ -221,7 +207,7 @@ public class SbwControllerV2 {
 
 
     @ICPControllerLog
-    @GetMapping(value = "/sbws/{sbw_id}/othereips")
+    @GetMapping(value = "/sbws/{sbw_id}/untyingEips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "get othereips without the sbw", notes = "get")
     @ApiImplicitParams({
@@ -234,7 +220,7 @@ public class SbwControllerV2 {
 
 
     @ICPControllerLog
-    @PutMapping(value = "/sbws/{sbw_id}/update", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/sbws/{sbw_id}/action/adjustBandwidth", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "update Sbw config", notes = "post")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eip", value = "the sbw wrapper ", required = true, dataType = "json"),

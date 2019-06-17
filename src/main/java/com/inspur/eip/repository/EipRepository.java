@@ -1,6 +1,6 @@
 package com.inspur.eip.repository;
 
-import com.inspur.eip.entity.v2.eip.Eip;
+import com.inspur.eip.entity.eip.Eip;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,8 +28,6 @@ public interface EipRepository extends JpaRepository<Eip,String> {
     Eip findByEipAddressAndIsDelete(String ipAddress, int isDelete);
 
     Page<Eip> findByUserIdAndIsDelete(String projectId, int isDelete, Pageable pageable);
-
-    List<Eip> findBySbwIdAndIsDelete(String sharedBandWidthId, int isDelete);
 
     long countBySbwIdAndIsDelete(String sharedBandWidthId, int isDelete);
 

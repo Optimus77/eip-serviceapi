@@ -2,8 +2,9 @@ package com.inspur.eip.controller;
 
 
 import com.inspur.eip.entity.ipv6.EipV6UpdateParam;
-import com.inspur.eip.entity.v2.eipv6.EipV6AllocateParamWrapper;
+import com.inspur.eip.entity.ipv6.EipV6AllocateParam;
 import com.inspur.eip.entity.ipv6.EipV6UpdateParamWrapper;
+import com.inspur.eip.entity.ipv6.EipV6AllocateParamWrapper;
 import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.ReturnMsgUtil;
@@ -51,35 +52,34 @@ public class EipV6Controller {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
                     HttpStatus.BAD_REQUEST);
         }
-        ResponseEntity responseEntity = eipV6Service.atomCreateEipV6(eipV6Config.getEipV6AllocateParam().getEipId(), CommonUtil.getKeycloackToken());
-        return responseEntity;
+        return eipV6Service.atomCreateEipV6(eipV6Config.getEipV6AllocateParam().getEipId(), CommonUtil.getKeycloackToken());
     }
 
 
-    @GetMapping(value = "/eipv6")
+    @GetMapping(value = "/eipv6/{pageNo}/{pageSize}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeipv6",notes="list")
-    public ResponseEntity listEipV6(@RequestParam(required = false) String currentPage ,
-                                    @RequestParam(required = false )String limit,
+    public ResponseEntity listEipV6(@PathVariable("pageNo") String pageNo ,
+                                    @PathVariable("pageSize")String pageSize,
                                     @RequestParam(required = false )String status) {
-        log.debug("EipController listEipv6, currentPage:{}, limit:{}", currentPage, limit);
-        if(currentPage==null||limit==null){
-            currentPage="0";
-            limit="0";
+        log.debug("EipController listEipv6, currentPage:{}, limit:{}", pageNo, pageSize);
+        if(pageNo==null||pageSize==null){
+            pageNo="0";
+            pageSize="0";
         }else{
             try{
-                int currentPageNum = Integer.parseInt(currentPage);
-                int limitNum = Integer.parseInt(limit);
+                int currentPageNum = Integer.parseInt(pageNo);
+                int limitNum = Integer.parseInt(pageSize);
                 if (currentPageNum < 0 || limitNum < 0) {
-                    currentPage = "0";
+                    pageNo = "0";
                 }
             }catch (Exception e){
                 log.error("number is not correct ");
-                currentPage="0";
-                limit="0";
+                pageNo="0";
+                pageSize="0";
             }
         }
-        return  eipV6Service.listEipV6s(Integer.parseInt(currentPage),Integer.parseInt(limit),status);
+        return  eipV6Service.listEipV6s(Integer.parseInt(pageNo),Integer.parseInt(pageSize),status);
 
     }
 

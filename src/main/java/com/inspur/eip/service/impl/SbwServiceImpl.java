@@ -2,14 +2,14 @@ package com.inspur.eip.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.inspur.eip.entity.ipv6.EipV6;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
-import com.inspur.eip.entity.v2.eip.Eip;
-import com.inspur.eip.entity.v2.eip.EipReturnDetail;
-import com.inspur.eip.entity.v2.eip.Resourceset;
-import com.inspur.eip.entity.v2.eipv6.EipV6;
-import com.inspur.eip.entity.v2.sbw.Sbw;
-import com.inspur.eip.entity.v2.sbw.SbwReturnBase;
-import com.inspur.eip.entity.v2.sbw.SbwReturnDetail;
+import com.inspur.eip.entity.eip.Eip;
+import com.inspur.eip.entity.eip.EipReturnDetail;
+import com.inspur.eip.entity.eip.Resourceset;
+import com.inspur.eip.entity.sbw.Sbw;
+import com.inspur.eip.entity.sbw.SbwReturnBase;
+import com.inspur.eip.entity.sbw.SbwReturnDetail;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.EipV6Repository;
 import com.inspur.eip.repository.SbwRepository;
@@ -63,7 +63,7 @@ public class SbwServiceImpl implements ISbwService {
                 SbwReturnBase sbwInfo = new SbwReturnBase();
                 BeanUtils.copyProperties(sbwMo, sbwInfo);
                 log.info("Atom create a sbw success:{}", sbwMo);
-                return new ResponseEntity<>(ReturnMsgUtil.success(sbwInfo), HttpStatus.OK);
+                return new ResponseEntity<>(sbwInfo, HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 msg = "Failed to create sbw :" + sbwConfig;
@@ -109,11 +109,11 @@ public class SbwServiceImpl implements ISbwService {
                     sbwReturnDetail.setIpCount((int) ipCount);
                     sbws.add(sbwReturnDetail);
                 }
-                data.put("sbws", sbws);
+                data.put("data", sbws);
                 data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
-                data.put(HsConstants.TOTAL_ELEMENTS, page.getTotalElements());
-                data.put(HsConstants.CURRENT_PAGE, pageIndex);
-                data.put(HsConstants.CURRENT_PAGEPER, pageSize);
+                data.put(HsConstants.TOTAL_COUNT, page.getTotalElements());
+                data.put(HsConstants.PAGE_NO, pageIndex);
+                data.put(HsConstants.PAGE_SIZE, pageSize);
             } else {
                 List<Sbw> sbwList = sbwDaoService.findByProjectId(projectid);
                 for (Sbw sbw : sbwList) {
@@ -126,11 +126,11 @@ public class SbwServiceImpl implements ISbwService {
                     sbwReturnDetail.setIpCount((int) ipCount);
                     sbws.add(sbwReturnDetail);
                 }
-                data.put("sbws", sbws);
+                data.put("data", sbws);
                 data.put(HsConstants.TOTAL_PAGES, 1);
-                data.put(HsConstants.TOTAL_ELEMENTS, sbws.size());
-                data.put(HsConstants.CURRENT_PAGE, 1);
-                data.put(HsConstants.CURRENT_PAGEPER, sbws.size());
+                data.put(HsConstants.TOTAL_COUNT, sbws.size());
+                data.put(HsConstants.PAGE_NO, 1);
+                data.put(HsConstants.PAGE_SIZE, sbws.size());
             }
             log.debug("data :{}", data.toString());
             return new ResponseEntity<>(data, HttpStatus.OK);
@@ -176,7 +176,7 @@ public class SbwServiceImpl implements ISbwService {
                 BeanUtils.copyProperties(sbwEntity, sbwReturnDetail);
                 sbwReturnDetail.setIpCount((int) eipRepository.countBySbwIdAndIsDelete(sbwId, 0));
                 log.debug("sbw Detail:{}", sbwReturnDetail.toString());
-                return new ResponseEntity<>(ReturnMsgUtil.successSbw(sbwReturnDetail), HttpStatus.OK);
+                return new ResponseEntity<>(sbwReturnDetail, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getCode(), ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage()), HttpStatus.NOT_FOUND);
             }
@@ -209,11 +209,11 @@ public class SbwServiceImpl implements ISbwService {
             String projectid = CommonUtil.getUserId();
             long num = sbwRepository.countByProjectIdAndIsDelete(projectid, 0);
 
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, "get instance num success", num), HttpStatus.OK);
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, HsConstants.SUCCESS, num), HttpStatus.OK);
         } catch (KeycloakTokenException e) {
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN, e.getMessage(), null), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ErrorStatus.SC_FORBIDDEN.getCode(), ErrorStatus.SC_FORBIDDEN.getMessage(), null), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ErrorStatus.SC_INTERNAL_SERVER_ERROR.getCode(),ErrorStatus.SC_INTERNAL_SERVER_ERROR.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -243,9 +243,9 @@ public class SbwServiceImpl implements ISbwService {
             }
             data.put("sbws", sbws);
             data.put(HsConstants.TOTAL_PAGES, 1);
-            data.put(HsConstants.TOTAL_ELEMENTS, sbws.size());
-            data.put(HsConstants.CURRENT_PAGE, 1);
-            data.put(HsConstants.CURRENT_PAGEPER, sbws.size());
+            data.put(HsConstants.TOTAL_COUNT, sbws.size());
+            data.put(HsConstants.PAGE_NO, 1);
+            data.put(HsConstants.PAGE_SIZE, sbws.size());
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Exception in listShareBandWidth", e);
@@ -286,8 +286,8 @@ public class SbwServiceImpl implements ISbwService {
     public ActionResponse stopSbwService(String sbwId, SbwUpdateParam updateParam) {
         try {
             String renewTime = updateParam.getDuration();
-            if (StringUtils.isBlank(renewTime)) {
-                return ActionResponse.actionFailed(HttpStatus.BAD_REQUEST.getReasonPhrase(), HttpStatus.BAD_REQUEST.value());
+            if (StringUtils.isBlank(renewTime) || StringUtils.isBlank(sbwId)) {
+                return ActionResponse.actionFailed(HttpStatus.BAD_REQUEST.getReasonPhrase()+"sbwId:"+sbwId + "duration:"+renewTime, HttpStatus.BAD_REQUEST.value());
             } else if (renewTime.trim().equals("0")) {
                 return sbwDaoService.stopSbwService(sbwId);
             }
@@ -325,15 +325,15 @@ public class SbwServiceImpl implements ISbwService {
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eipReturnDetail.setResourceset(Resourceset.builder()
-                            .resourceid(eip.getInstanceId())
-                            .resourcetype(eip.getInstanceType()).build());
+                            .resourceId(eip.getInstanceId())
+                            .resourceType(eip.getInstanceType()).build());
                     eips.add(eipReturnDetail);
                 }
-                data.put("eips", eips);
-                data.put("totalPages", page.getTotalPages());
-                data.put("totalElements", page.getTotalElements());
-                data.put("currentPage", currentPage);
-                data.put("currentPagePer", limit);
+                data.put("data", eips);
+                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
+                data.put(HsConstants.TOTAL_COUNT, page.getTotalElements());
+                data.put(HsConstants.PAGE_NO, currentPage);
+                data.put(HsConstants.PAGE_SIZE, limit);
             } else {
                 List<Eip> eipList = eipRepository.findByUserIdAndIsDeleteAndSbwId(projcectid, 0, sbwId);
                 for (Eip eip : eipList) {
@@ -341,15 +341,15 @@ public class SbwServiceImpl implements ISbwService {
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eipReturnDetail.setResourceset(Resourceset.builder()
-                            .resourceid(eip.getInstanceId())
-                            .resourcetype(eip.getInstanceType()).build());
+                            .resourceId(eip.getInstanceId())
+                            .resourceType(eip.getInstanceType()).build());
                     eips.add(eipReturnDetail);
                 }
-                data.put("eips", eips);
-                data.put("totalPages", 1);
-                data.put("totalElements", eips.size());
-                data.put("currentPage", 1);
-                data.put("currentPagePer", eips.size());
+                data.put("data", eips);
+                data.put(HsConstants.TOTAL_PAGES, 1);
+                data.put(HsConstants.TOTAL_COUNT, eips.size());
+                data.put(HsConstants.PAGE_NO, 1);
+                data.put(HsConstants.PAGE_SIZE, eips.size());
             }
             log.debug("data:{}", data.toString());
             return new ResponseEntity<>(data, HttpStatus.OK);
@@ -411,7 +411,7 @@ public class SbwServiceImpl implements ISbwService {
                     eips.add(eipReturn);
                 }
             }
-            data.put("eips", eips);
+            data.put("data", eips);
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (KeycloakTokenException e) {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);

@@ -1,11 +1,10 @@
 package com.inspur.eip.service;
 
-import com.inspur.eip.entity.v2.eip.Eip;
+import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.util.KeycloakTokenException;
 import com.inspur.eip.util.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
-import org.hibernate.boot.spi.InFlightMetadataCollector;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.options.PortListOptions;

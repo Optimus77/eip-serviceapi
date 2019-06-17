@@ -23,4 +23,8 @@ public class ReturnMsgUtil {
         return ReturnSbwMsg.builder().sbw(t).build();
     }
 
+    public static <T> ReturnMsg successEipv6(T t) {
+        return ReturnMsg.builder().eipv6(t).build();
+    }
+
 }

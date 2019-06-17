@@ -1,27 +1,21 @@
 package com.inspur.eip.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
-import com.inspur.eip.entity.EipAllocateParam;
-import com.inspur.eip.entity.EipUpdateParam;
-import com.inspur.eip.entity.v2.MethodReturn;
-import com.inspur.eip.entity.v2.eip.*;
-import com.inspur.eip.entity.v2.eipv6.EipV6;
-import com.inspur.eip.entity.v2.sbw.Sbw;
+import com.inspur.eip.entity.eip.EipAllocateParam;
+import com.inspur.eip.entity.ipv6.EipV6;
+import com.inspur.eip.entity.MethodReturn;
+import com.inspur.eip.entity.eip.*;
+import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.EipV6Repository;
 import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.IEipService;
 import com.inspur.eip.service.SbwDaoService;
 import com.inspur.eip.util.*;
-import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +82,7 @@ public class EipServiceImpl implements IEipService {
                 if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
                     eipV6Service.atomCreateEipV6(eipMo.getEipId(), token);
                 }
-                return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
+                return new ResponseEntity<>(eipInfo, HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
                 msg = "Failed to create floating ip in external network:" + eipConfig.getRegion();
@@ -171,7 +165,7 @@ public class EipServiceImpl implements IEipService {
 
 
     /**
-     * listShareBandWidth the eip
+     * listShareBandWidth the eipv1.1
      *
      * @param currentPage the current page
      * @param limit       element of per page
@@ -200,6 +194,86 @@ public class EipServiceImpl implements IEipService {
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
                     eipReturnDetail.setResourceset(Resourceset.builder()
+                            .resourceId(eip.getInstanceId())
+                            .resourceType(eip.getInstanceType()).build());
+                    if (StringUtils.isNotBlank(eip.getEipV6Id())) {
+                        EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                        if (eipV6 != null) {
+                            eipReturnDetail.setIpv6(eipV6.getIpv6());
+                        }
+                    }
+                    eips.add(eipReturnDetail);
+                }
+                data.put("data", eips);
+//                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
+                data.put(HsConstants.TOTAL_COUNT, page.getTotalElements());
+                data.put(HsConstants.PAGE_NO, currentPage);
+                data.put(HsConstants.PAGE_SIZE, limit);
+            } else {
+                List<Eip> eipList = eipDaoService.findByUserId(projcectid);
+                for (Eip eip : eipList) {
+                    if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
+                        continue;
+                    }
+                    EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                    BeanUtils.copyProperties(eip, eipReturnDetail);
+                    eipReturnDetail.setResourceset(Resourceset.builder()
+                            .resourceId(eip.getInstanceId())
+                            .resourceType(eip.getInstanceType()).build());
+                    if (StringUtils.isNotBlank(eip.getEipV6Id())) {
+                        EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                        if (eipV6 != null) {
+                            eipReturnDetail.setIpv6(eipV6.getIpv6());
+                        }
+                    }
+                    eips.add(eipReturnDetail);
+                }
+                data.put("data", eips);
+//                data.put(HsConstants.TOTAL_PAGES, 1);
+                data.put(HsConstants.TOTAL_COUNT, eips.size());
+                data.put(HsConstants.PAGE_NO, 1);
+                data.put(HsConstants.PAGE_SIZE, eips.size());
+            }
+            return new ResponseEntity<>(data, HttpStatus.OK);
+        } catch (KeycloakTokenException e) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            log.error("Exception in listEips", e);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    /**
+     * listShareBandWidth the eipV1.0
+     *
+     * @param currentPage the current page
+     * @param limit       element of per page
+     * @return result
+     */
+    @Override
+    public ResponseEntity listEipsV(int currentPage, int limit, String status) {
+
+        try {
+            String projcectid = CommonUtil.getUserId();
+            log.debug("listEips  of user, userId:{}", projcectid);
+            if (projcectid == null) {
+                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
+                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+            }
+            JSONObject data = new JSONObject();
+            JSONArray eips = new JSONArray();
+            if (currentPage != 0) {
+                Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+                Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
+                Page<Eip> page = eipRepository.findByUserIdAndIsDelete(projcectid, 0, pageable);
+                for (Eip eip : page.getContent()) {
+                    if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
+                        continue;
+                    }
+                    com.inspur.eip.entity.eipv1.EipReturnDetail eipReturnDetail = new com.inspur.eip.entity.eipv1.EipReturnDetail();
+                    BeanUtils.copyProperties(eip, eipReturnDetail);
+                    eipReturnDetail.setResourceset(com.inspur.eip.entity.eipv1.Resourceset.builder()
                             .resourceid(eip.getInstanceId())
                             .resourcetype(eip.getInstanceType()).build());
                     if (StringUtils.isNotBlank(eip.getEipV6Id())) {
@@ -221,9 +295,9 @@ public class EipServiceImpl implements IEipService {
                     if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
                         continue;
                     }
-                    EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                    com.inspur.eip.entity.eipv1.EipReturnDetail eipReturnDetail = new com.inspur.eip.entity.eipv1.EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
-                    eipReturnDetail.setResourceset(Resourceset.builder()
+                    eipReturnDetail.setResourceset(com.inspur.eip.entity.eipv1.Resourceset.builder()
                             .resourceid(eip.getInstanceId())
                             .resourcetype(eip.getInstanceType()).build());
                     if (StringUtils.isNotBlank(eip.getEipV6Id())) {
@@ -249,6 +323,16 @@ public class EipServiceImpl implements IEipService {
         }
     }
 
+
+
+
+
+
+
+
+
+
+
     /**
      * get detail of the eip
      *
@@ -264,15 +348,15 @@ public class EipServiceImpl implements IEipService {
                 EipReturnDetail eipReturnDetail = new EipReturnDetail();
                 BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                 eipReturnDetail.setResourceset(Resourceset.builder()
-                        .resourceid(eipEntity.getInstanceId())
-                        .resourcetype(eipEntity.getInstanceType()).build());
+                        .resourceId(eipEntity.getInstanceId())
+                        .resourceType(eipEntity.getInstanceType()).build());
                 if (StringUtils.isNotBlank(eipEntity.getEipV6Id())) {
                     EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eipEntity.getEipV6Id());
                     if (eipV6 != null) {
                         eipReturnDetail.setIpv6(eipV6.getIpv6());
                     }
                 }
-                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+                return new ResponseEntity<>(eipReturnDetail, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
                         "Can not find eip by id:" + eipId + "."),
@@ -302,8 +386,8 @@ public class EipServiceImpl implements IEipService {
 
                 BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                 eipReturnDetail.setResourceset(Resourceset.builder()
-                        .resourceid(eipEntity.getInstanceId())
-                        .resourcetype(eipEntity.getInstanceType()).build());
+                        .resourceId(eipEntity.getInstanceId())
+                        .resourceType(eipEntity.getInstanceType()).build());
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             } else {
                 log.debug("Failed to find eip by instance id, instanceId:{}", instanceId);
@@ -337,8 +421,8 @@ public class EipServiceImpl implements IEipService {
 
                 BeanUtils.copyProperties(eipEntity, eipReturnDetail);
                 eipReturnDetail.setResourceset(Resourceset.builder()
-                        .resourceid(eipEntity.getInstanceId())
-                        .resourcetype(eipEntity.getInstanceType()).build());
+                        .resourceId(eipEntity.getInstanceId())
+                        .resourceType(eipEntity.getInstanceType()).build());
                 return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             } else {
                 log.warn("Failed to find eip by eip, eip:{}", eip);

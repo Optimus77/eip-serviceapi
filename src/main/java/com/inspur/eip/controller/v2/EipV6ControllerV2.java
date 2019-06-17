@@ -2,9 +2,9 @@ package com.inspur.eip.controller.v2;
 
 
 import com.inspur.eip.config.VersionConstant;
-import com.inspur.eip.entity.v2.eipv6.EipV6AllocateParamWrapper;
-import com.inspur.eip.entity.v2.eipv6.EipV6UpdateParam;
-import com.inspur.eip.entity.v2.eipv6.EipV6UpdateParamWrapper;
+import com.inspur.eip.entity.ipv6.EipV6AllocateParamWrapper;
+import com.inspur.eip.entity.ipv6.EipV6UpdateParam;
+import com.inspur.eip.entity.ipv6.EipV6UpdateParamWrapper;
 import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.ReturnStatus;
@@ -51,34 +51,34 @@ public class EipV6ControllerV2 {
             return new ResponseEntity<>( ReturnMsgUtil.error( ReturnStatus.SC_PARAM_ERROR , msgBuffer.toString() ),
                     HttpStatus.BAD_REQUEST);
         }
-        ResponseEntity responseEntity = eipV6Service.atomCreateEipV6( eipV6Config.getEipV6AllocateParam().getEipId(), CommonUtil.getKeycloackToken());
-        return responseEntity;
+        return eipV6Service.atomCreateEipV6( eipV6Config.getEipV6AllocateParam().getEipId(), CommonUtil.getKeycloackToken());
     }
 
-    @GetMapping(value = "/eipv6")
+    @GetMapping(value = "/eipv6/{pageNo}/{pageSize}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeipv6",notes="list")
-    public ResponseEntity listEipV6(@RequestParam ( required = false ) String currentPage ,
-                                    @RequestParam ( required = false ) String limit,
-                                    @RequestParam ( required = false ) String status) {
-        log.debug("EipController listEipv6, currentPage:{}, limit:{}", currentPage, limit);
-        if(StringUtils.isBlank(currentPage)||StringUtils.isBlank(limit)){
-            currentPage="0";
-            limit="0";
-        } else {
-            try {
-                 int currentPageNum = Integer.parseInt(currentPage);
-                 int limitNum = Integer.parseInt(limit);
-                 if (currentPageNum < 0 || limitNum < 0) {
-                    currentPage = "0";
+    public ResponseEntity listEipV6(@PathVariable("pageNo") String pageNo ,
+                                    @PathVariable("pageSize")String pageSize,
+                                    @RequestParam(required = false )String status) {
+        log.debug("EipController listEipv6, currentPage:{}, limit:{}", pageNo, pageSize);
+        if(pageNo==null||pageSize==null){
+            pageNo="0";
+            pageSize="0";
+        }else{
+            try{
+                int currentPageNum = Integer.parseInt(pageNo);
+                int limitNum = Integer.parseInt(pageSize);
+                if (currentPageNum < 0 || limitNum < 0) {
+                    pageNo = "0";
                 }
-            } catch (Exception e){
+            }catch (Exception e){
                 log.error("number is not correct ");
-                currentPage="0";
-                limit="0";
+                pageNo="0";
+                pageSize="0";
             }
         }
-        return  eipV6Service.listEipV6s(Integer.parseInt(currentPage),Integer.parseInt(limit),status);
+        return  eipV6Service.listEipV6s(Integer.parseInt(pageNo),Integer.parseInt(pageSize),status);
+
     }
 
     @DeleteMapping(value = "/eipv6/{eipv6_id}")
@@ -124,7 +124,7 @@ public class EipV6ControllerV2 {
             log.info("{}",msgBuffer);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
         }
-        EipV6UpdateParam updateParam = param.getEipV6UpdateParam();
+        EipV6UpdateParam updateParam = param.getEipv6();
         return eipV6Service.eipV6bindPort(eipV6Id, updateParam.getEipAddress());
     }
 

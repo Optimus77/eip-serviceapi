@@ -2,8 +2,8 @@ package com.inspur.eip.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eip.entity.v2.eip.Eip;
-import com.inspur.eip.entity.v2.eipv6.*;
+import com.inspur.eip.entity.eip.Eip;
+import com.inspur.eip.entity.ipv6.*;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.EipV6Repository;
 import com.inspur.eip.service.EipV6DaoService;
@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
 
 @Slf4j
 @Service
@@ -89,12 +90,12 @@ public class EipV6ServiceImpl implements IEipV6Service {
 
     /**
      *   the eipV6
-     * @param currentPage  the current page
-     * @param limit  element of per page
+     * @param pageNo  the current page
+     * @param pageSize  element of per page
      * @return       result
      */
     @Override
-    public ResponseEntity listEipV6s(int currentPage,int limit, String status){
+    public ResponseEntity listEipV6s(int pageNo,int pageSize, String status){
 
         try {
             String userId= CommonUtil.getUserId();
@@ -105,9 +106,9 @@ public class EipV6ServiceImpl implements IEipV6Service {
             }
             JSONObject data=new JSONObject();
             JSONArray eipv6s=new JSONArray();
-            if(currentPage!=0){
+            if(pageNo!=0){
                 Sort sort = new Sort(Sort.Direction.DESC, "createTime");
-                Pageable pageable =PageRequest.of(currentPage-1,limit,sort);
+                Pageable pageable =PageRequest.of(pageNo-1,pageSize,sort);
                 Page<EipV6> page=eipV6Repository.findByUserIdAndIsDelete(userId, 0, pageable);
                 for(EipV6 eipV6:page.getContent()){
                     if (eipV6.getIpv4() == null || eipV6.getIpv4().equals("")) {
@@ -125,12 +126,12 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         EipV6ReturnDetail eipV6ReturnDetail = new EipV6ReturnDetail();
                         BeanUtils.copyProperties(eipV6, eipV6ReturnDetail);
                         if (eip.getBandWidth() > 10) {
-                            eipV6ReturnDetail.setEipV6BandWidth(10);
+                            eipV6ReturnDetail.setEipv6Bandwidth(10);
 
                         } else {
-                            eipV6ReturnDetail.setEipV6BandWidth(eip.getBandWidth());
+                            eipV6ReturnDetail.setEipv6Bandwidth(eip.getBandWidth());
                         }
-                        eipV6ReturnDetail.setEipBandWidth(eip.getBandWidth());
+                        eipV6ReturnDetail.setEipBandwidth(eip.getBandWidth());
                         eipV6ReturnDetail.setEipChargeType(eip.getBillType());
                         eipV6ReturnDetail.setEipId(eip.getEipId());
                         eipv6s.add(eipV6ReturnDetail);
@@ -138,10 +139,9 @@ public class EipV6ServiceImpl implements IEipV6Service {
 
                 }
                 data.put("totalCount",page.getTotalElements());
-                data.put("currentPage",currentPage);
-                data.put("limit",limit);
-                data.put("totalPages",page.getTotalPages());
-                data.put("eipv6s", eipv6s);
+                data.put("pageNo",pageNo);
+                data.put("pageSize",pageSize);
+                data.put("data", eipv6s);
             }else{
                 List<EipV6> eipV6List=eipV6DaoService.findEipV6ByUserId(userId);
                 for(EipV6 eipV6:eipV6List){
@@ -160,22 +160,21 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         EipV6ReturnDetail eipV6ReturnDetail = new EipV6ReturnDetail();
                         BeanUtils.copyProperties(eipV6, eipV6ReturnDetail);
                         if (eip.getBandWidth() > 10) {
-                            eipV6ReturnDetail.setEipV6BandWidth(10);
+                            eipV6ReturnDetail.setEipv6Bandwidth(10);
                         } else {
-                            eipV6ReturnDetail.setEipV6BandWidth(eip.getBandWidth());
+                            eipV6ReturnDetail.setEipv6Bandwidth(eip.getBandWidth());
                         }
-                        eipV6ReturnDetail.setEipBandWidth(eip.getBandWidth());
+                        eipV6ReturnDetail.setEipBandwidth(eip.getBandWidth());
                         eipV6ReturnDetail.setEipChargeType(eip.getBillType());
                         eipV6ReturnDetail.setEipId(eip.getEipId());
                         eipv6s.add(eipV6ReturnDetail);
                     }
 
                 }
-                data.put("eipv6s", eipv6s);
-                data.put("totalPages",1);
+                data.put("data", eipv6s);
                 data.put("totalCount",eipv6s.size());
-                data.put("currentPage",1);
-                data.put("limit",eipv6s.size());
+                data.put("pageNo",1);
+                data.put("pageSize",eipv6s.size());
             }
             return new ResponseEntity<>(data, HttpStatus.OK);
         }catch(KeycloakTokenException e){
@@ -237,7 +236,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                     }
                     EipV6ReturnDetail eipV6ReturnDetail = new EipV6ReturnDetail();
                     BeanUtils.copyProperties(eipV6Entity, eipV6ReturnDetail);
-                    eipV6ReturnDetail.setEipBandWidth(eip.getBandWidth());
+                    eipV6ReturnDetail.setEipBandwidth(eip.getBandWidth());
                     eipV6ReturnDetail.setEipChargeType(eip.getBillType());
                     eipV6ReturnDetail.setEipId(eip.getEipId());
 
@@ -267,7 +266,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
     public ResponseEntity eipV6bindPort(String eipV6Id,String ipv4){
         String code=null;
         String msg=null;
-        EipV6 eipV6 = eipV6Repository.findByEipV6Id(eipV6Id);
+        EipV6 eipV6 = eipV6Repository.findByEipv6Id(eipV6Id);
         if (null == eipV6) {
             log.error("Failed to get eipv6 based on eipV6Id, eipv6Id:{}.", eipV6Id);
             return null;
@@ -295,7 +294,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         eipRepository.saveAndFlush(eipEntity);
                         code = "200";
                         msg = "update success";
-                        log.info("update success ，eipv6id:{},newIpv4:{}",eipV6.getEipV6Id(),eip.getEipAddress());
+                        log.info("update success ，eipv6id:{},newIpv4:{}",eipV6.getEipv6Id(),eip.getEipAddress());
                         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
                     }
 
@@ -313,7 +312,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         eipEntity.setEipV6Id(null);
                         eipRepository.saveAndFlush(eipEntity);
                         log.info("add nat successfully. snat:{}, dnat:{},eipv6id:{},newIpv4:{},",
-                                natPtV6.getNewSnatPtId(), natPtV6.getNewDnatPtId(),eipV6.getEipV6Id(),eip.getEipAddress());
+                                natPtV6.getNewSnatPtId(), natPtV6.getNewDnatPtId(),eipV6.getEipv6Id(),eip.getEipAddress());
                         code = ReturnStatus.SC_OK;
                         msg = "Ipv4 was replaced successfully";
                         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
@@ -338,7 +337,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         eipEntity.setEipV6Id(null);
                         eipRepository.saveAndFlush(eipEntity);
                         log.info("del nat successfully. snat:{}, dnat:{},eipv6id:{},newIpv4:{},",
-                                eipV6.getSnatptId(), eipV6.getDnatptId(),eipV6.getEipV6Id(),eip.getEipAddress());
+                                eipV6.getSnatptId(), eipV6.getDnatptId(),eipV6.getEipv6Id(),eip.getEipAddress());
                         code = ReturnStatus.SC_OK;
                         msg = "Ipv4 was replaced successfully";
                         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
@@ -366,7 +365,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                             eipEntity.setEipV6Id(null);
                             eipRepository.saveAndFlush(eipEntity);
                             log.info("add nat successfully. snat:{}, dnat:{},,eipv6id:{},newIpv4:{},",
-                                    natPtV6.getNewSnatPtId(), natPtV6.getNewDnatPtId(),eipV6.getEipV6Id(),eip.getEipAddress());
+                                    natPtV6.getNewSnatPtId(), natPtV6.getNewDnatPtId(),eipV6.getEipv6Id(),eip.getEipAddress());
                             code = ReturnStatus.SC_OK;
                             msg = "Ipv4 was replaced successfully";
                             return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);

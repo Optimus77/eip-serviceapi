@@ -39,7 +39,6 @@ public class KeyClockAuthFilter implements Filter {
         String method =  req.getMethod();
         log.debug("requtst:{}, {}",method ,  req.getPathInfo());
         if(req.getHeader("authorization")==null){
-            log.info("get authorization is null ");
             JSONObject result=new JSONObject();
             result.put("code", ReturnStatus.SC_FORBIDDEN);
             result.put("message", CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NULL));

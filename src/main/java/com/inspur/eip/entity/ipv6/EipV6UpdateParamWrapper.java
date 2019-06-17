@@ -10,5 +10,7 @@ import javax.validation.Valid;
 @Getter
 @Setter
 public class EipV6UpdateParamWrapper {
+
+    @Valid
     private EipV6UpdateParam eipv6;
 }
