@@ -43,32 +43,32 @@ public class EipControllerV2 {
 
     private String authScret = "kitlv7i2";
 
-    @PostMapping(value = "/eips")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity atomAllocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
-        log.info("Allocate a eip:{}.", eipConfig.getEipAllocateParam().toString());
-        if (result.hasErrors()) {
-            StringBuffer msgBuffer = new StringBuffer();
-            List<FieldError> fieldErrors = result.getFieldErrors();
-            for (FieldError fieldError : fieldErrors) {
-                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
-            }
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
-                    HttpStatus.BAD_REQUEST);
-        }
-        return eipService.atomCreateEip(eipConfig.getEipAllocateParam(), CommonUtil.getKeycloackToken());
-    }
-
-
-    @DeleteMapping(value = "/eips/{eip_id}")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
-                                        @PathVariable("eip_id") String eipId) {
-        //Check the parameters
-        log.info("Atom delete the Eip:{} ",eipId);
-        return eipService.atomDeleteEip(eipId);
-
-    }
+//    @PostMapping(value = "/eips")
+//    @CrossOrigin(origins = "*",maxAge = 3000)
+//    public ResponseEntity atomAllocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
+//        log.info("Allocate a eip:{}.", eipConfig.getEipAllocateParam().toString());
+//        if (result.hasErrors()) {
+//            StringBuffer msgBuffer = new StringBuffer();
+//            List<FieldError> fieldErrors = result.getFieldErrors();
+//            for (FieldError fieldError : fieldErrors) {
+//                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+//            }
+//            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+//                    HttpStatus.BAD_REQUEST);
+//        }
+//        return eipService.atomCreateEip(eipConfig.getEipAllocateParam(), CommonUtil.getKeycloackToken());
+//    }
+//
+//
+//    @DeleteMapping(value = "/eips/{eip_id}")
+//    @CrossOrigin(origins = "*",maxAge = 3000)
+//    public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
+//                                        @PathVariable("eip_id") String eipId) {
+//        //Check the parameters
+//        log.info("Atom delete the Eip:{} ",eipId);
+//        return eipService.atomDeleteEip(eipId);
+//
+//    }
 
     @GetMapping(value = "/eips/{pageNo}/{pageSize}")
     @CrossOrigin(origins = "*",maxAge = 3000)
@@ -99,6 +99,26 @@ public class EipControllerV2 {
         }
         return  eipService.listEips(Integer.parseInt(pageNo),Integer.parseInt(pageSize),status);
     }
+
+
+
+    /**
+     * get number of user
+     * @return response
+     */
+    @GetMapping(value = "/eips/instance-num")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="get number",notes="get number")
+    public ResponseEntity getEipCount(@RequestParam(required = false )String status) {
+        if(status == null){
+            return  eipService.getEipCount();
+        }else {
+            return eipService.getUsingEipCountByStatus(status);
+        }
+    }
+
+
+
 
     /**
      * get eip instance detail
