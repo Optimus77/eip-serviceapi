@@ -100,6 +100,26 @@ public class EipControllerV2 {
         return  eipService.listEips(Integer.parseInt(pageNo),Integer.parseInt(pageSize),status);
     }
 
+
+
+    /**
+     * get number of user
+     * @return response
+     */
+    @GetMapping(value = "/eips/instance-num")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="get number",notes="get number")
+    public ResponseEntity getEipCount(@RequestParam(required = false )String status) {
+        if(status == null){
+            return  eipService.getEipCount();
+        }else {
+            return eipService.getUsingEipCountByStatus(status);
+        }
+    }
+
+
+
+
     /**
      * get eip instance detail
      * @param eipId  the id of eip
