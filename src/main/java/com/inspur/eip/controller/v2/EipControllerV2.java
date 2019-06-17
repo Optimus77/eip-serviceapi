@@ -220,23 +220,12 @@ public class EipControllerV2 {
     @GetMapping(value = "/eipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")
-    public ResponseEntity getEipCount(@RequestParam(required = false )String DimensionName,
-                                        @RequestParam(required = false )String status) {
-        if(StringUtils.isBlank(DimensionName)){
+    public ResponseEntity getEipCount(@RequestParam(required = false )String status) {
+        if(StringUtils.isBlank(status)){
             return  eipService.getEipCount();
         }else {
-            if(StringUtils.isBlank(status)){
-                if(DimensionName.equals("freeeipnumbers")){
-                    return  eipService.getFreeEipCount();
-                }else if(DimensionName.equals("totaleipnumbers")){
-                    return  eipService.getTotalEipCount();
-                }
-                return  eipService.getUsingEipCount();
-            }else{
-                return eipService.getUsingEipCountByStatus(status);
-            }
+            return eipService.getUsingEipCountByStatus(status);
         }
-
     }
 
     @GetMapping(value = "/statistics")
@@ -254,16 +243,16 @@ public class EipControllerV2 {
 //        log.info("Renew a eip:{}, order:{}.", eipId, param.toString());
 //        return eipService.renewEip(eipId, param);
 //    }
-
-    @PostMapping(value = "/action/delete", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value = "deleiplist")
-    public ResponseEntity deleteEipList(@RequestBody EipDelParam param) {
-        //Check the parameters
-
-        log.info("Delete the Eips:{}.", param.getEipids().toString());
-        return eipService.deleteEipList(param.getEipids());
-    }
+//
+//    @PostMapping(value = "/action/delete", consumes = MediaType.APPLICATION_JSON_VALUE)
+//    @CrossOrigin(origins = "*",maxAge = 3000)
+//    @ApiOperation(value = "deleiplist")
+//    public ResponseEntity deleteEipList(@RequestBody EipDelParam param) {
+//        //Check the parameters
+//
+//        log.info("Delete the Eips:{}.", param.getEipids().toString());
+//        return eipService.deleteEipList(param.getEipids());
+//    }
 
     @GetMapping(value = "/health-status")
     @CrossOrigin(origins = "*", maxAge = 3000)

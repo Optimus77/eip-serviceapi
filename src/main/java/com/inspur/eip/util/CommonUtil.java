@@ -93,7 +93,6 @@ public class CommonUtil {
                 log.error("Failed to get token,request:{}",request);
                 return null;
             } else {
-                log.debug("Get token:{}",keyCloackToken);
                 return keyCloackToken;
             }
         }
@@ -303,7 +302,6 @@ public class CommonUtil {
 
         if(isDebug){
             userRegion = userConfig.get("debugRegionS");
-            log.debug("=============={}", userRegion);
         }
         if(token.startsWith("Bearer Bearer")){
             token = token.substring(7);
