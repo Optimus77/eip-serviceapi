@@ -542,7 +542,12 @@ public class FirewallService {
             log.error("Failed to add dnat", strDnatPtId);
             return null;
         }
-        return strDnatPtId.split("=")[1].trim();
+        if(strDnatPtId.contains("=")) {
+            return strDnatPtId.split("=")[1].trim();
+        }else {
+            log.error("cmd add dnat error, return:{}", strDnatPtId);
+            return null;
+        }
     }
 
     private String cmdAddSnat(String fip, String eip, String fireWallId)  {

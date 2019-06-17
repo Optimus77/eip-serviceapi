@@ -187,9 +187,6 @@ public class EipDaoService {
                 || (null != eipEntity.getSnatId())) {
             msg = "Failed to delete eip,please unbind eip first." + eipEntity.toString();
             firewallService.delNatAndQos(eipEntity);
-            eipEntity.setPipId(null);
-            eipEntity.setSnatId(null);
-            eipEntity.setDnatId(null);
             log.error(msg);
         }
 
