@@ -13,7 +13,7 @@ import java.io.Serializable;
 @Data
 public class EipAllocateParam implements Serializable {
 
-    @NotBlank(message = "can not be blank.")
+    @TypeConstraint(allowedValues = {"cn-north-3","cn-south-1"}, message = "Only cn-north-3,cn-south-1 is allowed. ")
     private String region;
 
     @TypeConstraint(allowedValues = {"monthly","hourlySettlement"}, message = "Only monthly,hourlySettlement is allowed. ")
