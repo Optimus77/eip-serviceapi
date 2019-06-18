@@ -84,7 +84,7 @@ spring:
 
     #Rabbit mq common config
   rabbitmq:
-    host: 10.221.2.6
+    host: 10.110.10.19
     port: 5672
     username: tester
     password: 123456a?
