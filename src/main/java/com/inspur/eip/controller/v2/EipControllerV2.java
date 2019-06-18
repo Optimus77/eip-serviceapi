@@ -213,21 +213,6 @@ public class EipControllerV2 {
 
     }
 
-    /**
-     * get number of user
-     * @return response
-     */
-    @GetMapping(value = "/eipnumbers")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="get number",notes="get number")
-    public ResponseEntity getEipCount(@RequestParam(required = false )String status) {
-        if(StringUtils.isBlank(status)){
-            return  eipService.getEipCount();
-        }else {
-            return eipService.getUsingEipCountByStatus(status);
-        }
-    }
-
     @GetMapping(value = "/statistics")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity getEipStatistics() {
@@ -268,29 +253,6 @@ public class EipControllerV2 {
         return new ResponseEntity<>(ReturnMsgUtil.msg(code, msg, null), HttpStatus.OK);
     }
 
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @PostMapping(value = "/eips/bind/slb/{eip_id}/{slb_id}/{ip_addr}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "eipBindWithSlb", notes = "post")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
-    })
-    public ResponseEntity eipBindWithSlb(@PathVariable("slb_id") String slbId
-            , @PathVariable("eip_id") String eipId
-            ,@PathVariable("ip_addr") String ipAddr) {
-        log.info("Bind eip.{}, {}, {}", slbId,ipAddr,eipId);
-        return eipService.eipBindWithInstance(eipId, "3", slbId, null, ipAddr);
-    }
-
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @PostMapping(value = "/eips/unbind/slb/{slb_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "eipBindWithSlb", notes = "post")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
-    })
-    public ResponseEntity eipUnbinWithSlb(@PathVariable("slb_id") String slbId) {
-        log.info("unBind eip.{}, {}, {}", slbId);
-        return eipService.eipUnbindWithInstacnce(null, slbId);
-    }
 
     @CrossOrigin(origins = "*",maxAge = 3000)
     @PostMapping(value = "/loggers/{package}", consumes = MediaType.APPLICATION_JSON_VALUE)
