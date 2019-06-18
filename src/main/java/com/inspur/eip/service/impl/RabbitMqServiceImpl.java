@@ -88,7 +88,7 @@ public class RabbitMqServiceImpl {
                 log.warn(checkRet.getMessage());
                 return null;
             }
-            response = eipService.atomCreateEip(eipConfig, eipOrder.getToken());
+            response = eipService.atomCreateEip(eipConfig, eipOrder.getToken(), null);
             if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
                 log.warn("create eip failed, return code:{}", response.getStatusCodeValue());
             } else {
