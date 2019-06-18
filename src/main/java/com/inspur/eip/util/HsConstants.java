@@ -15,7 +15,7 @@ public class HsConstants {
     public static final String HOURLYSETTLEMENT = "hourlySettlement";
     public static final String MONTHLY = "monthly";
     public static final String PROVIDER = "provider";
-	public static final String BANDWIDTH = "Bandwidth";
+	public static final String BANDWIDTH = "bandwidth";
 	public static final String FAIL = "fail";
 	public static final String BINDING ="BINDING";
 	public static final String UNSUBSCRIBE = "unsubscribe";
