@@ -55,7 +55,7 @@ public class EipControllerAtom {
                     HttpStatus.BAD_REQUEST);
         }
 
-        return eipService.atomCreateEip(eipConfig.getEipAllocateParam(),CommonUtil.getKeycloackToken());
+        return eipService.atomCreateEip(eipConfig.getEipAllocateParam(),CommonUtil.getKeycloackToken(), "ECS");
     }
 
 
