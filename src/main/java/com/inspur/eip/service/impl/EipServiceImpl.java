@@ -52,7 +52,7 @@ public class EipServiceImpl implements IEipService {
      * @param eipConfig          config
      * @return                   json info of eip
      */
-    public ResponseEntity atomCreateEip(EipAllocateParam eipConfig, String token) {
+    public ResponseEntity atomCreateEip(EipAllocateParam eipConfig, String token, String operater) {
 
         String code;
         String msg;
@@ -74,7 +74,7 @@ public class EipServiceImpl implements IEipService {
                         HttpStatus.FAILED_DEPENDENCY);
             }
 
-            Eip eipMo = eipDaoService.allocateEip(eipConfig, eip, null, token);
+            Eip eipMo = eipDaoService.allocateEip(eipConfig, eip, operater, token);
             if (null != eipMo) {
                 EipReturnBase eipInfo = new EipReturnBase();
                 BeanUtils.copyProperties(eipMo, eipInfo);

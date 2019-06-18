@@ -58,7 +58,7 @@ public class EipDaoService {
      * @return result
      */
     @Transactional
-    public Eip allocateEip(EipAllocateParam eipConfig, EipPool eip, String portId, String token) throws KeycloakTokenException {
+    public Eip allocateEip(EipAllocateParam eipConfig, EipPool eip, String operater, String token) throws KeycloakTokenException {
 
 
         if (!eip.getState().equals("0")) {
@@ -100,7 +100,9 @@ public class EipDaoService {
         eipMo.setUserId(userId);
         eipMo.setProjectId(CommonUtil.getProjectName(token));
         eipMo.setIsDelete(0);
-
+        if(null != operater){
+            eipMo.setName(operater);
+        }
         eipMo.setCreateTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eipMo);
         log.debug("User:{} success allocate eip:{}", userId, eipMo.getEipId());
