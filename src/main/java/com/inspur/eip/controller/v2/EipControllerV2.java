@@ -228,11 +228,11 @@ public class EipControllerV2 {
 //        }
 //    }
 //
-//    @GetMapping(value = "/statistics")
-//    @CrossOrigin(origins = "*",maxAge = 3000)
-//    public ResponseEntity getEipStatistics() {
-//        return  eipService.getEipStatistics();
-//    }
+    @GetMapping(value = "/statistics")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity getEipStatistics() {
+        return  eipService.getEipStatistics();
+    }
 
 
 
