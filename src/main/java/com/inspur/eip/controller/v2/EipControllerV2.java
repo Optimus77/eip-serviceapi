@@ -6,6 +6,7 @@ import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.LogLevel;
 import com.inspur.eip.entity.eip.*;
 import com.inspur.eip.service.impl.EipServiceImpl;
+import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.ReturnStatus;
@@ -40,6 +41,9 @@ public class EipControllerV2 {
 
     @Autowired
     private EipServiceImpl eipService;
+
+    @Autowired
+    private SbwServiceImpl sbwService;
 
     private String authScret = "kitlv7i2";
 
@@ -76,8 +80,10 @@ public class EipControllerV2 {
     public ResponseEntity listEip(@PathVariable("pageNo") String pageNo ,
                                   @PathVariable("pageSize") String pageSize,
                                   @RequestParam(required = false )String status,
-                                  @RequestParam(required = false )String bandwidth) {
+                                  @RequestParam(required = false )String bandwidth,
+                                  @RequestParam(required = false )String sbwId) {
         log.debug("EipController listEip, currentPage:{}, limit:{}", pageNo, pageSize);
+
         if(StringUtils.isBlank(pageNo) ||StringUtils.isBlank(pageSize)){
             pageNo="0";
             pageSize="0";
@@ -92,6 +98,13 @@ public class EipControllerV2 {
                 log.error("number is not correct ");
                 pageNo="0";
                 pageSize="0";
+            }
+        }
+        if(sbwId != null){
+            if(sbwId.equals("null")){
+                return sbwService.getOtherEips(sbwId);
+            }else {
+                return sbwService.sbwListEip(sbwId, Integer.parseInt(pageNo), Integer.parseInt(pageSize));
             }
         }
         if(StringUtils.isNotBlank(bandwidth)){
