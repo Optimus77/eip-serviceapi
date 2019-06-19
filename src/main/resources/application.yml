@@ -103,7 +103,7 @@ bss:
         ipts: queue.ipts.order
       messageTTL: 300000
       binding:
-        exchange: exchange.region9
+        exchange: exchange.region
         routingKey:
           eip: key.eip.order
           sbw: key.sbw.order
@@ -118,7 +118,7 @@ bss:
         ipts: queue.ipts.change
       messageTTL: 300000
       binding:
-        exchange: exchange.region9
+        exchange: exchange.region
         routingKey:
           eip: key.eip.change
           sbw: key.sbw.change
