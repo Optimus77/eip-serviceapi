@@ -35,23 +35,23 @@ public class SbwControllerV2 {
     @Autowired
     private SbwServiceImpl sbwService;
     //todo refactor interface
-    @ICPControllerLog
-    @PostMapping(value = "/sbws")
-    @CrossOrigin(origins = "*", maxAge = 3000)
-    @ApiOperation(value = "atomCreateSbw", notes = "createSbw")
-    public ResponseEntity atomAllocateSbw(@Valid @RequestBody SbwUpdateParamWrapper sbwConfig, BindingResult result) {
-        log.info("Create a sbws Atom param:{}.", sbwConfig.getSbw().toString());
-        if (result.hasErrors()) {
-            StringBuilder builder = new StringBuilder();
-            List<FieldError> fieldErrors = result.getFieldErrors();
-            for (FieldError fieldError : fieldErrors) {
-                builder.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
-            }
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, builder.toString()),
-                    HttpStatus.BAD_REQUEST);
-        }
-        return sbwService.atomCreateSbw(sbwConfig.getSbw(), CommonUtil.getKeycloackToken());
-    }
+//    @ICPControllerLog
+//    @PostMapping(value = "/sbws")
+//    @CrossOrigin(origins = "*", maxAge = 3000)
+//    @ApiOperation(value = "atomCreateSbw", notes = "createSbw")
+//    public ResponseEntity atomAllocateSbw(@Valid @RequestBody SbwUpdateParamWrapper sbwConfig, BindingResult result) {
+//        log.info("Create a sbws Atom param:{}.", sbwConfig.getSbw().toString());
+//        if (result.hasErrors()) {
+//            StringBuilder builder = new StringBuilder();
+//            List<FieldError> fieldErrors = result.getFieldErrors();
+//            for (FieldError fieldError : fieldErrors) {
+//                builder.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+//            }
+//            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, builder.toString()),
+//                    HttpStatus.BAD_REQUEST);
+//        }
+//        return sbwService.atomCreateSbw(sbwConfig.getSbw(), CommonUtil.getKeycloackToken());
+//    }
 
     @ICPControllerLog
     @GetMapping(value = "/sbws/{pageNo}/{pageSize}")
@@ -79,19 +79,19 @@ public class SbwControllerV2 {
         }
         return sbwService.listShareBandWidth(Integer.parseInt(pageNo), Integer.parseInt(pageSize), searchValue);
     }
-
-    @DeleteMapping(value = "/sbws/{sbw_id}")
-    @ICPControllerLog
-    @CrossOrigin(origins = "*", maxAge = 3000)
-    public ResponseEntity deleteSbw(@Size(min = 36, max = 36, message = "Must be uuid.")
-                                        @PathVariable("sbw_id") String sbwId) {
-        log.info("Atom delete the sbw , sbwId:{} ", sbwId);
-        ActionResponse actionResponse = sbwService.deleteSbwInfo(sbwId, CommonUtil.getKeycloackToken());
-        if (actionResponse.isSuccess()){
-            return new ResponseEntity(ReturnMsgUtil.success(),HttpStatus.OK);
-        }
-        return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(actionResponse.getCode()), actionResponse.getFault()), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+//
+//    @DeleteMapping(value = "/sbws/{sbw_id}")
+//    @ICPControllerLog
+//    @CrossOrigin(origins = "*", maxAge = 3000)
+//    public ResponseEntity deleteSbw(@Size(min = 36, max = 36, message = "Must be uuid.")
+//                                        @PathVariable("sbw_id") String sbwId) {
+//        log.info("Atom delete the sbw , sbwId:{} ", sbwId);
+//        ActionResponse actionResponse = sbwService.deleteSbwInfo(sbwId, CommonUtil.getKeycloackToken());
+//        if (actionResponse.isSuccess()){
+//            return new ResponseEntity(ReturnMsgUtil.success(),HttpStatus.OK);
+//        }
+//        return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(actionResponse.getCode()), actionResponse.getFault()), HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
     /**
      * get sbw instance detail
      *
@@ -126,53 +126,20 @@ public class SbwControllerV2 {
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+//
+//    @ICPControllerLog
+//    @PostMapping(value = "/sbws/{sbw_id}/action/renewals")
+//    @CrossOrigin(origins = "*", maxAge = 3000)
+//    public ResponseEntity renewSbw(@PathVariable("sbw_id") String sbwId,
+//                                   @RequestBody SbwUpdateParamWrapper param) {
+//        log.info("Atom renew or softdown sbw sbwId:{}, param:{}.", sbwId, param.getSbw().toString());
+//        ActionResponse actionResponse = sbwService.restartSbwService(sbwId, param.getSbw(), CommonUtil.getKeycloackToken());
+//        if (actionResponse.isSuccess()) {
+//            return new ResponseEntity(ReturnMsgUtil.success(),HttpStatus.OK);
+//        }
+//        return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(actionResponse.getCode()), actionResponse.getFault()), HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
 
-    @ICPControllerLog
-    @PostMapping(value = "/sbws/{sbw_id}/action/renewals")
-    @CrossOrigin(origins = "*", maxAge = 3000)
-    public ResponseEntity renewSbw(@PathVariable("sbw_id") String sbwId,
-                                   @RequestBody SbwUpdateParamWrapper param) {
-        log.info("Atom renew or softdown sbw sbwId:{}, param:{}.", sbwId, param.getSbw().toString());
-        ActionResponse actionResponse = sbwService.restartSbwService(sbwId, param.getSbw(), CommonUtil.getKeycloackToken());
-        if (actionResponse.isSuccess()) {
-            return new ResponseEntity(ReturnMsgUtil.success(),HttpStatus.OK);
-        }
-        return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(actionResponse.getCode()), actionResponse.getFault()), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    /**
-     * get the eipList in this sbw
-     * @param sbwId id
-     * @param pageNo index
-     * @param pageSize size
-     * @return ret
-     */
-    @ICPControllerLog
-    @GetMapping(value = "/sbws/{sbw_id}/eips/{pageNo}/{pageSize}")
-    @CrossOrigin(origins = "*", maxAge = 3000)
-    @ApiOperation(value = "sbwListEip", notes = "listE  ip")
-    public ResponseEntity sbwListEip(@PathVariable( name = "sbw_id") String sbwId,
-                                     @PathVariable(required = false, name = "pageNo") String pageNo,
-                                     @PathVariable(required = false, name = "pageSize") String pageSize) {
-        log.info("Atom get EIP list in this Sbw sbwId:{},currentPageIndex:{}, currentPageSize:{}",sbwId, pageNo, pageSize);
-        if (pageNo == null || pageSize == null) {
-            pageNo = "0";
-            pageSize = "0";
-        } else {
-            try {
-                int currentPageNum = Integer.parseInt(pageNo);
-                int limitNum = Integer.parseInt(pageSize);
-                if (currentPageNum < 0 || limitNum < 0) {
-                    pageNo = "0";
-                }
-            } catch (Exception e) {
-                log.error("number is not correct ");
-                pageNo = "0";
-                pageSize = "0";
-            }
-        }
-        return sbwService.sbwListEip(sbwId ,Integer.parseInt(pageNo), Integer.parseInt(pageSize));
-    }
 
     /**
      * modify sbw name
@@ -205,46 +172,46 @@ public class SbwControllerV2 {
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
     }
 
+//
+//    @ICPControllerLog
+//    @GetMapping(value = "/sbws/{sbw_id}/untyingEips")
+//    @CrossOrigin(origins = "*",maxAge = 3000)
+//    @ApiOperation(value = "get othereips without the sbw", notes = "get")
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
+//    })
+//    public ResponseEntity getOtherEips(@PathVariable("sbw_id") String sbwId){
+//        log.info("Atom get the other Eip have not bind in sbw,Sbwid:{}",sbwId);
+//        return sbwService.getOtherEips(sbwId);
+//    }
 
-    @ICPControllerLog
-    @GetMapping(value = "/sbws/{sbw_id}/untyingEips")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value = "get othereips without the sbw", notes = "get")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
-    })
-    public ResponseEntity getOtherEips(@PathVariable("sbw_id") String sbwId){
-        log.info("Atom get the other Eip have not bind in sbw,Sbwid:{}",sbwId);
-        return sbwService.getOtherEips(sbwId);
-    }
-
-
-    @ICPControllerLog
-    @PutMapping(value = "/sbws/{sbw_id}/action/adjustBandwidth", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "update Sbw config", notes = "post")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", name = "eip", value = "the sbw wrapper ", required = true, dataType = "json"),
-    })
-    @CrossOrigin(origins = "*", maxAge = 3000)
-    public ResponseEntity updateSbwConfig(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param, BindingResult result) {
-        log.info("Atom update sbw sbwId:{},param:{}.", sbwId, param.getSbw().toString());
-        if (result.hasErrors()) {
-            StringBuilder builder = new StringBuilder();
-            List<FieldError> fieldErrors = result.getFieldErrors();
-            for (FieldError fieldError : fieldErrors) {
-                builder.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
-            }
-            log.info("{}", builder);
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, builder.toString()), HttpStatus.BAD_REQUEST);
-        }
-        ActionResponse actionResponse;
-        if (param.getSbw().getBillType() != null ) {
-            log.info("update bandWidth, sbwid:{}, param:{} ", sbwId, param.getSbw());
-             actionResponse = sbwService.updateSbwConfig(sbwId, param.getSbw(), CommonUtil.getKeycloackToken());
-             if (actionResponse.isSuccess()){
-                 return new ResponseEntity(ReturnMsgUtil.success(),HttpStatus.OK);
-             }
-        }
-        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()), HttpStatus.BAD_REQUEST);
-    }
+//
+//    @ICPControllerLog
+//    @PutMapping(value = "/sbws/{sbw_id}/action/adjustBandwidth", consumes = MediaType.APPLICATION_JSON_VALUE)
+//    @ApiOperation(value = "update Sbw config", notes = "post")
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(paramType = "path", name = "eip", value = "the sbw wrapper ", required = true, dataType = "json"),
+//    })
+//    @CrossOrigin(origins = "*", maxAge = 3000)
+//    public ResponseEntity updateSbwConfig(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param, BindingResult result) {
+//        log.info("Atom update sbw sbwId:{},param:{}.", sbwId, param.getSbw().toString());
+//        if (result.hasErrors()) {
+//            StringBuilder builder = new StringBuilder();
+//            List<FieldError> fieldErrors = result.getFieldErrors();
+//            for (FieldError fieldError : fieldErrors) {
+//                builder.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+//            }
+//            log.info("{}", builder);
+//            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, builder.toString()), HttpStatus.BAD_REQUEST);
+//        }
+//        ActionResponse actionResponse;
+//        if (param.getSbw().getBillType() != null ) {
+//            log.info("update bandWidth, sbwid:{}, param:{} ", sbwId, param.getSbw());
+//             actionResponse = sbwService.updateSbwConfig(sbwId, param.getSbw(), CommonUtil.getKeycloackToken());
+//             if (actionResponse.isSuccess()){
+//                 return new ResponseEntity(ReturnMsgUtil.success(),HttpStatus.OK);
+//             }
+//        }
+//        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()), HttpStatus.BAD_REQUEST);
+//    }
 }

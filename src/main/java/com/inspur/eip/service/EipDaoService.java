@@ -486,6 +486,7 @@ public class EipDaoService {
                 eipRepository.saveAndFlush(eipEntity);
             }else{
                 log.error("renew eip error {}", fireWallReturn.getMessage());
+                return ActionResponse.actionFailed("firewall error when renew eip", HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
         }
         return ActionResponse.actionSuccess();
@@ -513,6 +514,7 @@ public class EipDaoService {
                 eipRepository.saveAndFlush(eipEntity);
             }else{
                 log.error("renew eip error {}", fireWallReturn.getMessage());
+                return ActionResponse.actionFailed("firewall error when renew eip", HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
         }
         return ActionResponse.actionSuccess();
