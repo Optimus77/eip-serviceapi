@@ -268,8 +268,10 @@ public class EipV6ServiceImpl implements IEipV6Service {
         String msg=null;
         EipV6 eipV6 = eipV6Repository.findByEipv6Id(eipV6Id);
         if (null == eipV6) {
+            code=ReturnStatus.SC_NOT_FOUND;
+            msg="Failed to get eipv6 based on eipV6Id, eipv6Id";
             log.error("Failed to get eipv6 based on eipV6Id, eipv6Id:{}.", eipV6Id);
-            return null;
+            return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         try {
             Eip eipEntity = eipRepository.findByEipAddressAndUserIdAndIsDelete(eipV6.getIpv4(), eipV6.getUserId(), 0);
