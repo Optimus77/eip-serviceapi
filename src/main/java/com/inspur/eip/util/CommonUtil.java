@@ -408,7 +408,14 @@ public class CommonUtil {
         if(userIdInToken.equals(userId)){
             return true;
         }
-
+        String  realmAccess = null;
+        if (jsonObject.has("realm_access")){
+            realmAccess = jsonObject.getJSONObject("realm_access").toString();
+        }
+        if (realmAccess!= null && realmAccess.contains("OPERATE_ADMIN")){
+            log.info("Client token, User has right to operation, realmAccess:{}", realmAccess);
+            return true;
+        }
         return false;
 
     }

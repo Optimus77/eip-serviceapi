@@ -182,7 +182,7 @@ public class EipDaoService {
         if ((null == eipEntity) || (eipEntity.getIsDelete() == 1) ){
             msg = "Faild to find eip by id:" + eipid;
             log.error(msg);
-            return ActionResponse.actionFailed(msg,HttpStatus.SC_NOT_FOUND);
+            return ActionResponse.actionSuccess();
         }
         if ((null != eipEntity.getPipId())
                 || (null != eipEntity.getDnatId())
