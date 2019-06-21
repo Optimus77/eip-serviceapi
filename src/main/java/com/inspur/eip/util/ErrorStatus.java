@@ -22,12 +22,6 @@ public enum ErrorStatus {
     SC_RESOURCE_NOTENOUGH("106.993400", "SC_RESOURCE_NOTENOUGH!"),
 
     /**
-     * EIP_BIND_HAS_BAND
-     */
-    EIP_BIND_HAS_BAND("106.991400","EIP_BIND_HAS_BAND!"),
-
-
-    /**
      * ENTITY_NOT_FOND_IN_DB
      */
     ENTITY_NOT_FOND_IN_DB("106.994404", "Failed to find entity  in db! -"),
@@ -41,23 +35,23 @@ public enum ErrorStatus {
     /**
      * SC_FIREWALL_DNAT_UNAVAILABLE
      */
-    SC_FIREWALL_DNAT_UNAVAILABLE("106.202404", "SC_FIREWALL_DNAT_UNAVAILABLE!"),
+    SC_FIREWALL_DNAT_UNAVAILABLE("106.202404", "sc firewall dnat unavailable!"),
 
     /**
      * SC_FIREWALL_SNAT_UNAVAILABLE
      */
-    SC_FIREWALL_SNAT_UNAVAILABLE("106.202404", "SC_FIREWALL_SNAT_UNAVAILABLE!"),
+    SC_FIREWALL_SNAT_UNAVAILABLE("106.202404", "sc firewall snat unavailable!"),
 
 
     /**
      * SC_FIREWALL_QOS_UNAVAILABLE
      */
-    SC_FIREWALL_QOS_UNAVAILABLE("106.203404", "SC_FIREWALL_QOS_UNAVAILABLE!"),
+    SC_FIREWALL_QOS_UNAVAILABLE("106.203404", "sc firewall qos unavailable!"),
 
     /**
      * SC_FIREWALL_NATPT_UNAVAILABLE
      */
-    SC_FIREWALL_NATPT_UNAVAILABLE("106.204404", "SC_FIREWALL_NATPT_UNAVAILABLE!"),
+    SC_FIREWALL_NATPT_UNAVAILABLE("106.204404", "sc firewall natpt unavailable!"),
 
     /**
      * SC_NOT_SUPPORT
@@ -146,7 +140,13 @@ public enum ErrorStatus {
     /**
      * FireWall config error
      */
-    FIREWALL_NOT_FOND_IN_DB("106.994400", "Failed to find FireWall config  in db! -");
+    FIREWALL_NOT_FOND_IN_DB("106.994400", "Failed to find FireWall config  in db! -"),
+
+    /**
+     * add qos in firewall
+     */
+    FIREWALL_ADD_QOS_ERROR("106.994500", "Failed to add qos config  in firewall! -")
+    ;
 
     private final String code;
 

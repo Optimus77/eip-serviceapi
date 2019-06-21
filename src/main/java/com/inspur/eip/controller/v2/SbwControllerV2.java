@@ -34,7 +34,6 @@ public class SbwControllerV2 {
 
     @Autowired
     private SbwServiceImpl sbwService;
-    //todo refactor interface
 //    @ICPControllerLog
 //    @PostMapping(value = "/sbws")
 //    @CrossOrigin(origins = "*", maxAge = 3000)
@@ -79,7 +78,7 @@ public class SbwControllerV2 {
         }
         return sbwService.listShareBandWidth(Integer.parseInt(pageNo), Integer.parseInt(pageSize), searchValue);
     }
-//
+
 //    @DeleteMapping(value = "/sbws/{sbw_id}")
 //    @ICPControllerLog
 //    @CrossOrigin(origins = "*", maxAge = 3000)

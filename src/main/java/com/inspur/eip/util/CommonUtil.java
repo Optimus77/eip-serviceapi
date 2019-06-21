@@ -264,6 +264,11 @@ public class CommonUtil {
         return formatter.format(currentTime);
     }
 
+    public synchronized static String getUUID(){
+        UUID uuid=UUID.randomUUID();
+        String uuidStr=uuid.toString();
+        return uuidStr;
+    }
 
     public static Map<String, String> getUserConfig(){
         return userConfig;

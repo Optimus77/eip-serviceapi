@@ -435,7 +435,7 @@ public class RabbitMqServiceImpl {
                 //订单测主动发起的软删请求，不带toekn
                 if (HsConstants.DELETE.equalsIgnoreCase(operateType)) {
                     response = sbwService.bssSoftDeleteSbw(instance.getInstanceId());
-                    if (response.isSuccess()) {
+                    if (response.isSuccess() || response.getCode() == HttpStatus.SC_NOT_FOUND ) {
                         setStatus = HsConstants.SUCCESS;
                         instanceStatus = HsConstants.STATUS_DELETE;
                     }

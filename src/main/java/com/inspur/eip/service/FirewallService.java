@@ -6,6 +6,7 @@ import com.inspur.eip.entity.MethodReturn;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.fw.*;
 import com.inspur.eip.entity.sbw.Sbw;
+import com.inspur.eip.exception.EipInternalServerException;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.repository.SbwRepository;
@@ -679,7 +680,16 @@ public class FirewallService {
         }
         return true;
     }
-    String cmdAddSbwQos(String name, String bandwidth, String fireWallId)  {
+
+    /**
+     *
+     * @param name
+     * @param bandwidth
+     * @param fireWallId
+     * @return
+     */
+    synchronized boolean  cmdAddSbwQos(String name, String bandwidth, String fireWallId) throws EipInternalServerException  {
+        Boolean flag = Boolean.TRUE;
         String inBandWidth = "50";
         if(Integer.valueOf(bandwidth)>50) {
             inBandWidth = bandwidth;
@@ -695,12 +705,12 @@ public class FirewallService {
                         + "end",
                 retString);
         if(strResult == null || !strResult.contains(retString)){
+            flag = Boolean.FALSE;
             log.error("Failed to add cmd sbw qos", strResult);
-            return null;
         }
-        return name;
+        return flag;
     }
-    boolean cmdDelSbwQos(String name, String fireWallId)  {
+    synchronized boolean cmdDelSbwQos(String name, String fireWallId)  {
 
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"

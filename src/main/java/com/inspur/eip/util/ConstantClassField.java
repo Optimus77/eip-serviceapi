@@ -68,6 +68,21 @@ public final class ConstantClassField {
      */
     public static final String OPERATION_RESULT_NOT_OK = "operation result not ok";
 
+    /**
+     * Fire wall
+     */
+    public static final String FIREWALL_QOS_ADD_ERROR = "Firewall qos add error";
+    public static final String FIREWALL_QOS_DELETE_ERROR = "Firewall qos delete error";
+    public static final String FIREWALL_QOS_UPDATE_ERROR = "Firewall qos update error";
+
+    public static final String FIREWALL_SNAT_ADD_ERROR = "Firewall snat add error";
+    public static final String FIREWALL_SNAT_DELETE_ERROR = "Firewall snat delete error";
+    public static final String FIREWALL_SNAT_UPDATE_ERROR = "Firewall snat update error";
+
+    public static final String FIREWALL_DNAT_ADD_ERROR = "Firewall dnat add error";
+    public static final String FIREWALL_DNAT_DELETE_ERROR = "Firewall dnat delete error";
+    public static final String FIREWALL_DNAT_UPDATE_ERROR = "Firewall dnat update error";
+
 
 
 

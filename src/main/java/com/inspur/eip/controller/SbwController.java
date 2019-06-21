@@ -57,21 +57,6 @@ public class SbwController {
         return sbwService.listShareBandWidth(Integer.parseInt(pageIndex), Integer.parseInt(pageSize), searchValue);
     }
 
-
-    @GetMapping(value = "/sbws/search")
-    @CrossOrigin(origins = "*", maxAge = 3000)
-    @ApiOperation(value = "getSbwByProjectId", notes = "get")
-    public ResponseEntity getSbwByProjectId(@RequestParam(required = false) String projectId) {
-        log.info("Atom param get Sbw by project Id project:{}",projectId);
-        if (null == projectId) {
-            return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
-        }
-
-        return sbwService.getSbwByProjectId(projectId);
-
-    }
-
-
     /**
      * get sbw instance detail
      *
