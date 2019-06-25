@@ -140,6 +140,13 @@ projectIdS: f9ba41b61a6146c1a392815ea088c437
 userDomainIdS: default
 debugRegionS: inspurtest
 
+#Firewall configuration
+firewallId: 3f26960e-6ac3-4636-aae7-822ef3579288
+firewallIp: 10.110.29.206
+firewallPort: 443
+firewallUser: iojHL/UrEMTtZ3Ec3YtV1/0NdjZmNE14
+firewallPasswd: dNe9QCSE9S8AgSEshlpAXsklH8yW0vlE
+
 
 Kafka:
   servers: 10.110.25.107:9092,10.10.6.6:9092,10.110.25.105:9092
