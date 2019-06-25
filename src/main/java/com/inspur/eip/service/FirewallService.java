@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
@@ -26,6 +27,19 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class FirewallService {
+
+
+    @Value("${firewallIp}")
+    private String firewallIp;
+
+    @Value("${firewallPort}")
+    private String firewallPort;
+
+    @Value("${firewallUser}")
+    private String firewallUser;
+
+    @Value("${firewallPasswd}")
+    private String firewallPasswd;
 
     @Autowired
     private FirewallRepository firewallRepository;
@@ -47,28 +61,51 @@ public class FirewallService {
     private Map<String, Firewall> firewallConfigMap = new HashMap<>();
     private String vr = "trust-vr";
 
+//    Firewall getFireWallById(String id) {
+//        if (!firewallConfigMap.containsKey(id)) {
+//
+//            Optional<Firewall> firewall = firewallRepository.findById(id);
+//            if (firewall.isPresent()) {
+//                Firewall fireWallConfig = new Firewall();
+//                Firewall getFireWallEntity = firewall.get();
+//
+//                fireWallConfig.setUser(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getUser()));
+//                fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getPasswd()));
+//                fireWallConfig.setIp(getFireWallEntity.getIp());
+//                fireWallConfig.setPort(getFireWallEntity.getPort());
+//                firewallConfigMap.put(id, fireWallConfig);
+//                log.info("get firewall ip:{}, port:{}, passwd:{}, user:{}", fireWallConfig.getIp(),
+//                        fireWallConfig.getPort(), getFireWallEntity.getUser(), getFireWallEntity.getPasswd());
+//            } else {
+//                log.warn("Failed to find the firewall by id:{}", id);
+//            }
+//        }
+//
+//        return firewallConfigMap.get(id);
+//    }
+
+
     Firewall getFireWallById(String id) {
         if (!firewallConfigMap.containsKey(id)) {
 
-            Optional<Firewall> firewall = firewallRepository.findById(id);
-            if (firewall.isPresent()) {
                 Firewall fireWallConfig = new Firewall();
-                Firewall getFireWallEntity = firewall.get();
 
-                fireWallConfig.setUser(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getUser()));
-                fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getPasswd()));
-                fireWallConfig.setIp(getFireWallEntity.getIp());
-                fireWallConfig.setPort(getFireWallEntity.getPort());
+                fireWallConfig.setUser(JaspytUtils.decyptPwd(secretKey, firewallUser));
+                fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, firewallPasswd));
+                fireWallConfig.setIp(firewallIp);
+                fireWallConfig.setPort(firewallPort);
                 firewallConfigMap.put(id, fireWallConfig);
-                log.info("get firewall ip:{}, port:{}, passwd:{}, user:{}", fireWallConfig.getIp(),
-                        fireWallConfig.getPort(), getFireWallEntity.getUser(), getFireWallEntity.getPasswd());
-            } else {
-                log.warn("Failed to find the firewall by id:{}", id);
-            }
-        }
+                log.info("get firewall ip:{}, port:{}, passwd:{}, user:{}", firewallIp,
+                        firewallPort, firewallUser, firewallPasswd);
 
+        }
         return firewallConfigMap.get(id);
     }
+
+
+
+
+
 
     String addDnat(String innerip, String extip, String equipid) {
         String ruleid = cmdAddDnat(innerip, extip, equipid);
