@@ -17,6 +17,7 @@ import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -29,6 +30,12 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class EipDaoService {
+
+
+    @Value("${flpnetworkId}")
+    private String flpnetworkId;
+
+
     @Autowired
     private EipPoolRepository eipPoolRepository;
 
@@ -291,16 +298,16 @@ public class EipDaoService {
             }
 
             if(null == fip && instanceType.equals(HsConstants.ECS)) {
-                String networkId = getExtNetId(eip.getRegion());
-                if (null == networkId) {
+//                String networkId = getExtNetId(eip.getRegion());
+                if (null == flpnetworkId) {
                     log.error("Failed to get external net in region:{}. ", eip.getRegion());
                     return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE,
                             CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
                 }
-                floatingIP = neutronService.createAndAssociateWithFip(eip.getRegion(), networkId, portId, eip, serverId);
+                floatingIP = neutronService.createAndAssociateWithFip(eip.getRegion(), flpnetworkId, portId, eip, serverId);
                 if (null == floatingIP) {
                     log.error("Fatal Error! Can not get floating when bind ip in network:{}, region:{}, portId:{}.",
-                            networkId, eip.getRegion(), portId);
+                            flpnetworkId, eip.getRegion(), portId);
                     return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE,
                             CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
                 }
