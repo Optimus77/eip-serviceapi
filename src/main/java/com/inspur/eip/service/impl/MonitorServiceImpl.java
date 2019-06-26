@@ -8,7 +8,7 @@ import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.FirewallService;
 import com.inspur.eip.service.MonitorService;
-import com.inspur.eip.util.HsConstants;
+import com.inspur.eip.util.constant.HsConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

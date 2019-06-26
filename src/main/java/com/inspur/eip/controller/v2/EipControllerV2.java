@@ -4,12 +4,10 @@ import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.LogLevel;
-import com.inspur.eip.entity.eip.*;
 import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.service.impl.SbwServiceImpl;
-import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.ReturnMsgUtil;
-import com.inspur.eip.util.ReturnStatus;
+import com.inspur.eip.util.constant.ReturnStatus;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +26,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Size;
 import java.util.List;
 
 

@@ -10,7 +10,11 @@ import com.inspur.eip.exception.EipInternalServerException;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.repository.SbwRepository;
-import com.inspur.eip.util.*;
+import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.common.JaspytUtils;
+import com.inspur.eip.util.common.MethodReturnUtil;
+import com.inspur.eip.util.constant.HsConstants;
+import com.inspur.eip.util.constant.ReturnStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -18,7 +22,6 @@ import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

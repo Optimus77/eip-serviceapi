@@ -1,9 +1,10 @@
-package com.inspur.eip.util;
+package com.inspur.eip.util.common;
 
 
 import com.inspur.eip.entity.MethodReturn;
 import com.inspur.eip.entity.MethodSbwReturn;
 import com.inspur.eip.entity.sbw.MethodEipV6Return;
+import com.inspur.eip.util.constant.ReturnStatus;
 
 public class MethodReturnUtil {
 

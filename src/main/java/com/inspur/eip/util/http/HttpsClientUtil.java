@@ -1,4 +1,4 @@
-package com.inspur.eip.util;
+package com.inspur.eip.util.http;
 
 import java.io.IOException;
 import java.net.URI;
@@ -16,7 +16,10 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import org.apache.http.HttpResponse;
+import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.exception.EipException;
+import com.inspur.eip.util.ReturnResult;
+import com.inspur.eip.util.constant.HsConstants;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -50,7 +53,7 @@ public class HttpsClientUtil {
 	static boolean ignoreSSL = Boolean.TRUE;
 
 
-	public static ReturnResult doGet(String url, Map<String, String> header) throws  EipException{
+	public static ReturnResult doGet(String url, Map<String, String> header) throws EipException {
 
 		// 创建Httpclient对象
 		CloseableHttpClient httpclient = getHttpsClient();

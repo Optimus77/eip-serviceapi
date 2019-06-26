@@ -10,9 +10,11 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.util.*;
 
-import com.inspur.eip.entity.MethodReturn;
 import com.inspur.eip.entity.Qos.*;
-import com.inspur.eip.util.*;
+import com.inspur.eip.util.common.IpUtil;
+import com.inspur.eip.util.constant.HillStoneConfigConsts;
+import com.inspur.eip.util.constant.HsConstants;
+import com.inspur.eip.util.http.HsHttpClient;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -20,7 +22,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpStatus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -349,10 +350,8 @@ public class QosService {
      * @param action     //true :disable  false:no disable
      * @return
      */
-    MethodReturn controlPipe(String fireWallId, String pipeName, Boolean action){
+    boolean controlPipe(String fireWallId, String pipeName, Boolean action){
         String msg = null;
-        String returnStat = "200";
-
         String cmd =null;
         if (action){
             cmd = disablePipe(pipeName);
@@ -361,11 +360,10 @@ public class QosService {
         }
          msg = fwCmdService.execCustomCommand(fireWallId, cmd, null);
         if (msg ==null){
-            return MethodReturnUtil.success();
-        }else if (msg.contains("error")){
-            return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, "execute disable qos error:"+msg);
+            return true;
         }
-        return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, "execute cmd meet An unknown error:"+msg);
+        //管道不存在 | 禁用或者启用管道失败
+        return false;
     }
 
     private String disablePipe(String pipeName){

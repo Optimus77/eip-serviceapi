@@ -10,12 +10,17 @@ import com.inspur.eip.entity.eip.Resourceset;
 import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.entity.sbw.SbwReturnBase;
 import com.inspur.eip.entity.sbw.SbwReturnDetail;
+import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.EipV6Repository;
 import com.inspur.eip.repository.SbwRepository;
 import com.inspur.eip.service.ISbwService;
 import com.inspur.eip.service.SbwDaoService;
 import com.inspur.eip.util.*;
+import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.constant.ErrorStatus;
+import com.inspur.eip.util.constant.HsConstants;
+import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -51,8 +56,6 @@ public class SbwServiceImpl implements ISbwService {
     @Override
     public ResponseEntity atomCreateSbw(SbwUpdateParam sbwConfig, String token) {
 
-        String code;
-        String msg;
         try {
             Sbw sbwMo = sbwDaoService.allocateSbw(sbwConfig, token);
             if (null != sbwMo) {
@@ -61,14 +64,12 @@ public class SbwServiceImpl implements ISbwService {
                 log.info("Create a sbw success:{}", sbwMo);
                 return new ResponseEntity<>(sbwInfo, HttpStatus.OK);
             } else {
-                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-                msg = "Failed to create sbw :{}" + sbwConfig;
-                log.error(msg);
+                log.error("Failed to create sbw :{}" + sbwConfig);
             }
         } catch (Exception e) {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 
@@ -186,10 +187,10 @@ public class SbwServiceImpl implements ISbwService {
     @ICPServiceLog
     public ActionResponse updateSbwConfig(String sbwId, SbwUpdateParam param, String token) {
         try {
-            if (StringUtils.isBlank(sbwId)){
-                ActionResponse.actionFailed(ErrorStatus.PARAM_CAN_NOT_BE_NULL.getMessage()+" sbwId:"+ sbwId+ " bandWidth:"+param.getBandwidth(),HttpStatus.BAD_REQUEST.value());
+            if (StringUtils.isNotBlank(sbwId) && HsConstants.UUID_LENGTH.length() == sbwId.length()){
+                return sbwDaoService.updateSbwEntity(sbwId, param, token);
             }else {
-               return sbwDaoService.updateSbwEntity(sbwId, param, token);
+                ActionResponse.actionFailed(ErrorStatus.PARAM_CAN_NOT_BE_NULL.getMessage()+" sbwId:"+ sbwId+ " bandWidth:"+param.getBandwidth(),HttpStatus.BAD_REQUEST.value());
             }
         } catch (Exception e) {
             log.error("Exception in update Sbw Config", e);
@@ -228,7 +229,7 @@ public class SbwServiceImpl implements ISbwService {
             if (StringUtils.isBlank(sbwId)|| StringUtils.isBlank(renewTime)) {
                 return ActionResponse.actionFailed(ErrorStatus.PARAM_CAN_NOT_BE_NULL.getMessage()+" sbwId:"+ sbwId+ " duration:"+ updateParam.getDuration(),HttpStatus.BAD_REQUEST.value());
             } else if (Integer.parseInt(renewTime) > 0) {
-                return sbwDaoService.renewSbwEntity(sbwId, token);
+                return sbwDaoService.renewSbwInfo(sbwId, token);
             }
         } catch (Exception e) {
             log.error("Exception in restart sbw service:{}", e.getMessage());

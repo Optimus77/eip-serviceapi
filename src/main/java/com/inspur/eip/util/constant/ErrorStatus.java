@@ -1,4 +1,4 @@
-package com.inspur.eip.util;
+package com.inspur.eip.util.constant;
 
 /**
  * @Description TODO
@@ -141,6 +141,9 @@ public enum ErrorStatus {
      * FireWall config error
      */
     FIREWALL_NOT_FOND_IN_DB("106.994400", "Failed to find FireWall config  in db! -"),
+
+
+    VALIADATE_NAME_ERROR("106.994400", "Valiadte Illegal name! -"),
 
     /**
      * add qos in firewall

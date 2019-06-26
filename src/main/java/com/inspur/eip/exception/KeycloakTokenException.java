@@ -1,4 +1,4 @@
-package com.inspur.eip.util;
+package com.inspur.eip.exception;
 
 /**
  * @author: jiasirui

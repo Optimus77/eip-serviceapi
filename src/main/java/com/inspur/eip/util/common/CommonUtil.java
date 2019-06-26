@@ -1,4 +1,4 @@
-package com.inspur.eip.util;
+package com.inspur.eip.util.common;
 
 
 import com.alibaba.fastjson.JSON;
@@ -7,6 +7,10 @@ import com.inspur.eip.config.CodeInfo;
 import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.ReturnMsg;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
+import com.inspur.eip.exception.KeycloakTokenException;
+import com.inspur.eip.util.ReturnMsgUtil;
+import com.inspur.eip.util.constant.HsConstants;
+import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.icp.common.util.Base64Util;
 import com.inspur.icp.common.util.OSClientUtil;
 import lombok.Setter;
@@ -28,7 +32,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.inspur.eip.util.HsConstants.SCHEDULETIME;
+import static com.inspur.eip.util.constant.HsConstants.SCHEDULETIME;
 
 @Slf4j
 @Component

@@ -9,7 +9,11 @@ import com.inspur.eip.entity.sbw.SbwReturnBase;
 import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.SbwDaoService;
 import com.inspur.eip.service.WebControllerService;
-import com.inspur.eip.util.*;
+import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.constant.ConstantClassField;
+import com.inspur.eip.util.constant.ErrorStatus;
+import com.inspur.eip.util.constant.HsConstants;
+import com.inspur.eip.util.constant.ReturnStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
@@ -22,8 +26,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.inspur.eip.util.CommonUtil.preCheckParam;
-import static com.inspur.eip.util.CommonUtil.preSbwCheckParam;
+import static com.inspur.eip.util.common.CommonUtil.preCheckParam;
+import static com.inspur.eip.util.common.CommonUtil.preSbwCheckParam;
 
 /**
  * @Description convert to mq

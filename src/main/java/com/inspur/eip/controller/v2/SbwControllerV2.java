@@ -4,6 +4,9 @@ import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.*;
+import com.inspur.eip.util.constant.ErrorStatus;
+import com.inspur.eip.util.constant.HsConstants;
+import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -11,7 +14,6 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,7 +24,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Size;
 import java.util.List;
 
 @Slf4j

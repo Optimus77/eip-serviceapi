@@ -1,4 +1,4 @@
-package com.inspur.eip.util;
+package com.inspur.eip.util.constant;
 
 public class HillStoneConfigConsts {
     //Enter commond

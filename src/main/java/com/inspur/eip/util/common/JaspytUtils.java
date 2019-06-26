@@ -1,4 +1,4 @@
-package com.inspur.eip.util;
+package com.inspur.eip.util.common;
 
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
 import org.jasypt.encryption.pbe.StandardPBEByteEncryptor;
