@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,10 @@ import java.util.stream.Stream;
 @Slf4j
 @Service
 public class SbwDaoService {
+
+    @Value("${firewallId}")
+    private String firewallId;
+
     @Autowired
     private SbwRepository sbwRepository;
 
@@ -58,12 +63,12 @@ public class SbwDaoService {
             if (!ValidatorUtil.isLINE_STANDARD_STR(sbwConfig.getSbwName())){
                 throw new EipBadRequestException(ErrorStatus.VALIADATE_NAME_ERROR.getCode(),ErrorStatus.VALIADATE_NAME_ERROR.getMessage());
             }
-            Firewall firewall = firewallRepository.findFirewallByRegion(sbwConfig.getRegion());
-            if (firewall == null) {
-                log.warn(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage());
-                return null;
-            }
-            Boolean qosResult = firewallService.cmdAddSbwQos(sbwId, String.valueOf(sbwConfig.getBandwidth()), firewall.getId());
+//            Firewall firewall = firewallRepository.findFirewallByRegion(sbwConfig.getRegion());
+//            if (firewall == null) {
+//                log.warn(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage());
+//                return null;
+//            }
+            Boolean qosResult = firewallService.cmdAddSbwQos(sbwId, String.valueOf(sbwConfig.getBandwidth()), firewallId);
             // 防火墙qos添加成功
             if (qosResult) {
                 Sbw sbw = Sbw.builder().sbwId(sbwId)
@@ -128,15 +133,15 @@ public class SbwDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
         }
-        Firewall firewall = firewallRepository.findFirewallByRegion(sbwBean.getRegion());
-        if (firewall == null) {
-            log.warn(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbwBean.getRegion());
-            return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbwBean.getRegion(), HttpStatus.SC_BAD_REQUEST);
-        }
+//        Firewall firewall = firewallRepository.findFirewallByRegion(sbwBean.getRegion());
+//        if (firewall == null) {
+//            log.warn(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbwBean.getRegion());
+//            return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbwBean.getRegion(), HttpStatus.SC_BAD_REQUEST);
+//        }
         // 防火墙qos存在，删除防火墙qos
         if (StringUtils.isNotBlank(sbwBean.getPipeId())) {
             //根据qos名称删除qos,pipeId即是sbwId
-            boolean delQos = firewallService.cmdDelSbwQos(sbwBean.getPipeId(), firewall.getId());
+            boolean delQos = firewallService.cmdDelSbwQos(sbwBean.getPipeId(), firewallId);
             if (delQos) {
                 sbwBean.setIsDelete(1);
                 sbwBean.setStatus(HsConstants.DELETE);
@@ -178,13 +183,13 @@ public class SbwDaoService {
             log.error(ErrorStatus.EIP_IN_SBW_SO_THAT_CAN_NOT_DELETE.getMessage(), HttpStatus.SC_BAD_REQUEST);
             return ActionResponse.actionFailed(ErrorStatus.EIP_IN_SBW_SO_THAT_CAN_NOT_DELETE.getMessage(), HttpStatus.SC_FORBIDDEN);
         }
-        Firewall firewall = firewallRepository.findFirewallByRegion(sbwBean.getRegion());
-        if (firewall == null) {
-            log.warn(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbwBean.getRegion());
-            return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbwBean.getRegion(), HttpStatus.SC_BAD_REQUEST);
-        }
+//        Firewall firewall = firewallRepository.findFirewallByRegion(sbwBean.getRegion());
+//        if (firewall == null) {
+//            log.warn(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbwBean.getRegion());
+//            return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbwBean.getRegion(), HttpStatus.SC_BAD_REQUEST);
+//        }
         if (StringUtils.isNotBlank(sbwBean.getPipeId())) {
-            boolean delQos = firewallService.delQos(sbwBean.getPipeId(), null, null, firewall.getId());
+            boolean delQos = firewallService.delQos(sbwBean.getPipeId(), null, null, firewallId);
             if (delQos) {
                 sbwBean.setIsDelete(1);
                 sbwBean.setStatus(HsConstants.DELETE);
@@ -218,14 +223,14 @@ public class SbwDaoService {
 //            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
 //            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
 //        }
-        Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
-        if (firewall == null) {
-            log.warn(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbw.getRegion());
-            return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbw.getRegion(), HttpStatus.SC_BAD_REQUEST);
-        }
+//        Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
+//        if (firewall == null) {
+//            log.warn(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbw.getRegion());
+//            return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbw.getRegion(), HttpStatus.SC_BAD_REQUEST);
+//        }
         if (StringUtils.isNotEmpty(sbw.getStatus()) && HsConstants.ACTIVE.equalsIgnoreCase(sbw.getStatus())) {
             if (StringUtils.isNotEmpty(sbw.getPipeId())){
-                boolean stop = qosService.controlPipe(firewall.getId(), sbw.getPipeId(), true);
+                boolean stop = qosService.controlPipe(firewallId, sbw.getPipeId(), true);
                 if (stop) {
                     sbw.setUpdateTime(CommonUtil.getGmtDate());
                     sbw.setStatus(HsConstants.STOP);
@@ -269,14 +274,14 @@ public class SbwDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
         }
-        Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
-        if (firewall == null) {
-            log.warn(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbw.getRegion());
-            return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbw.getRegion(), HttpStatus.SC_BAD_REQUEST);
-        }
+//        Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
+//        if (firewall == null) {
+//            log.warn(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbw.getRegion());
+//            return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbw.getRegion(), HttpStatus.SC_BAD_REQUEST);
+//        }
         if (StringUtils.isNotEmpty(sbw.getStatus()) && HsConstants.STOP.equalsIgnoreCase(sbw.getStatus()) ) {
             if (StringUtils.isNotEmpty(sbw.getPipeId())){
-                boolean enable = qosService.controlPipe(firewall.getId(), sbwId, false);
+                boolean enable = qosService.controlPipe(firewallId, sbwId, false);
                 if (enable) {
                     sbw.setUpdateTime(CommonUtil.getGmtDate());
                     sbw.setStatus(HsConstants.ACTIVE);
@@ -314,15 +319,15 @@ public class SbwDaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
         }
-        Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
-        if (firewall == null) {
-            msg = "Can't find firewall by sbw region:{}" + sbw.getRegion();
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
-        }
+//        Firewall firewall = firewallRepository.findFirewallByRegion(sbw.getRegion());
+//        if (firewall == null) {
+//            msg = "Can't find firewall by sbw region:{}" + sbw.getRegion();
+//            log.error(msg);
+//            return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
+//        }
         if (StringUtils.isNotEmpty(sbw.getStatus()) && HsConstants.STOP.equalsIgnoreCase(sbw.getStatus()) ) {
             if (StringUtils.isNotEmpty(sbw.getPipeId())){
-                boolean resume = qosService.controlPipe(firewall.getId(), sbwId, false);
+                boolean resume = qosService.controlPipe(firewallId, sbwId, false);
                 if (resume) {
                     sbw.setUpdateTime(CommonUtil.getGmtDate());
                     sbw.setStatus(HsConstants.ACTIVE);
@@ -394,12 +399,12 @@ public class SbwDaoService {
             sbwRepository.saveAndFlush(sbwEntity);
             return ActionResponse.actionSuccess();
         }
-        Firewall firewall = firewallRepository.findFirewallByRegion(sbwEntity.getRegion());
-        if (firewall == null) {
-            log.warn(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbwEntity.getRegion());
-            return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbwEntity.getRegion(), HttpStatus.SC_BAD_REQUEST);
-        }
-        boolean updateStatus = firewallService.updateQosBandWidth(firewall.getId(), sbwEntity.getPipeId(), sbwEntity.getSbwId(), String.valueOf(param.getBandwidth()), null, null);
+//        Firewall firewall = firewallRepository.findFirewallByRegion(sbwEntity.getRegion());
+//        if (firewall == null) {
+//            log.warn(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbwEntity.getRegion());
+//            return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbwEntity.getRegion(), HttpStatus.SC_BAD_REQUEST);
+//        }
+        boolean updateStatus = firewallService.updateQosBandWidth(firewallId, sbwEntity.getPipeId(), sbwEntity.getSbwId(), String.valueOf(param.getBandwidth()), null, null);
         if (updateStatus || CommonUtil.qosDebug) {
             sbwEntity.setBandWidth(param.getBandwidth());
             sbwEntity.setUpdateTime(CommonUtil.getGmtDate());
