@@ -167,7 +167,7 @@ public class EipController {
 
     @GetMapping(value = "/eips/search")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="getEipByInstanceId",notes="get")
+    @ApiOperation(value="getEipByInstanceIdV2",notes="get")
     public ResponseEntity getEipByInstanceId(@RequestParam(required = false) String resourceid,
                                              @RequestParam(required = false) String eipaddress,
                                              @RequestParam(required = false) String key)  {

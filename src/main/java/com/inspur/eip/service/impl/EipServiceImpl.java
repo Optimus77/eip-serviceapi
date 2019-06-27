@@ -380,7 +380,7 @@ public class EipServiceImpl implements IEipService {
      * @return the json result
      */
     @Override
-    public ResponseEntity getEipByInstanceId(String instanceId) {
+    public ResponseEntity getEipByInstanceIdV2(String instanceId) {
 
         try {
             Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
@@ -393,6 +393,33 @@ public class EipServiceImpl implements IEipService {
                         .resourceId(eipEntity.getInstanceId())
                         .resourceType(eipEntity.getInstanceType()).build());
                 return new ResponseEntity<>(eipReturnDetail, HttpStatus.OK);
+            } else {
+                log.debug("Failed to find eip by instance id, instanceId:{}", instanceId);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "can not find instance by this id:" + instanceId + ""),
+                        HttpStatus.NOT_FOUND);
+            }
+
+        } catch (Exception e) {
+            log.error("Exception in getEipByInstanceIdV2", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    /* V1 Controller use  will be deleted*/
+    @Override
+    public ResponseEntity getEipByInstanceId(String instanceId) {
+
+        try {
+            Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
+
+            if (null != eipEntity) {
+                EipReturnDetail eipReturnDetail = new EipReturnDetail();
+
+                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                eipReturnDetail.setResourceset(Resourceset.builder()
+                        .resourceId(eipEntity.getInstanceId())
+                        .resourceType(eipEntity.getInstanceType()).build());
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
             } else {
                 log.debug("Failed to find eip by instance id, instanceId:{}", instanceId);
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
@@ -414,7 +441,7 @@ public class EipServiceImpl implements IEipService {
      * @return the json result
      */
     @Override
-    public ResponseEntity getEipByIpAddress(String eip) {
+    public ResponseEntity getEipByIpAddressV2(String eip) {
 
         try {
 
@@ -435,7 +462,34 @@ public class EipServiceImpl implements IEipService {
                         HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            log.error("Exception in getEipByIpAddress", e);
+            log.error("Exception in getEipByIpAddressV2", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity getEipByIpAddress(String eip) {
+
+        try {
+
+            Eip eipEntity = eipDaoService.findByEipAddress(eip);
+
+            if (null != eipEntity) {
+                EipReturnDetail eipReturnDetail = new EipReturnDetail();
+
+                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                eipReturnDetail.setResourceset(Resourceset.builder()
+                        .resourceId(eipEntity.getInstanceId())
+                        .resourceType(eipEntity.getInstanceType()).build());
+                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+            } else {
+                log.warn("Failed to find eip by eip, eip:{}", eip);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "can not find eip by this eip address:" + eip + ""),
+                        HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            log.error("Exception in getEipByIpAddressV2", e);
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -684,6 +738,7 @@ public class EipServiceImpl implements IEipService {
         }
 
     }
+    /* V1.1  Controller use*/
     @Override
     public ResponseEntity getEipDetailsByIpAddress(String eipAddress) {
         JSONObject data=new JSONObject();
@@ -706,6 +761,4 @@ public class EipServiceImpl implements IEipService {
         }
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
-
-
 }

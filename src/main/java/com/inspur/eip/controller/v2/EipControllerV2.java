@@ -155,7 +155,7 @@ public class EipControllerV2 {
 
     @GetMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="getEipByInstanceId",notes="get")
+    @ApiOperation(value="getEipByConditions",notes="get")
     public ResponseEntity getEipByInstanceIdSecond(@RequestParam(required = false) String resourceId,
                                                    @RequestParam(required = false) String eipAddress,
                                                    @RequestParam(required = false) String key)  {
@@ -164,7 +164,7 @@ public class EipControllerV2 {
             return new ResponseEntity<>("To be wrong.", HttpStatus.FORBIDDEN);
         } else if(resourceId != null) {
             log.info("EipController get eip by instance id:{} ", resourceId);
-            return eipService.getEipByInstanceId(resourceId);
+            return eipService.getEipByInstanceIdV2(resourceId);
         } else if (null != eipAddress){
             log.debug("EipController get eip by ip:{} ", eipAddress);
             if(null != key){
@@ -172,7 +172,7 @@ public class EipControllerV2 {
                     return eipService.getEipDetailsByIpAddress(eipAddress);
                 }
             }
-            return eipService.getEipByIpAddress(eipAddress);
+            return eipService.getEipByIpAddressV2(eipAddress);
         }
         return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
     }
