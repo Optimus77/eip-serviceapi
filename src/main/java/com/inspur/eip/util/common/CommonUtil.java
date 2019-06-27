@@ -253,7 +253,7 @@ public class CommonUtil {
             errorMsg = errorMsg + "can not be blank.";
         }
         if(errorMsg.equals(" ")) {
-            log.info(errorMsg);
+            log.debug(errorMsg);
             return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
         }else {
             log.error(errorMsg);

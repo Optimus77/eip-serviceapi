@@ -349,6 +349,9 @@ public class SbwDaoService {
     @Transactional(rollbackFor = Exception.class)
     public Sbw renameSbw(String sbwId, SbwUpdateParam param) {
         String newSbwName = param.getSbwName();
+        if (!ValidatorUtil.isLINE_STANDARD_STR(newSbwName)){
+            throw new EipBadRequestException(ErrorStatus.VALIADATE_NAME_ERROR.getCode(),ErrorStatus.VALIADATE_NAME_ERROR.getMessage());
+        }
         Sbw sbw = null;
         try {
             sbw = sbwRepository.findBySbwId(sbwId);
@@ -363,6 +366,7 @@ public class SbwDaoService {
             sbw.setSbwName(newSbwName);
             sbw.setUpdateTime(CommonUtil.getGmtDate());
             sbwRepository.saveAndFlush(sbw);
+            log.info(ConstantClassField.UPDATE_SBW_CONFIG_SUCCESS);
         } catch (KeycloakTokenException e) {
             log.error(ConstantClassField.EXCEPTION_SBW_RENAEM, e.getMessage());
         }
@@ -527,6 +531,7 @@ public class SbwDaoService {
         if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)) {
             log.info("FirewallId: " + eipEntity.getFirewallId() + " FloatingIp: " + eipEntity.getFloatingIp() + " sbwId: " + sbwId);
             if (eipUpdateParam.getBandwidth() != eipEntity.getOldBandWidth()) {
+                log.error(ErrorStatus.SC_PARAM_ERROR.getMessage()+"bandwidth:{}",eipUpdateParam.getBandwidth());
                 return ActionResponse.actionFailed("Update param bandwidth error.", HttpStatus.SC_BAD_REQUEST);
             }
             newPipId = firewallService.addQos(eipEntity.getFloatingIp(), eipEntity.getEipAddress(), String.valueOf(eipUpdateParam.getBandwidth()),

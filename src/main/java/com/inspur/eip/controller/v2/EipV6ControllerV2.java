@@ -102,7 +102,7 @@ public class EipV6ControllerV2 {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eipv6_id", value = "the id of eipv6", required = true, dataType = "String"),
     })
-    public ResponseEntity geteipV6Detail(@PathVariable("eipv6_id") String eipV6Id) {
+    public ResponseEntity getEipV6Detail(@PathVariable("eipv6_id") String eipV6Id) {
         return eipV6Service.getEipV6Detail(eipV6Id);
     }
 

@@ -10,6 +10,7 @@ import com.inspur.eip.entity.eip.Resourceset;
 import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.entity.sbw.SbwReturnBase;
 import com.inspur.eip.entity.sbw.SbwReturnDetail;
+import com.inspur.eip.exception.EipBadRequestException;
 import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.EipV6Repository;
@@ -337,10 +338,10 @@ public class SbwServiceImpl implements ISbwService {
                 Sbw sbwBean = sbwDaoService.renameSbw(sbwId, param);
                 BeanUtils.copyProperties(sbwBean, sbwReturnDetail);
                 sbwReturnDetail.setIpCount((int) eipRepository.countBySbwIdAndIsDelete(sbwId, 0));
-                return new ResponseEntity<>(ReturnMsgUtil.success(sbwReturnDetail),HttpStatus.OK);
+                return new ResponseEntity<>(sbwReturnDetail,HttpStatus.OK);
             }
         } catch (Exception e) {
-            log.error("Exception in rename sbw", e.getMessage());
+            log.error("Exception in rename sbw:{}", e.getMessage());
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(),ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }

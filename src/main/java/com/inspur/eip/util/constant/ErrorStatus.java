@@ -108,12 +108,12 @@ public enum ErrorStatus {
     /**
      * Unauthorized: osClientV3 is null!
      */
-    ENTITY_INTERNAL_SERVER_ERROR("106.999500", "ENTITY_INTERNAL_SERVER_ERROR!"),
+    ENTITY_INTERNAL_SERVER_ERROR("106.999500", "System internal server error!"),
 
     /**
      * ENTITY_BADREQUEST_ERROR
      */
-    ENTITY_BADREQUEST_ERROR("106.000400","ENTITY_BADREQUEST_ERROR"),
+    ENTITY_BADREQUEST_ERROR("106.000400","Entity bad request error"),
 
     /**
      * ENTITY_ILLEGAL_ARGUMENT_ERROR

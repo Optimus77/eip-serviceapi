@@ -27,13 +27,13 @@ public final class ConstantClassField {
     public static final String PARSE_JSON_IO_ERROR = "parse message io error! param : %s";
     public static final String BILL_TYPE_NOT_SUPPORT = "bill type not support,must be [monthly |hourlySettlement]";
 
-    public static final String CREAT_EIP_CONFIG_FAILED = "Create eip config result Failed";
+    public static final String CREAT_EIP_CONFIG_FAILED = "Create eip config result Failed:{}";
     public static final String CREAT_EIP_CONFIG_SUCCESS = "Create eip config result Success";
-    public static final String DELETE_EIP_CONFIG_FAILED = "Delete eip config result Failed";
+    public static final String DELETE_EIP_CONFIG_FAILED = "Delete eip config result Failed:{}";
     public static final String DELETE_EIP_CONFIG_SUCCESS = "Delete eip config result Success";
-    public static final String UPDATE_EIP_CONFIG_FAILED = "Update eip config result Failed";
+    public static final String UPDATE_EIP_CONFIG_FAILED = "Update eip config result Failed:{}";
     public static final String UPDATE_EIP_CONFIG_SUCCESS = "Update eip config result Success";
-    public static final String SOFTDOWN_OR_DELETE_EIP_CONFIG_RESULT = "Softdown or delete eip config result Result";
+    public static final String SOFTDOWN_OR_DELETE_EIP_CONFIG_RESULT = "Softdown or delete eip config result Result:{}";
 
 
     /**

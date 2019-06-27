@@ -392,7 +392,7 @@ public class EipServiceImpl implements IEipService {
                 eipReturnDetail.setResourceset(Resourceset.builder()
                         .resourceId(eipEntity.getInstanceId())
                         .resourceType(eipEntity.getInstanceType()).build());
-                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+                return new ResponseEntity<>(eipReturnDetail, HttpStatus.OK);
             } else {
                 log.debug("Failed to find eip by instance id, instanceId:{}", instanceId);
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
@@ -427,14 +427,13 @@ public class EipServiceImpl implements IEipService {
                 eipReturnDetail.setResourceset(Resourceset.builder()
                         .resourceId(eipEntity.getInstanceId())
                         .resourceType(eipEntity.getInstanceType()).build());
-                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+                return new ResponseEntity<>(eipReturnDetail, HttpStatus.OK);
             } else {
                 log.warn("Failed to find eip by eip, eip:{}", eip);
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
                         "can not find eip by this eip address:" + eip + ""),
                         HttpStatus.NOT_FOUND);
             }
-
         } catch (Exception e) {
             log.error("Exception in getEipByIpAddress", e);
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);

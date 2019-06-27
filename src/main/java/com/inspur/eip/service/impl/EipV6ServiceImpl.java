@@ -46,9 +46,6 @@ public class EipV6ServiceImpl implements IEipV6Service {
     private EipRepository eipRepository;
 
     @Autowired
-    private FireWallCommondService fireWallCommondService;
-
-    @Autowired
     private NatPtService natPtService;
 
 
@@ -76,7 +73,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 EipV6ReturnBase eipInfo = new EipV6ReturnBase();
                 BeanUtils.copyProperties(eipMo, eipInfo);
                 log.info("Atom create a eipv6 success:{}", eipMo);
-                return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
+                return new ResponseEntity<>(eipInfo, HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 msg = "Failed to create eipv6 " ;
@@ -244,7 +241,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                     eipV6ReturnDetail.setEipChargeType(eip.getBillType());
                     eipV6ReturnDetail.setEipId(eip.getEipId());
 
-                    return new ResponseEntity<>(ReturnMsgUtil.success(eipV6ReturnDetail), HttpStatus.OK);
+                    return new ResponseEntity<>(eipV6ReturnDetail, HttpStatus.OK);
                 }
             } else {
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
