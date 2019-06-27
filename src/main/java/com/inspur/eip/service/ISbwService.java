@@ -18,5 +18,7 @@ public interface ISbwService {
 
     ActionResponse updateSbwConfig(String id, SbwUpdateParam param, String token);
 
-    ResponseEntity getSbwCount();
+    ResponseEntity countSbwNumsByProjectId();
+
+    ResponseEntity countSbwNumsByStatus(String status);
 }

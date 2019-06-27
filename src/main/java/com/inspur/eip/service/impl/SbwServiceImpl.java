@@ -202,18 +202,38 @@ public class SbwServiceImpl implements ISbwService {
 
     @Override
     @ICPServiceLog
-    public ResponseEntity getSbwCount() {
+    public ResponseEntity countSbwNumsByProjectId() {
         try {
             String projectid = CommonUtil.getUserId();
             long num = sbwRepository.countByProjectIdAndIsDelete(projectid, 0);
-
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, HsConstants.SUCCESS, num), HttpStatus.OK);
         } catch (KeycloakTokenException e) {
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ErrorStatus.SC_FORBIDDEN.getCode(), ErrorStatus.SC_FORBIDDEN.getMessage(), null), HttpStatus.UNAUTHORIZED);
-        } catch (Exception e) {
-            log.error("Exception in listShareBandWidth", e.getMessage());
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ErrorStatus.SC_INTERNAL_SERVER_ERROR.getCode(),ErrorStatus.SC_INTERNAL_SERVER_ERROR.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("KeycloakTokenException in count sbw nums:{}", e.getMessage());
         }
+        return new ResponseEntity<>(ReturnMsgUtil.msg(ErrorStatus.SC_FORBIDDEN.getCode(), ErrorStatus.SC_FORBIDDEN.getMessage(), null), HttpStatus.UNAUTHORIZED);
+    }
+
+    /**
+     * 可通过状态统计用户下的sbw实例数量
+     * @param status ：ACTIVE | STOP | DELETE
+     * @return
+     */
+    @Override
+    public ResponseEntity countSbwNumsByStatus(String status){
+        try {
+            String projectId = CommonUtil.getUserId();
+            if (status.equals(HsConstants.ACTIVE) || status.equals(HsConstants.STOP)|| status.equals(HsConstants.DELETE)){
+                long num = sbwRepository.countByStatusAndProjectIdAndIsDelete(status, projectId, 0);
+                log.info("Atom get Sbw Count loading……:{}",num);
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, HsConstants.SUCCESS, num), HttpStatus.OK);
+            }else {
+                log.warn(ErrorStatus.SC_PARAM_NOTFOUND +":{}",status);
+                throw new EipBadRequestException(ErrorStatus.SC_PARAM_NOTFOUND.getCode(),ErrorStatus.SC_PARAM_NOTFOUND.getMessage());
+            }
+        } catch (KeycloakTokenException e) {
+            log.error("KeycloakTokenException in count sbw nums by status:{}", e.getMessage());
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.msg(ErrorStatus.SC_FORBIDDEN.getCode(), ErrorStatus.SC_FORBIDDEN.getMessage(), null), HttpStatus.UNAUTHORIZED);
     }
 
     /**

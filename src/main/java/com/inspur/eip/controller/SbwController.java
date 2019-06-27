@@ -88,7 +88,7 @@ public class SbwController {
     public ResponseEntity getSbwCount() {
 
         log.info("Atom get Sbw Count loading……");
-        return sbwService.getSbwCount();
+        return sbwService.countSbwNumsByProjectId();
     }
 
 

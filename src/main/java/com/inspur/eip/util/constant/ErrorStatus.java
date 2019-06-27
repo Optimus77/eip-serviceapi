@@ -9,13 +9,13 @@ public enum ErrorStatus {
     /**
      * SC_PARAM_ERROR
      */
-    SC_PARAM_ERROR("106.999400", "SC_PARAM_ERROR!"),
+    SC_PARAM_ERROR("106.999400", "sc param error!"),
 
-    SC_PARAM_NOTFOUND("106.998400", "SC_PARAM_NOTFOUND!"),
+    SC_PARAM_NOTFOUND("106.998400", "sc param not found!"),
 
-    SC_PARAM_UNKONWERROR("106.997400","SC_PARAM_UNKONWERROR!"),
+    SC_PARAM_UNKONWERROR("106.997400","sc param unkonwerror!"),
 
-    SC_RESOURCE_ERROR("106.994400","SC_RESOURCE_ERROR!"),
+    SC_RESOURCE_ERROR("106.994400","sc resource error!"),
     /**
      * SC_RESOURCE_NOTENOUGH
      */
