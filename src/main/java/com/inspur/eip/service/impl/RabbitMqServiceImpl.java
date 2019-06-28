@@ -485,7 +485,7 @@ public class RabbitMqServiceImpl {
         List<OrderProduct> orderProducts = eipOrder.getProductList();
 
         eipAllocateParam.setBillType(eipOrder.getBillType());
-        eipAllocateParam.setChargemode(HsConstants.CHARGE_MODE_BANDWIDTH);
+        eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
 
         for (OrderProduct orderProduct : orderProducts) {
             if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
@@ -498,10 +498,10 @@ public class RabbitMqServiceImpl {
                 if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
                     eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
                 } else if (orderProductItem.getCode().equals(HsConstants.PROVIDER)) {
-                    eipAllocateParam.setIptype(orderProductItem.getValue());
+                    eipAllocateParam.setIpType(orderProductItem.getValue());
                 } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
                         orderProductItem.getValue().equals(HsConstants.YES)) {
-                    eipAllocateParam.setChargemode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
+                    eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
                 } else if (orderProductItem.getCode().equals(HsConstants.WITH_IPV6) &&
                         orderProductItem.getValue().equals(HsConstants.YES)) {
                     eipAllocateParam.setIpv6("yes");

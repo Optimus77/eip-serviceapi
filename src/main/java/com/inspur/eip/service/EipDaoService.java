@@ -99,9 +99,9 @@ public class EipDaoService {
         eipMo.setStatus(HsConstants.DOWN);
         eipMo.setFirewallId(eip.getFireWallId());
 
-        eipMo.setIpType(eipConfig.getIptype());
+        eipMo.setIpType(eipConfig.getIpType());
         eipMo.setBillType(eipConfig.getBillType());
-        eipMo.setChargeMode(eipConfig.getChargemode());
+        eipMo.setChargeMode(eipConfig.getChargeMode());
         eipMo.setDuration(eipConfig.getDuration());
         eipMo.setBandWidth(eipConfig.getBandwidth());
         eipMo.setRegion(eipConfig.getRegion());
