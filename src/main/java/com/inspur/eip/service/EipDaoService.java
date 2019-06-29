@@ -36,7 +36,7 @@ import java.util.Optional;
 public class EipDaoService {
 
 
-    @Value("${flpnetworkId}")
+    @Value("${fipNetworkId}")
     private String flpnetworkId;
 
 

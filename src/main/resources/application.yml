@@ -141,14 +141,15 @@ userDomainIdS: default
 debugRegionS: inspurtest
 
 #Firewall configuration
-firewallId: 3f26960e-6ac3-4636-aae7-822ef3579288
-firewallIp: 10.110.29.206
-firewallPort: 443
-firewallUser: iojHL/UrEMTtZ3Ec3YtV1/0NdjZmNE14
-firewallPasswd: dNe9QCSE9S8AgSEshlpAXsklH8yW0vlE
+firewall:
+  id: 3f26960e-6ac3-4636-aae7-822ef3579288
+  ip: 10.110.29.206
+  port: 443
+  user: iojHL/UrEMTtZ3Ec3YtV1/0NdjZmNE14
+  passwd: dNe9QCSE9S8AgSEshlpAXsklH8yW0vlE
 
 #Flpnetwork configuration
-flpnetworkId: f4790efe-5df0-4f04-991b-a3c105e63b71
+fipNetworkId: f4790efe-5df0-4f04-991b-a3c105e63b71
 
 
 Kafka:

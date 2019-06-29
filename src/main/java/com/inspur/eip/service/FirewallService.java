@@ -32,16 +32,16 @@ import java.util.Optional;
 public class FirewallService {
 
 
-    @Value("${firewallIp}")
+    @Value("${firewall.ip}")
     private String firewallIp;
 
-    @Value("${firewallPort}")
+    @Value("${firewall.port}")
     private String firewallPort;
 
-    @Value("${firewallUser}")
+    @Value("${firewall.user}")
     private String firewallUser;
 
-    @Value("${firewallPasswd}")
+    @Value("${firewall.passwd}")
     private String firewallPasswd;
 
     @Autowired
