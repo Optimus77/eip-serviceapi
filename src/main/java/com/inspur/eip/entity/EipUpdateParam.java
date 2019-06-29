@@ -9,10 +9,10 @@ import java.io.Serializable;
 @Data
 public class EipUpdateParam implements Serializable {
 
-    @JsonProperty("serverid")
+    @JsonProperty("serverId")
     private String serverId;
 
-    @JsonProperty("portid")
+    @JsonProperty("portId")
     private String portId;
 
     //1：ecs // 2：cps // 3：slb
@@ -25,7 +25,7 @@ public class EipUpdateParam implements Serializable {
 
     private String billType;
 
-    @JsonProperty("privateip")
+    @JsonProperty("privateIp")
     private String privateIp;
 
     private String chargemode;

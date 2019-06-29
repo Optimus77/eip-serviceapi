@@ -194,12 +194,12 @@ public class CommonUtil {
         if((0 >= param.getBandwidth()) || (param.getBandwidth() > 500)){
             errorMsg = "value must be 1-500.";
         }
-        if(null != param.getChargemode()) {
-            if (!param.getChargemode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
-                    !param.getChargemode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
+        if(null != param.getChargeMode()) {
+            if (!param.getChargeMode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
+                    !param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
                 errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
             }
-            if(param.getChargemode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)
+            if(param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)
                     && (null == param.getSbwId())) {
                 errorMsg = errorMsg + "SharedBandwidth id is needed in sharedbandwidth charge mode. ";
             }
@@ -213,7 +213,7 @@ public class CommonUtil {
         if(param.getRegion().isEmpty()){
             errorMsg = errorMsg + "can not be blank.";
         }
-        String tp = param.getIptype();
+        String tp = param.getIpType();
         if(null != tp) {
             if (!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") &&
                     !tp.equals("5_union") && !tp.equals("BGP")) {

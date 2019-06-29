@@ -4,8 +4,6 @@ import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.*;
-import com.inspur.eip.util.constant.ErrorStatus;
-import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.Api;
@@ -119,12 +117,12 @@ public class SbwControllerV2 {
     @GetMapping(value = "/sbws/instance-num")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "get Sbw Count", notes = "get number")
-    public ResponseEntity getSbwCount(@RequestParam(required = false, name = "dimensionName") String dimensionName) {
-        log.info("Atom get Sbw Count loading……");
-        if (StringUtils.isNotBlank(dimensionName) && HsConstants.EIP_NUMBERS.equalsIgnoreCase(dimensionName)){
-            return sbwService.getSbwCount();
+    public ResponseEntity getSbwCount(@RequestParam(required = false )String status) {
+        if (StringUtils.isNotBlank(status)){
+            return sbwService.countSbwNumsByStatus(status);
+        }else {
+            return sbwService.countSbwNumsByProjectId();
         }
-        return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 //
 //    @ICPControllerLog
