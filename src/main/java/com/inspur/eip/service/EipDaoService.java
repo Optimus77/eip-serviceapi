@@ -7,16 +7,21 @@ import com.inspur.eip.entity.eip.*;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.MethodReturn;
+import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.ExtNetRepository;
-import com.inspur.eip.util.*;
+import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.common.MethodReturnUtil;
+import com.inspur.eip.util.constant.HsConstants;
+import com.inspur.eip.util.constant.ReturnStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -29,6 +34,12 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class EipDaoService {
+
+
+    @Value("${fipNetworkId}")
+    private String flpnetworkId;
+
+
     @Autowired
     private EipPoolRepository eipPoolRepository;
 
@@ -88,9 +99,9 @@ public class EipDaoService {
         eipMo.setStatus(HsConstants.DOWN);
         eipMo.setFirewallId(eip.getFireWallId());
 
-        eipMo.setIpType(eipConfig.getIptype());
+        eipMo.setIpType(eipConfig.getIpType());
         eipMo.setBillType(eipConfig.getBillType());
-        eipMo.setChargeMode(eipConfig.getChargemode());
+        eipMo.setChargeMode(eipConfig.getChargeMode());
         eipMo.setDuration(eipConfig.getDuration());
         eipMo.setBandWidth(eipConfig.getBandwidth());
         eipMo.setRegion(eipConfig.getRegion());
@@ -182,7 +193,7 @@ public class EipDaoService {
         if ((null == eipEntity) || (eipEntity.getIsDelete() == 1) ){
             msg = "Faild to find eip by id:" + eipid;
             log.error(msg);
-            return ActionResponse.actionFailed(msg,HttpStatus.SC_NOT_FOUND);
+            return ActionResponse.actionSuccess();
         }
         if ((null != eipEntity.getPipId())
                 || (null != eipEntity.getDnatId())
@@ -291,16 +302,16 @@ public class EipDaoService {
             }
 
             if(null == fip && instanceType.equals(HsConstants.ECS)) {
-                String networkId = getExtNetId(eip.getRegion());
-                if (null == networkId) {
+//                String networkId = getExtNetId(eip.getRegion());
+                if (null == flpnetworkId) {
                     log.error("Failed to get external net in region:{}. ", eip.getRegion());
                     return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE,
                             CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
                 }
-                floatingIP = neutronService.createAndAssociateWithFip(eip.getRegion(), networkId, portId, eip, serverId);
+                floatingIP = neutronService.createAndAssociateWithFip(eip.getRegion(), flpnetworkId, portId, eip, serverId);
                 if (null == floatingIP) {
                     log.error("Fatal Error! Can not get floating when bind ip in network:{}, region:{}, portId:{}.",
-                            networkId, eip.getRegion(), portId);
+                            flpnetworkId, eip.getRegion(), portId);
                     return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE,
                             CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
                 }

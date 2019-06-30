@@ -9,7 +9,11 @@ import com.inspur.eip.entity.sbw.SbwReturnBase;
 import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.SbwDaoService;
 import com.inspur.eip.service.WebControllerService;
-import com.inspur.eip.util.*;
+import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.constant.ConstantClassField;
+import com.inspur.eip.util.constant.ErrorStatus;
+import com.inspur.eip.util.constant.HsConstants;
+import com.inspur.eip.util.constant.ReturnStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
@@ -22,8 +26,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.inspur.eip.util.CommonUtil.preCheckParam;
-import static com.inspur.eip.util.CommonUtil.preSbwCheckParam;
+import static com.inspur.eip.util.common.CommonUtil.preCheckParam;
+import static com.inspur.eip.util.common.CommonUtil.preSbwCheckParam;
 
 /**
  * @Description convert to mq
@@ -435,7 +439,7 @@ public class RabbitMqServiceImpl {
                 //订单测主动发起的软删请求，不带toekn
                 if (HsConstants.DELETE.equalsIgnoreCase(operateType)) {
                     response = sbwService.bssSoftDeleteSbw(instance.getInstanceId());
-                    if (response.isSuccess()) {
+                    if (response.isSuccess() || response.getCode() == HttpStatus.SC_NOT_FOUND ) {
                         setStatus = HsConstants.SUCCESS;
                         instanceStatus = HsConstants.STATUS_DELETE;
                     }
@@ -481,7 +485,7 @@ public class RabbitMqServiceImpl {
         List<OrderProduct> orderProducts = eipOrder.getProductList();
 
         eipAllocateParam.setBillType(eipOrder.getBillType());
-        eipAllocateParam.setChargemode(HsConstants.CHARGE_MODE_BANDWIDTH);
+        eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
 
         for (OrderProduct orderProduct : orderProducts) {
             if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
@@ -494,10 +498,10 @@ public class RabbitMqServiceImpl {
                 if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
                     eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
                 } else if (orderProductItem.getCode().equals(HsConstants.PROVIDER)) {
-                    eipAllocateParam.setIptype(orderProductItem.getValue());
+                    eipAllocateParam.setIpType(orderProductItem.getValue());
                 } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
                         orderProductItem.getValue().equals(HsConstants.YES)) {
-                    eipAllocateParam.setChargemode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
+                    eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
                 } else if (orderProductItem.getCode().equals(HsConstants.WITH_IPV6) &&
                         orderProductItem.getValue().equals(HsConstants.YES)) {
                     eipAllocateParam.setIpv6("yes");

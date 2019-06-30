@@ -9,9 +9,9 @@ import com.inspur.eip.entity.SoftDownInstance;
 import com.inspur.eip.exception.EipBadRequestException;
 import com.inspur.eip.exception.EipInternalServerException;
 import com.inspur.eip.service.impl.RabbitMqServiceImpl;
-import com.inspur.eip.util.ConstantClassField;
-import com.inspur.eip.util.ErrorStatus;
-import com.inspur.eip.util.HsConstants;
+import com.inspur.eip.util.constant.ConstantClassField;
+import com.inspur.eip.util.constant.ErrorStatus;
+import com.inspur.eip.util.constant.HsConstants;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.ExchangeTypes;
@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.Optional;
 
 /**

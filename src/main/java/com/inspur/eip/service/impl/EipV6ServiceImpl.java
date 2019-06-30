@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.ipv6.*;
+import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.EipV6Repository;
 import com.inspur.eip.service.EipV6DaoService;
@@ -11,6 +12,9 @@ import com.inspur.eip.service.FireWallCommondService;
 import com.inspur.eip.service.IEipV6Service;
 import com.inspur.eip.service.NatPtService;
 import com.inspur.eip.util.*;
+import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.constant.HsConstants;
+import com.inspur.eip.util.constant.ReturnStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.model.common.ActionResponse;
@@ -42,9 +46,6 @@ public class EipV6ServiceImpl implements IEipV6Service {
     private EipRepository eipRepository;
 
     @Autowired
-    private FireWallCommondService fireWallCommondService;
-
-    @Autowired
     private NatPtService natPtService;
 
 
@@ -72,7 +73,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 EipV6ReturnBase eipInfo = new EipV6ReturnBase();
                 BeanUtils.copyProperties(eipMo, eipInfo);
                 log.info("Atom create a eipv6 success:{}", eipMo);
-                return new ResponseEntity<>(ReturnMsgUtil.success(eipInfo), HttpStatus.OK);
+                return new ResponseEntity<>(eipInfo, HttpStatus.OK);
             } else {
                 code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
                 msg = "Failed to create eipv6 " ;
@@ -240,7 +241,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                     eipV6ReturnDetail.setEipChargeType(eip.getBillType());
                     eipV6ReturnDetail.setEipId(eip.getEipId());
 
-                    return new ResponseEntity<>(ReturnMsgUtil.success(eipV6ReturnDetail), HttpStatus.OK);
+                    return new ResponseEntity<>(eipV6ReturnDetail, HttpStatus.OK);
                 }
             } else {
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,

@@ -1,8 +1,8 @@
 package com.inspur.eip.service;
 
 import com.inspur.eip.entity.eip.Eip;
-import com.inspur.eip.util.KeycloakTokenException;
-import com.inspur.eip.util.CommonUtil;
+import com.inspur.eip.exception.KeycloakTokenException;
+import com.inspur.eip.util.common.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.network.IP;

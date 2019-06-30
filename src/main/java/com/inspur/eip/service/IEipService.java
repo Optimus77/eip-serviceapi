@@ -61,7 +61,14 @@ public interface IEipService {
     /**
      * get eip by floating ip
      */
+    ResponseEntity getEipByInstanceIdV2(String instanceId);
+
+
     ResponseEntity getEipByInstanceId(String instanceId);
+
+
+
+    ResponseEntity getEipByIpAddressV2(String eip);
 
     ResponseEntity getEipByIpAddress(String eip);
 
@@ -82,4 +89,5 @@ public interface IEipService {
     ResponseEntity getUsingEipCountByStatus(String status);
 
     ResponseEntity getEipDetailsByIpAddress(String eipAddress);
+
 }

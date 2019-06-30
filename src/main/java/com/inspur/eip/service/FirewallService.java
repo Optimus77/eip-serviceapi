@@ -6,18 +6,23 @@ import com.inspur.eip.entity.MethodReturn;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.fw.*;
 import com.inspur.eip.entity.sbw.Sbw;
+import com.inspur.eip.exception.EipInternalServerException;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.repository.SbwRepository;
-import com.inspur.eip.util.*;
+import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.common.JaspytUtils;
+import com.inspur.eip.util.common.MethodReturnUtil;
+import com.inspur.eip.util.constant.HsConstants;
+import com.inspur.eip.util.constant.ReturnStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -25,6 +30,19 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class FirewallService {
+
+
+    @Value("${firewall.ip}")
+    private String firewallIp;
+
+    @Value("${firewall.port}")
+    private String firewallPort;
+
+    @Value("${firewall.user}")
+    private String firewallUser;
+
+    @Value("${firewall.passwd}")
+    private String firewallPasswd;
 
     @Autowired
     private FirewallRepository firewallRepository;
@@ -46,28 +64,51 @@ public class FirewallService {
     private Map<String, Firewall> firewallConfigMap = new HashMap<>();
     private String vr = "trust-vr";
 
+//    Firewall getFireWallById(String id) {
+//        if (!firewallConfigMap.containsKey(id)) {
+//
+//            Optional<Firewall> firewall = firewallRepository.findById(id);
+//            if (firewall.isPresent()) {
+//                Firewall fireWallConfig = new Firewall();
+//                Firewall getFireWallEntity = firewall.get();
+//
+//                fireWallConfig.setUser(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getUser()));
+//                fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getPasswd()));
+//                fireWallConfig.setIp(getFireWallEntity.getIp());
+//                fireWallConfig.setPort(getFireWallEntity.getPort());
+//                firewallConfigMap.put(id, fireWallConfig);
+//                log.info("get firewall ip:{}, port:{}, passwd:{}, user:{}", fireWallConfig.getIp(),
+//                        fireWallConfig.getPort(), getFireWallEntity.getUser(), getFireWallEntity.getPasswd());
+//            } else {
+//                log.warn("Failed to find the firewall by id:{}", id);
+//            }
+//        }
+//
+//        return firewallConfigMap.get(id);
+//    }
+
+
     Firewall getFireWallById(String id) {
         if (!firewallConfigMap.containsKey(id)) {
 
-            Optional<Firewall> firewall = firewallRepository.findById(id);
-            if (firewall.isPresent()) {
                 Firewall fireWallConfig = new Firewall();
-                Firewall getFireWallEntity = firewall.get();
 
-                fireWallConfig.setUser(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getUser()));
-                fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getPasswd()));
-                fireWallConfig.setIp(getFireWallEntity.getIp());
-                fireWallConfig.setPort(getFireWallEntity.getPort());
+                fireWallConfig.setUser(JaspytUtils.decyptPwd(secretKey, firewallUser));
+                fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, firewallPasswd));
+                fireWallConfig.setIp(firewallIp);
+                fireWallConfig.setPort(firewallPort);
                 firewallConfigMap.put(id, fireWallConfig);
-                log.info("get firewall ip:{}, port:{}, passwd:{}, user:{}", fireWallConfig.getIp(),
-                        fireWallConfig.getPort(), getFireWallEntity.getUser(), getFireWallEntity.getPasswd());
-            } else {
-                log.warn("Failed to find the firewall by id:{}", id);
-            }
-        }
+                log.info("get firewall ip:{}, port:{}, passwd:{}, user:{}", firewallIp,
+                        firewallPort, firewallUser, firewallPasswd);
 
+        }
         return firewallConfigMap.get(id);
     }
+
+
+
+
+
 
     String addDnat(String innerip, String extip, String equipid) {
         String ruleid = cmdAddDnat(innerip, extip, equipid);
@@ -661,7 +702,6 @@ public class FirewallService {
                         + "pipe-map \r"
                         + "dst-ip " + fip + "/24\r"
                         + "src-addr Any\r"
-                        + "service Any\r "
                         + "exit\r"
                         + "pipe-rule forward bandwidth Gbps 1\r"
                         + "pipe-rule backward bandwidth Gbps 1\r"
@@ -679,7 +719,16 @@ public class FirewallService {
         }
         return true;
     }
-    String cmdAddSbwQos(String name, String bandwidth, String fireWallId)  {
+
+    /**
+     *
+     * @param name
+     * @param bandwidth
+     * @param fireWallId
+     * @return
+     */
+    synchronized boolean  cmdAddSbwQos(String name, String bandwidth, String fireWallId) throws EipInternalServerException  {
+        Boolean flag = Boolean.TRUE;
         String inBandWidth = "50";
         if(Integer.valueOf(bandwidth)>50) {
             inBandWidth = bandwidth;
@@ -695,12 +744,12 @@ public class FirewallService {
                         + "end",
                 retString);
         if(strResult == null || !strResult.contains(retString)){
+            flag = Boolean.FALSE;
             log.error("Failed to add cmd sbw qos", strResult);
-            return null;
         }
-        return name;
+        return flag;
     }
-    boolean cmdDelSbwQos(String name, String fireWallId)  {
+    synchronized boolean cmdDelSbwQos(String name, String fireWallId)  {
 
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"

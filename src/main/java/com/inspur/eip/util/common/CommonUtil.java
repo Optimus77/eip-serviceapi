@@ -1,4 +1,4 @@
-package com.inspur.eip.util;
+package com.inspur.eip.util.common;
 
 
 import com.alibaba.fastjson.JSON;
@@ -7,6 +7,10 @@ import com.inspur.eip.config.CodeInfo;
 import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.ReturnMsg;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
+import com.inspur.eip.exception.KeycloakTokenException;
+import com.inspur.eip.util.ReturnMsgUtil;
+import com.inspur.eip.util.constant.HsConstants;
+import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.icp.common.util.Base64Util;
 import com.inspur.icp.common.util.OSClientUtil;
 import lombok.Setter;
@@ -28,7 +32,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.inspur.eip.util.HsConstants.SCHEDULETIME;
+import static com.inspur.eip.util.constant.HsConstants.SCHEDULETIME;
 
 @Slf4j
 @Component
@@ -190,12 +194,12 @@ public class CommonUtil {
         if((0 >= param.getBandwidth()) || (param.getBandwidth() > 500)){
             errorMsg = "value must be 1-500.";
         }
-        if(null != param.getChargemode()) {
-            if (!param.getChargemode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
-                    !param.getChargemode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
+        if(null != param.getChargeMode()) {
+            if (!param.getChargeMode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
+                    !param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
                 errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
             }
-            if(param.getChargemode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)
+            if(param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)
                     && (null == param.getSbwId())) {
                 errorMsg = errorMsg + "SharedBandwidth id is needed in sharedbandwidth charge mode. ";
             }
@@ -209,7 +213,7 @@ public class CommonUtil {
         if(param.getRegion().isEmpty()){
             errorMsg = errorMsg + "can not be blank.";
         }
-        String tp = param.getIptype();
+        String tp = param.getIpType();
         if(null != tp) {
             if (!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") &&
                     !tp.equals("5_union") && !tp.equals("BGP")) {
@@ -249,7 +253,7 @@ public class CommonUtil {
             errorMsg = errorMsg + "can not be blank.";
         }
         if(errorMsg.equals(" ")) {
-            log.info(errorMsg);
+            log.debug(errorMsg);
             return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
         }else {
             log.error(errorMsg);
@@ -264,6 +268,11 @@ public class CommonUtil {
         return formatter.format(currentTime);
     }
 
+    public synchronized static String getUUID(){
+        UUID uuid=UUID.randomUUID();
+        String uuidStr=uuid.toString();
+        return uuidStr;
+    }
 
     public static Map<String, String> getUserConfig(){
         return userConfig;
@@ -408,7 +417,14 @@ public class CommonUtil {
         if(userIdInToken.equals(userId)){
             return true;
         }
-
+        String  realmAccess = null;
+        if (jsonObject.has("realm_access")){
+            realmAccess = jsonObject.getJSONObject("realm_access").toString();
+        }
+        if (realmAccess!= null && realmAccess.contains("OPERATE_ADMIN")){
+            log.info("Client token, User has right to operation, realmAccess:{}", realmAccess);
+            return true;
+        }
         return false;
 
     }

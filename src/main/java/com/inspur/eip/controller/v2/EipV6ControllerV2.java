@@ -6,15 +6,14 @@ import com.inspur.eip.entity.ipv6.EipV6AllocateParamWrapper;
 import com.inspur.eip.entity.ipv6.EipV6UpdateParam;
 import com.inspur.eip.entity.ipv6.EipV6UpdateParamWrapper;
 import com.inspur.eip.service.impl.EipV6ServiceImpl;
-import com.inspur.eip.util.CommonUtil;
-import com.inspur.eip.util.ReturnStatus;
+import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.eip.util.ReturnMsgUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -103,7 +102,7 @@ public class EipV6ControllerV2 {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eipv6_id", value = "the id of eipv6", required = true, dataType = "String"),
     })
-    public ResponseEntity geteipV6Detail(@PathVariable("eipv6_id") String eipV6Id) {
+    public ResponseEntity getEipV6Detail(@PathVariable("eipv6_id") String eipV6Id) {
         return eipV6Service.getEipV6Detail(eipV6Id);
     }
 

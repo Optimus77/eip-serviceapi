@@ -1,7 +1,7 @@
 package com.inspur.eip.config.keycloak;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.inspur.eip.util.HttpsClientUtil;
+import com.inspur.eip.util.http.HttpsClientUtil;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -16,7 +16,6 @@ import org.keycloak.adapters.springsecurity.client.KeycloakClientRequestFactory;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.security.core.Authentication;

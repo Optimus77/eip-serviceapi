@@ -1,5 +1,9 @@
-package com.inspur.eip.util;
+package com.inspur.eip.util.http;
 
+import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.exception.EipException;
+import com.inspur.eip.util.ReturnResult;
+import com.inspur.eip.util.constant.HsConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
@@ -22,11 +26,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
@@ -330,12 +331,12 @@ public class HttpUtil {
 
     }
 
-    public static com.inspur.eip.util.HttpResponse doGet(String url, Map<String, String> param, Map<String, String> headParam) throws IOException, URISyntaxException {
+    public static com.inspur.eip.util.http.HttpResponse doGet(String url, Map<String, String> param, Map<String, String> headParam) throws IOException, URISyntaxException {
 
         // get Httpclient object
         CloseableHttpClient httpClient = connectionFactory.getHttpClient();
         CloseableHttpResponse response = null;
-        com.inspur.eip.util.HttpResponse httpResponse = null;
+        com.inspur.eip.util.http.HttpResponse httpResponse = null;
         try {
             // create uri
             URIBuilder builder = new URIBuilder(url);
@@ -350,7 +351,7 @@ public class HttpUtil {
             }
             // execute request
             response = httpClient.execute(httpGet);
-            httpResponse = com.inspur.eip.util.HttpResponse
+            httpResponse = com.inspur.eip.util.http.HttpResponse
                     .builder()
                     .responseBody(EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8))
                     .statusCode(response.getStatusLine().getStatusCode())

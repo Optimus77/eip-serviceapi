@@ -3,6 +3,7 @@ package com.inspur.eip.controller;
 import com.inspur.eip.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.*;
+import com.inspur.eip.util.constant.ReturnStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -16,6 +17,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 
@@ -57,21 +59,6 @@ public class SbwController {
         return sbwService.listShareBandWidth(Integer.parseInt(pageIndex), Integer.parseInt(pageSize), searchValue);
     }
 
-
-    @GetMapping(value = "/sbws/search")
-    @CrossOrigin(origins = "*", maxAge = 3000)
-    @ApiOperation(value = "getSbwByProjectId", notes = "get")
-    public ResponseEntity getSbwByProjectId(@RequestParam(required = false) String projectId) {
-        log.info("Atom param get Sbw by project Id project:{}",projectId);
-        if (null == projectId) {
-            return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
-        }
-
-        return sbwService.getSbwByProjectId(projectId);
-
-    }
-
-
     /**
      * get sbw instance detail
      *
@@ -101,7 +88,7 @@ public class SbwController {
     public ResponseEntity getSbwCount() {
 
         log.info("Atom get Sbw Count loading……");
-        return sbwService.getSbwCount();
+        return sbwService.countSbwNumsByProjectId();
     }
 
 
@@ -151,7 +138,8 @@ public class SbwController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
-    public ResponseEntity renameSbw(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param, BindingResult result){
+    public ResponseEntity renameSbw(@Size(min = 36,max = 36,message = "Id must be uuid") @PathVariable("sbw_id") String sbwId,
+                                    @Valid @RequestBody SbwUpdateParamWrapper param, BindingResult result){
         log.info("Atom rename sbw param:{}",param.getSbw().toString());
         if (result.hasErrors()) {
             StringBuilder builder = new StringBuilder();
@@ -159,7 +147,7 @@ public class SbwController {
             for (FieldError fieldError : fieldErrors) {
                 builder.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
             }
-            log.info("{}",builder);
+            log.error("{}",builder);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, builder.toString()), HttpStatus.BAD_REQUEST);
         }
         String msg;
