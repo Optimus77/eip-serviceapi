@@ -41,7 +41,7 @@ public class FirewallService {
     @Value("${firewall.user}")
     private String firewallUser;
 
-    @Value("${firewall.passwd}")
+    @Value("${firewall.password}")
     private String firewallPasswd;
 
     @Autowired
