@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 @Service
 public class SbwDaoService {
 
-    @Value("${firewallId}")
+    @Value("${firewall.id}")
     private String firewallId;
 
     @Autowired
