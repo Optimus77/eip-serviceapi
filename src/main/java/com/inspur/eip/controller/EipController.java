@@ -4,6 +4,7 @@ import com.inspur.eip.entity.*;
 import com.inspur.eip.entity.eip.EipAllocateParamWrapper;
 import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.util.*;
+import com.inspur.iam.adapter.annotation.PermissionContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -32,13 +33,12 @@ import java.util.List;
 @Validated
 public class EipController {
 
-    @Autowired
-    private RestTemplate restTemplate;
 
     @Autowired
     private EipServiceImpl eipService;
 
 
+    @PermissionContext(whitelist=true)
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomAllocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
@@ -56,6 +56,7 @@ public class EipController {
     }
 
 
+    @PermissionContext(whitelist=true)
     @DeleteMapping(value = "/eips/{eip_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
@@ -66,6 +67,7 @@ public class EipController {
 
     }
 
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/health-status")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "health check")
@@ -75,6 +77,7 @@ public class EipController {
     }
 
 
+    @PermissionContext(whitelist=true)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @PostMapping(value = "/loggers/{package}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity setDebugLevel(@PathVariable("package") String packageName, @RequestBody LogLevel requestBody) {
@@ -98,6 +101,7 @@ public class EipController {
      * get number of user
      * @return response
      */
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/eipnumbers")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")
@@ -109,6 +113,7 @@ public class EipController {
         }
     }
 
+    @PermissionContext(whitelist=true)
     @PostMapping(value = "/deleiplist", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "deleiplist")
@@ -119,6 +124,7 @@ public class EipController {
     }
 
 
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeip",notes="list")
@@ -151,6 +157,7 @@ public class EipController {
     }
 
 
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/eips/{eip_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "get detail of  eip instance", notes = "get")
@@ -163,6 +170,7 @@ public class EipController {
     }
 
 
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/eips/search")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="getEipByInstanceId",notes="get")
@@ -196,13 +204,15 @@ public class EipController {
      * get number of user
      * @return response
      */
+
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/statistics")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity getFreeEipCount() {
         return  eipService.getEipStatistics();
     }
 
-
+    @PermissionContext(whitelist=true)
     @PutMapping(value = "/eips/{eip_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eip", notes = "put")

@@ -9,6 +9,7 @@ import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.ReturnStatus;
 import com.inspur.eip.util.ReturnMsgUtil;
+import com.inspur.iam.adapter.annotation.PermissionContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -38,6 +39,10 @@ public class EipV6ControllerV2 {
     @Autowired
     private EipV6ServiceImpl eipV6Service;
 
+    @PermissionContext(
+            service="ipts",
+            action="CreateIPv6",
+            resourceType="instance")
     @PostMapping(value = "/eipv6")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity allocateEipV6(@Valid @RequestBody EipV6AllocateParamWrapper eipV6Config, BindingResult result) {
@@ -54,6 +59,12 @@ public class EipV6ControllerV2 {
         return eipV6Service.atomCreateEipV6( eipV6Config.getEipV6AllocateParam().getEipId(), CommonUtil.getKeycloackToken());
     }
 
+
+/*    @PermissionContext(
+            service="ipts",
+            action="ListIPv6",
+            resourceType="instance")*/
+    @PermissionContext(loginAccess=true)
     @GetMapping(value = "/eipv6/{pageNo}/{pageSize}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeipv6",notes="list")
@@ -81,6 +92,10 @@ public class EipV6ControllerV2 {
 
     }
 
+    @PermissionContext(
+            service="ipts",
+            action="DeleteIPv6",
+            resourceType="instance")
     @DeleteMapping(value = "/eipv6/{eipv6_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity deleteEip(@Size(min=36, max=36, message = "Must be uuid.")
@@ -97,16 +112,24 @@ public class EipV6ControllerV2 {
      * @param eipV6Id the id of eipV6
      * @return retrun
      */
+    @PermissionContext(
+            service="ipts",
+            action="GetIPv6",
+            resourceType="instance")
     @GetMapping(value = "/eipv6/{eipv6_id}")
     @CrossOrigin(origins = "*", maxAge = 3000)
-    @ApiOperation(value = "geteipv6Detail", notes = "get")
+    @ApiOperation(value = "getEipv6Detail", notes = "get")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "eipv6_id", value = "the id of eipv6", required = true, dataType = "String"),
     })
-    public ResponseEntity geteipV6Detail(@PathVariable("eipv6_id") String eipV6Id) {
+    public ResponseEntity getEipV6Detail(@PathVariable("eipv6_id") String eipV6Id) {
         return eipV6Service.getEipV6Detail(eipV6Id);
     }
 
+    @PermissionContext(
+            service="ipts",
+            action="UpdateIPv6",
+            resourceType="instance")
     @PutMapping(value = "/eipv6/{eipv6_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eipv6", notes = "put")
@@ -127,5 +150,4 @@ public class EipV6ControllerV2 {
         EipV6UpdateParam updateParam = param.getEipv6();
         return eipV6Service.eipV6bindPort(eipV6Id, updateParam.getEipAddress());
     }
-
 }

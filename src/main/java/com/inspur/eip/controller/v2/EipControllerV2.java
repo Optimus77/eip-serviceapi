@@ -10,6 +10,7 @@ import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.ReturnStatus;
+import com.inspur.iam.adapter.annotation.PermissionContext;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -74,6 +75,10 @@ public class EipControllerV2 {
 //
 //    }
 
+    @PermissionContext(
+            service="eip",
+            action="ListEip",
+            resourceType="instance")
     @GetMapping(value = "/eips/{pageNo}/{pageSize}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeip",notes="list")
@@ -119,6 +124,10 @@ public class EipControllerV2 {
      * get number of user
      * @return response
      */
+    @PermissionContext(
+            service="eip",
+            action="GetEip",
+            resourceType="instance")
     @GetMapping(value = "/eips/instance-num")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")
@@ -138,6 +147,10 @@ public class EipControllerV2 {
      * @param eipId  the id of eip
      * @return  retrun
      */
+    @PermissionContext(
+            service="eip",
+            action="GetEip",
+            resourceType="instance")
     @GetMapping(value = "/eips/{eip_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "get detail of  eip instance", notes = "get")
@@ -155,7 +168,10 @@ public class EipControllerV2 {
      * @param resourceId  the id of eip
      * @return  retrun
      */
-
+    @PermissionContext(
+            service="eip",
+            action="GetEip",
+            resourceType="instance")
     @GetMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="getEipByInstanceId",notes="get")
@@ -180,8 +196,10 @@ public class EipControllerV2 {
         return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
     }
 
-
-
+    @PermissionContext(
+            service="eip",
+            action="UpdateEip",
+            resourceType="instance")
     @PutMapping(value = "/eips/{eip_id}/action/{action}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eip", notes = "put")
@@ -226,6 +244,10 @@ public class EipControllerV2 {
 
     }
 
+    @PermissionContext(
+            service="eip",
+            action="GetEipStatistics",
+            resourceType="instance")
     @GetMapping(value = "/statistics")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity getEipStatistics() {
@@ -252,6 +274,7 @@ public class EipControllerV2 {
 //        return eipService.deleteEipList(param.getEipids());
 //    }
 
+    @PermissionContext(loginAccess=true)
     @GetMapping(value = "/health-status")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "health check")
@@ -266,7 +289,7 @@ public class EipControllerV2 {
         return new ResponseEntity<>(ReturnMsgUtil.msg(code, msg, null), HttpStatus.OK);
     }
 
-
+    @PermissionContext(loginAccess=true)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @PostMapping(value = "/loggers/{package}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity setDebugLevel(@PathVariable("package") String packageName, @RequestBody LogLevel param) {

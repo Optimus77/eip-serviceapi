@@ -9,6 +9,7 @@ import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.ReturnStatus;
+import com.inspur.iam.adapter.annotation.PermissionContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -20,7 +21,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
@@ -34,11 +34,9 @@ import java.util.List;
 public class EipV6Controller {
 
     @Autowired
-    private RestTemplate restTemplate;
-
-    @Autowired
     private EipV6ServiceImpl eipV6Service;
 
+    @PermissionContext(whitelist=true)
     @PostMapping(value = "/eipv6")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity allocateEipV6(@Valid @RequestBody EipV6AllocateParamWrapper eipV6Config, BindingResult result) {
@@ -56,6 +54,7 @@ public class EipV6Controller {
     }
 
 
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/eipv6/{pageNo}/{pageSize}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeipv6",notes="list")
@@ -83,6 +82,7 @@ public class EipV6Controller {
 
     }
 
+    @PermissionContext(whitelist=true)
     @DeleteMapping(value = "/eipv6/{eipv6_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity deleteEip(@Size(min=36, max=36, message = "Must be uuid.")
@@ -101,6 +101,7 @@ public class EipV6Controller {
      * @param eipV6Id the id of eipV6
      * @return retrun
      */
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/eipv6/{eipv6_id}")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "geteipv6Detail", notes = "get")
@@ -113,6 +114,7 @@ public class EipV6Controller {
     }
 
 
+    @PermissionContext(whitelist=true)
     @PutMapping(value = "/eipv6/{eipv6_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eipv6", notes = "put")

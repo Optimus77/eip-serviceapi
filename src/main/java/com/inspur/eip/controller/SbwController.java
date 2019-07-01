@@ -3,6 +3,7 @@ package com.inspur.eip.controller;
 import com.inspur.eip.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.*;
+import com.inspur.iam.adapter.annotation.PermissionContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -30,6 +31,7 @@ public class SbwController {
     private SbwServiceImpl sbwService;
 
 
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/sbws")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "listsbw", notes = "list")
@@ -63,6 +65,7 @@ public class SbwController {
      * @param sbwId the id of sbw
      * @return retrun
      */
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/sbws/{sbw_id}")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "get detail of  sbw instance", notes = "get")
@@ -80,6 +83,7 @@ public class SbwController {
      *
      * @return response
      */
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/sbwnumbers")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "get number", notes = "get number")
@@ -89,8 +93,7 @@ public class SbwController {
         return sbwService.getSbwCount();
     }
 
-
-
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/sbws/{sbw_id}/othereips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "get othereips without the sbw", notes = "get")
@@ -102,6 +105,7 @@ public class SbwController {
         return sbwService.getOtherEips(sbwId);
     }
 
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/sbws/{sbw_id}/eips")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "sbwListEip", notes = "listEip")
@@ -129,7 +133,7 @@ public class SbwController {
     }
 
 
-
+    @PermissionContext(whitelist=true)
     @PutMapping(value = "/sbws/{sbw_id}/rename", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "rename sbw name", notes = "put")

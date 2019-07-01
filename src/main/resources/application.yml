@@ -55,6 +55,8 @@ blackList: /health-status
 # Mysql
 # 环境 dev|prod
 spring:
+  profiles:
+    active: prod
   resources:
     # Swagger
     add-mappings: true
@@ -93,6 +95,18 @@ spring:
       simple:
         default-requeue-rejected: false
 
+# IAM
+iam:
+  url: http://service.inspurtest.com/auth
+  #url: http://iam-apiserver.iam.svc.cluster.local:9101/auth
+  ladon:
+    url: http://10.110.25.71:48156/auth
+    #url: http://iam-auth-ladon.iam.svc.cluster.local:8090/auth
+common:
+  region: cn-north-3
+resttemplate:
+  cookie: realm_roles,username
+  referer: https://console1.cloud.inspur.com/
 #rabbit mq queues config
 bss:
   queues:
