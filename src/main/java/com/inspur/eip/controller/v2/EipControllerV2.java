@@ -64,10 +64,10 @@ public class EipControllerV2 {
 //    @DeleteMapping(value = "/eips/{eip_id}")
 //    @CrossOrigin(origins = "*",maxAge = 3000)
 //    public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
-//                                        @PathVariable("eip_id") String eipId) {
+//                                        @PathVariable("eip_id") String id) {
 //        //Check the parameters
-//        log.info("Atom delete the Eip:{} ",eipId);
-//        return eipService.atomDeleteEip(eipId);
+//        log.info("Atom delete the Eip:{} ",id);
+//        return eipService.atomDeleteEip(id);
 //
 //    }
 
@@ -233,10 +233,10 @@ public class EipControllerV2 {
 
 //    @PostMapping(value = "/eips/{eip_id}/renew")
 //    @CrossOrigin(origins = "*",maxAge = 3000)
-//    public ResponseEntity renewEip(@PathVariable("eip_id") String eipId,
+//    public ResponseEntity renewEip(@PathVariable("eip_id") String id,
 //                                   @RequestBody EipUpdateParam param ) {
-//        log.info("Renew a eip:{}, order:{}.", eipId, param.toString());
-//        return eipService.renewEip(eipId, param);
+//        log.info("Renew a eip:{}, order:{}.", id, param.toString());
+//        return eipService.renewEip(id, param);
 //    }
 //
 //    @PostMapping(value = "/action/delete", consumes = MediaType.APPLICATION_JSON_VALUE)

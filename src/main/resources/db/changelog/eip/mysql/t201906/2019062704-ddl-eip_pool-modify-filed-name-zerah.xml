@@ -1,0 +1,17 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <changeSet author="zerah" id="201906270401">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="eip_pool" columnName="ip"></columnExists>
+        </preConditions>
+        <modifyDataType catalogName="icp_eip" columnName="fire_wall_id" newDataType="varchar(36)" schemaName="public" tableName="eip_pool" remarks="防火墙id"/>
+        <modifyDataType catalogName="icp_eip" columnName="ip" newDataType="varchar(15)" schemaName="public" tableName="eip_pool" remarks="域名称"/>
+        <modifyDataType catalogName="icp_eip" columnName="state" newDataType="varchar(2)" schemaName="public" tableName="eip_pool" remarks="eip状态 0可用 1已删"/>
+        <comment>修改eip_pool表中字段类型（规范字段长度）</comment>
+    </changeSet>
+
+</databaseChangeLog>

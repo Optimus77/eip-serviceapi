@@ -1,0 +1,57 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+<!--SBW表字段改名： sbw_id -> id  | create_time-> created_time | update_time -> updated_time -->
+    <changeSet author="zerah" id="201906270201">
+        <preConditions onFail="MARK_RAN">
+                <columnExists tableName="sbw" columnName="sbw_id"></columnExists>
+                <columnExists tableName="sbw" columnName="create_time"></columnExists>
+                <columnExists tableName="sbw" columnName="update_time"></columnExists>
+        </preConditions>
+
+        <renameColumn catalogName="icp_eip" columnDataType="varchar(36)" newColumnName="id" oldColumnName="sbw_id" schemaName="public" tableName="sbw"/>
+        <renameColumn catalogName="icp_eip" columnDataType="datetime" newColumnName="created_time" oldColumnName="create_time" schemaName="public" tableName="sbw"/>
+        <renameColumn catalogName="icp_eip" columnDataType="datetime" newColumnName="updated_time" oldColumnName="update_time" schemaName="public" tableName="sbw"/>
+        <comment>修改sbw表中通用字段名称：sbw_id->id | create_time-> created_time | update_time -> updated_time</comment>
+    </changeSet>
+
+    <changeSet author="zerah" id="201906270202">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="sbw" columnName="band_width"></columnExists>
+        </preConditions>
+        <modifyDataType catalogName="icp_eip" columnName="band_width" newDataType="int(11)" schemaName="public" tableName="sbw" remarks="带宽"/>
+        <modifyDataType catalogName="icp_eip" columnName="bill_type" newDataType="varchar(20)" schemaName="public" tableName="sbw" remarks="计费类型"/>
+        <modifyDataType catalogName="icp_eip" columnName="duration" newDataType="varchar(4)" schemaName="public" tableName="sbw " remarks="区分停服与重开"/>
+        <modifyDataType catalogName="icp_eip" columnName="is_delete" newDataType="int(4)" schemaName="public" tableName="sbw" remarks="是否删除 0:未删 1:已删"/>
+        <modifyDataType catalogName="icp_eip" columnName="pipe_id" newDataType="varchar(36)" schemaName="public" tableName="sbw" remarks="管道名称|id"/>
+        <modifyDataType catalogName="icp_eip" columnName="project_id" newDataType="varchar(36)" schemaName="public" tableName="sbw" remarks="项目id"/>
+        <modifyDataType catalogName="icp_eip" columnName="project_name" newDataType="varchar(128)" schemaName="public" tableName="sbw" remarks="用户名"/>
+        <modifyDataType catalogName="icp_eip" columnName="region" newDataType="varchar(16)" schemaName="public" tableName="sbw" remarks="域名称"/>
+        <modifyDataType catalogName="icp_eip" columnName="status" newDataType="varchar(8)" schemaName="public" tableName="sbw" remarks="eip状态 ACTIVE:正常 STOP:已停服 ERROR:失败"/>
+        <modifyDataType catalogName="icp_eip" columnName="sbw_name" newDataType="varchar(128)" schemaName="public" tableName="sbw" remarks="共享带宽名称"/>
+        <comment>修改sbw表中字段类型（规范字段长度）</comment>
+    </changeSet>
+
+    <changeSet id="zerah" author="201906270203">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="sbw" columnName="sharedbandwidth_name"></columnExists>
+        </preConditions>
+        <dropColumn catalogName="icp_eip" columnName="sharedbandwidth_name" schemaName="public" tableName="sbw"/>
+    </changeSet>
+
+    <changeSet id="zerah" author="201906270204">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="sbw" columnName="charge_mode"></columnExists>
+            <columnExists tableName="sbw" columnName="duration_unit"></columnExists>
+            <columnExists tableName="sbw" columnName="instance_id"></columnExists>
+            <columnExists tableName="sbw" columnName="instance_type"></columnExists>
+        </preConditions>
+        <dropColumn catalogName="icp_eip" columnName="charge_mode" schemaName="public" tableName="sbw"/>
+        <dropColumn catalogName="icp_eip" columnName="duration_unit" schemaName="public" tableName="sbw"/>
+        <dropColumn catalogName="icp_eip" columnName="instance_id" schemaName="public" tableName="sbw"/>
+        <dropColumn catalogName="icp_eip" columnName="instance_type" schemaName="public" tableName="sbw"/>
+    </changeSet>
+
+</databaseChangeLog>
