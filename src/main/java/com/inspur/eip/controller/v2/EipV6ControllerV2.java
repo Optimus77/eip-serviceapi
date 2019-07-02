@@ -15,7 +15,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -60,11 +59,10 @@ public class EipV6ControllerV2 {
     }
 
 
-/*    @PermissionContext(
+    @PermissionContext(
             service="ipts",
             action="ListIPv6",
-            resourceType="instance")*/
-    @PermissionContext(loginAccess=true)
+            resourceType="instance")
     @GetMapping(value = "/eipv6/{pageNo}/{pageSize}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="listeipv6",notes="list")

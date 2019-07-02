@@ -244,10 +244,7 @@ public class EipControllerV2 {
 
     }
 
-    @PermissionContext(
-            service="eip",
-            action="GetEipStatistics",
-            resourceType="instance")
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/statistics")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity getEipStatistics() {
@@ -274,7 +271,7 @@ public class EipControllerV2 {
 //        return eipService.deleteEipList(param.getEipids());
 //    }
 
-    @PermissionContext(loginAccess=true)
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/health-status")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "health check")
@@ -289,7 +286,7 @@ public class EipControllerV2 {
         return new ResponseEntity<>(ReturnMsgUtil.msg(code, msg, null), HttpStatus.OK);
     }
 
-    @PermissionContext(loginAccess=true)
+    @PermissionContext(whitelist=true)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @PostMapping(value = "/loggers/{package}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity setDebugLevel(@PathVariable("package") String packageName, @RequestBody LogLevel param) {
