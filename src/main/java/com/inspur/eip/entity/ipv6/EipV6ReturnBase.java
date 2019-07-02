@@ -15,7 +15,7 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EipV6ReturnBase implements Serializable {
     @JsonProperty("eipv6Id")
-    private String eipv6Id;
+    private String id;
 
     @JsonProperty("ipv6")
     private String ipv6;

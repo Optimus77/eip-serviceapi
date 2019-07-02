@@ -14,7 +14,7 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EipReturnBase implements Serializable {
     @JsonProperty("eipId")
-    private String eipId;
+    private String id;
 
     @JsonProperty("eipAddress")
     private String eipAddress;
@@ -30,5 +30,5 @@ public class EipReturnBase implements Serializable {
 
     @JsonProperty("createdTime")
     @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd HH:mm:ss")
-    private Date createTime;
+    private Date createdTime;
 }

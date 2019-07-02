@@ -1,0 +1,72 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <changeSet author="zerah" id="201906270101" >
+        <preConditions onFail="MARK_RAN">
+                <columnExists tableName="eip" columnName="eip_id"></columnExists>
+                <columnExists tableName="eip" columnName="create_time"></columnExists>
+                <columnExists tableName="eip" columnName="update_time"></columnExists>
+        </preConditions>
+
+        <renameColumn catalogName="icp_eip" columnDataType="varchar(36)" newColumnName="id" oldColumnName="eip_id" schemaName="public" tableName="eip"/>
+        <renameColumn catalogName="icp_eip" columnDataType="datetime" newColumnName="created_time" oldColumnName="create_time" schemaName="public" tableName="eip"/>
+        <renameColumn catalogName="icp_eip" columnDataType="datetime" newColumnName="updated_time" oldColumnName="update_time" schemaName="public" tableName="eip"/>
+        <comment>修改eip表中通用字段名称：eip_id->id | create_time-> created_time | update_time -> updated_time</comment>
+    </changeSet>
+
+    <changeSet author="zerah" id="201906270102">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="eip" columnName="band_width"></columnExists>
+        </preConditions>
+        <modifyDataType catalogName="icp_eip" columnName="band_width" newDataType="int(11)" schemaName="public" tableName="eip" remarks="带宽"/>
+        <modifyDataType catalogName="icp_eip" columnName="bill_type" newDataType="varchar(20)" schemaName="public" tableName="eip" remarks="计费类型"/>
+        <modifyDataType catalogName="icp_eip" columnName="charge_mode" newDataType="varchar(20)" schemaName="public" tableName="eip" remarks="收费模式"/>
+        <modifyDataType catalogName="icp_eip" columnName="dnat_id" newDataType="varchar(8)" schemaName="public" tableName="eip" remarks="dnat id"/>
+        <modifyDataType catalogName="icp_eip" columnName="duration" newDataType="varchar(4)" schemaName="public" tableName="eip " remarks="计费时常"/>
+        <modifyDataType catalogName="icp_eip" columnName="eip_address" newDataType="varchar(15)" schemaName="public" tableName="eip" remarks="公网ip"/>
+        <modifyDataType catalogName="icp_eip" columnName="firewall_id" newDataType="varchar(36)" schemaName="public" tableName="eip" remarks="防火墙id"/>
+        <modifyDataType catalogName="icp_eip" columnName="floating_ip" newDataType="varchar(15)" schemaName="public" tableName="eip" remarks="floating ip地址"/>
+        <modifyDataType catalogName="icp_eip" columnName="floating_ip_id" newDataType="varchar(36)" schemaName="public" tableName="eip" remarks="floating ip id "/>
+        <modifyDataType catalogName="icp_eip" columnName="instance_id" newDataType="varchar(36)" schemaName="public" tableName="eip" remarks="虚机实例id"/>
+        <modifyDataType catalogName="icp_eip" columnName="instance_type" newDataType="varchar(2)" schemaName="public" tableName="eip" remarks="实例类型"/>
+        <modifyDataType catalogName="icp_eip" columnName="ip_type" newDataType="varchar(10)" schemaName="public" tableName="eip" remarks="网络类型"/>
+        <modifyDataType catalogName="icp_eip" columnName="ip_version" newDataType="varchar(4)" schemaName="public" tableName="eip" remarks="ip版本"/>
+        <modifyDataType catalogName="icp_eip" columnName="name" newDataType="varchar(128)" schemaName="public" tableName="eip" remarks="用户名"/>
+        <modifyDataType catalogName="icp_eip" columnName="pip_id" newDataType="varchar(36)" schemaName="public" tableName="eip" remarks="管道名称|id"/>
+        <modifyDataType catalogName="icp_eip" columnName="port_id" newDataType="varchar(36)" schemaName="public" tableName="eip" remarks="端口id"/>
+        <modifyDataType catalogName="icp_eip" columnName="private_ip_address" newDataType="varchar(15)" schemaName="public" tableName="eip" remarks="端口id"/>
+        <modifyDataType catalogName="icp_eip" columnName="project_id" newDataType="varchar(36)" schemaName="public" tableName="eip" remarks="项目id"/>
+        <modifyDataType catalogName="icp_eip" columnName="region" newDataType="varchar(16)" schemaName="public" tableName="eip" remarks="域名称"/>
+        <modifyDataType catalogName="icp_eip" columnName="snat_id" newDataType="varchar(8)" schemaName="public" tableName="eip" remarks="snat id"/>
+        <modifyDataType catalogName="icp_eip" columnName="status" newDataType="varchar(8)" schemaName="public" tableName="eip" remarks="eip状态 ACTIVE:正常 STOP:已停服 ERROR:失败"/>
+        <modifyDataType catalogName="icp_eip" columnName="is_delete" newDataType="int(4)" schemaName="public" tableName="eip" remarks="是否删除 0:未删 1:已删"/>
+        <modifyDataType catalogName="icp_eip" columnName="old_band_width" newDataType="int(11)" schemaName="public" tableName="eip" remarks="加入共享带宽后，原来的带宽值"/>
+        <modifyDataType catalogName="icp_eip" columnName="user_id" newDataType="varchar(36)" schemaName="public" tableName="eip" remarks="用户id"/>
+        <modifyDataType catalogName="icp_eip" columnName="eipv6id" newDataType="varchar(36)" schemaName="public" tableName="eip" remarks="eipv6 id"/>
+        <modifyDataType catalogName="icp_eip" columnName="sbw_id" newDataType="varchar(36)" schemaName="public" tableName="eip" remarks="共享带宽id"/>
+        <comment>修改eip表中字段长度</comment>
+    </changeSet>
+
+    <changeSet author="zerah" id="201906270103" >
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="eip" columnName="acl_id"></columnExists>
+            <columnExists tableName="eip" columnName="vpc_id"></columnExists>
+        </preConditions>
+
+        <dropColumn catalogName="icp_eip" columnName="acl_id" schemaName="public" tableName="eip"/>
+        <dropColumn catalogName="icp_eip" columnName="vpc_id" schemaName="public" tableName="eip"/>
+        <comment>删除eip表中vpc_id ,acl_id</comment>
+    </changeSet>
+
+    <changeSet author="zerah" id="201906270104" >
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="eip" columnName="shared_band_width_id"></columnExists>
+        </preConditions>
+        <dropColumn catalogName="icp_eip" columnName="shared_band_width_id" schemaName="public" tableName="eip"/>
+        <comment>删除eip表中旧的共享带宽id字段</comment>
+    </changeSet>
+
+</databaseChangeLog>

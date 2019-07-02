@@ -10,7 +10,11 @@ import com.inspur.eip.exception.EipInternalServerException;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.repository.SbwRepository;
-import com.inspur.eip.util.*;
+import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.common.JaspytUtils;
+import com.inspur.eip.util.common.MethodReturnUtil;
+import com.inspur.eip.util.constant.HsConstants;
+import com.inspur.eip.util.constant.ReturnStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -29,16 +32,16 @@ import java.util.Optional;
 public class FirewallService {
 
 
-    @Value("${firewallIp}")
+    @Value("${firewall.ip}")
     private String firewallIp;
 
-    @Value("${firewallPort}")
+    @Value("${firewall.port}")
     private String firewallPort;
 
-    @Value("${firewallUser}")
+    @Value("${firewall.user}")
     private String firewallUser;
 
-    @Value("${firewallPasswd}")
+    @Value("${firewall.password}")
     private String firewallPasswd;
 
     @Autowired
@@ -366,9 +369,9 @@ public class FirewallService {
                 snatRuleId = addSnat(fipAddress, eipAddress, firewallId);
                 if (snatRuleId != null) {
                     if (eip.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
-                        Sbw sbwEntity = sbwRepository.findBySbwId(eip.getSbwId());
-                        if (null != sbwEntity) {
-                            pipId = addFloatingIPtoQos(eip.getFirewallId(), fipAddress, sbwEntity.getPipeId());
+                        Optional<Sbw> optional = sbwRepository.findById(eip.getSbwId());
+                        if (optional.isPresent()) {
+                            pipId = addFloatingIPtoQos(eip.getFirewallId(), fipAddress, optional.get().getPipeId());
                         }
                     } else {
                         pipId = addQos(fipAddress, eipAddress, String.valueOf(bandWidth), firewallId);
@@ -421,7 +424,7 @@ public class FirewallService {
             eipEntity.setDnatId(null);
         } else {
             returnStat = ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE;
-            msg = "Failed to del dnat in firewall,eipId:" + eipEntity.getEipId() + "dnatId:" + eipEntity.getDnatId() + "";
+            msg = "Failed to del dnat in firewall,id:" + eipEntity.getId() + "dnatId:" + eipEntity.getDnatId() + "";
             log.error(msg);
         }
 
@@ -429,7 +432,7 @@ public class FirewallService {
             eipEntity.setSnatId(null);
         } else {
             returnStat = ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE;
-            msg += "Failed to del snat in firewall, eipId:" + eipEntity.getEipId() + "snatId:" + eipEntity.getSnatId() + "";
+            msg += "Failed to del snat in firewall, id:" + eipEntity.getId() + "snatId:" + eipEntity.getSnatId() + "";
             log.error(msg);
         }
 
@@ -445,7 +448,7 @@ public class FirewallService {
         }
         if (!removeRet) {
             returnStat = ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE;
-            msg += "Failed to del qos, eipId:" + eipEntity.getEipId() + " pipId:" + eipEntity.getPipId() + "";
+            msg += "Failed to del qos, id:" + eipEntity.getId() + " pipId:" + eipEntity.getPipId() + "";
             log.error(msg);
         }
         if (msg == null) {
@@ -699,7 +702,6 @@ public class FirewallService {
                         + "pipe-map \r"
                         + "dst-ip " + fip + "/24\r"
                         + "src-addr Any\r"
-                        + "service Any\r "
                         + "exit\r"
                         + "pipe-rule forward bandwidth Gbps 1\r"
                         + "pipe-rule backward bandwidth Gbps 1\r"

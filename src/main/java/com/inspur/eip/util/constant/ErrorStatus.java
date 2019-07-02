@@ -1,4 +1,4 @@
-package com.inspur.eip.util;
+package com.inspur.eip.util.constant;
 
 /**
  * @Description TODO
@@ -9,13 +9,13 @@ public enum ErrorStatus {
     /**
      * SC_PARAM_ERROR
      */
-    SC_PARAM_ERROR("106.999400", "SC_PARAM_ERROR!"),
+    SC_PARAM_ERROR("106.999400", "sc param error!"),
 
-    SC_PARAM_NOTFOUND("106.998400", "SC_PARAM_NOTFOUND!"),
+    SC_PARAM_NOTFOUND("106.998400", "sc param not found!"),
 
-    SC_PARAM_UNKONWERROR("106.997400","SC_PARAM_UNKONWERROR!"),
+    SC_PARAM_UNKONWERROR("106.997400","sc param unkonwerror!"),
 
-    SC_RESOURCE_ERROR("106.994400","SC_RESOURCE_ERROR!"),
+    SC_RESOURCE_ERROR("106.994400","sc resource error!"),
     /**
      * SC_RESOURCE_NOTENOUGH
      */
@@ -108,12 +108,12 @@ public enum ErrorStatus {
     /**
      * Unauthorized: osClientV3 is null!
      */
-    ENTITY_INTERNAL_SERVER_ERROR("106.999500", "ENTITY_INTERNAL_SERVER_ERROR!"),
+    ENTITY_INTERNAL_SERVER_ERROR("106.999500", "System internal server error!"),
 
     /**
      * ENTITY_BADREQUEST_ERROR
      */
-    ENTITY_BADREQUEST_ERROR("106.000400","ENTITY_BADREQUEST_ERROR"),
+    ENTITY_BADREQUEST_ERROR("106.000400","Entity bad request error"),
 
     /**
      * ENTITY_ILLEGAL_ARGUMENT_ERROR
@@ -141,6 +141,9 @@ public enum ErrorStatus {
      * FireWall config error
      */
     FIREWALL_NOT_FOND_IN_DB("106.994400", "Failed to find FireWall config  in db! -"),
+
+
+    VALIADATE_NAME_ERROR("106.994400", "Valiadte Illegal name! -"),
 
     /**
      * add qos in firewall

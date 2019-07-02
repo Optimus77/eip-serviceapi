@@ -1,4 +1,4 @@
-package com.inspur.eip.util;
+package com.inspur.eip.util.constant;
 
 public class HsConstants {
 	public static final String LANG = "zh_CN";
@@ -47,7 +47,7 @@ public class HsConstants {
 	public static final String REST_LOGIN = "/rest/login";
 	//SBW
 	public static final String SBW_NAME= "sbwName";
-	public static final String SBW_ID= "sbwId";
+	public static final String SBW_ID= "id";
 
 	//product route
 	public static final String EIP = "EIP";
@@ -105,4 +105,6 @@ public class HsConstants {
 	public static final String FLOATIP = "floatIp: ";
 	//Url constant
 	public static final String EIP_NUMBERS = "eipNumbers";
+	public static final String UUID_LENGTH = "9dea38f8-f59c-4847-ba43-f0ef61a6986c";
+
 }

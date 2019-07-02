@@ -1,9 +1,10 @@
-package com.inspur.eip.util;
+package com.inspur.eip.util.http;
 
 import com.google.gson.Gson;
 import com.inspur.eip.entity.fw.Cookie;
 import com.inspur.eip.entity.fw.FwLogin;
 import com.inspur.eip.entity.fw.FwLoginResponseBody;
+import com.inspur.eip.util.constant.HsConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;

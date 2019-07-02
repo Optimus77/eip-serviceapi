@@ -10,12 +10,18 @@ import com.inspur.eip.entity.eip.Resourceset;
 import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.entity.sbw.SbwReturnBase;
 import com.inspur.eip.entity.sbw.SbwReturnDetail;
+import com.inspur.eip.exception.EipBadRequestException;
+import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.EipV6Repository;
 import com.inspur.eip.repository.SbwRepository;
 import com.inspur.eip.service.ISbwService;
 import com.inspur.eip.service.SbwDaoService;
 import com.inspur.eip.util.*;
+import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.constant.ErrorStatus;
+import com.inspur.eip.util.constant.HsConstants;
+import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -51,8 +57,6 @@ public class SbwServiceImpl implements ISbwService {
     @Override
     public ResponseEntity atomCreateSbw(SbwUpdateParam sbwConfig, String token) {
 
-        String code;
-        String msg;
         try {
             Sbw sbwMo = sbwDaoService.allocateSbw(sbwConfig, token);
             if (null != sbwMo) {
@@ -61,14 +65,12 @@ public class SbwServiceImpl implements ISbwService {
                 log.info("Create a sbw success:{}", sbwMo);
                 return new ResponseEntity<>(sbwInfo, HttpStatus.OK);
             } else {
-                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
-                msg = "Failed to create sbw :{}" + sbwConfig;
-                log.error(msg);
+                log.error("Failed to create sbw :{}" + sbwConfig);
             }
         } catch (Exception e) {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 
@@ -87,7 +89,7 @@ public class SbwServiceImpl implements ISbwService {
             JSONArray sbws = new JSONArray();
             Page<Sbw> page;
             if (pageIndex != 0) {
-                Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+                Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(pageIndex - 1, pageSize, sort);
                 if (StringUtils.isNotBlank(searchValue)) {
                     if (searchValue.matches(matche)) {
@@ -101,7 +103,7 @@ public class SbwServiceImpl implements ISbwService {
                 for (Sbw sbw : page.getContent()) {
                     SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                     BeanUtils.copyProperties(sbw, sbwReturnDetail);
-                    long ipCount = eipRepository.countBySbwIdAndIsDelete(sbw.getSbwId(), 0);
+                    long ipCount = eipRepository.countBySbwIdAndIsDelete(sbw.getId(), 0);
                     sbwReturnDetail.setIpCount((int) ipCount);
                     sbws.add(sbwReturnDetail);
                 }
@@ -118,7 +120,7 @@ public class SbwServiceImpl implements ISbwService {
                     }
                     SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                     BeanUtils.copyProperties(sbw, sbwReturnDetail);
-                    long ipCount = eipRepository.countBySbwIdAndIsDelete(sbw.getSbwId(), 0);
+                    long ipCount = eipRepository.countBySbwIdAndIsDelete(sbw.getId(), 0);
                     sbwReturnDetail.setIpCount((int) ipCount);
                     sbws.add(sbwReturnDetail);
                 }
@@ -186,10 +188,10 @@ public class SbwServiceImpl implements ISbwService {
     @ICPServiceLog
     public ActionResponse updateSbwConfig(String sbwId, SbwUpdateParam param, String token) {
         try {
-            if (StringUtils.isBlank(sbwId)){
-                ActionResponse.actionFailed(ErrorStatus.PARAM_CAN_NOT_BE_NULL.getMessage()+" sbwId:"+ sbwId+ " bandWidth:"+param.getBandwidth(),HttpStatus.BAD_REQUEST.value());
+            if (StringUtils.isNotBlank(sbwId) && HsConstants.UUID_LENGTH.length() == sbwId.length()){
+                return sbwDaoService.updateSbwEntity(sbwId, param, token);
             }else {
-               return sbwDaoService.updateSbwEntity(sbwId, param, token);
+                ActionResponse.actionFailed(ErrorStatus.PARAM_CAN_NOT_BE_NULL.getMessage()+" id:"+ sbwId+ " bandWidth:"+param.getBandwidth(),HttpStatus.BAD_REQUEST.value());
             }
         } catch (Exception e) {
             log.error("Exception in update Sbw Config", e);
@@ -200,18 +202,38 @@ public class SbwServiceImpl implements ISbwService {
 
     @Override
     @ICPServiceLog
-    public ResponseEntity getSbwCount() {
+    public ResponseEntity countSbwNumsByProjectId() {
         try {
             String projectid = CommonUtil.getUserId();
             long num = sbwRepository.countByProjectIdAndIsDelete(projectid, 0);
-
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, HsConstants.SUCCESS, num), HttpStatus.OK);
         } catch (KeycloakTokenException e) {
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ErrorStatus.SC_FORBIDDEN.getCode(), ErrorStatus.SC_FORBIDDEN.getMessage(), null), HttpStatus.UNAUTHORIZED);
-        } catch (Exception e) {
-            log.error("Exception in listShareBandWidth", e.getMessage());
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ErrorStatus.SC_INTERNAL_SERVER_ERROR.getCode(),ErrorStatus.SC_INTERNAL_SERVER_ERROR.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("KeycloakTokenException in count sbw nums:{}", e.getMessage());
         }
+        return new ResponseEntity<>(ReturnMsgUtil.msg(ErrorStatus.SC_FORBIDDEN.getCode(), ErrorStatus.SC_FORBIDDEN.getMessage(), null), HttpStatus.UNAUTHORIZED);
+    }
+
+    /**
+     * 可通过状态统计用户下的sbw实例数量
+     * @param status ：ACTIVE | STOP | DELETE
+     * @return
+     */
+    @Override
+    public ResponseEntity countSbwNumsByStatus(String status){
+        try {
+            String projectId = CommonUtil.getUserId();
+            if (status.equals(HsConstants.ACTIVE) || status.equals(HsConstants.STOP)|| status.equals(HsConstants.DELETE)){
+                long num = sbwRepository.countByStatusAndProjectIdAndIsDelete(status, projectId, 0);
+                log.info("Atom get Sbw Count loading……:{}",num);
+                return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, HsConstants.SUCCESS, num), HttpStatus.OK);
+            }else {
+                log.warn(ErrorStatus.SC_PARAM_NOTFOUND +":{}",status);
+                throw new EipBadRequestException(ErrorStatus.SC_PARAM_NOTFOUND.getCode(),ErrorStatus.SC_PARAM_NOTFOUND.getMessage());
+            }
+        } catch (KeycloakTokenException e) {
+            log.error("KeycloakTokenException in count sbw nums by status:{}", e.getMessage());
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.msg(ErrorStatus.SC_FORBIDDEN.getCode(), ErrorStatus.SC_FORBIDDEN.getMessage(), null), HttpStatus.UNAUTHORIZED);
     }
 
     /**
@@ -226,9 +248,9 @@ public class SbwServiceImpl implements ISbwService {
         try {
             String renewTime = updateParam.getDuration();
             if (StringUtils.isBlank(sbwId)|| StringUtils.isBlank(renewTime)) {
-                return ActionResponse.actionFailed(ErrorStatus.PARAM_CAN_NOT_BE_NULL.getMessage()+" sbwId:"+ sbwId+ " duration:"+ updateParam.getDuration(),HttpStatus.BAD_REQUEST.value());
+                return ActionResponse.actionFailed(ErrorStatus.PARAM_CAN_NOT_BE_NULL.getMessage()+" id:"+ sbwId+ " duration:"+ updateParam.getDuration(),HttpStatus.BAD_REQUEST.value());
             } else if (Integer.parseInt(renewTime) > 0) {
-                return sbwDaoService.renewSbwEntity(sbwId, token);
+                return sbwDaoService.renewSbwInfo(sbwId, token);
             }
         } catch (Exception e) {
             log.error("Exception in restart sbw service:{}", e.getMessage());
@@ -248,7 +270,7 @@ public class SbwServiceImpl implements ISbwService {
         try {
             String renewTime = updateParam.getDuration();
             if (StringUtils.isBlank(renewTime) || StringUtils.isBlank(sbwId)) {
-                return ActionResponse.actionFailed(HttpStatus.BAD_REQUEST.getReasonPhrase()+"sbwId:"+sbwId + "duration:"+renewTime, HttpStatus.BAD_REQUEST.value());
+                return ActionResponse.actionFailed(HttpStatus.BAD_REQUEST.getReasonPhrase()+"id:"+sbwId + "duration:"+renewTime, HttpStatus.BAD_REQUEST.value());
             } else if (renewTime.trim().equals("0")) {
                 return sbwDaoService.stopSbwService(sbwId);
             }
@@ -279,7 +301,7 @@ public class SbwServiceImpl implements ISbwService {
             JSONObject data = new JSONObject();
             JSONArray eips = new JSONArray();
             if (currentPage != 0) {
-                Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+                Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
                 Page<Eip> page = eipRepository.findByUserIdAndIsDeleteAndSbwId(projcectid, 0, sbwId, pageable);
                 for (Eip eip : page.getContent()) {
@@ -336,10 +358,10 @@ public class SbwServiceImpl implements ISbwService {
                 Sbw sbwBean = sbwDaoService.renameSbw(sbwId, param);
                 BeanUtils.copyProperties(sbwBean, sbwReturnDetail);
                 sbwReturnDetail.setIpCount((int) eipRepository.countBySbwIdAndIsDelete(sbwId, 0));
-                return new ResponseEntity<>(ReturnMsgUtil.success(sbwReturnDetail),HttpStatus.OK);
+                return new ResponseEntity<>(sbwReturnDetail,HttpStatus.OK);
             }
         } catch (Exception e) {
-            log.error("Exception in rename sbw", e.getMessage());
+            log.error("Exception in rename sbw:{}", e.getMessage());
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(),ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }

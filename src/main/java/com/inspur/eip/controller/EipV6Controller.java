@@ -2,13 +2,12 @@ package com.inspur.eip.controller;
 
 
 import com.inspur.eip.entity.ipv6.EipV6UpdateParam;
-import com.inspur.eip.entity.ipv6.EipV6AllocateParam;
 import com.inspur.eip.entity.ipv6.EipV6UpdateParamWrapper;
 import com.inspur.eip.entity.ipv6.EipV6AllocateParamWrapper;
 import com.inspur.eip.service.impl.EipV6ServiceImpl;
-import com.inspur.eip.util.CommonUtil;
+import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.ReturnMsgUtil;
-import com.inspur.eip.util.ReturnStatus;
+import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.iam.adapter.annotation.PermissionContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;

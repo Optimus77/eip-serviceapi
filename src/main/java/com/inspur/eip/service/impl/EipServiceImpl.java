@@ -8,12 +8,16 @@ import com.inspur.eip.entity.ipv6.EipV6;
 import com.inspur.eip.entity.MethodReturn;
 import com.inspur.eip.entity.eip.*;
 import com.inspur.eip.entity.sbw.Sbw;
+import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.EipV6Repository;
 import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.IEipService;
 import com.inspur.eip.service.SbwDaoService;
 import com.inspur.eip.util.*;
+import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.constant.HsConstants;
+import com.inspur.eip.util.constant.ReturnStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.model.common.ActionResponse;
@@ -80,7 +84,7 @@ public class EipServiceImpl implements IEipService {
                 BeanUtils.copyProperties(eipMo, eipInfo);
                 log.info("Atom create a eip success:{}", eipMo);
                 if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
-                    eipV6Service.atomCreateEipV6(eipMo.getEipId(), token);
+                    eipV6Service.atomCreateEipV6(eipMo.getId(), token);
                 }
                 return new ResponseEntity<>(eipInfo, HttpStatus.OK);
             } else {
@@ -110,7 +114,7 @@ public class EipServiceImpl implements IEipService {
         try {
             ActionResponse actionResponse = eipDaoService.deleteEip(eipId, CommonUtil.getKeycloackToken());
             if (actionResponse.isSuccess()) {
-                log.info("Atom delete eip successfully, eipId:{}", eipId);
+                log.info("Atom delete eip successfully, id:{}", eipId);
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
             } else {
                 msg = actionResponse.getFault();
@@ -145,7 +149,7 @@ public class EipServiceImpl implements IEipService {
                 actionResponse = eipDaoService.deleteEip(eipId,token);
                 if (!actionResponse.isSuccess()) {
                     failedIds.add(eipId);
-                    log.error("delete eip error, eipId:{}", eipId);
+                    log.error("delete eip error, id:{}", eipId);
                 }
             }
             if (failedIds.isEmpty()) {
@@ -184,7 +188,7 @@ public class EipServiceImpl implements IEipService {
             JSONObject data = new JSONObject();
             JSONArray eips = new JSONArray();
             if (currentPage != 0) {
-                Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+                Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
                 Page<Eip> page = eipRepository.findByUserIdAndIsDelete(projcectid, 0, pageable);
                 for (Eip eip : page.getContent()) {
@@ -264,7 +268,7 @@ public class EipServiceImpl implements IEipService {
             JSONObject data = new JSONObject();
             JSONArray eips = new JSONArray();
             if (currentPage != 0) {
-                Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+                Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
                 Page<Eip> page = eipRepository.findByUserIdAndIsDelete(projcectid, 0, pageable);
                 for (Eip eip : page.getContent()) {
@@ -376,6 +380,33 @@ public class EipServiceImpl implements IEipService {
      * @return the json result
      */
     @Override
+    public ResponseEntity getEipByInstanceIdV2(String instanceId) {
+
+        try {
+            Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
+
+            if (null != eipEntity) {
+                EipReturnDetail eipReturnDetail = new EipReturnDetail();
+
+                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                eipReturnDetail.setResourceset(Resourceset.builder()
+                        .resourceId(eipEntity.getInstanceId())
+                        .resourceType(eipEntity.getInstanceType()).build());
+                return new ResponseEntity<>(eipReturnDetail, HttpStatus.OK);
+            } else {
+                log.debug("Failed to find eip by instance id, instanceId:{}", instanceId);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "can not find instance by this id:" + instanceId + ""),
+                        HttpStatus.NOT_FOUND);
+            }
+
+        } catch (Exception e) {
+            log.error("Exception in getEipByInstanceIdV2", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    /* V1 Controller use  will be deleted*/
+    @Override
     public ResponseEntity getEipByInstanceId(String instanceId) {
 
         try {
@@ -410,6 +441,33 @@ public class EipServiceImpl implements IEipService {
      * @return the json result
      */
     @Override
+    public ResponseEntity getEipByIpAddressV2(String eip) {
+
+        try {
+
+            Eip eipEntity = eipDaoService.findByEipAddress(eip);
+
+            if (null != eipEntity) {
+                EipReturnDetail eipReturnDetail = new EipReturnDetail();
+
+                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                eipReturnDetail.setResourceset(Resourceset.builder()
+                        .resourceId(eipEntity.getInstanceId())
+                        .resourceType(eipEntity.getInstanceType()).build());
+                return new ResponseEntity<>(eipReturnDetail, HttpStatus.OK);
+            } else {
+                log.warn("Failed to find eip by eip, eip:{}", eip);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "can not find eip by this eip address:" + eip + ""),
+                        HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            log.error("Exception in getEipByIpAddressV2", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
     public ResponseEntity getEipByIpAddress(String eip) {
 
         try {
@@ -430,9 +488,8 @@ public class EipServiceImpl implements IEipService {
                         "can not find eip by this eip address:" + eip + ""),
                         HttpStatus.NOT_FOUND);
             }
-
         } catch (Exception e) {
-            log.error("Exception in getEipByIpAddress", e);
+            log.error("Exception in getEipByIpAddressV2", e);
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -463,7 +520,7 @@ public class EipServiceImpl implements IEipService {
 
         switch (type) {
             case HsConstants.ECS:
-                log.debug("bind a server:{} port:{} with eipId:{}", serverId, portId, id);
+                log.debug("bind a server:{} port:{} with id:{}", serverId, portId, id);
                 // 1：ecs
                 if (!StringUtils.isEmpty(portId)) {
                     result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId, null);
@@ -681,6 +738,7 @@ public class EipServiceImpl implements IEipService {
         }
 
     }
+    /* V1.1  Controller use*/
     @Override
     public ResponseEntity getEipDetailsByIpAddress(String eipAddress) {
         JSONObject data=new JSONObject();
@@ -703,6 +761,4 @@ public class EipServiceImpl implements IEipService {
         }
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
-
-
 }

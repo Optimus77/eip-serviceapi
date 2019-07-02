@@ -5,6 +5,7 @@ import com.inspur.eip.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.*;
 import com.inspur.iam.adapter.annotation.PermissionContext;
+import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -12,7 +13,6 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,7 +23,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Size;
 import java.util.List;
 
 @Slf4j
@@ -88,9 +87,9 @@ public class SbwControllerV2 {
 //    @ICPControllerLog
 //    @CrossOrigin(origins = "*", maxAge = 3000)
 //    public ResponseEntity deleteSbw(@Size(min = 36, max = 36, message = "Must be uuid.")
-//                                        @PathVariable("sbw_id") String sbwId) {
-//        log.info("Atom delete the sbw , sbwId:{} ", sbwId);
-//        ActionResponse actionResponse = sbwService.deleteSbwInfo(sbwId, CommonUtil.getKeycloackToken());
+//                                        @PathVariable("sbw_id") String id) {
+//        log.info("Atom delete the sbw , id:{} ", id);
+//        ActionResponse actionResponse = sbwService.deleteSbwInfo(id, CommonUtil.getKeycloackToken());
 //        if (actionResponse.isSuccess()){
 //            return new ResponseEntity(ReturnMsgUtil.success(),HttpStatus.OK);
 //        }
@@ -114,7 +113,7 @@ public class SbwControllerV2 {
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
     public ResponseEntity getSbwDetail(@PathVariable("sbw_id") String sbwId) {
-        log.info("Atom get the sbw detail , sbwId:{} ", sbwId);
+        log.info("Atom get the sbw detail , id:{} ", sbwId);
         return sbwService.getSbwDetail(sbwId);
     }
 
@@ -131,21 +130,21 @@ public class SbwControllerV2 {
     @GetMapping(value = "/sbws/instance-num")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "get Sbw Count", notes = "get number")
-    public ResponseEntity getSbwCount(@RequestParam(required = false, name = "dimensionName") String dimensionName) {
-        log.info("Atom get Sbw Count loading……");
-        if (StringUtils.isNotBlank(dimensionName) && HsConstants.EIP_NUMBERS.equalsIgnoreCase(dimensionName)){
-            return sbwService.getSbwCount();
+    public ResponseEntity getSbwCount(@RequestParam(required = false )String status) {
+        if (StringUtils.isNotBlank(status)){
+            return sbwService.countSbwNumsByStatus(status);
+        }else {
+            return sbwService.countSbwNumsByProjectId();
         }
-        return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 //
 //    @ICPControllerLog
 //    @PostMapping(value = "/sbws/{sbw_id}/action/renewals")
 //    @CrossOrigin(origins = "*", maxAge = 3000)
-//    public ResponseEntity renewSbw(@PathVariable("sbw_id") String sbwId,
+//    public ResponseEntity renewSbw(@PathVariable("sbw_id") String id,
 //                                   @RequestBody SbwUpdateParamWrapper param) {
-//        log.info("Atom renew or softdown sbw sbwId:{}, param:{}.", sbwId, param.getSbw().toString());
-//        ActionResponse actionResponse = sbwService.restartSbwService(sbwId, param.getSbw(), CommonUtil.getKeycloackToken());
+//        log.info("Atom renew or softdown sbw id:{}, param:{}.", id, param.getSbw().toString());
+//        ActionResponse actionResponse = sbwService.restartSbwService(id, param.getSbw(), CommonUtil.getKeycloackToken());
 //        if (actionResponse.isSuccess()) {
 //            return new ResponseEntity(ReturnMsgUtil.success(),HttpStatus.OK);
 //        }
@@ -196,9 +195,9 @@ public class SbwControllerV2 {
 //    @ApiImplicitParams({
 //            @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
 //    })
-//    public ResponseEntity getOtherEips(@PathVariable("sbw_id") String sbwId){
-//        log.info("Atom get the other Eip have not bind in sbw,Sbwid:{}",sbwId);
-//        return sbwService.getOtherEips(sbwId);
+//    public ResponseEntity getOtherEips(@PathVariable("sbw_id") String id){
+//        log.info("Atom get the other Eip have not bind in sbw,Sbwid:{}",id);
+//        return sbwService.getOtherEips(id);
 //    }
 
 //
@@ -209,8 +208,8 @@ public class SbwControllerV2 {
 //            @ApiImplicitParam(paramType = "path", name = "eip", value = "the sbw wrapper ", required = true, dataType = "json"),
 //    })
 //    @CrossOrigin(origins = "*", maxAge = 3000)
-//    public ResponseEntity updateSbwConfig(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param, BindingResult result) {
-//        log.info("Atom update sbw sbwId:{},param:{}.", sbwId, param.getSbw().toString());
+//    public ResponseEntity updateSbwConfig(@PathVariable("sbw_id") String id, @Valid @RequestBody SbwUpdateParamWrapper param, BindingResult result) {
+//        log.info("Atom update sbw id:{},param:{}.", id, param.getSbw().toString());
 //        if (result.hasErrors()) {
 //            StringBuilder builder = new StringBuilder();
 //            List<FieldError> fieldErrors = result.getFieldErrors();
@@ -222,8 +221,8 @@ public class SbwControllerV2 {
 //        }
 //        ActionResponse actionResponse;
 //        if (param.getSbw().getBillType() != null ) {
-//            log.info("update bandWidth, sbwid:{}, param:{} ", sbwId, param.getSbw());
-//             actionResponse = sbwService.updateSbwConfig(sbwId, param.getSbw(), CommonUtil.getKeycloackToken());
+//            log.info("update bandWidth, sbwid:{}, param:{} ", id, param.getSbw());
+//             actionResponse = sbwService.updateSbwConfig(id, param.getSbw(), CommonUtil.getKeycloackToken());
 //             if (actionResponse.isSuccess()){
 //                 return new ResponseEntity(ReturnMsgUtil.success(),HttpStatus.OK);
 //             }

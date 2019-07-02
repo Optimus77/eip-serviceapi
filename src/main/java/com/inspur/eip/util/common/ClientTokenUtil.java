@@ -1,4 +1,4 @@
-package com.inspur.eip.util;
+package com.inspur.eip.util.common;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +14,8 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.openstack4j.api.exceptions.ResponseException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -34,11 +36,8 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
 /**
- * @author wangdashuai
- * Title: ClientTokenUtil
- * ProjectName inobj-service
- * Description: get client token
- * @date 2018/11/26  16:29
+ * get client token cp from ecs
+ * data : 2019.6.26
  */
 @Component
 @Slf4j
@@ -52,9 +51,9 @@ public class ClientTokenUtil {
     @Value("${keycloak.realm}")
     private String realm;
 
-    public String getAdminToken() throws KeycloakTokenException{
+    public String getOssAdminToken() {
         RestTemplate restTemplate = null;
-        CloseableHttpClient closeableHttpClient =null;
+        CloseableHttpClient closeableHttpClient = null;
         try {
             X509TrustManager trustManager = new X509TrustManager() {
                 @Override
@@ -84,7 +83,7 @@ public class ClientTokenUtil {
                     .register("https", socketFactory)
                     .build();
             PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-             closeableHttpClient = HttpClients.custom()
+            closeableHttpClient = HttpClients.custom()
                     .setConnectionManager(connectionManager)
                     .setDefaultRequestConfig(requestConfig)
                     .build();
@@ -94,14 +93,13 @@ public class ClientTokenUtil {
         } catch (NoSuchAlgorithmException ex) {
             throw new RuntimeException(ex);
         }
-            CloseableHttpClient httpClient = closeableHttpClient;
-            HttpComponentsClientHttpRequestFactory requestFactory =
-                    new HttpComponentsClientHttpRequestFactory();
-            requestFactory.setHttpClient(httpClient);
-            restTemplate = new RestTemplate(requestFactory);
+        CloseableHttpClient httpClient = closeableHttpClient;
+        HttpComponentsClientHttpRequestFactory requestFactory =
+                new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setHttpClient(httpClient);
+        restTemplate = new RestTemplate(requestFactory);
 
-        String url = authServerUrl + HsConstants.KEYCLOAK_TOKEN_SUBPATH;
-
+        String url = authServerUrl + "/realms/{realm}/protocol/openid-connect/token";
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Content-Type", "application/x-www-form-urlencoded");
         MultiValueMap<String, Object> postParameters = new LinkedMultiValueMap<>();
@@ -111,13 +109,43 @@ public class ClientTokenUtil {
         postParameters.add("response_type", "code id_token");
         HttpEntity httpEntity = new HttpEntity<>(postParameters, httpHeaders);
         ResponseEntity responseEntity = restTemplate.postForEntity(url, httpEntity, String.class, realm);
-        if ((null == responseEntity) || responseEntity.getStatusCode() != HttpStatus.OK || null == responseEntity.getBody()) {
-            log.error(this.getClass().getName() + ".getAdminToken():" + "get admin token fail!");
-            throw new KeycloakTokenException("Get token error exception.");
+        if (responseEntity.getStatusCode() != HttpStatus.OK || null == responseEntity.getBody()) {
+            log.error(this.getClass().getName() + ".getOssAdminToken():" + "get oss admin token fail!");
+            throw new ResponseException("get oss admin token fail!", 500);
         }
         JSONObject jsonObject = JSONObject.parseObject(responseEntity.getBody().toString());
-        log.debug("get admin token:{}", jsonObject.toJSONString());
         return jsonObject.getString("access_token");
     }
-}
 
+
+    @Autowired
+    private RestTemplate userRestTemplate;
+
+    public String getTokenByUsernameAndPassword(String username, String password) {
+
+        String clientId = client;
+        String clientSecret = secret;
+        String url = authServerUrl + "/realms/{realm}/protocol/openid-connect/token";
+        MultiValueMap<String, Object> postParameters = new LinkedMultiValueMap<>();
+        postParameters.add("grant_type", "password");
+        postParameters.add("username", username);
+        postParameters.add("password", password);
+        postParameters.add("client_id", "console");
+        postParameters.add("client_secret", clientSecret);
+        postParameters.add("response_type", "id_token");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/x-www-form-urlencoded");
+        HttpEntity<MultiValueMap<String, Object>> httpEntity = new HttpEntity<>(postParameters, headers);
+
+        ResponseEntity<String> restEntity = userRestTemplate.postForEntity(url, httpEntity, String.class, realm);
+        if (restEntity.getStatusCode().is2xxSuccessful()) {
+            JSONObject rest = JSONObject.parseObject(restEntity.getBody());
+            return "Bearer " + rest.getString("access_token");
+        } else {
+            log.error(String.valueOf(restEntity));
+            throw new ResponseException("get token fail!", 500);
+        }
+
+    }
+
+}

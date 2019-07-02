@@ -1,4 +1,4 @@
-package com.inspur.eip.util;
+package com.inspur.eip.util.common;
 
 public class IpUtil {
     IpUtil() {

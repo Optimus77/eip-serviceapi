@@ -4,6 +4,7 @@ import com.inspur.eip.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.*;
 import com.inspur.iam.adapter.annotation.PermissionContext;
+import com.inspur.eip.util.constant.ReturnStatus;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -17,6 +18,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 
@@ -73,7 +75,7 @@ public class SbwController {
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
     public ResponseEntity getSbwDetail(@PathVariable("sbw_id") String sbwId) {
-        log.debug("Atom get the sbw detail , sbwId:{} ", sbwId);
+        log.debug("Atom get the sbw detail , id:{} ", sbwId);
         return sbwService.getSbwDetail(sbwId);
 
     }
@@ -90,7 +92,7 @@ public class SbwController {
     public ResponseEntity getSbwCount() {
 
         log.info("Atom get Sbw Count loading……");
-        return sbwService.getSbwCount();
+        return sbwService.countSbwNumsByProjectId();
     }
 
     @PermissionContext(whitelist=true)
@@ -112,7 +114,7 @@ public class SbwController {
     public ResponseEntity sbwListEip(@PathVariable( name = "sbw_id") String sbwId,
                                      @RequestParam(required = false, name = "currentPageIndex", defaultValue = "1") String pageIndex,
                                      @RequestParam(required = false, name = "currentPageSize", defaultValue = "10") String pageSize) {
-        log.debug("Atom get EIP list in this Sbw sbwId:{},currentPageIndex:{}, currentPageSize:{}",sbwId, pageIndex, pageSize);
+        log.debug("Atom get EIP list in this Sbw id:{},currentPageIndex:{}, currentPageSize:{}",sbwId, pageIndex, pageSize);
         if (pageIndex == null || pageSize == null) {
             pageIndex = "0";
             pageSize = "0";
@@ -140,7 +142,8 @@ public class SbwController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
-    public ResponseEntity renameSbw(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param, BindingResult result){
+    public ResponseEntity renameSbw(@Size(min = 36,max = 36,message = "Id must be uuid") @PathVariable("sbw_id") String sbwId,
+                                    @Valid @RequestBody SbwUpdateParamWrapper param, BindingResult result){
         log.info("Atom rename sbw param:{}",param.getSbw().toString());
         if (result.hasErrors()) {
             StringBuilder builder = new StringBuilder();
@@ -148,7 +151,7 @@ public class SbwController {
             for (FieldError fieldError : fieldErrors) {
                 builder.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
             }
-            log.info("{}",builder);
+            log.error("{}",builder);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, builder.toString()), HttpStatus.BAD_REQUEST);
         }
         String msg;

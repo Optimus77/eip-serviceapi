@@ -4,12 +4,10 @@ import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.LogLevel;
-import com.inspur.eip.entity.eip.*;
 import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.service.impl.SbwServiceImpl;
-import com.inspur.eip.util.CommonUtil;
 import com.inspur.eip.util.ReturnMsgUtil;
-import com.inspur.eip.util.ReturnStatus;
+import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.iam.adapter.annotation.PermissionContext;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +27,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Size;
 import java.util.List;
 
 
@@ -68,10 +65,10 @@ public class EipControllerV2 {
 //    @DeleteMapping(value = "/eips/{eip_id}")
 //    @CrossOrigin(origins = "*",maxAge = 3000)
 //    public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
-//                                        @PathVariable("eip_id") String eipId) {
+//                                        @PathVariable("eip_id") String id) {
 //        //Check the parameters
-//        log.info("Atom delete the Eip:{} ",eipId);
-//        return eipService.atomDeleteEip(eipId);
+//        log.info("Atom delete the Eip:{} ",id);
+//        return eipService.atomDeleteEip(id);
 //
 //    }
 
@@ -174,7 +171,7 @@ public class EipControllerV2 {
             resourceType="instance")
     @GetMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="getEipByInstanceId",notes="get")
+    @ApiOperation(value="getEipByConditions",notes="get")
     public ResponseEntity getEipByInstanceIdSecond(@RequestParam(required = false) String resourceId,
                                                    @RequestParam(required = false) String eipAddress,
                                                    @RequestParam(required = false) String key)  {
@@ -183,7 +180,7 @@ public class EipControllerV2 {
             return new ResponseEntity<>("To be wrong.", HttpStatus.FORBIDDEN);
         } else if(resourceId != null) {
             log.info("EipController get eip by instance id:{} ", resourceId);
-            return eipService.getEipByInstanceId(resourceId);
+            return eipService.getEipByInstanceIdV2(resourceId);
         } else if (null != eipAddress){
             log.debug("EipController get eip by ip:{} ", eipAddress);
             if(null != key){
@@ -191,7 +188,7 @@ public class EipControllerV2 {
                     return eipService.getEipDetailsByIpAddress(eipAddress);
                 }
             }
-            return eipService.getEipByIpAddress(eipAddress);
+            return eipService.getEipByIpAddressV2(eipAddress);
         }
         return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
     }
@@ -255,10 +252,10 @@ public class EipControllerV2 {
 
 //    @PostMapping(value = "/eips/{eip_id}/renew")
 //    @CrossOrigin(origins = "*",maxAge = 3000)
-//    public ResponseEntity renewEip(@PathVariable("eip_id") String eipId,
+//    public ResponseEntity renewEip(@PathVariable("eip_id") String id,
 //                                   @RequestBody EipUpdateParam param ) {
-//        log.info("Renew a eip:{}, order:{}.", eipId, param.toString());
-//        return eipService.renewEip(eipId, param);
+//        log.info("Renew a eip:{}, order:{}.", id, param.toString());
+//        return eipService.renewEip(id, param);
 //    }
 //
 //    @PostMapping(value = "/action/delete", consumes = MediaType.APPLICATION_JSON_VALUE)

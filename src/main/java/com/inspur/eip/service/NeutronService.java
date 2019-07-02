@@ -1,8 +1,8 @@
 package com.inspur.eip.service;
 
 import com.inspur.eip.entity.eip.Eip;
-import com.inspur.eip.util.KeycloakTokenException;
-import com.inspur.eip.util.CommonUtil;
+import com.inspur.eip.exception.KeycloakTokenException;
+import com.inspur.eip.util.common.CommonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.network.IP;
@@ -115,20 +115,20 @@ public  class NeutronService {
                                                           Eip eip, String serverId) throws KeycloakTokenException {
 
         if(portId.isEmpty()){
-            log.error("Port id is null when bind instance with eip. server:{}, eip:{}", serverId, eip.getEipId());
+            log.error("Port id is null when bind instance with eip. server:{}, eip:{}", serverId, eip.getId());
             return null;
         }
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
 
         Port port = osClientV3.networking().port().get(portId);
         if(null == port) {
-            log.error("Can not get port by id:{} in associate with server:{}, eipId:{}",portId, serverId, eip.getEipId());
+            log.error("Can not get port by id:{} in associate with server:{}, id:{}",portId, serverId, eip.getId());
             return null;
         }
 
         Server server = osClientV3.compute().servers().get(serverId);
         if(null == server) {
-            log.error("Can not get server when associate with serverId:{}, eipId:{}", serverId, eip.getEipId());
+            log.error("Can not get server when associate with serverId:{}, id:{}", serverId, eip.getId());
             return null;
         }
         String projectId = CommonUtil.getProjectId(region, osClientV3);
