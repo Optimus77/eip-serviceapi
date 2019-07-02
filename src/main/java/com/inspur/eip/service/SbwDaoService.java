@@ -369,6 +369,7 @@ public class SbwDaoService {
         try {
             Optional<Sbw> optional = sbwRepository.findById(sbwId);
             if (optional.isPresent()) {
+                sbw = optional.get();
                 if (sbw.getIsDelete() == 1) {
                     log.warn("In rename sbw process,failed to find the sbw by id:{} ", sbwId);
                     throw new EipNotFoundException(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getCode(), ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage());
