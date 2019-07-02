@@ -22,6 +22,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 @Slf4j
@@ -103,7 +104,7 @@ public class SbwControllerV2 {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
-    public ResponseEntity getSbwDetail(@PathVariable("sbw_id") String sbwId) {
+    public ResponseEntity getSbwDetail(@Size(min=36, max=36, message = "Must be uuid.")@PathVariable("sbw_id") String sbwId) {
         log.info("Atom get the sbw detail , id:{} ", sbwId);
         return sbwService.getSbwDetail(sbwId);
     }

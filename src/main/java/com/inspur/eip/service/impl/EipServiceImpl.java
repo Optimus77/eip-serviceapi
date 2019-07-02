@@ -62,7 +62,7 @@ public class EipServiceImpl implements IEipService {
         String msg;
         try {
             String sbwId = eipConfig.getSbwId();
-            if (null != sbwId) {
+            if (StringUtils.isNotBlank(sbwId)) {
                 Sbw sbwEntity = sbwDaoService.getSbwById(sbwId);
                 if (null == sbwEntity || (!sbwEntity.getProjectId().equalsIgnoreCase(CommonUtil.getUserId(token)))) {
                     log.warn(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);

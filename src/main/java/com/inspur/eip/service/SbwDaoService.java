@@ -88,19 +88,20 @@ public class SbwDaoService {
                 log.error("Create sbw error-" + ConstantClassField.FIREWALL_QOS_ADD_ERROR);
                 throw new EipInternalServerException(ErrorStatus.SC_FIREWALL_QOS_UNAVAILABLE.getCode(), ErrorStatus.SC_FIREWALL_QOS_UNAVAILABLE.getMessage());
             }
-        } catch (KeycloakTokenException e) {
-            log.error("Create Sbw Exception in add qos ", e);
+        } catch (Exception e) {
+            log.error("Create Sbw Exception in add qos:{} ", e);
         }
         return null;
     }
 
-    public Sbw getSbwById(String id) {
-        Sbw sbwEntity = null;
-        Optional<Sbw> sbw = sbwRepository.findById(id);
+    public Sbw getSbwById(String sbwId) {
+        Optional<Sbw> sbw = sbwRepository.findById(sbwId);
         if (sbw.isPresent()) {
-            sbwEntity = sbw.get();
+            return sbw.get();
+        }else {
+            log.error("Faild to find sbw by id:" + sbwId);
+            return null;
         }
-        return sbwEntity;
     }
 
     /**
@@ -381,10 +382,12 @@ public class SbwDaoService {
                 sbw.setSbwName(newSbwName);
                 sbw.setUpdatedTime(CommonUtil.getGmtDate());
                 sbwRepository.saveAndFlush(sbw);
-                log.info(ConstantClassField.UPDATE_SBW_CONFIG_SUCCESS);
-            }
+                log.info(ConstantClassField.UPDATE_SBW_CONFIG_SUCCESS+":{}",sbw.toString());
+            }else {
                 log.warn("In rename sbw process,failed to find the sbw by id:{} ", sbwId);
                 throw new EipNotFoundException(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getCode(), ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage());
+            }
+
         } catch (KeycloakTokenException e) {
             log.error(ConstantClassField.EXCEPTION_SBW_RENAEM, e.getMessage());
         }
