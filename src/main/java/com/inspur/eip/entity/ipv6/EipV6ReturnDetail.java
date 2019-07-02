@@ -14,7 +14,7 @@ import java.util.Date;
 public class EipV6ReturnDetail implements Serializable {
 
     @JsonProperty("id")
-    private String eipv6Id;
+    private String id;
 
     @JsonProperty("ipv6")
     private String ipv6;
@@ -24,7 +24,7 @@ public class EipV6ReturnDetail implements Serializable {
 
     @JsonProperty("createTime")
     @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date createTime;
+    private Date createdTime;
 
     @JsonProperty("region")
     private String region;
