@@ -45,9 +45,6 @@ public class SbwDaoService {
     private FirewallService firewallService;
 
     @Autowired
-    private FirewallRepository firewallRepository;
-
-    @Autowired
     private QosService qosService;
 
     public List<Sbw> findByProjectId(String projectId) {
@@ -371,7 +368,7 @@ public class SbwDaoService {
         Sbw sbw = null;
         try {
             Optional<Sbw> optional = sbwRepository.findById(sbwId);
-            if (!optional.isPresent()) {
+            if (optional.isPresent()) {
                 if (sbw.getIsDelete() == 1) {
                     log.warn("In rename sbw process,failed to find the sbw by id:{} ", sbwId);
                     throw new EipNotFoundException(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getCode(), ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage());
@@ -486,7 +483,7 @@ public class SbwDaoService {
             return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_SHARED_BAND_WIDTH_ID_NOT_NULL), HttpStatus.SC_BAD_REQUEST);
         }
         Optional<Sbw> sbwOptional = sbwRepository.findById(sbwId);
-        if (sbwOptional.isPresent()) {
+        if (!sbwOptional.isPresent()) {
             log.error("Failed to find sbw by id:{} ", sbwId);
             return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID), HttpStatus.SC_NOT_FOUND);
         }

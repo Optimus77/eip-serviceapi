@@ -55,17 +55,20 @@ public class EipV6DaoService {
     public EipV6 allocateEipV6(String  eipV4Id, EipPoolV6 eipPoolv6, String token) throws KeycloakTokenException {
 
         Optional<Eip> optional = eipRepository.findById(eipV4Id);
-        if(optional.isPresent()){
+        if(!optional.isPresent()){
             log.error("Faild to find eip by id:{}",eipV4Id);
+            eipPoolV6Repository.saveAndFlush(eipPoolv6);
             return null;
         }
         Eip eip = optional.get();
         if(StringUtils.isNotBlank(eip.getEipV6Id())){
             log.error("This eip has been associated with ipv6:{}",eipV4Id);
+            eipPoolV6Repository.saveAndFlush(eipPoolv6);
             return null;
         }
         if(StringUtils.isNotBlank(eip.getSbwId())){
             log.error("This eip adds Shared bandwidth:{}",eipV4Id);
+            eipPoolV6Repository.saveAndFlush(eipPoolv6);
             return null;
         }
         if (!eipPoolv6.getState().equals("0")) {
@@ -150,7 +153,9 @@ public class EipV6DaoService {
     public ActionResponse deleteEipV6(String eipv6id,String token)  {
         String msg;
         if(null == eipv6id) {
-            return ActionResponse.actionSuccess();
+            msg= "eipv6Id cannot be null";
+            log.error(msg);
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
 
         EipV6 eipV6Entity = eipV6Repository.findByIdAndIsDelete(eipv6id,0);
