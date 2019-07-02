@@ -72,7 +72,7 @@ public class SbwController {
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
     public ResponseEntity getSbwDetail(@PathVariable("sbw_id") String sbwId) {
-        log.debug("Atom get the sbw detail , sbwId:{} ", sbwId);
+        log.debug("Atom get the sbw detail , id:{} ", sbwId);
         return sbwService.getSbwDetail(sbwId);
 
     }
@@ -110,7 +110,7 @@ public class SbwController {
     public ResponseEntity sbwListEip(@PathVariable( name = "sbw_id") String sbwId,
                                      @RequestParam(required = false, name = "currentPageIndex", defaultValue = "1") String pageIndex,
                                      @RequestParam(required = false, name = "currentPageSize", defaultValue = "10") String pageSize) {
-        log.debug("Atom get EIP list in this Sbw sbwId:{},currentPageIndex:{}, currentPageSize:{}",sbwId, pageIndex, pageSize);
+        log.debug("Atom get EIP list in this Sbw id:{},currentPageIndex:{}, currentPageSize:{}",sbwId, pageIndex, pageSize);
         if (pageIndex == null || pageSize == null) {
             pageIndex = "0";
             pageSize = "0";

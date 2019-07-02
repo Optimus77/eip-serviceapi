@@ -1,0 +1,39 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+<!--EIP表字段改名： eip_id -> id  | create_time-> created_time | update_time -> updated_time -->
+    <changeSet author="zerah" id="201906270301">
+        <preConditions onFail="MARK_RAN">
+                <columnExists tableName="eipv6" columnName="eip_v6_id"></columnExists>
+                <columnExists tableName="eipv6" columnName="create_time"></columnExists>
+                <columnExists tableName="eipv6" columnName="update_time"></columnExists>
+        </preConditions>
+
+        <renameColumn catalogName="icp_eip" columnDataType="varchar(36)" newColumnName="id" oldColumnName="eip_v6_id" schemaName="public" tableName="eipv6"/>
+        <renameColumn catalogName="icp_eip" columnDataType="datetime" newColumnName="created_time" oldColumnName="create_time" schemaName="public" tableName="eipv6"/>
+        <renameColumn catalogName="icp_eip" columnDataType="datetime" newColumnName="updated_time" oldColumnName="update_time" schemaName="public" tableName="eipv6"/>
+        <comment>修改eipv6表中通用字段名称：eip_v6_id->id | create_time-> created_time | update_time -> updated_time</comment>
+    </changeSet>
+
+    <changeSet author="zerah" id="201906270302">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="eipv6" columnName="band_width"></columnExists>
+        </preConditions>
+        <modifyDataType catalogName="icp_eip" columnName="dnatpt_id" newDataType="int(8)" schemaName="public" tableName="eipv6" remarks="dnatpt"/>
+        <modifyDataType catalogName="icp_eip" columnName="firewall_id" newDataType="varchar(36)" schemaName="public" tableName="eipv6" remarks="防火墙id"/>
+        <modifyDataType catalogName="icp_eip" columnName="floating_ip" newDataType="varchar(15)" schemaName="public" tableName="eipv6 " remarks="floating ip"/>
+        <modifyDataType catalogName="icp_eip" columnName="ip_version" newDataType="varchar(4)" schemaName="public" tableName="eipv6" remarks="ip版本"/>
+        <modifyDataType catalogName="icp_eip" columnName="ipv4" newDataType="varchar(15)" schemaName="public" tableName="eipv6" remarks="ipv4 地址"/>
+        <modifyDataType catalogName="icp_eip" columnName="ipv6" newDataType="varchar(128)" schemaName="public" tableName="eipv6" remarks="ipv6地址"/>
+        <modifyDataType catalogName="icp_eip" columnName="project_id" newDataType="varchar(36)" schemaName="public" tableName="eipv6" remarks="项目id"/>
+        <modifyDataType catalogName="icp_eip" columnName="status" newDataType="varchar(8)" schemaName="public" tableName="eipv6" remarks="eipv6状态 ACTIVE:正常"/>
+        <modifyDataType catalogName="icp_eip" columnName="region" newDataType="varchar(16)" schemaName="public" tableName="eipv6" remarks="域"/>
+        <modifyDataType catalogName="icp_eip" columnName="snatpt_id" newDataType="varchar(8)" schemaName="public" tableName="eipv6" remarks="snatpt id"/>
+        <modifyDataType catalogName="icp_eip" columnName="user_id" newDataType="varchar(36)" schemaName="public" tableName="eipv6" remarks="用户id"/>
+        <modifyDataType catalogName="icp_eip" columnName="is_delete" newDataType="int(4)" schemaName="public" tableName="eipv6" remarks="是否删除 0:未删 1:已删"/>
+        <comment>修改eipv6表中字段类型（规范字段长度）</comment>
+    </changeSet>
+
+</databaseChangeLog>

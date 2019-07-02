@@ -15,7 +15,7 @@ import java.util.Date;
 public class EipReturnDetail implements Serializable {
 
     @JsonProperty("eipid")
-    private String eipId;
+    private String id;
 
     @Column(name="eip_address")
     @JsonProperty("eip_address")
@@ -53,7 +53,7 @@ public class EipReturnDetail implements Serializable {
 
     @JsonProperty("create_at")
     @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd HH:mm:ss")
-    private Date createTime;
+    private Date createdTime;
 
     @JsonProperty("region")
     private String region;

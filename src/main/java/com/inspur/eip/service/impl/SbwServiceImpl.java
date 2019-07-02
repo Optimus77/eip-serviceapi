@@ -89,7 +89,7 @@ public class SbwServiceImpl implements ISbwService {
             JSONArray sbws = new JSONArray();
             Page<Sbw> page;
             if (pageIndex != 0) {
-                Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+                Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(pageIndex - 1, pageSize, sort);
                 if (StringUtils.isNotBlank(searchValue)) {
                     if (searchValue.matches(matche)) {
@@ -103,7 +103,7 @@ public class SbwServiceImpl implements ISbwService {
                 for (Sbw sbw : page.getContent()) {
                     SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                     BeanUtils.copyProperties(sbw, sbwReturnDetail);
-                    long ipCount = eipRepository.countBySbwIdAndIsDelete(sbw.getSbwId(), 0);
+                    long ipCount = eipRepository.countBySbwIdAndIsDelete(sbw.getId(), 0);
                     sbwReturnDetail.setIpCount((int) ipCount);
                     sbws.add(sbwReturnDetail);
                 }
@@ -120,7 +120,7 @@ public class SbwServiceImpl implements ISbwService {
                     }
                     SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                     BeanUtils.copyProperties(sbw, sbwReturnDetail);
-                    long ipCount = eipRepository.countBySbwIdAndIsDelete(sbw.getSbwId(), 0);
+                    long ipCount = eipRepository.countBySbwIdAndIsDelete(sbw.getId(), 0);
                     sbwReturnDetail.setIpCount((int) ipCount);
                     sbws.add(sbwReturnDetail);
                 }
@@ -191,7 +191,7 @@ public class SbwServiceImpl implements ISbwService {
             if (StringUtils.isNotBlank(sbwId) && HsConstants.UUID_LENGTH.length() == sbwId.length()){
                 return sbwDaoService.updateSbwEntity(sbwId, param, token);
             }else {
-                ActionResponse.actionFailed(ErrorStatus.PARAM_CAN_NOT_BE_NULL.getMessage()+" sbwId:"+ sbwId+ " bandWidth:"+param.getBandwidth(),HttpStatus.BAD_REQUEST.value());
+                ActionResponse.actionFailed(ErrorStatus.PARAM_CAN_NOT_BE_NULL.getMessage()+" id:"+ sbwId+ " bandWidth:"+param.getBandwidth(),HttpStatus.BAD_REQUEST.value());
             }
         } catch (Exception e) {
             log.error("Exception in update Sbw Config", e);
@@ -248,7 +248,7 @@ public class SbwServiceImpl implements ISbwService {
         try {
             String renewTime = updateParam.getDuration();
             if (StringUtils.isBlank(sbwId)|| StringUtils.isBlank(renewTime)) {
-                return ActionResponse.actionFailed(ErrorStatus.PARAM_CAN_NOT_BE_NULL.getMessage()+" sbwId:"+ sbwId+ " duration:"+ updateParam.getDuration(),HttpStatus.BAD_REQUEST.value());
+                return ActionResponse.actionFailed(ErrorStatus.PARAM_CAN_NOT_BE_NULL.getMessage()+" id:"+ sbwId+ " duration:"+ updateParam.getDuration(),HttpStatus.BAD_REQUEST.value());
             } else if (Integer.parseInt(renewTime) > 0) {
                 return sbwDaoService.renewSbwInfo(sbwId, token);
             }
@@ -270,7 +270,7 @@ public class SbwServiceImpl implements ISbwService {
         try {
             String renewTime = updateParam.getDuration();
             if (StringUtils.isBlank(renewTime) || StringUtils.isBlank(sbwId)) {
-                return ActionResponse.actionFailed(HttpStatus.BAD_REQUEST.getReasonPhrase()+"sbwId:"+sbwId + "duration:"+renewTime, HttpStatus.BAD_REQUEST.value());
+                return ActionResponse.actionFailed(HttpStatus.BAD_REQUEST.getReasonPhrase()+"id:"+sbwId + "duration:"+renewTime, HttpStatus.BAD_REQUEST.value());
             } else if (renewTime.trim().equals("0")) {
                 return sbwDaoService.stopSbwService(sbwId);
             }
@@ -301,7 +301,7 @@ public class SbwServiceImpl implements ISbwService {
             JSONObject data = new JSONObject();
             JSONArray eips = new JSONArray();
             if (currentPage != 0) {
-                Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+                Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
                 Page<Eip> page = eipRepository.findByUserIdAndIsDeleteAndSbwId(projcectid, 0, sbwId, pageable);
                 for (Eip eip : page.getContent()) {

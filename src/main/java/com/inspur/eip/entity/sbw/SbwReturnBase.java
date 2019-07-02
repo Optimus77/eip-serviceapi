@@ -13,7 +13,7 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SbwReturnBase implements Serializable {
     @JsonProperty("sbwId")
-    private String sbwId;
+    private String id;
 
     @JsonProperty("bandwidth")
     private int bandWidth;
@@ -23,7 +23,7 @@ public class SbwReturnBase implements Serializable {
 
     @JsonProperty("createTime")
     @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd HH:mm:ss")
-    private Date createTime;
+    private Date createdTime;
 
     @JsonProperty("status")
     private String status;
