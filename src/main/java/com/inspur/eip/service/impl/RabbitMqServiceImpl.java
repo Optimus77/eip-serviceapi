@@ -98,7 +98,7 @@ public class RabbitMqServiceImpl {
             } else {
                 eipReturn = response.getBody();
                 if (null != eipReturn) {
-                    eipId = eipReturn.getEipId();
+                    eipId = eipReturn.getId();
                 }
                 if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
                     webService.returnsIpv6Websocket("Success", "createNatWithEip", eipOrder.getToken());
@@ -310,7 +310,7 @@ public class RabbitMqServiceImpl {
                     } else {
                         sbwReturn = response.getBody();
                         if (null != sbwReturn) {
-                            sbwId = sbwReturn.getSbwId();
+                            sbwId = sbwReturn.getId();
                         }
                         webService.returnSbwWebsocket(sbwId, reciveOrder, "create");
                     }

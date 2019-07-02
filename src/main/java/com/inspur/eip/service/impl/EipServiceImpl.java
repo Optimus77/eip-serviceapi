@@ -84,7 +84,7 @@ public class EipServiceImpl implements IEipService {
                 BeanUtils.copyProperties(eipMo, eipInfo);
                 log.info("Atom create a eip success:{}", eipMo);
                 if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
-                    eipV6Service.atomCreateEipV6(eipMo.getEipId(), token);
+                    eipV6Service.atomCreateEipV6(eipMo.getId(), token);
                 }
                 return new ResponseEntity<>(eipInfo, HttpStatus.OK);
             } else {
@@ -114,7 +114,7 @@ public class EipServiceImpl implements IEipService {
         try {
             ActionResponse actionResponse = eipDaoService.deleteEip(eipId, CommonUtil.getKeycloackToken());
             if (actionResponse.isSuccess()) {
-                log.info("Atom delete eip successfully, eipId:{}", eipId);
+                log.info("Atom delete eip successfully, id:{}", eipId);
                 return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
             } else {
                 msg = actionResponse.getFault();
@@ -149,7 +149,7 @@ public class EipServiceImpl implements IEipService {
                 actionResponse = eipDaoService.deleteEip(eipId,token);
                 if (!actionResponse.isSuccess()) {
                     failedIds.add(eipId);
-                    log.error("delete eip error, eipId:{}", eipId);
+                    log.error("delete eip error, id:{}", eipId);
                 }
             }
             if (failedIds.isEmpty()) {
@@ -188,7 +188,7 @@ public class EipServiceImpl implements IEipService {
             JSONObject data = new JSONObject();
             JSONArray eips = new JSONArray();
             if (currentPage != 0) {
-                Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+                Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
                 Page<Eip> page = eipRepository.findByUserIdAndIsDelete(projcectid, 0, pageable);
                 for (Eip eip : page.getContent()) {
@@ -268,7 +268,7 @@ public class EipServiceImpl implements IEipService {
             JSONObject data = new JSONObject();
             JSONArray eips = new JSONArray();
             if (currentPage != 0) {
-                Sort sort = new Sort(Sort.Direction.DESC, "createTime");
+                Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
                 Page<Eip> page = eipRepository.findByUserIdAndIsDelete(projcectid, 0, pageable);
                 for (Eip eip : page.getContent()) {
@@ -520,7 +520,7 @@ public class EipServiceImpl implements IEipService {
 
         switch (type) {
             case HsConstants.ECS:
-                log.debug("bind a server:{} port:{} with eipId:{}", serverId, portId, id);
+                log.debug("bind a server:{} port:{} with id:{}", serverId, portId, id);
                 // 1：ecs
                 if (!StringUtils.isEmpty(portId)) {
                     result = eipDaoService.associateInstanceWithEip(id, serverId, type, portId, null);

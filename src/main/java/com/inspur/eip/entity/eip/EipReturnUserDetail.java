@@ -13,7 +13,7 @@ import java.util.Date;
 public class EipReturnUserDetail implements Serializable {
 
     @JsonProperty("eipId")
-    private String eipId;
+    private String id;
 
     @JsonProperty("eipAddress")
     private String eipAddress;
