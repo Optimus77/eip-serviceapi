@@ -138,7 +138,7 @@ public class SbwDaoService {
             // 防火墙qos存在，删除防火墙qos
             if (StringUtils.isNotBlank(sbwBean.getPipeId())) {
                 //根据qos名称删除qos,pipeId即是sbwId
-                boolean delQos = firewallService.cmdDelSbwQos(sbwBean.getPipeId(), firewallId);
+                boolean delQos = firewallService.cmdDelSbwQos(sbwBean.getId(), firewallId);
                 if (delQos) {
                     sbwBean.setIsDelete(1);
                     sbwBean.setStatus(HsConstants.DELETE);
@@ -193,7 +193,7 @@ public class SbwDaoService {
 //            return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbwBean.getRegion(), HttpStatus.SC_BAD_REQUEST);
 //        }
             if (StringUtils.isNotBlank(sbwBean.getPipeId())) {
-                boolean delQos = firewallService.delQos(sbwBean.getPipeId(), null, null, firewallId);
+                boolean delQos = firewallService.delQos(sbwBean.getId(), null, null, firewallId);
                 if (delQos) {
                     sbwBean.setIsDelete(1);
                     sbwBean.setStatus(HsConstants.DELETE);
@@ -239,7 +239,7 @@ public class SbwDaoService {
 //        }
         if (StringUtils.isNotEmpty(sbw.getStatus()) && HsConstants.ACTIVE.equalsIgnoreCase(sbw.getStatus())) {
             if (StringUtils.isNotEmpty(sbw.getPipeId())) {
-                boolean stop = qosService.controlPipe(firewallId, sbw.getPipeId(), true);
+                boolean stop = qosService.controlPipe(firewallId, sbwId, true);
                 if (stop) {
                     sbw.setUpdatedTime(CommonUtil.getGmtDate());
                     sbw.setStatus(HsConstants.STOP);
@@ -501,7 +501,7 @@ public class SbwDaoService {
             if (eipUpdateParam.getBandwidth() != sbwEntity.getBandWidth()) {
                 return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.SBW_THE_NEW_BANDWIDTH_VALUE_ERROR), HttpStatus.SC_NOT_FOUND);
             }
-            pipeId = firewallService.addFipToSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbwEntity.getPipeId());
+            pipeId = firewallService.addFipToSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbwEntity.getId());
             if (null != pipeId) {
                 updateStatus = firewallService.delQos(eipEntity.getPipId(), eipEntity.getEipAddress(), eipEntity.getFloatingIp(), eipEntity.getFirewallId());
                 if (StringUtils.isBlank(sbwEntity.getPipeId())) {
@@ -575,7 +575,7 @@ public class SbwDaoService {
             newPipId = firewallService.addQos(eipEntity.getFloatingIp(), eipEntity.getEipAddress(), String.valueOf(eipUpdateParam.getBandwidth()),
                     eipEntity.getFirewallId());
             if (null != newPipId) {
-                removeStatus = firewallService.removeFipFromSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbw.getPipeId());
+                removeStatus = firewallService.removeFipFromSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbw.getId());
                 log.info("remove fip result:{}",removeStatus);
             } else {
                 removeStatus = false;

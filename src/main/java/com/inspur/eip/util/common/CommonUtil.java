@@ -259,13 +259,26 @@ public class CommonUtil {
         }
     }
 
-
+    /**
+     * 格林尼治时间
+     * @return
+     */
     public static String getDate() {
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return formatter.format(currentTime);
     }
 
+    /**
+     * 北京时间
+     * @return
+     */
+    public static String getBeiJTime() {
+        Date date = new Date(System.currentTimeMillis());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT+8"));
+        return dateFormat.format(date);
+    }
     public synchronized static String getUUID(){
         UUID uuid=UUID.randomUUID();
         String uuidStr=uuid.toString();

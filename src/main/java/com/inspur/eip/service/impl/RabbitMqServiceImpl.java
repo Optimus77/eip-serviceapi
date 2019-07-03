@@ -267,7 +267,7 @@ public class RabbitMqServiceImpl {
                 }
                 softDownInstance.setResult(result);
                 softDownInstance.setInstanceStatus(insanceStatus);
-                softDownInstance.setStatusTime(CommonUtil.getDate());
+                softDownInstance.setStatusTime(CommonUtil.getBeiJTime());
             }
             log.info(ConstantClassField.SOFTDOWN_OR_DELETE_EIP_CONFIG_RESULT, response);
             sendChangeMessageToBss(eipOrder);
@@ -464,7 +464,7 @@ public class RabbitMqServiceImpl {
                 }
                 instance.setResult(setStatus);
                 instance.setInstanceStatus(instanceStatus);
-                instance.setStatusTime((CommonUtil.getDate()));
+                instance.setStatusTime((CommonUtil.getBeiJTime()));
             }
             sendChangeMessageToBss(softDown);
             log.info(ConstantClassField.SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT, response);
