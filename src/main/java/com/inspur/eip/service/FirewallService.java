@@ -743,6 +743,8 @@ public class FirewallService {
                         + "pipe-rule backward bandwidth Mbps "+ bandwidth+"\r"
                         + "end",
                 retString);
+        //成功标志：qos创建成功但不可用
+        // Tip: Root pipe "7ec675a5-38be-4fb7-9de0-70faae88b5fa" is unavailable, end string:Tip: Root pipe "7ec675a5-38be-4fb7-9de0-70faae88b5fa" is unavailable
         if(strResult == null || !strResult.contains(retString)){
             flag = Boolean.FALSE;
             log.error("Failed to add cmd sbw qos", strResult);

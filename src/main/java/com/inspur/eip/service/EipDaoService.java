@@ -67,7 +67,7 @@ public class EipDaoService {
      * @param eipConfig eipconfig
      * @return result
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Eip allocateEip(EipAllocateParam eipConfig, EipPool eip, String operater, String token) throws KeycloakTokenException {
 
 
@@ -214,11 +214,13 @@ public class EipDaoService {
                 log.error(msg);
             }
 
-            ActionResponse delV6Ret = eipV6DaoService.adminDeleteEipV6(eipEntity.getEipV6Id());
-            if (!delV6Ret.isSuccess()) {
-                msg = "Faild to delete ipv6 address.";
-                log.error(msg);
-                return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            if(eipEntity.getEipV6Id() != null){
+                ActionResponse delV6Ret = eipV6DaoService.adminDeleteEipV6(eipEntity.getEipV6Id());
+                if (!delV6Ret.isSuccess()) {
+                    msg = "Faild to delete ipv6 address.";
+                    log.error(msg);
+                    return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                }
             }
 
             eipEntity.setIsDelete(1);

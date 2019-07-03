@@ -56,7 +56,7 @@ public class SbwDaoService {
         try {
             //sbw instance id
             String sbwId = CommonUtil.getUUID();
-            if (!ValidatorUtil.isLINE_STANDARD_STR(sbwConfig.getSbwName())) {
+            if (!ValidatorUtil.isDOT_STANDARD_STR(sbwConfig.getSbwName())) {
                 throw new EipBadRequestException(ErrorStatus.VALIADATE_NAME_ERROR.getCode(), ErrorStatus.VALIADATE_NAME_ERROR.getMessage());
             }
 //            Firewall firewall = firewallRepository.findFirewallByRegion(sbwConfig.getRegion());
@@ -363,7 +363,7 @@ public class SbwDaoService {
     @Transactional(rollbackFor = Exception.class)
     public Sbw renameSbw(String sbwId, SbwUpdateParam param) {
         String newSbwName = param.getSbwName();
-        if (!ValidatorUtil.isLINE_STANDARD_STR(newSbwName)) {
+        if (!ValidatorUtil.isDOT_STANDARD_STR(newSbwName)) {
             throw new EipBadRequestException(ErrorStatus.VALIADATE_NAME_ERROR.getCode(), ErrorStatus.VALIADATE_NAME_ERROR.getMessage());
         }
         Sbw sbw = null;

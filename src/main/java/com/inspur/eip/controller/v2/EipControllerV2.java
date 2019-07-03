@@ -163,7 +163,7 @@ public class EipControllerV2 {
         if((null != resourceId) && (null != eipAddress) ){
             return new ResponseEntity<>("To be wrong.", HttpStatus.FORBIDDEN);
         } else if(resourceId != null) {
-            log.info("EipController get eip by instance id:{} ", resourceId);
+            log.debug("EipController get eip by instance id:{} ", resourceId);
             return eipService.getEipByInstanceIdV2(resourceId);
         } else if (null != eipAddress){
             log.debug("EipController get eip by ip:{} ", eipAddress);
