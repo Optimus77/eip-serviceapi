@@ -186,11 +186,11 @@ public class RabbitMqServiceImpl {
                 if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
                     if (eipUpdate.getSbwId() != null) {
                         if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
-                            log.info("add eip to sbw:{}", eipUpdate.toString());
                             response = sbwDaoService.addEipIntoSbw(eipId, eipUpdate, eipOrder.getToken());
+                            log.info("add eip to sbw:{}", response);
                         } else if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_BANDWIDTH)) {
-                            log.info("remove eip from sbw:{}", eipUpdate.toString());
                             response = sbwDaoService.removeEipFromSbw(eipId, eipUpdate, eipOrder.getToken());
+                            log.info("remove eip from sbw:{}", response);
                         }
                     } else if (eipUpdate.getBillType().equals(HsConstants.MONTHLY) ||
                             eipUpdate.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {

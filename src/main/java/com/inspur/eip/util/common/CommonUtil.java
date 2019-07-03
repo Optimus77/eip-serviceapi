@@ -195,13 +195,11 @@ public class CommonUtil {
             errorMsg = "value must be 1-500.";
         }
         if(null != param.getChargeMode()) {
-            if (!param.getChargeMode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
-                    !param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
+            if (!param.getChargeMode().equalsIgnoreCase(HsConstants.BANDWIDTH) && !param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
                 errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
             }
-            if(param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)
-                    && (null == param.getSbwId())) {
-                errorMsg = errorMsg + "SharedBandwidth id is needed in sharedbandwidth charge mode. ";
+            if(param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH) && (null == param.getSbwId())) {
+                errorMsg = errorMsg + "SharedBandwidth id is needed in SharedBandwidth charge mode and sbwId not null ";
             }
         }
 
