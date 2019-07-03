@@ -23,7 +23,7 @@ public class EipV6ReturnDetail implements Serializable {
     private String status;
 
     @JsonProperty("createTime")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, timezone = "GMT+8", pattern="yyyy-MM-dd'T'HH:mm:ss'Z'")
     private Date createdTime;
 
     @JsonProperty("region")
