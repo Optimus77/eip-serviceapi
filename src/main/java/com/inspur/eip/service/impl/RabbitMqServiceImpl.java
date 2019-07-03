@@ -545,7 +545,7 @@ public class RabbitMqServiceImpl {
                 }
             }
         }
-        log.info("Get eip param from bss MQ:{}", eipAllocateParam.toString());
+        log.debug("Get eip param from bss MQ:{}", eipAllocateParam.toString());
         /*chargemode now use the default value */
         return eipAllocateParam;
     }

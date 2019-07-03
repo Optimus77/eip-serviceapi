@@ -575,7 +575,8 @@ public class SbwDaoService {
             newPipId = firewallService.addQos(eipEntity.getFloatingIp(), eipEntity.getEipAddress(), String.valueOf(eipUpdateParam.getBandwidth()),
                     eipEntity.getFirewallId());
             if (null != newPipId) {
-                removeStatus = firewallService.removeFipFromSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), eipEntity.getPipId());
+                removeStatus = firewallService.removeFipFromSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbw.getPipeId());
+                log.info("remove fip result:{}",removeStatus);
             } else {
                 removeStatus = false;
             }

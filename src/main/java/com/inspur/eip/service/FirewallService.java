@@ -485,6 +485,7 @@ public class FirewallService {
      */
     public boolean removeFipFromSbwQos(String firewallId, String floatIp, String pipeId) {
         if(pipeId.length() == HsConstants.UUID_LENGTH.length()){
+            log.info("loading to remove fip from sbw qos");
             return cmdDelIpInSbwPipe(pipeId, floatIp, firewallId);
         }
         return Boolean.FALSE;
