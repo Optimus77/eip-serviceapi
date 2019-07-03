@@ -439,7 +439,7 @@ public class FirewallService {
         String innerIp = eipEntity.getFloatingIp();
         boolean removeRet;
         if (eipEntity.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH) && eipEntity.getPipId() != null) {
-            removeRet = removeFipFromSbwQos(eipEntity.getFirewallId(), innerIp, eipEntity.getPipId());
+            removeRet = removeFipFromSbwQos(eipEntity.getFirewallId(), innerIp, eipEntity.getPipId(),eipEntity.getSbwId());
         } else {
             removeRet = delQos(eipEntity.getPipId(), eipEntity.getEipAddress(),innerIp, eipEntity.getFirewallId());
             if (removeRet) {
@@ -483,12 +483,25 @@ public class FirewallService {
      * @param pipeId     bandid
      * @return ret
      */
-    public boolean removeFipFromSbwQos(String firewallId, String floatIp, String pipeId) {
+    public boolean removeFipFromSbwQos(String firewallId, String floatIp, String pipeId, String sbwId) {
         if(pipeId.length() == HsConstants.UUID_LENGTH.length()){
             log.info("loading to remove fip from sbw qos");
             return cmdDelIpInSbwPipe(pipeId, floatIp, firewallId);
         }
-        return Boolean.FALSE;
+        Firewall fwBean = getFireWallById(firewallId);
+        if (fwBean != null) {
+            qosService.setFwIp(fwBean.getIp());
+            qosService.setFwPort(fwBean.getPort());
+            qosService.setFwUser(fwBean.getUser());
+            qosService.setFwPwd(fwBean.getPasswd());
+            HashMap<String, String> map = qosService.removeIpFromPipe(floatIp, sbwId);
+            if (Boolean.valueOf(map.get(HsConstants.SUCCESS))) {
+                log.info("Success remove Floating Ip from SbwQos: " + firewallId + "floatIp: " + floatIp + "pipeId：" + pipeId);
+                return Boolean.parseBoolean(map.get(HsConstants.SUCCESS));
+            }
+            log.warn("FirewallService : Failed removeFloatingIpFromQos :floatIp pipeId:{} map:{} ", floatIp, pipeId, map);
+        }
+        return Boolean.parseBoolean("False");
     }
 
 
