@@ -47,7 +47,7 @@ public class HsConstants {
 	public static final String REST_LOGIN = "/rest/login";
 	//SBW
 	public static final String SBW_NAME= "sbwName";
-	public static final String SBW_ID= "id";
+	public static final String SBW_ID= "sbwId";
 
 	//product route
 	public static final String EIP = "EIP";

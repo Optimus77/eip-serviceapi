@@ -114,7 +114,7 @@ public class SbwControllerV2 {
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
     public ResponseEntity getSbwDetail(@Size(min=36, max=36, message = "Must be uuid.")@PathVariable("sbw_id") String sbwId) {
-        log.info("Atom get the sbw detail , id:{} ", sbwId);
+        log.debug("Atom get the sbw detail , id:{} ", sbwId);
         return sbwService.getSbwDetail(sbwId);
     }
 

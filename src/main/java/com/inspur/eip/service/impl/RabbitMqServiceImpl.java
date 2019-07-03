@@ -186,11 +186,11 @@ public class RabbitMqServiceImpl {
                 if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
                     if (eipUpdate.getSbwId() != null) {
                         if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
-                            log.info("add eip to sbw:{}", eipUpdate.toString());
                             response = sbwDaoService.addEipIntoSbw(eipId, eipUpdate, eipOrder.getToken());
+                            log.info("add eip to sbw:{}", response);
                         } else if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_BANDWIDTH)) {
-                            log.info("remove eip from sbw:{}", eipUpdate.toString());
                             response = sbwDaoService.removeEipFromSbw(eipId, eipUpdate, eipOrder.getToken());
+                            log.info("remove eip from sbw:{}", response);
                         }
                     } else if (eipUpdate.getBillType().equals(HsConstants.MONTHLY) ||
                             eipUpdate.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
@@ -267,7 +267,7 @@ public class RabbitMqServiceImpl {
                 }
                 softDownInstance.setResult(result);
                 softDownInstance.setInstanceStatus(insanceStatus);
-                softDownInstance.setStatusTime(CommonUtil.getDate());
+                softDownInstance.setStatusTime(CommonUtil.getBeiJTime());
             }
             log.info(ConstantClassField.SOFTDOWN_OR_DELETE_EIP_CONFIG_RESULT, response);
             sendChangeMessageToBss(eipOrder);
@@ -464,7 +464,7 @@ public class RabbitMqServiceImpl {
                 }
                 instance.setResult(setStatus);
                 instance.setInstanceStatus(instanceStatus);
-                instance.setStatusTime((CommonUtil.getDate()));
+                instance.setStatusTime((CommonUtil.getBeiJTime()));
             }
             sendChangeMessageToBss(softDown);
             log.info(ConstantClassField.SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT, response);
@@ -545,7 +545,7 @@ public class RabbitMqServiceImpl {
                 }
             }
         }
-        log.info("Get eip param from bss MQ:{}", eipAllocateParam.toString());
+        log.debug("Get eip param from bss MQ:{}", eipAllocateParam.toString());
         /*chargemode now use the default value */
         return eipAllocateParam;
     }

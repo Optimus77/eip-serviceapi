@@ -152,12 +152,6 @@ public class EipV6DaoService {
     @Transactional
     public ActionResponse deleteEipV6(String eipv6id,String token)  {
         String msg;
-        if(null == eipv6id) {
-            msg= "eipv6Id cannot be null";
-            log.error(msg);
-            return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
-        }
-
         EipV6 eipV6Entity = eipV6Repository.findByIdAndIsDelete(eipv6id,0);
         if (null == eipV6Entity) {
             msg= "Faild to find eipV6 by id:"+eipv6id;
@@ -219,10 +213,6 @@ public class EipV6DaoService {
     @Transactional
     public ActionResponse adminDeleteEipV6(String eipv6id)  {
         String msg;
-        if(null == eipv6id) {
-            return ActionResponse.actionSuccess();
-        }
-
         EipV6 eipV6Entity = eipV6Repository.findByIdAndIsDelete(eipv6id,0);
         if (null == eipV6Entity) {
             msg= "Faild to find eipV6 by id:"+eipv6id;
