@@ -29,7 +29,7 @@
         <modifyDataType catalogName="icp_eip" columnName="ipv6" newDataType="varchar(128)" schemaName="public" tableName="eipv6" remarks="ipv6地址"/>
         <modifyDataType catalogName="icp_eip" columnName="project_id" newDataType="varchar(36)" schemaName="public" tableName="eipv6" remarks="项目id"/>
         <modifyDataType catalogName="icp_eip" columnName="status" newDataType="varchar(8)" schemaName="public" tableName="eipv6" remarks="eipv6状态 ACTIVE:正常"/>
-        <modifyDataType catalogName="icp_eip" columnName="region" newDataType="varchar(16)" schemaName="public" tableName="eipv6" remarks="域"/>
+        <modifyDataType catalogName="icp_eip" columnName="region" newDataType="varchar(36)" schemaName="public" tableName="eipv6" remarks="域"/>
         <modifyDataType catalogName="icp_eip" columnName="snatpt_id" newDataType="varchar(8)" schemaName="public" tableName="eipv6" remarks="snatpt id"/>
         <modifyDataType catalogName="icp_eip" columnName="user_id" newDataType="varchar(36)" schemaName="public" tableName="eipv6" remarks="用户id"/>
         <modifyDataType catalogName="icp_eip" columnName="is_delete" newDataType="int(4)" schemaName="public" tableName="eipv6" remarks="是否删除 0:未删 1:已删"/>
