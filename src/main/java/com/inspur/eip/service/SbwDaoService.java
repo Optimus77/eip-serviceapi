@@ -92,7 +92,7 @@ public class SbwDaoService {
         }
         return null;
     }
-
+    @Transactional
     public Sbw getSbwById(String sbwId) {
         Optional<Sbw> sbw = sbwRepository.findById(sbwId);
         if (sbw.isPresent()) {

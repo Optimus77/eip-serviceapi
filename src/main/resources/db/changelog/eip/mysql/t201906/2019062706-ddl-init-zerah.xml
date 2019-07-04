@@ -4,8 +4,8 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
 
-<!--eip表-->
-    <changeSet author="zerah" id="2019050901-dev" context="dev">
+<!--eip表  初始化liquibase脚本 防止没有脚本时报错-->
+    <changeSet author="zerah" id="201906270601" >
         <sql>select count(*) from sbw </sql>
     </changeSet>
 

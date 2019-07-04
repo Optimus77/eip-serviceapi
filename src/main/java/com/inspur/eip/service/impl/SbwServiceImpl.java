@@ -53,7 +53,6 @@ public class SbwServiceImpl implements ISbwService {
     @Autowired
     private EipV6Repository eipV6Repository;
 
-    @ICPServiceLog
     @Override
     public ResponseEntity atomCreateSbw(SbwUpdateParam sbwConfig, String token) {
 
@@ -75,7 +74,6 @@ public class SbwServiceImpl implements ISbwService {
 
 
     @Override
-    @ICPServiceLog
     public ResponseEntity listShareBandWidth(Integer pageIndex, Integer pageSize, String searchValue) {
         try {
             String matche = "(\\w{8}(-\\w{4}){3}-\\w{12}?)";
@@ -139,7 +137,6 @@ public class SbwServiceImpl implements ISbwService {
     }
 
     @Override
-    @ICPServiceLog
     public ActionResponse deleteSbwInfo(String sbwId, String token) {
         try {
             if (StringUtils.isBlank(sbwId)){
@@ -165,7 +162,7 @@ public class SbwServiceImpl implements ISbwService {
         }
         return ActionResponse.actionFailed(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
-
+    @Override
     public ResponseEntity getSbwDetail(String sbwId) {
         try {
             Sbw sbwEntity = sbwDaoService.getSbwById(sbwId);
@@ -185,7 +182,6 @@ public class SbwServiceImpl implements ISbwService {
     }
 
     @Override
-    @ICPServiceLog
     public ActionResponse updateSbwConfig(String sbwId, SbwUpdateParam param, String token) {
         try {
             if (StringUtils.isNotBlank(sbwId) && HsConstants.UUID_LENGTH.length() == sbwId.length()){
@@ -201,7 +197,6 @@ public class SbwServiceImpl implements ISbwService {
 
 
     @Override
-    @ICPServiceLog
     public ResponseEntity countSbwNumsByProjectId() {
         try {
             String projectid = CommonUtil.getUserId();
@@ -243,7 +238,6 @@ public class SbwServiceImpl implements ISbwService {
      * @param updateParam
      * @return
      */
-    @ICPServiceLog
     public ActionResponse restartSbwService(String sbwId, SbwUpdateParam updateParam, String token) {
         try {
             String renewTime = updateParam.getDuration();
@@ -265,7 +259,6 @@ public class SbwServiceImpl implements ISbwService {
      * @param updateParam
      * @return
      */
-    @ICPServiceLog
     public ActionResponse stopSbwService(String sbwId, SbwUpdateParam updateParam) {
         try {
             String renewTime = updateParam.getDuration();

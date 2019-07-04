@@ -307,7 +307,7 @@ public class EipV6DaoService {
         }
         return  true;
     }
-
+    @Transactional
     public EipV6 getEipV6ById(String id){
 
         EipV6 eipV6Entity = null;

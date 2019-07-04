@@ -21,3 +21,5 @@ databaseChangeLog:
       file: db/changelog/eip/mysql/t201906/2019062704-ddl-eip_pool-modify-filed-name-zerah.xml
   - include:
       file: db/changelog/eip/mysql/t201906/2019062705-ddl-eip_poolv6-modify-filed-name-zerah.xml
+  - include:
+      file: db/changelog/eip/mysql/t201906/2019070401-ddl-alter-table-engine-zerah.xml
