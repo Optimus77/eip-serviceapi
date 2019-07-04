@@ -28,7 +28,7 @@
         <modifyDataType catalogName="icp_eip" columnName="pipe_id" newDataType="varchar(36)" schemaName="public" tableName="sbw" remarks="管道名称|id"/>
         <modifyDataType catalogName="icp_eip" columnName="project_id" newDataType="varchar(36)" schemaName="public" tableName="sbw" remarks="项目id"/>
         <modifyDataType catalogName="icp_eip" columnName="project_name" newDataType="varchar(128)" schemaName="public" tableName="sbw" remarks="用户名"/>
-        <modifyDataType catalogName="icp_eip" columnName="region" newDataType="varchar(16)" schemaName="public" tableName="sbw" remarks="域名称"/>
+        <modifyDataType catalogName="icp_eip" columnName="region" newDataType="varchar(36)" schemaName="public" tableName="sbw" remarks="域名称"/>
         <modifyDataType catalogName="icp_eip" columnName="status" newDataType="varchar(8)" schemaName="public" tableName="sbw" remarks="eip状态 ACTIVE:正常 STOP:已停服 ERROR:失败"/>
         <modifyDataType catalogName="icp_eip" columnName="sbw_name" newDataType="varchar(128)" schemaName="public" tableName="sbw" remarks="共享带宽名称"/>
         <comment>修改sbw表中字段类型（规范字段长度）</comment>

@@ -39,7 +39,7 @@
         <modifyDataType catalogName="icp_eip" columnName="port_id" newDataType="varchar(36)" schemaName="public" tableName="eip" remarks="端口id"/>
         <modifyDataType catalogName="icp_eip" columnName="private_ip_address" newDataType="varchar(15)" schemaName="public" tableName="eip" remarks="端口id"/>
         <modifyDataType catalogName="icp_eip" columnName="project_id" newDataType="varchar(36)" schemaName="public" tableName="eip" remarks="项目id"/>
-        <modifyDataType catalogName="icp_eip" columnName="region" newDataType="varchar(16)" schemaName="public" tableName="eip" remarks="域名称"/>
+        <modifyDataType catalogName="icp_eip" columnName="region" newDataType="varchar(36)" schemaName="public" tableName="eip" remarks="域名称"/>
         <modifyDataType catalogName="icp_eip" columnName="snat_id" newDataType="varchar(8)" schemaName="public" tableName="eip" remarks="snat id"/>
         <modifyDataType catalogName="icp_eip" columnName="status" newDataType="varchar(8)" schemaName="public" tableName="eip" remarks="eip状态 ACTIVE:正常 STOP:已停服 ERROR:失败"/>
         <modifyDataType catalogName="icp_eip" columnName="is_delete" newDataType="int(4)" schemaName="public" tableName="eip" remarks="是否删除 0:未删 1:已删"/>
