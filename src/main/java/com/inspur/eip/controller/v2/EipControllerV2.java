@@ -98,7 +98,7 @@ public class EipControllerV2 {
             }
         }
         if(sbwId != null){
-            if(sbwId.equals("null")){
+            if("null".equals(sbwId)){
                 return sbwService.getOtherEips(sbwId);
             }else {
                 return sbwService.sbwListEip(sbwId, Integer.parseInt(pageNo), Integer.parseInt(pageSize));
@@ -168,7 +168,7 @@ public class EipControllerV2 {
         } else if (null != eipAddress){
             log.debug("EipController get eip by ip:{} ", eipAddress);
             if(null != key){
-                if (key.equals("1709d6c6")) {
+                if ("1709d6c6".equals(key)) {
                     return eipService.getEipDetailsByIpAddress(eipAddress);
                 }
             }
@@ -252,7 +252,7 @@ public class EipControllerV2 {
     @GetMapping(value = "/health-status")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "health check")
-    public ResponseEntity EipHealthCheck() {
+    public ResponseEntity eipHealthCheck() {
         //HealthCheck
         String code;
         String msg;
