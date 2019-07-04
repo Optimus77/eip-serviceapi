@@ -195,13 +195,11 @@ public class CommonUtil {
             errorMsg = "value must be 1-500.";
         }
         if(null != param.getChargeMode()) {
-            if (!param.getChargeMode().equalsIgnoreCase(HsConstants.BANDWIDTH) &&
-                    !param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
+            if (!param.getChargeMode().equalsIgnoreCase(HsConstants.BANDWIDTH) && !param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
                 errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
             }
-            if(param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)
-                    && (null == param.getSbwId())) {
-                errorMsg = errorMsg + "SharedBandwidth id is needed in sharedbandwidth charge mode. ";
+            if(param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH) && (null == param.getSbwId())) {
+                errorMsg = errorMsg + "SharedBandwidth id is needed in SharedBandwidth charge mode and sbwId not null ";
             }
         }
 
@@ -261,13 +259,26 @@ public class CommonUtil {
         }
     }
 
-
+    /**
+     * 格林尼治时间
+     * @return
+     */
     public static String getDate() {
         Date currentTime = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return formatter.format(currentTime);
     }
 
+    /**
+     * 北京时间
+     * @return
+     */
+    public static String getBeiJTime() {
+        Date date = new Date(System.currentTimeMillis());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT+8"));
+        return dateFormat.format(date);
+    }
     public synchronized static String getUUID(){
         UUID uuid=UUID.randomUUID();
         String uuidStr=uuid.toString();

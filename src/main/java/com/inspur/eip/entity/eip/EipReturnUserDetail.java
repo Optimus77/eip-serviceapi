@@ -13,13 +13,13 @@ import java.util.Date;
 public class EipReturnUserDetail implements Serializable {
 
     @JsonProperty("eipId")
-    private String eipId;
+    private String id;
 
     @JsonProperty("eipAddress")
     private String eipAddress;
 
     @JsonProperty("createdTime")
-    @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd'T'HH:mm:ss'Z'")
     private Date createTime;
 
     @JsonProperty("userId")

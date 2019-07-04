@@ -13,8 +13,8 @@ import java.util.Date;
 @Builder
 public class Sbw implements Serializable {
     @Id
-    @Column(name ="sbw_id",nullable = false, insertable = false, updatable = false)
-    private String sbwId;
+    @Column(name ="id",nullable = false, insertable = false, updatable = false)
+    private String id;
 
     private String sbwName;
 
@@ -28,11 +28,11 @@ public class Sbw implements Serializable {
 
     private String region;
 
-    @Column(name="create_time" ,nullable = false)
-    private Date createTime ;
+    @Column(name="created_time" ,nullable = false)
+    private Date createdTime ;
 
-    @Column(name="update_time" ,nullable = false)
-    private Date updateTime ;
+    @Column(name="updated_time" ,nullable = false)
+    private Date updatedTime ;
 
     //project id : uuid
     private String projectId;

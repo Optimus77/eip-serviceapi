@@ -12,7 +12,7 @@ import java.util.Date;
 public class SbwReturnDetail implements Serializable {
 
     @JsonProperty("sbwId")
-    private String sbwId;
+    private String id;
 
     @JsonProperty("sbwName")
     private String sbwName;
@@ -33,8 +33,8 @@ public class SbwReturnDetail implements Serializable {
     private int ipCount = 0;
 
     @JsonProperty("createTime")
-    @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd HH:mm:ss")
-    private Date createTime;
+    @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd'T'HH:mm:ss'Z'")
+    private Date createdTime;
 
     @JsonProperty("status")
     private String status;

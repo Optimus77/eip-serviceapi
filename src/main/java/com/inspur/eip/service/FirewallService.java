@@ -369,9 +369,9 @@ public class FirewallService {
                 snatRuleId = addSnat(fipAddress, eipAddress, firewallId);
                 if (snatRuleId != null) {
                     if (eip.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
-                        Sbw sbwEntity = sbwRepository.findBySbwId(eip.getSbwId());
-                        if (null != sbwEntity) {
-                            pipId = addFloatingIPtoQos(eip.getFirewallId(), fipAddress, sbwEntity.getPipeId());
+                        Optional<Sbw> optional = sbwRepository.findById(eip.getSbwId());
+                        if (optional.isPresent()) {
+                            pipId = addFipToSbwQos(eip.getFirewallId(), fipAddress, optional.get().getPipeId());
                         }
                     } else {
                         pipId = addQos(fipAddress, eipAddress, String.valueOf(bandWidth), firewallId);
@@ -424,7 +424,7 @@ public class FirewallService {
             eipEntity.setDnatId(null);
         } else {
             returnStat = ReturnStatus.SC_FIREWALL_DNAT_UNAVAILABLE;
-            msg = "Failed to del dnat in firewall,eipId:" + eipEntity.getEipId() + "dnatId:" + eipEntity.getDnatId() + "";
+            msg = "Failed to del dnat in firewall,id:" + eipEntity.getId() + "dnatId:" + eipEntity.getDnatId() + "";
             log.error(msg);
         }
 
@@ -432,14 +432,14 @@ public class FirewallService {
             eipEntity.setSnatId(null);
         } else {
             returnStat = ReturnStatus.SC_FIREWALL_SNAT_UNAVAILABLE;
-            msg += "Failed to del snat in firewall, eipId:" + eipEntity.getEipId() + "snatId:" + eipEntity.getSnatId() + "";
+            msg += "Failed to del snat in firewall, id:" + eipEntity.getId() + "snatId:" + eipEntity.getSnatId() + "";
             log.error(msg);
         }
 
         String innerIp = eipEntity.getFloatingIp();
         boolean removeRet;
         if (eipEntity.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH) && eipEntity.getPipId() != null) {
-            removeRet = removeFloatingIpFromQos(eipEntity.getFirewallId(), innerIp, eipEntity.getPipId());
+            removeRet = removeFipFromSbwQos(eipEntity.getFirewallId(), innerIp, eipEntity.getPipId(),eipEntity.getSbwId());
         } else {
             removeRet = delQos(eipEntity.getPipId(), eipEntity.getEipAddress(),innerIp, eipEntity.getFirewallId());
             if (removeRet) {
@@ -448,7 +448,7 @@ public class FirewallService {
         }
         if (!removeRet) {
             returnStat = ReturnStatus.SC_FIREWALL_QOS_UNAVAILABLE;
-            msg += "Failed to del qos, eipId:" + eipEntity.getEipId() + " pipId:" + eipEntity.getPipId() + "";
+            msg += "Failed to del qos, id:" + eipEntity.getId() + " pipId:" + eipEntity.getPipId() + "";
             log.error(msg);
         }
         if (msg == null) {
@@ -465,31 +465,14 @@ public class FirewallService {
      * @param firewallId id
      * @return ret
      */
-    public String addFloatingIPtoQos(String firewallId, String floatIp, String pipeId) {
+    public String addFipToSbwQos(String firewallId, String floatIp, String pipeId) {
         String retPipeId = null;
-        if(pipeId.length() == "9dea38f8-f59c-4847-ba43-f0ef61a6986c".length()) {
+        if(pipeId.length() == HsConstants.UUID_LENGTH.length()) {
             retPipeId = cmdAddIp2SbwPipe(pipeId, floatIp, firewallId);
             if (null != retPipeId) {
                 return retPipeId;
             }
         }
-        log.info("Param : FirewallId:{}, floatIp:{}, pipeId：{} ", firewallId, floatIp, pipeId);
-        Firewall fwBean = getFireWallById(firewallId);
-        if (fwBean != null) {
-            qosService.setFwIp(fwBean.getIp());
-            qosService.setFwPort(fwBean.getPort());
-            qosService.setFwUser(fwBean.getUser());
-            qosService.setFwPwd(fwBean.getPasswd());
-
-            HashMap<String, String> map = qosService.insertIpToPipe(floatIp, pipeId);
-            if (map.get(HsConstants.SUCCESS) != null && Boolean.valueOf(map.get(HsConstants.SUCCESS))) {
-                log.info("addFloatingIPtoQos: " + firewallId + "floatIp: " + floatIp + " --success：");
-                retPipeId = map.get("id");
-            } else if (Boolean.valueOf(map.get(HsConstants.SUCCESS))) {
-                log.warn("addFloatingIPtoQos: " + firewallId + HsConstants.FLOATIP + floatIp + " --fail" );
-            }
-        }
-
         return retPipeId;
     }
 
@@ -500,21 +483,20 @@ public class FirewallService {
      * @param pipeId     bandid
      * @return ret
      */
-    public boolean removeFloatingIpFromQos(String firewallId, String floatIp, String pipeId) {
-        if(pipeId.length() == "9dea38f8-f59c-4847-ba43-f0ef61a6986c".length()){
+    public boolean removeFipFromSbwQos(String firewallId, String floatIp, String pipeId, String sbwId) {
+        if(pipeId.length() == HsConstants.UUID_LENGTH.length()){
+            log.info("loading to remove fip from sbw qos");
             return cmdDelIpInSbwPipe(pipeId, floatIp, firewallId);
         }
-
-        log.info("Param : FirewallId:{}, floatIp:{}, pipeId：{} ", firewallId, floatIp, pipeId);
         Firewall fwBean = getFireWallById(firewallId);
         if (fwBean != null) {
             qosService.setFwIp(fwBean.getIp());
             qosService.setFwPort(fwBean.getPort());
             qosService.setFwUser(fwBean.getUser());
             qosService.setFwPwd(fwBean.getPasswd());
-            HashMap<String, String> map = qosService.removeIpFromPipe(floatIp, pipeId);
+            HashMap<String, String> map = qosService.removeIpFromPipe(floatIp, sbwId);
             if (Boolean.valueOf(map.get(HsConstants.SUCCESS))) {
-                log.info("FirewallService : Success removeFloatingIpFromQos: " + firewallId + "floatIp: " + floatIp + " --success==pipeId：" + pipeId);
+                log.info("Success remove Floating Ip from SbwQos: " + firewallId + "floatIp: " + floatIp + "pipeId：" + pipeId);
                 return Boolean.parseBoolean(map.get(HsConstants.SUCCESS));
             }
             log.warn("FirewallService : Failed removeFloatingIpFromQos :floatIp pipeId:{} map:{} ", floatIp, pipeId, map);
@@ -743,6 +725,8 @@ public class FirewallService {
                         + "pipe-rule backward bandwidth Mbps "+ bandwidth+"\r"
                         + "end",
                 retString);
+        //成功标志：qos创建成功但不可用
+        // Tip: Root pipe "7ec675a5-38be-4fb7-9de0-70faae88b5fa" is unavailable, end string:Tip: Root pipe "7ec675a5-38be-4fb7-9de0-70faae88b5fa" is unavailable
         if(strResult == null || !strResult.contains(retString)){
             flag = Boolean.FALSE;
             log.error("Failed to add cmd sbw qos", strResult);

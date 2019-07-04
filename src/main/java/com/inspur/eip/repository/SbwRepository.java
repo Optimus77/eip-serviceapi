@@ -17,21 +17,20 @@ import java.util.Optional;
 @RepositoryRestResource(collectionResourceRel = "sbw", path = "sbw")
 public interface SbwRepository extends JpaRepository<Sbw, String> {
 
+    @Override
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Sbw findBySbwId(String id);
+    Optional<Sbw> findById(String id);
 
     List<Sbw> findByProjectIdAndIsDelete(String projectId, int isDelete);
 
     Page<Sbw> findByProjectIdAndIsDelete(String projectId, int isDelete, Pageable pageable);
 
-    Page<Sbw> findBySbwIdAndProjectIdAndIsDelete(String id, String projectId, int isDelete, Pageable pageable);
+    Page<Sbw> findByIdAndProjectIdAndIsDelete(String id, String projectId, int isDelete, Pageable pageable);
 
     Page<Sbw> findByProjectIdAndIsDeleteAndSbwNameContaining(String projectId, int isDelete, String name, Pageable pageable);
 
     long countByProjectIdAndIsDelete(String projectId, int isDelete);
 
     long countByStatusAndProjectIdAndIsDelete(String status,String projectId, int isDelete );
-
-    long countByStatusAndProjectId(String status, String projectId);
 
 }

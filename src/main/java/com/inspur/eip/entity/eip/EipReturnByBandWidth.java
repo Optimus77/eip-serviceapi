@@ -9,7 +9,7 @@ import java.io.Serializable;
 @Data
 public class EipReturnByBandWidth implements Serializable {
     @JsonProperty("eipId")
-    private String eipId;
+    private String id;
 
     @JsonProperty("eipAddress")
     private String eipAddress;
