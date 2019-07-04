@@ -19,7 +19,7 @@
 
     <changeSet author="zerah" id="201906270302">
         <preConditions onFail="MARK_RAN">
-            <columnExists tableName="eipv6" columnName="band_width"></columnExists>
+            <columnExists tableName="eipv6" columnName="ipv4"></columnExists>
         </preConditions>
         <modifyDataType catalogName="icp_eip" columnName="dnatpt_id" newDataType="int(8)" schemaName="public" tableName="eipv6" remarks="dnatpt"/>
         <modifyDataType catalogName="icp_eip" columnName="firewall_id" newDataType="varchar(36)" schemaName="public" tableName="eipv6" remarks="防火墙id"/>
