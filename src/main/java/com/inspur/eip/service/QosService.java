@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.util.*;
 
 import com.inspur.eip.entity.Qos.*;
+import com.inspur.eip.exception.EipInternalServerException;
 import com.inspur.eip.util.common.IpUtil;
+import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HillStoneConfigConsts;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.http.HsHttpClient;
@@ -58,9 +60,9 @@ public class QosService {
             boolean success = jo.getBoolean(HsConstants.SUCCESS);
             res.put(HsConstants.SUCCESS, success);
             if (success) {
-                Map<String, String> map = this.getQosPipeId(info.get(HsConstants.PIPE_NAME));
-                if ((map.get(HsConstants.SUCCESS)).equals("true")) {
-                    res.put("id", map.get("id"));
+                String qosId = this.getQosPipeId(info.get(HsConstants.PIPE_NAME));
+                if (StringUtils.isNotBlank(qosId)) {
+                    res.put("id", qosId);
                 } else {
                     res.put("msg", "Create success,but id not found,please call find api by pip name.");
                 }
@@ -68,7 +70,6 @@ public class QosService {
                 log.info("add qos failed, result:{}", jo);
                 res.put("msg", jo.getJSONObject(HsConstants.EXCEPTION));
             }
-
             return res;
         } catch (Exception var7) {
             log.error(var7.getMessage());
@@ -148,37 +149,123 @@ public class QosService {
         log.debug(errorstr);
         return errorstr;
     }
-
-    HashMap<String, String> getQosPipeId(String pipeName) {
-        HashMap res = new HashMap();
-
+    /*根据管道名称获取管道id*/
+    String getQosPipeId(String pipeName) throws EipInternalServerException {
         try {
+            String id = "";
             String params = "/rest/iQos?query=%7B%22conditions%22%3A%5B%7B%22f%22%3A%22name%22%2C%22v%22%3A%22first%22%7D%5D%7D&target=root&node=root&id=%7B%22node%22%3A%22root%22%7D";
             String retr = HsHttpClient.hsHttpGet(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, params);
             JSONObject jo = new JSONObject(retr);
             JSONArray array = jo.getJSONArray("children");
-            int l = array.length();
-            String id = "";
-
-            for (int i = 0; i < l; ++i) {
+            for (int i = 0; i < array.length(); ++i) {
                 JSONObject job = array.getJSONObject(i);
                 if (pipeName.equals(job.optString("name"))) {
                     id = job.optString("id");
                     break;
                 }
             }
-
-            res.put(HsConstants.SUCCESS, "true");
-            res.put("id", id);
-            return res;
+            return id;
         } catch (Exception var11) {
             log.error(var11.getMessage());
-            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-            res.put("msg", var11.getMessage());
-            return res;
+            throw new EipInternalServerException(ErrorStatus.SC_FIREWALL_SERVER_ERROR.getCode(),ErrorStatus.SC_FIREWALL_SERVER_ERROR.getMessage());
         }
     }
 
+    /**
+     * remove
+     *
+     * @param floatIp fip
+     * @param sbwId 管道名称
+     * @return ret
+     */
+    HashMap<String, String> removeIpFromPipe(String floatIp, String sbwId) {
+        HashMap<String, String> res = new HashMap();
+        if (StringUtils.isBlank(floatIp)) {
+            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+            return res;
+        }
+        String IP32 = IpUtil.ipToLong(floatIp);
+        if (StringUtils.isBlank(IP32)) {
+            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+            return res;
+        }
+        Gson gson = new Gson();
+        try {
+            String pipeId = getQosPipeId(sbwId);
+            if (StringUtils.isBlank(pipeId)){
+                res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+                return res;
+            }
+            //query qos pipe details by pipeId
+            JSONArray ipContent = getQosRuleByPipeId(pipeId);
+            if (ipContent != null && ipContent.length() > 0) {
+                ConcurrentHashMap<String, IpRange> map = new ConcurrentHashMap(2);
+                for (int i = 0; i < ipContent.length(); i++) {
+                    String json = ipContent.get(i).toString();
+                    IpContent content = gson.fromJson(json, IpContent.class);
+                    if (content != null) {
+                        if ((content.getIpRange().getMin() != null && IP32.equals(content.getIpRange().getMin())) || (content.getIpRange().getMax() != null && IP32.equals(content.getIpRange().getMax()))) {
+                            map.put(content.getId(), content.getIpRange());
+                        }
+                    }
+                }
+                for (String id : map.keySet()) {
+                    Boolean result = deleteIpFromPipe(pipeId, id);
+                    if (result){
+                        log.info("Rest remove floating ip success :{}", result);
+                        res.put(HsConstants.SUCCESS, HsConstants.TRUE);
+                    }else {
+                        res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+                        log.warn("Rest remove floating ip success :{}", result);
+                    }
+                }
+            }else {
+                res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+            }
+        } catch (Exception e) {
+            log.error("Exception in remove fip from SbwQos:{}" + e.getMessage());
+        }
+        return res;
+    }
+    /**
+     * @param pipeId   管道id
+     * @param sequence ip序号
+     * @return ret
+     */
+    private Boolean deleteIpFromPipe(String pipeId, String sequence) {
+        String param = "[{\"target\":\"root.rule\",\"node\":{\"name\":\"first\",\"root\":{\"id\":\"" + pipeId + "\",\"rule\":[{\"id\":\"" + sequence + "\"}]}}}]";
+        try {
+            String retr = HsHttpClient.hsHttpDelete(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", param);
+            JSONObject jo = new JSONObject(retr);
+            log.info("hsHttpDelete  result{}", retr);
+            boolean success = jo.getBoolean(HsConstants.SUCCESS);
+            if (success) {
+                return true;
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * get rule sequence by pipeId
+     * @param pipeId
+     * @return
+     */
+    private JSONArray getQosRuleByPipeId(String pipeId) {
+        String params = "/rest/iQos?query=%7B%22conditions%22%3A%5B%7B%22f%22%3A%22name%22%2C%22v%22%3A%22first%22%7D%2C%7B%22f%22%3A%22root.id%22%2C%22v%22%3A%22" + pipeId + "%22%7D%5D%7D&target=root.rule";
+        try {
+            String retr = HsHttpClient.hsHttpGet(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, params);
+//            String retr = HsHttpClient.hsHttpGet("10.110.29.206", "443", "hillstone", "hillstone", params);
+            if (retr != null) {
+                return new JSONArray(retr);
+            }
+        } catch (Exception e) {
+            log.error(String.valueOf(e));
+        }
+        return null;
+    }
     /**
      * Enable or disable pipes in qos
      * @param fireWallId
