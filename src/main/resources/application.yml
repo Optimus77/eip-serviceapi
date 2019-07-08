@@ -48,7 +48,7 @@ http:
   statleConnectionCheckEnabled: true
 
 
-webSocket:   http://service.10.110.25.123.xip.io/console/websocket/v1/messages
+webSocket:   http://service.10.110.25.123.xip.io/websocket/v1/messages
 
 blackList: /health-status
 
