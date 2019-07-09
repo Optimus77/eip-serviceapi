@@ -135,6 +135,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                         eipV6ReturnDetail.setEipBandwidth(eip.getBandWidth());
                         eipV6ReturnDetail.setEipChargeType(eip.getBillType());
                         eipV6ReturnDetail.setEipId(eip.getId());
+                        eipV6ReturnDetail.setEipCreatedTime(eip.getCreatedTime());
                         eipv6s.add(eipV6ReturnDetail);
                     }
 
@@ -240,6 +241,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
                     eipV6ReturnDetail.setEipBandwidth(eip.getBandWidth());
                     eipV6ReturnDetail.setEipChargeType(eip.getBillType());
                     eipV6ReturnDetail.setEipId(eip.getId());
+                    eipV6ReturnDetail.setEipCreatedTime(eip.getCreatedTime());
 
                     return new ResponseEntity<>(eipV6ReturnDetail, HttpStatus.OK);
                 }
