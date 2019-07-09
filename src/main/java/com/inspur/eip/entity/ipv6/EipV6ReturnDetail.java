@@ -47,7 +47,4 @@ public class EipV6ReturnDetail implements Serializable {
     @JsonProperty("ipv4")
     private String ipv4;
 
-    @JsonProperty("eipCreatedTime")
-    private Date eipCreatedTime;
-
 }
