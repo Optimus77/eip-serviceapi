@@ -114,6 +114,7 @@ iam:
 common:
   region: cn-north-3
 resttemplate:
+  header: Attributes
   cookie: realm_roles,username
   referer: https://console1.cloud.inspur.com/
 #rabbit mq queues config
