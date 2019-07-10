@@ -11,15 +11,15 @@ databaseChangeLog:
   - include:
       file: db/changelog/eip/mysql/t201906/2019062706-ddl-init-zerah.xml
 #  字段名称，字段长度规范
-  - include:
-      file: db/changelog/eip/mysql/t201906/2019062701-ddl-eip-modify-filed-name-zerah.xml
-  - include:
-      file: db/changelog/eip/mysql/t201906/2019062702-ddl-sbw-modify-filed-name-zerah.xml
-  - include:
-      file: db/changelog/eip/mysql/t201906/2019062703-ddl-eipv6-modify-filed-name-zerah.xml
-  - include:
-      file: db/changelog/eip/mysql/t201906/2019062704-ddl-eip_pool-modify-filed-name-zerah.xml
-  - include:
-      file: db/changelog/eip/mysql/t201906/2019062705-ddl-eip_poolv6-modify-filed-name-zerah.xml
-  - include:
-      file: db/changelog/eip/mysql/t201906/2019070401-ddl-alter-table-engine-zerah.xml
+#  - include:
+        ##      file: db/changelog/eip/mysql/t201906/2019062701-ddl-eip-modify-filed-name-zerah.xml
+        ##  - include:
+        ##      file: db/changelog/eip/mysql/t201906/2019062702-ddl-sbw-modify-filed-name-zerah.xml
+        ##  - include:
+        ##      file: db/changelog/eip/mysql/t201906/2019062703-ddl-eipv6-modify-filed-name-zerah.xml
+        ##  - include:
+        ##      file: db/changelog/eip/mysql/t201906/2019062704-ddl-eip_pool-modify-filed-name-zerah.xml
+        ##  - include:
+        ##      file: db/changelog/eip/mysql/t201906/2019062705-ddl-eip_poolv6-modify-filed-name-zerah.xml
+      ##  - include:
+      ##      file: db/changelog/eip/mysql/t201906/2019070401-ddl-alter-table-engine-zerah.xml
