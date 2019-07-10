@@ -7,6 +7,7 @@ import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.constant.ReturnStatus;
+import com.inspur.iam.adapter.annotation.PermissionContext;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ public class EipControllerAtom {
      * @return
      */
 
+    @PermissionContext(whitelist=true)
     @PostMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomCreateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result){
@@ -64,6 +66,7 @@ public class EipControllerAtom {
      * @return
      */
 
+    @PermissionContext(whitelist=true)
     @DeleteMapping(value = "/eips/{eip_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")

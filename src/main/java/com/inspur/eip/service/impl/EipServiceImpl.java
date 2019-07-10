@@ -18,6 +18,7 @@ import com.inspur.eip.util.*;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
+import com.inspur.iam.adapter.util.ListFilterUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.model.common.ActionResponse;
@@ -28,6 +29,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.*;
 
 @Slf4j
@@ -48,6 +51,10 @@ public class EipServiceImpl implements IEipService {
 
     @Autowired
     private EipV6ServiceImpl eipV6Service;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
 
 
     /**
@@ -190,6 +197,10 @@ public class EipServiceImpl implements IEipService {
             if (currentPage != 0) {
                 Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
+               /* String querySql="select * from eip where is_delete='0' and user_id= '"+projcectid+"'";
+                Page<Eip> page =
+                        ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);*/
+
                 Page<Eip> page = eipRepository.findByUserIdAndIsDelete(projcectid, 0, pageable);
                 for (Eip eip : page.getContent()) {
                     if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {

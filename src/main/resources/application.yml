@@ -17,7 +17,7 @@ springfox:
 error:
   code: 106
 
-# KeyCloak
+ #KeyCloak
 keycloak:
   enabled: true
   disable-trust-manager: true
@@ -32,7 +32,8 @@ keycloak:
   cors: true
   cors-max-age: 1728000
   cors-allowed-headers: Authorization, Origin, X-Requested-With, Content-Type, X-Custom-Header
-  cors-allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  cors-allowed-methods: POST,PUT,DELETE,GET,OPTIONS,PATCH
+
 
 # Logback
 logging:
@@ -48,13 +49,15 @@ http:
   statleConnectionCheckEnabled: true
 
 
-webSocket:   http://service.10.110.25.123.xip.io/console/websocket/v1/messages
+webSocket:   http://service.10.110.25.123.xip.io/websocket/v1/messages
 
 blackList: /health-status
 
 # Mysql
 # 环境 dev|prod
 spring:
+  profiles:
+    active: prod
   resources:
     # Swagger
     add-mappings: true
@@ -92,7 +95,27 @@ spring:
     listener:
       simple:
         default-requeue-rejected: false
+  jackson:
+    date-format: yyyy-MM-dd'T'HH:mm:ss'Z'
+  # Asia/Shanghai  UTC ...
+    time-zone: GMT
+  #true false
+    serialization:
+      write-dates-as-timestamps: false
 
+
+# IAM
+iam:
+  #url: http://service.inspurtest.com/auth
+  url: http://iam-apiserver.iam.svc.cluster.local:9101/auth
+  ladon:
+    #url: http://10.110.25.71:48156/auth
+    url: http://iam-auth-ladon.iam.svc.cluster.local:8090/auth
+common:
+  region: cn-north-3
+resttemplate:
+  cookie: realm_roles,username
+  referer: https://console1.cloud.inspur.com/
 #rabbit mq queues config
 bss:
   queues:

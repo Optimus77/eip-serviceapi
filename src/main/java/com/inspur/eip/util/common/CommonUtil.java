@@ -396,6 +396,22 @@ public class CommonUtil {
         return projectName;
     }
 
+    public static String getU(String token)throws KeycloakTokenException {
+
+        if(null == token){
+            throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NULL));
+        }
+        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+        String projectId = null;
+        if (jsonObject.has("project_id")) {
+            projectId = (String) jsonObject.get("project_id");
+        }
+        if (projectId != null) {
+            log.info("project_id:{}", projectId);
+        }
+        return projectId;
+    }
+
     public static boolean isAuthoried(String projectId) {
 
         String token = getKeycloackToken();

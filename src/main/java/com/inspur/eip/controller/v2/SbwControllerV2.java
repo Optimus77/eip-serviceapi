@@ -4,6 +4,7 @@ import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.sbw.SbwUpdateParamWrapper;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.*;
+import com.inspur.iam.adapter.annotation.PermissionContext;
 import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.Api;
@@ -52,6 +53,10 @@ public class SbwControllerV2 {
 //        return sbwService.atomCreateSbw(sbwConfig.getSbw(), CommonUtil.getKeycloackToken());
 //    }
 
+    @PermissionContext(
+            service="sbw",
+            action="ListSbw",
+            resourceType="instance")
     @ICPControllerLog
     @GetMapping(value = "/sbws/{pageNo}/{pageSize}")
     @CrossOrigin(origins = "*", maxAge = 3000)
@@ -97,6 +102,10 @@ public class SbwControllerV2 {
      * @param sbwId the id of sbw
      * @return retrun
      */
+    @PermissionContext(
+            service="sbw",
+            action="GetSbw",
+            resourceType="instance")
     @ICPControllerLog
     @GetMapping(value = "/sbws/{sbw_id}")
     @CrossOrigin(origins = "*", maxAge = 3000)
@@ -114,6 +123,7 @@ public class SbwControllerV2 {
      *
      * @return response
      */
+    @PermissionContext(loginAccess=true)
     @ICPControllerLog
     @GetMapping(value = "/sbws/instance-num")
     @CrossOrigin(origins = "*", maxAge = 3000)
@@ -144,6 +154,10 @@ public class SbwControllerV2 {
      * modify sbw name
      * @return ret
      */
+    @PermissionContext(
+            service="sbw",
+            action="UpdateSbw",
+            resourceType="instance")
     @ICPControllerLog
     @PutMapping(value = "/sbws/{sbw_id}/action/rename", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
