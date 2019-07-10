@@ -121,10 +121,7 @@ public class EipControllerV2 {
      * get number of user
      * @return response
      */
-    @PermissionContext(
-            service="eip",
-            action="GetEip",
-            resourceType="instance")
+    @PermissionContext(loginAccess=true)
     @GetMapping(value = "/eips/instance-num")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="get number",notes="get number")
