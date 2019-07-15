@@ -623,6 +623,9 @@ public class FirewallService {
         if(null == fip || null == eip){
             return null;
         }
+        if(fip.contains("0.0.0.0")){
+            return null;
+        }
         String rootPipeNmae = getRootPipeName(fip);
         if(0 >= eipRepository.countByPipId(rootPipeNmae)){
             boolean result = cmdAddRootPipe(rootPipeNmae,eip, fip, inboundBandwidth, outboundBandwidth,fireWallId);
@@ -749,7 +752,9 @@ public class FirewallService {
     }
     private String cmdAddIp2SbwPipe(String rootPipeName, String fip, String fireWallId)  {
 
-
+        if(fip.contains("0.0.0.0")){
+            return null;
+        }
         String retCheck = "unrecognized keyword 1";
         String pipeMapId = "1";
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
