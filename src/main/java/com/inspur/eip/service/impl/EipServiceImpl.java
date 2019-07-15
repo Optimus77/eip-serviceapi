@@ -16,6 +16,7 @@ import com.inspur.eip.service.IEipService;
 import com.inspur.eip.service.SbwDaoService;
 import com.inspur.eip.util.*;
 import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.iam.adapter.util.ListFilterUtil;
@@ -189,8 +190,8 @@ public class EipServiceImpl implements IEipService {
             String projcectid = CommonUtil.getUserId();
             log.debug("listEips  of user, userId:{}", projcectid);
             if (projcectid == null) {
-                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
-                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_UNAUTHORIZED.getCode(),
+                        ErrorStatus.ENTITY_UNAUTHORIZED.getMessage()), HttpStatus.BAD_REQUEST);
             }
             JSONObject data = new JSONObject();
             JSONArray eips = new JSONArray();

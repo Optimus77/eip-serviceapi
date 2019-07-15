@@ -283,20 +283,25 @@ public class SbwServiceImpl implements ISbwService {
      * @return ret
      */
     public ResponseEntity sbwListEip(String sbwId, Integer currentPage, Integer limit) {
-        String projcectid;
+        String userId;
         try {
-            projcectid = CommonUtil.getUserId();
-            log.debug("list Eips  in one sbw of user, userId:{}", projcectid);
-            if (projcectid == null) {
-                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
-                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+            userId = CommonUtil.getUserId();
+            log.debug("list Eips  in one sbw of user, userId:{}", userId);
+            if (userId == null) {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_UNAUTHORIZED.getCode(),
+                        ErrorStatus.ENTITY_UNAUTHORIZED.getMessage()), HttpStatus.BAD_REQUEST);
+            }
+            Sbw sbw = sbwDaoService.getSbwById(sbwId);
+            if (null == sbw){
+                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_BADREQUEST_ERROR.getCode(),
+                        ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage()), HttpStatus.BAD_REQUEST);
             }
             JSONObject data = new JSONObject();
             JSONArray eips = new JSONArray();
             if (currentPage != 0) {
                 Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
-                Page<Eip> page = eipRepository.findByUserIdAndIsDeleteAndSbwId(projcectid, 0, sbwId, pageable);
+                Page<Eip> page = eipRepository.findByUserIdAndIsDeleteAndSbwId(userId, 0, sbwId, pageable);
                 for (Eip eip : page.getContent()) {
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
@@ -311,7 +316,7 @@ public class SbwServiceImpl implements ISbwService {
                 data.put(HsConstants.PAGE_NO, currentPage);
                 data.put(HsConstants.PAGE_SIZE, limit);
             } else {
-                List<Eip> eipList = eipRepository.findByUserIdAndIsDeleteAndSbwId(projcectid, 0, sbwId);
+                List<Eip> eipList = eipRepository.findByUserIdAndIsDeleteAndSbwId(userId, 0, sbwId);
                 for (Eip eip : eipList) {
 
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
@@ -330,10 +335,10 @@ public class SbwServiceImpl implements ISbwService {
             log.debug("data:{}", data.toString());
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (KeycloakTokenException e) {
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.SC_FORBIDDEN.getCode(), e.getMessage()), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             log.error("Exception in listEips", e.getMessage());
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -369,10 +374,15 @@ public class SbwServiceImpl implements ISbwService {
         try {
             String userId = CommonUtil.getUserId();
             if (userId == null) {
-                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
-                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_UNAUTHORIZED.getCode(),
+                        ErrorStatus.ENTITY_UNAUTHORIZED.getMessage()), HttpStatus.BAD_REQUEST);
             }
-            List<Eip> eipList = eipRepository.getEipListNotBinding(userId, 0, HsConstants.HOURLYSETTLEMENT, "");
+            Sbw sbw = sbwDaoService.getSbwById(sbwId);
+            if (null ==sbw){
+                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_BADREQUEST_ERROR.getCode(),
+                        ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage()), HttpStatus.BAD_REQUEST);
+            }
+            List<Eip> eipList = eipRepository.findByUserIdAndIsDeleteAndBillType(userId, 0, HsConstants.HOURLYSETTLEMENT);
             JSONArray eips = new JSONArray();
             JSONObject data = new JSONObject();
 
@@ -390,10 +400,10 @@ public class SbwServiceImpl implements ISbwService {
             data.put("data", eips);
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (KeycloakTokenException e) {
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.SC_FORBIDDEN.getCode(), e.getMessage()), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
-            log.error("Exception in getOtherEips", e.getMessage());
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("Exception in get Other Eips", e.getMessage());
+            return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
