@@ -8,6 +8,8 @@ import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.ReturnMsgUtil;
+import com.inspur.eip.util.constant.ErrorStatus;
+import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.iam.adapter.annotation.PermissionContext;
 import io.swagger.annotations.*;
@@ -28,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 
@@ -84,7 +87,7 @@ public class EipControllerV2 {
                                   @PathVariable("pageSize") String pageSize,
                                   @RequestParam(required = false )String status,
                                   @RequestParam(required = false )String bandwidth,
-                                  @RequestParam(required = false )String sbwId) {
+                                  @Size(min=36, max=36, message = "Must be uuid.") @RequestParam(required = false )String sbwId) {
         log.debug("EipController listEip, currentPage:{}, limit:{}", pageNo, pageSize);
 
         if(StringUtils.isBlank(pageNo) ||StringUtils.isBlank(pageSize)){
@@ -103,11 +106,13 @@ public class EipControllerV2 {
                 pageSize="0";
             }
         }
-        if(sbwId != null){
-            if("null".equals(sbwId)){
+        if(StringUtils.isNotBlank(sbwId)){
+            if(HsConstants.SBW_UNBIND.equalsIgnoreCase(status)){
                 return sbwService.getOtherEips(sbwId);
-            }else {
+            }else if(HsConstants.SBW_BIND.equalsIgnoreCase(status)) {
                 return sbwService.sbwListEip(sbwId, Integer.parseInt(pageNo), Integer.parseInt(pageSize));
+            }else {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.SC_PARAM_ERROR.getCode(),ErrorStatus.SC_PARAM_ERROR.getMessage()+" :status"), HttpStatus.BAD_REQUEST);
             }
         }
         if(StringUtils.isNotBlank(bandwidth)){

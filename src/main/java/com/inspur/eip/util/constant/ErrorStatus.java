@@ -113,7 +113,7 @@ public enum ErrorStatus {
     /**
      * ENTITY_BADREQUEST_ERROR
      */
-    ENTITY_BADREQUEST_ERROR("106.000400","Entity bad request error"),
+    ENTITY_BADREQUEST_ERROR("106.000400","Bad request error,can't find data info!"),
 
     /**
      * ENTITY_ILLEGAL_ARGUMENT_ERROR

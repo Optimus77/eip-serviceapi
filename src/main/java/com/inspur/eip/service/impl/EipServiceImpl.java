@@ -17,6 +17,7 @@ import com.inspur.eip.service.IEipService;
 import com.inspur.eip.service.SbwDaoService;
 import com.inspur.eip.util.*;
 import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.iam.adapter.util.ListFilterUtil;
@@ -92,7 +93,10 @@ public class EipServiceImpl implements IEipService {
                 BeanUtils.copyProperties(eipMo, eipInfo);
                 log.info("Atom create a eip success:{}", eipMo);
                 if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
-                    eipV6Service.atomCreateEipV6(eipMo.getId(), token);
+                    ResponseEntity responseEntity = eipV6Service.atomCreateEipV6(eipMo.getId(), token);
+                    if(responseEntity.getStatusCodeValue() != org.apache.http.HttpStatus.SC_OK){
+                        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_IPV6_CREATE_FALSE, "ipv6 create false"), HttpStatus.METHOD_FAILURE);
+                    }
                 }
                 return new ResponseEntity<>(eipInfo, HttpStatus.OK);
             } else {
@@ -190,8 +194,8 @@ public class EipServiceImpl implements IEipService {
             String projcectid = CommonUtil.getUserId();
             log.debug("listEips  of user, userId:{}", projcectid);
             if (projcectid == null) {
-                return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
-                        "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_UNAUTHORIZED.getCode(),
+                        ErrorStatus.ENTITY_UNAUTHORIZED.getMessage()), HttpStatus.BAD_REQUEST);
             }
             JSONObject data = new JSONObject();
             JSONArray eips = new JSONArray();

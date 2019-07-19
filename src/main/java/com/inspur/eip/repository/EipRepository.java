@@ -43,4 +43,6 @@ public interface EipRepository extends JpaRepository<Eip,String> {
 
     @Query(value = "SELECT * from eip where user_id=?1 and is_delete=?2 and bill_type=?3 and(sbw_id is null or sbw_id=?4)",nativeQuery = true)
     List<Eip> getEipListNotBinding(String userId, int isDelete,String billType, String sbwId);
+
+    List<Eip> findByUserIdAndIsDeleteAndBillType(String userId, int isDelete,String billType);
 }

@@ -35,6 +35,7 @@ public interface ReturnStatus {
 
     String SC_FIREWALL_NATPT_UNAVAILABLE = "106.204404";
     String SC_FIREWALL_NAT_UNAVAILABLE   = "106.202404";
+    String SC_IPV6_CREATE_FALSE   = "106.205420";
 
 
 }

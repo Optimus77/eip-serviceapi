@@ -63,6 +63,8 @@ public class HsConstants {
 	public static final String STATUS_PENDING_CREATE = "PENDING_CREATE";
 	public static final String STATUS_ERROR = "ERROR";
 	public static final String STATUS_DELETE = "DELETE";
+	public static final String SBW_BIND = "BIND";
+	public static final String SBW_UNBIND = "UNBIND";
 
 	public static final String REST_SNAT = "/rest/Snat";
 	public static final String REST_DNAT = "/rest/Dnat";
