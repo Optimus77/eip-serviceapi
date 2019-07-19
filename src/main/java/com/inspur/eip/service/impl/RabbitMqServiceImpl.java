@@ -94,6 +94,13 @@ public class RabbitMqServiceImpl {
             }
             response = eipService.atomCreateEip(eipConfig, eipOrder.getToken(), null);
             if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
+                if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
+                    if(response.getStatusCodeValue() == 420){
+                        webService.returnsIpv6Websocket("false", "createEip", eipOrder.getToken());
+                    }else{
+                        webService.returnsIpv6Websocket("false", "createNatWithEip", eipOrder.getToken());
+                    }
+                }
                 log.warn("create eip failed, return code:{}", response.getStatusCodeValue());
             } else {
                 eipReturn = response.getBody();

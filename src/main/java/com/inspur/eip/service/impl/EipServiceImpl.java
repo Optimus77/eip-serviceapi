@@ -92,7 +92,10 @@ public class EipServiceImpl implements IEipService {
                 BeanUtils.copyProperties(eipMo, eipInfo);
                 log.info("Atom create a eip success:{}", eipMo);
                 if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
-                    eipV6Service.atomCreateEipV6(eipMo.getId(), token);
+                    ResponseEntity responseEntity = eipV6Service.atomCreateEipV6(eipMo.getId(), token);
+                    if(responseEntity.getStatusCodeValue() != org.apache.http.HttpStatus.SC_OK){
+                        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_IPV6_CREATE_FALSE, "ipv6 create false"), HttpStatus.METHOD_FAILURE);
+                    }
                 }
                 return new ResponseEntity<>(eipInfo, HttpStatus.OK);
             } else {
