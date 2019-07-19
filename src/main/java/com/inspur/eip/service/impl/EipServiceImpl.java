@@ -3,6 +3,7 @@ package com.inspur.eip.service.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
+import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.ipv6.EipV6;
 import com.inspur.eip.entity.MethodReturn;
@@ -225,7 +226,13 @@ public class EipServiceImpl implements IEipService {
                 data.put(HsConstants.PAGE_NO, currentPage);
                 data.put(HsConstants.PAGE_SIZE, limit);
             } else {
+
                 List<Eip> eipList = eipDaoService.findByUserId(projcectid);
+
+                // 通过ListFilterUtil工具类进行筛选—adapter中提供
+                // ListFilterUtil.filterListData(数据列表，业务实体类型)
+                //List<Eip> dataList = ListFilterUtil.filterListData(eipList, Eip.class);
+
                 for (Eip eip : eipList) {
                     if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
                         continue;
@@ -561,6 +568,55 @@ public class EipServiceImpl implements IEipService {
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @Override
+    public ResponseEntity adminEipBindWithInstance(String id, String type, String serverId, String portId, String addrIp) {
+
+        MethodReturn result = null;
+
+        if (StringUtils.isEmpty(serverId)) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_PARA_SERVERID_ERROR)), HttpStatus.BAD_REQUEST);
+        }
+
+        Eip eipCheck = eipRepository.findByInstanceIdAndIsDelete(serverId, 0);
+        if (eipCheck != null) {
+            log.error("The binding failed,  the instanceid  has already bind  eip,instanceid", serverId);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.EIP_BIND_HAS_BAND,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND)), HttpStatus.BAD_REQUEST);
+        }
+
+        switch (type) {
+            case HsConstants.ECS:
+                log.debug("bind a server:{} port:{} with id:{}", serverId, portId, id);
+                // 1：ecs
+                if (!StringUtils.isEmpty(portId)) {
+                    result = eipDaoService.adminAssociateInstanceWithEip(id, serverId, type, portId, null);
+                }
+                break;
+            case HsConstants.CPS:
+            case HsConstants.SLB:
+                if (!StringUtils.isEmpty(addrIp)) {
+                    result = eipDaoService.adminAssociateInstanceWithEip(id, serverId, type, null, addrIp);
+                }
+                break;
+            default:
+                log.warn("no support type param： " + type);
+                break;
+        }
+
+
+        if (null != result) {
+            if (result.getInnerCode().equals(ReturnStatus.SC_OK)) {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_OK, "success"), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(ReturnMsgUtil.error(result.getInnerCode(), result.getMessage()), HttpStatus.valueOf(result.getHttpCode()));
+            }
+        }
+        String msg = "Can not get bind responds when bind eip with server" + serverId;
+        log.error(msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
     @Override
     public ResponseEntity eipUnbindWithInstacnce(String eipId, String instanceId) {
@@ -585,6 +641,68 @@ public class EipServiceImpl implements IEipService {
                         case HsConstants.CPS:
                         case HsConstants.SLB:
                             actionResponse = eipDaoService.disassociateInstanceWithEip(eipEntity);
+                            break;
+                        default:
+                            //default ecs
+                            code = ReturnStatus.SC_PARAM_ERROR;
+                            msg = "no support instance type " + instanceType;
+                            break;
+                    }
+                } else {
+                    code = ReturnStatus.SC_RESOURCE_ERROR;
+                    msg = "Failed to get instance type.";
+                }
+            } else {
+                code = ReturnStatus.SC_NOT_FOUND;
+                msg = "can not find eip id ：" + eipId;
+            }
+        } catch (Exception e) {
+            log.error("Exception in unBindPort", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage() + "";
+        }
+        if (actionResponse != null) {
+            if (actionResponse.isSuccess()) {
+                code = ReturnStatus.SC_OK;
+                msg = ("unbind successfully");
+                log.info(code);
+                log.info(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
+            } else {
+                code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
+                msg = actionResponse.getFault();
+                log.error(code);
+                log.error(msg);
+            }
+        }
+        log.error(msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    @Override
+    public ResponseEntity adminEipUnbindWithInstacnce(String eipId, String instanceId) {
+        String code = ReturnStatus.SC_PARAM_ERROR;
+        String msg = "param error";
+        ActionResponse actionResponse = null;
+        Eip eipEntity = null;
+        try {
+            if (!StringUtils.isEmpty(eipId)) {
+                eipEntity = eipDaoService.getEipById(eipId);
+            } else if (!StringUtils.isEmpty(instanceId)) {
+                eipEntity = eipRepository.findByInstanceIdAndIsDelete(instanceId, 0);
+            }
+            if (null != eipEntity) {
+                String instanceType = eipEntity.getInstanceType();
+                if (null != instanceType) {
+                    switch (instanceType) {
+                        case HsConstants.ECS:
+                            // 1：ecs
+                            actionResponse = eipDaoService.adminDisassociateInstanceWithEip(eipEntity);
+                            break;
+                        case HsConstants.CPS:
+                        case HsConstants.SLB:
+                            actionResponse = eipDaoService.adminDisassociateInstanceWithEip(eipEntity);
                             break;
                         default:
                             //default ecs
@@ -772,4 +890,157 @@ public class EipServiceImpl implements IEipService {
         }
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
+
+    @Override
+    public ResponseEntity adminUpdateEip(String eipId, String eipAddress, EipUpdateParam updateParam) {
+        String msg="";
+        Eip eip ;
+        if(eipAddress != null){
+            eip=eipRepository.findByEipAddressAndIsDelete(eipAddress,0);
+            if(eip == null){
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "eip cannot  be find by address :" + eipAddress+""),
+                        HttpStatus.NOT_FOUND);
+            }
+        }else{
+            eip=eipRepository.findByIdAndIsDelete(eipId,0);
+            if(eip == null){
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "eip cannot  be find by eipId:" + eipId+""),
+                        HttpStatus.NOT_FOUND);
+            }
+        }
+
+        if (updateParam.getServerId() != null){
+            if (updateParam.getServerId().trim().equals("")){
+                log.info("unbind operate, eipid:{}, eipAddress:{}, param:{} ", eipId,eipAddress, updateParam);
+                return adminEipUnbindWithInstacnce(eip.getId(), null);
+            } else {
+                log.info("bind operate, eipid:{}, eipAddress:{}, param:{}", eipId,eipAddress, updateParam);
+                if (updateParam.getType() != null) {
+                    return adminEipBindWithInstance(eip.getId(), updateParam.getType(), updateParam.getServerId(),
+                            updateParam.getPortId(), updateParam.getPrivateIp());
+                } else {
+                    msg = "need param serverid and type";
+                }
+            }
+        } else {
+            if(updateParam.getBillType() == null && updateParam.getBandwidth() == 0) {
+                log.info("unbind operate, eipid:{}, param:{} ", eipId, updateParam);
+                return adminEipUnbindWithInstacnce(eip.getId(), null);
+            }else if(updateParam.getDuration() != null && updateParam.getBillType() != null){
+                return renewEip(eip.getId(), updateParam);
+            }else if (updateParam.getBandwidth() != 0 && updateParam.getBillType() != null) {
+                boolean chargeTypeFlag = false;
+                if (updateParam.getBillType().equals(HsConstants.MONTHLY) ||
+                        updateParam.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                    chargeTypeFlag = true;
+                } else {
+                    msg = "chargetype must be [monthly |hourlySettlement]";
+                }
+                if (chargeTypeFlag) {
+                    log.info("update bandwidth, eipid:{}, param:{} ", eipId, updateParam);
+                    return updateEipBandWidth(eip.getId(), updateParam);
+                }
+            } else {
+                msg = "param not correct. " +
+                        "to bind server,body param like{\"eip\" : {\"prot_id\":\"xxx\",\"serverid\":\"xxxxxx\",\"type\":\"[1|2|3]\"}}" +
+                        "to unbind server , param like {\"eip\" : {\"prot_id\":\"\"} }or   {\"eip\" : {} }}" +
+                        "to change bindwidht,body param like {\"eip\" : {\"bandwidth\":xxx,\"billType\":\"xxxxxx\"}}" +
+                        "to renewEip,boby param like {\"eip\" : {\"duration\":xxx,\"billType\":\"xxxxxx\"}}"+
+                        "";
+            }
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    public ResponseEntity adminGetEipByKey(String id, String eipAddress, String fip, String instanceId,String startTime ,String status) {
+        List<Eip> list = eipDaoService.adminGetEipByKey(id, eipAddress, fip, instanceId, startTime,status);
+        if(list.isEmpty()){
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                    "can not find eip"),
+                    HttpStatus.NOT_FOUND);
+        }
+        JSONArray data=new JSONArray();
+        for (Eip eip : list){
+            EipReturnAdminDetail eipReturnAdminDetail = new EipReturnAdminDetail();
+            BeanUtils.copyProperties(eip, eipReturnAdminDetail);
+            eipReturnAdminDetail.setResourceset(Resourceset.builder()
+                    .resourceId(eip.getInstanceId())
+                    .resourceType(eip.getInstanceType()).build());
+            data.add(eipReturnAdminDetail);
+        }
+
+        return new ResponseEntity<>(ReturnMsgUtil.success(data), HttpStatus.OK);
+    }
+
+    /**
+     * update eip band width
+     *
+     * @param id    id
+     * @param param param
+     * @return result
+     */
+
+    public ResponseEntity updateEipBandWidth(String id, EipUpdateParam param) {
+        String code;
+        String msg;
+        try {
+            ActionResponse actionResponse = eipDaoService.updateEipEntity(id, param);
+            if (!actionResponse.isSuccess()) {
+                code = actionResponse.getCode()+"";
+                int httpResponseCode = actionResponse.getCode();
+                msg = actionResponse.getFault();
+                log.error(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.valueOf(httpResponseCode));
+            } else {
+                return new ResponseEntity<>(ReturnMsgUtil.success(null), HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            log.error("Exception in updateEipBandWidth", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage() + "";
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+
+    }
+
+
+    public ResponseEntity renewEip(String eipId,  EipUpdateParam eipUpdateInfo) {
+        String msg = "";
+        String code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+
+        try {
+            String addTime = eipUpdateInfo.getDuration();
+            if(null == addTime){
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.BAD_REQUEST);
+            }else if(addTime.trim().equals("0")){
+
+                ActionResponse actionResponse = eipDaoService.softDownEip(eipId);
+                if(actionResponse.isSuccess()) {
+                    return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+                }else {
+                    return new ResponseEntity<>(ReturnMsgUtil.error(
+                            String.valueOf(actionResponse.getCode()), actionResponse.getFault()),
+                            HttpStatus.BAD_REQUEST);
+                }
+            }else {
+                ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
+                if (actionResponse.isSuccess()) {
+                    log.info("renew eip:{} , add duration:{}", eipId, addTime);
+
+                    return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
+                } else {
+                    msg = actionResponse.getFault();
+                    log.error(msg);
+                }
+            }
+        }catch (Exception e){
+            log.error("Exception in deleteEip", e);
+            msg = e.getMessage()+"";
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 }

@@ -2,6 +2,7 @@ package com.inspur.eip.service;
 
 
 import com.inspur.eip.entity.EipUpdateParam;
+import com.inspur.eip.exception.KeycloakTokenException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -49,6 +50,7 @@ public interface IEipService {
      */
     ResponseEntity eipBindWithInstance(String id,String type, String serverId, String portId, String slbIp);
 
+    ResponseEntity adminEipBindWithInstance(String id,String type, String serverId, String portId, String slbIp);
     /**
      *  unbind
      * @param eipId eipid
@@ -56,6 +58,7 @@ public interface IEipService {
      * @return ret
      */
     ResponseEntity eipUnbindWithInstacnce(String eipId, String instanceId);
+    ResponseEntity adminEipUnbindWithInstacnce(String eipId, String instanceId);
 
 
     /**
@@ -89,5 +92,9 @@ public interface IEipService {
     ResponseEntity getUsingEipCountByStatus(String status);
 
     ResponseEntity getEipDetailsByIpAddress(String eipAddress);
+
+    ResponseEntity adminUpdateEip(String eipId,String eipAddress,EipUpdateParam updateParam);
+
+    ResponseEntity adminGetEipByKey(String id,String eipAddress,String fip,String instanceId,String startTime,String status) throws KeycloakTokenException;
 
 }

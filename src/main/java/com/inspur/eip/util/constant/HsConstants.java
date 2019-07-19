@@ -106,5 +106,9 @@ public class HsConstants {
 	//Url constant
 	public static final String EIP_NUMBERS = "eipNumbers";
 	public static final String UUID_LENGTH = "9dea38f8-f59c-4847-ba43-f0ef61a6986c";
+	public static final String LIST_EIP_PAGE_SQL_MAIN_PREFIX ="select * from eip where is_delete = 0 and ";
+	public static final String LIST_EIP_PAGE_SQL_EQUAL="='";
+	public static final String LIST_EIP_PAGE_SQL_AND="' and ";
+
 
 }
