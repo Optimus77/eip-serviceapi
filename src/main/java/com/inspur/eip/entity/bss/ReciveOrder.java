@@ -1,10 +1,11 @@
-package com.inspur.eip.entity;
+package com.inspur.eip.entity.bss;
 
 import com.alibaba.fastjson.JSONObject;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
-
+@Builder
 @Data
 public class ReciveOrder {
     private String consoleOrderFlowId;

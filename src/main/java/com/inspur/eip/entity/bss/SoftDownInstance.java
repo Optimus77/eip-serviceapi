@@ -1,4 +1,4 @@
-package com.inspur.eip.entity;
+package com.inspur.eip.entity.bss;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;

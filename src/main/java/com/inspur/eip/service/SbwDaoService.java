@@ -56,6 +56,7 @@ public class SbwDaoService {
             //sbw instance id
             String sbwId = CommonUtil.getUUID();
             if (!ValidatorUtil.isDOT_STANDARD_STR(sbwConfig.getSbwName())) {
+                log.warn(ErrorStatus.VALIADATE_NAME_ERROR.getMessage() + ":{}",sbwConfig.getSbwName());
                 throw new EipBadRequestException(ErrorStatus.VALIADATE_NAME_ERROR.getCode(), ErrorStatus.VALIADATE_NAME_ERROR.getMessage());
             }
 //            Firewall firewall = firewallRepository.findFirewallByRegion(sbwConfig.getRegion());
@@ -144,7 +145,7 @@ public class SbwDaoService {
                     sbwBean.setStatus(HsConstants.DELETE);
                     sbwBean.setUpdatedTime(CommonUtil.getGmtDate());
                     sbwRepository.saveAndFlush(sbwBean);
-                    log.info("Atom user delete sbw And delete sbw qos successfully, id:{}", sbwId);
+                    log.info("user delete sbw qos success, qosName:{}", sbwId);
                     return ActionResponse.actionSuccess();
                 } else {
                     //防火墙qos删除失败，
@@ -161,8 +162,7 @@ public class SbwDaoService {
                 return ActionResponse.actionSuccess();
             }
         }
-        msg = "Faild to find sbw by id:" + sbwId;
-        log.error(msg);
+        log.error("Faild to find sbw by id:" + sbwId);
         return ActionResponse.actionFailed(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage(), HttpStatus.SC_NOT_FOUND);
 
     }
@@ -199,7 +199,7 @@ public class SbwDaoService {
                     sbwBean.setStatus(HsConstants.DELETE);
                     sbwBean.setUpdatedTime(CommonUtil.getGmtDate());
                     sbwRepository.saveAndFlush(sbwBean);
-                    log.info("Atom soft admin delete sbw successfully, id:{}", sbwId);
+                    log.info("admin delete sbw success, qosName:{}", sbwId);
                     return ActionResponse.actionSuccess();
                 } else {
                     //qos
@@ -527,7 +527,7 @@ public class SbwDaoService {
             log.info("Eip add to sbw success.:{}",eipEntity);
             return ActionResponse.actionSuccess();
         }
-        log.error("Failed to remove ip in sbw,eip:{},sbwId:{}" + eipEntity +  sbwId);
+        log.error("Failed to add ip in sbw,eip:{},sbwId:{}" + eipEntity +  sbwId);
         return ActionResponse.actionFailed(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage(), HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
     }
@@ -565,7 +565,8 @@ public class SbwDaoService {
             return ActionResponse.actionFailed(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage(), HttpStatus.SC_NOT_FOUND);
         }
         Sbw sbw = optionalSbw.get();
-        boolean removeStatus = true;
+
+        boolean removeStatus = false;
         String newPipId = null;
         if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)) {
             if (eipUpdateParam.getBandwidth() != eipEntity.getOldBandWidth()) {
@@ -575,16 +576,13 @@ public class SbwDaoService {
             newPipId = firewallService.addQos(eipEntity.getFloatingIp(), eipEntity.getEipAddress(), String.valueOf(eipUpdateParam.getBandwidth()),
                     eipEntity.getFirewallId());
             if (null != newPipId) {
-                removeStatus = firewallService.removeFipFromSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbw.getPipeId(),sbw.getId());
-                log.info("remove fip result:{}",removeStatus);
-            } else {
-                removeStatus = false;
+                removeStatus = firewallService.removeFipFromSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(),sbw.getId());
             }
         }
 
         if (removeStatus || CommonUtil.qosDebug) {
-            eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
             //update the eip table
+            eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
             eipEntity.setPipId(newPipId);
             eipEntity.setSbwId(null);
             eipEntity.setBandWidth(eipUpdateParam.getBandwidth());
@@ -593,7 +591,7 @@ public class SbwDaoService {
 
             sbw.setUpdatedTime(CommonUtil.getGmtDate());
             sbwRepository.saveAndFlush(sbw);
-            log.info("Eip add to sbw success.:{}",eipEntity);
+            log.info("Eip remove to sbw success.:{}",eipEntity);
             return ActionResponse.actionSuccess();
         }
         msg = "Failed to remove ip in sbw,eip:{},sbwId:{}" + eipEntity +  sbwId;

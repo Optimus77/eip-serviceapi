@@ -1,7 +1,6 @@
-package com.inspur.eip.entity;
+package com.inspur.eip.entity.bss;
 
 import lombok.Data;
-
 @Data
 public class OrderProductItem {
 
