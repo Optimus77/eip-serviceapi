@@ -55,7 +55,7 @@ public class EipV6ServiceImplTest {
             @Override
             public String getHeader(String name) {
                 //todo 测试之前摘取token
-                return "bearer " + "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiI0ODI3NzJjMi02YTRkLTRlNzUtOTBlNS1jNjA0YzkyOWJjZWEiLCJleHAiOjE1NjM0MTcwNDMsIm5iZiI6MCwiaWF0IjoxNTYzNDExNjQzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6Ijg3NmMxMDFlLTYzZDktNGYwZS04MTYwLTM1NzY4ZGViMzQzNCIsImF1dGhfdGltZSI6MTU2MzQxMTYzMCwic2Vzc2lvbl9zdGF0ZSI6ImFkNTg0ZWRmLWI4OTAtNDVhMS1hNzhhLTRkNDhhOTJkNWU4MSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.Q_7heuF3pUvpIfV_fS7_SLrTVkZFhGT9wR8a9qVH0oZGQwNcJnfsJzNh9bs0Ul8ZZ8-QEe3MHPuq3IBBxSwIVFWS1D6n3rJAP6MAhA4U5NvlOaGzYZ2vQKsCWSlEoST7zp38zxumhTZcS-2G7zT0ky6AGmWKhY0NU--nvCgVjkBdRnq8VQd2VjOKt8FgopNNx7t_OAUImLsTu4C-C6zTvZYQAz40mKJAGheiNZ5b4eEhMe0Nxjw5dSNdqcWlgj3CMuMq-PFiPExNVbpO2VP6pglw3LcQ577o_RQcDe_TKLgR26Rlojajw8HgGzDyYlW8g9JpQpTCYW9wVJcycPDAeg";
+                return "bearer " + "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIxNDI1MWNiNS0yNGY0LTQwZGQtYjFkMi1lOWZjMTc2ZmUwOWUiLCJleHAiOjE1NjM5NjMxODAsIm5iZiI6MCwiaWF0IjoxNTYzOTU3NzgwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjQ3NTU2ZTdhLWFlZjMtNGIyYy04NWMxLTA4Y2E4MTUxMjk4NSIsImF1dGhfdGltZSI6MTU2Mzk1NDQ4Miwic2Vzc2lvbl9zdGF0ZSI6IjRlZGQwNGM0LWI0YTMtNGY2Yi05Yzg3LWI1MmZhMzFlYjRhNCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.VYpLCJNQr24m6kN6KgBsT3eBPPXAgOqfnJxgoanguWlP_QfIfKNq4SiRi5A07HLdDqBQTFjZ8kOKOnoRWuMdT4AIwE2TasgeuA-SrHuu3KJ4BPVKBm9MBUbsZrReoKrQRUQMlfWyiOZPSEjziB-v-h2OXWEYD_wDVSiCKvWZuqNk8_cqMpBI0J1zYRB7faCFOQeALIFH-zB-i7_phT4K1jdZaFALid-zmKDWxX1Q8_EbGJqYU3OrcOGY78cEtM3wjVVRxqpG1lT-ssgk0mgf6VDAwab7ovVfolJDbHjMvhak2UoqRCmzGovO_MOcavQif1Ue2_ZIGxOuBMdl5fG1JQ";
             }
 
             @Override
@@ -408,7 +408,7 @@ public class EipV6ServiceImplTest {
 
     @Test
     public void atomCreateEipV6() {
-        String eipId = "7216e894-6a79-4320-b1db-b4ec1fb8d2e0";
+        String eipId = "09e27ea7-27c8-4def-8ecf-54c00e185bfd";
         String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJkODM0OTkwNS1iYzcwLTQxZjQtOWJlMC0wNWQ3Mjk5OTVkODYiLCJleHAiOjE1NjEwMDU0MzMsIm5iZiI6MCwiaWF0IjoxNTYxMDAwMDMzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjA0MzQ0NWJlLWE3ZmEtNDZmNy05OTkwLWNhMWQ5ZmRlYmJjNiIsImF1dGhfdGltZSI6MTU2MDk5ODIzMSwic2Vzc2lvbl9zdGF0ZSI6ImNiMjJjYTQ2LTA2NjctNDVkYi04NzNiLTNjZjhhOGRkMmIzMCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.knnSyiRFfH3J3URnTygvs4e-2rxh8U7HWmagtGZ3FUg-j_w37e50Z8gFOBoaoOMChl3IEoYtBSJXk9nj_AlCYZqZ3QZET2fsuoB0ERwoUXtyK9uZOPR1PaRAfLURRTBbui5MtbUZ8nni3esbz01DeJaWtjo22Dx1VhdAUQwPRulu2td2InkGO-_HvLhgLv173a5mEnQsH2_nSl9m8axFLeM9kz_Tr6Xb9MecTny_y8XWy2hxF4ihnq5AYRhEnTATUvJxAoYc6aJYCs-cxxcKHnqp7n17r3UbVa1E1O6wZ3P5xBWLnBp-GVM8bkekJ_WCcYGFMZ2Ev2gLa6Unb_oXFw";
         if(eipPoolV6Repository.getEipV6ByRandom()==null)
         {
@@ -449,7 +449,7 @@ public class EipV6ServiceImplTest {
     @Test
     public void eipErrorCreateEipV6WithSbw(){
         String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJkODM0OTkwNS1iYzcwLTQxZjQtOWJlMC0wNWQ3Mjk5OTVkODYiLCJleHAiOjE1NjEwMDU0MzMsIm5iZiI6MCwiaWF0IjoxNTYxMDAwMDMzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjA0MzQ0NWJlLWE3ZmEtNDZmNy05OTkwLWNhMWQ5ZmRlYmJjNiIsImF1dGhfdGltZSI6MTU2MDk5ODIzMSwic2Vzc2lvbl9zdGF0ZSI6ImNiMjJjYTQ2LTA2NjctNDVkYi04NzNiLTNjZjhhOGRkMmIzMCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.knnSyiRFfH3J3URnTygvs4e-2rxh8U7HWmagtGZ3FUg-j_w37e50Z8gFOBoaoOMChl3IEoYtBSJXk9nj_AlCYZqZ3QZET2fsuoB0ERwoUXtyK9uZOPR1PaRAfLURRTBbui5MtbUZ8nni3esbz01DeJaWtjo22Dx1VhdAUQwPRulu2td2InkGO-_HvLhgLv173a5mEnQsH2_nSl9m8axFLeM9kz_Tr6Xb9MecTny_y8XWy2hxF4ihnq5AYRhEnTATUvJxAoYc6aJYCs-cxxcKHnqp7n17r3UbVa1E1O6wZ3P5xBWLnBp-GVM8bkekJ_WCcYGFMZ2Ev2gLa6Unb_oXFw";
-        String eipIdWithSbw = "708f89ba-54a0-4a03-939a-d2cfe0208789";
+        String eipIdWithSbw = "32c94568-625c-4e00-bdfc-7fd781073ef2";
         ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(eipIdWithSbw,token);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
     }
@@ -500,7 +500,7 @@ public class EipV6ServiceImplTest {
 
     @Test
     public void atomDeleteEipV6() {
-        String eipV6IdInBindWitEcs = "0ef67955-e43d-4c86-8a47-285be529968e";
+        String eipV6IdInBindWitEcs = "6ca07302-a89f-4935-b982-a336670f2712";
         ResponseEntity responseEntity = eipV6ServiceImpl.atomDeleteEipV6(eipV6IdInBindWitEcs);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
     }
@@ -547,8 +547,8 @@ public class EipV6ServiceImplTest {
 
     @Test
     public void eipV6bindPort() {
-        String eipV6Id = "9bdf484b-7929-45df-86b2-f853e54952db";
-        String eip = "10.110.38.27";
+        String eipV6Id = "b81f8d46-ffdb-436d-932e-7e00a6bf85ee";
+        String eip = "10.110.38.118";
         ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6Id,eip);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
     }
@@ -574,21 +574,21 @@ public class EipV6ServiceImplTest {
     }
     @Test
     public void eipV6bindPortV6InBindToV4UnBind(){
-        String eipV6Id = "0ef67955-e43d-4c86-8a47-285be529968e";
-        String eip = "10.110.38.27";
+        String eipV6Id = "6ca07302-a89f-4935-b982-a336670f2712";
+        String eip = "10.110.38.118";
         ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6Id,eip);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
     }
     @Test
     public void eipV6bindPortV6UnbindToV4InBind(){
-        String eipV6Id = "9bdf484b-7929-45df-86b2-f853e54952db";
+        String eipV6Id = "b81f8d46-ffdb-436d-932e-7e00a6bf85ee";
         String eip = "10.110.38.30";
         ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6Id,eip);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
     }
     @Test
     public void eipV6bindPortInBindToInBind(){
-        String eipV6Id = "0ef67955-e43d-4c86-8a47-285be529968e";
+        String eipV6Id = "6ca07302-a89f-4935-b982-a336670f2712";
         String eip = "10.110.38.30";
         ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6Id,eip);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());

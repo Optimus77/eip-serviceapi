@@ -2,6 +2,7 @@ package com.eipserviceapi.unitTest.implTest;
 
 import com.eipserviceapi.TestEipServiceApplication;
 import com.inspur.eip.entity.*;
+import com.inspur.eip.entity.bss.*;
 import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.service.impl.RabbitMqServiceImpl;
 import com.inspur.eip.util.common.CommonUtil;
@@ -612,7 +613,7 @@ public class RabbitMqServiceImplTest {
                 .productLineCode("EIP")
                 .productTypeCode("EIP")
                 .instanceCount("1")
-                .instanceId("7216e894-6a79-4320-b1db-b4ec1fb8d2e0")
+                .instanceId("09e27ea7-27c8-4def-8ecf-54c00e185bfd")
                 .instanceStatus("success")
                 .statusTime(simpleDateFormat.format(new Date()))
                 .itemList(orderProductItems)
