@@ -566,7 +566,7 @@ public class SbwDaoService {
         }
         Sbw sbw = optionalSbw.get();
 
-        boolean removeStatus = false;
+        boolean removeStatus = true;
         String newPipId = null;
         if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)) {
             if (eipUpdateParam.getBandwidth() != eipEntity.getOldBandWidth()) {
@@ -577,9 +577,11 @@ public class SbwDaoService {
                     eipEntity.getFirewallId());
             if (null != newPipId) {
                 removeStatus = firewallService.removeFipFromSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(),sbw.getId());
+            }else {
+                removeStatus = false;
             }
         }
-
+        //如果EIP未绑定虚机，只更新数据库，待绑定时候有fip再加入共享带宽
         if (removeStatus || CommonUtil.qosDebug) {
             //update the eip table
             eipEntity.setUpdatedTime(CommonUtil.getGmtDate());

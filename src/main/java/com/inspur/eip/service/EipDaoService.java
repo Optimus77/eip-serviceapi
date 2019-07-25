@@ -933,7 +933,10 @@ public class EipDaoService {
         return listEips;
 
     }
-
+    @Transactional
+    public List<Eip> findFlowAccountEipList(String chargeMode){
+       return eipRepository.findByChargeModeAndStatusAndIsDelete(chargeMode,HsConstants.ACTIVE, 0);
+    }
 
 
 }

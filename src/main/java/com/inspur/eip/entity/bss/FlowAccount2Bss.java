@@ -28,7 +28,7 @@ public class FlowAccount2Bss {
     //产品线编码
     private String productLineCode;
     //非必须，存在闲忙时传入true
-    private Boolean haveOtherItem;
+    private Boolean haveOtherItem =false;
 
     private List<FlowAccountProductList> productList;
 }
