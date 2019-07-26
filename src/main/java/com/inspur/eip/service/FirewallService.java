@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -512,18 +513,18 @@ public class FirewallService {
 
     public boolean ping(String ipAddress, String fireWallId) {
         try {
-            String delResult = fireWallCommondService.execCustomCommand(fireWallId,
-                    "configure\r"
-                            + "end",
-                    null);
-            if (null != delResult && delResult.equals("ERROR")) {
-                log.error("Firewall connection check error:{}", delResult);
-                return false;
-            } else {
-                return true;
-            }
-//            int  timeOut =  3000 ;
-//            return InetAddress.getByName(ipAddress).isReachable(timeOut);
+//            String delResult = fireWallCommondService.execCustomCommand(fireWallId,
+//                    "configure\r"
+//                            + "end",
+//                    null);
+//            if (null != delResult && delResult.equals("ERROR")) {
+//                log.error("Firewall connection check error:{}", delResult);
+//                return false;
+//            } else {
+//                return true;
+//            }
+            int  timeOut =  3000 ;
+            return InetAddress.getByName(ipAddress).isReachable(timeOut);
         } catch (Exception e) {
             return false;
         }
