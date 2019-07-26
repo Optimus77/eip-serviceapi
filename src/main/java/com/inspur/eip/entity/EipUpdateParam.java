@@ -3,7 +3,6 @@ package com.inspur.eip.entity;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.springframework.lang.NonNull;
 
 import java.io.Serializable;
 

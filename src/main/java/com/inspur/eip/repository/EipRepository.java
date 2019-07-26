@@ -21,8 +21,6 @@ public interface EipRepository extends JpaRepository<Eip,String> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Eip> findById(String id);
 
-    Eip findByIdAndIsDelete(String id,int isDelete);
-
     Eip findByInstanceIdAndIsDelete (String instanceId, int isDelete);
 
     List<Eip> findByUserIdAndIsDelete(String projectId, int isDelete);
