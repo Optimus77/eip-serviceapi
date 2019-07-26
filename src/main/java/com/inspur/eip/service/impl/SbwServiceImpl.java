@@ -387,7 +387,8 @@ public class SbwServiceImpl implements ISbwService {
             JSONObject data = new JSONObject();
 
             for (Eip eip : eipList) {
-                if (null != eip.getSbwId() && eip.getSbwId().equals(sbwId)) {
+                //只要该eip加入了任何共享带宽，就不予以显示
+                if (StringUtils.isNotBlank(eip.getSbwId())) {
                     continue;
                 }
                 EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eip.getEipAddress(), eip.getUserId(), 0);
