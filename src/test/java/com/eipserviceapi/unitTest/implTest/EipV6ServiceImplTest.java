@@ -55,7 +55,7 @@ public class EipV6ServiceImplTest {
             @Override
             public String getHeader(String name) {
                 //todo 测试之前摘取token
-                return "bearer " + "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIxNDI1MWNiNS0yNGY0LTQwZGQtYjFkMi1lOWZjMTc2ZmUwOWUiLCJleHAiOjE1NjM5NjMxODAsIm5iZiI6MCwiaWF0IjoxNTYzOTU3NzgwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjQ3NTU2ZTdhLWFlZjMtNGIyYy04NWMxLTA4Y2E4MTUxMjk4NSIsImF1dGhfdGltZSI6MTU2Mzk1NDQ4Miwic2Vzc2lvbl9zdGF0ZSI6IjRlZGQwNGM0LWI0YTMtNGY2Yi05Yzg3LWI1MmZhMzFlYjRhNCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.VYpLCJNQr24m6kN6KgBsT3eBPPXAgOqfnJxgoanguWlP_QfIfKNq4SiRi5A07HLdDqBQTFjZ8kOKOnoRWuMdT4AIwE2TasgeuA-SrHuu3KJ4BPVKBm9MBUbsZrReoKrQRUQMlfWyiOZPSEjziB-v-h2OXWEYD_wDVSiCKvWZuqNk8_cqMpBI0J1zYRB7faCFOQeALIFH-zB-i7_phT4K1jdZaFALid-zmKDWxX1Q8_EbGJqYU3OrcOGY78cEtM3wjVVRxqpG1lT-ssgk0mgf6VDAwab7ovVfolJDbHjMvhak2UoqRCmzGovO_MOcavQif1Ue2_ZIGxOuBMdl5fG1JQ";
+                return "bearer " + "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJlOGVkNTQzMS1jNmUzLTQ5NjItYTM0Yy02NDM4NGFiYWUyMjkiLCJleHAiOjE1NjM5NjUwMjcsIm5iZiI6MCwiaWF0IjoxNTYzOTU5NjI3LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjQ3NTU2ZTdhLWFlZjMtNGIyYy04NWMxLTA4Y2E4MTUxMjk4NSIsImF1dGhfdGltZSI6MTU2Mzk1NDQ4Miwic2Vzc2lvbl9zdGF0ZSI6IjRlZGQwNGM0LWI0YTMtNGY2Yi05Yzg3LWI1MmZhMzFlYjRhNCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.XAfNZp6Vxe9aodyYG7hGdvbJSa9Q5rWPvehYDTGHaz6fgPXB55i0J7y72tEnKTexbkE-9z9Rzj_p1gNtzOF7KYjaevwGYqCszAvc6krFnRmoWBDRDGdOu3_spFku_iff1cnw8CLfeiRJGO_L1uaV5t4-xtqbDC3FUX6jCtK97x8TfzdI8lpWsoVDiZ0ph7y9CzdEIvMUTZl7QJRlrAIkggUSp4hAnK9vN6srFAm6rXTSi-cN-_siVOGroOlyFId55RPdpiijL-7ycHaS7Rku9BJV7r-sIDSPHJPG-SPAH-icFPJvS5KEy53KJVWXRmwXK2O55MgNlUfO7TKWCTeGkA";
             }
 
             @Override
@@ -577,6 +577,8 @@ public class EipV6ServiceImplTest {
         String eipV6Id = "6ca07302-a89f-4935-b982-a336670f2712";
         String eip = "10.110.38.118";
         ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6Id,eip);
+        eip = "10.110.38.218";
+        eipV6ServiceImpl.eipV6bindPort(eipV6Id,eip);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
     }
     @Test
@@ -591,7 +593,10 @@ public class EipV6ServiceImplTest {
         String eipV6Id = "6ca07302-a89f-4935-b982-a336670f2712";
         String eip = "10.110.38.30";
         ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6Id,eip);
+        eip = "10.110.38.218";
+        eipV6ServiceImpl.eipV6bindPort(eipV6Id,eip);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+
     }
 
     @Test

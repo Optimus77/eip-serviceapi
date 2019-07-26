@@ -2,8 +2,11 @@ package com.eipserviceapi.unitTest;
 
 import com.eipserviceapi.TestEipServiceApplication;
 import com.inspur.eip.entity.EipUpdateParam;
+import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.sbw.Sbw;
-import com.inspur.eip.service.EipDaoService;
+import com.inspur.eip.repository.EipRepository;
+import com.inspur.eip.repository.SbwRepository;
+import com.inspur.eip.service.FirewallService;
 import com.inspur.eip.service.SbwDaoService;
 import groovy.util.logging.Slf4j;
 import org.apache.http.HttpStatus;
@@ -18,21 +21,9 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-import scala.annotation.meta.param;
 
-import javax.print.DocFlavor;
-import javax.servlet.*;
-import javax.servlet.http.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.Principal;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Locale;
-import java.util.Map;
+
+import java.util.Optional;
 
 import static org.junit.Assert.*;
 @Slf4j
@@ -45,6 +36,15 @@ public class SbwDaoServiceTest {
 
     @Autowired
     private SbwDaoService sbwDaoService;
+
+    @Autowired
+    private FirewallService firewallService;
+
+    @Autowired
+    private EipRepository eipRepository;
+
+    @Autowired
+    private SbwRepository sbwRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -468,14 +468,14 @@ public class SbwDaoServiceTest {
 
     @Test
     public void addEipIntoSbw(){
-        String eipId = "09e27ea7-27c8-4def-8ecf-54c00e185bfd";
+        String eipId = "6d1b7c00-6847-4612-ba3b-5e40745f4cfb";
         String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIyMTNiYzI4YS1hMTY1LTQ2MTYtYWUwMy0xNmFlZDNkZmJkYTYiLCJleHAiOjE1NjM0MjE1NjMsIm5iZiI6MCwiaWF0IjoxNTYzNDE2MTYzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImYwZjY1NTRhLWExNGYtNGYyMS04OGQ3LTViNTRhZmJjNzVkYyIsImF1dGhfdGltZSI6MTU2MzQxNDM1Nywic2Vzc2lvbl9zdGF0ZSI6IjE2ZTA3ODY3LWFmZGUtNGNmOS1hMmZiLTgxN2VjNzM5OGRjYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.lat_JDKXefrXZ4cylqaCf5XrLd-nXYz6NXUMtbhyobt33RU5D6mAO1xT8BuKLm4E4fw9e4KY5v2EgUuvWFnvvuyZNJ7lw6ER6P_YpwBgKuf9ol2nnJjkkcpFKOHPePQurMxV1fFxox-4YcgAeCF6qT2QJAKkRQCz1uacabUJ672POO9HXIhAZRcNhctAvg6VRB-cAlElOfT-48ZVbG2WlN1xn6dr2SdV7waVOQzcTh2ZjTXcQRNQzHtY_8vLiyFXOVE_dghBGnh986FlauobvCxh2tJfamig4AFGJm_1FKXtt5d1pTxKq901cxsS5O1D2aPNqWu7vmQ-H8zKIFet6w";
         EipUpdateParam param = new EipUpdateParam();
         param.setBandwidth(55);
         param.setBillType("hourlySettlement");
         param.setChargemode(null);
         param.setDuration("1");
-        param.setSbwId("8aa775f5-e085-417a-bc65-29c55fb2cfb4");
+        param.setSbwId("0e40e97a-4b30-492e-8472-df3e2c044c2a");
         param.setPortId(null);
         param.setPrivateIp(null);
         param.setServerId(null);
@@ -528,7 +528,7 @@ public class SbwDaoServiceTest {
 
     @Test
     public void errorEipBandV6AddEipIntoSbw(){
-        String eipId = "7216e894-6a79-4320-b1db-b4ec1fb8d2e0";
+        String eipId = "2955acc9-d9b1-4375-a892-e8642e73f2e4";
         String token = "123qwe";
         EipUpdateParam param = new EipUpdateParam();
         param.setBandwidth(55);
@@ -548,14 +548,14 @@ public class SbwDaoServiceTest {
 
     @Test
     public void errorEipAlreadyAddEipIntoSbw(){
-        String eipId = "38cd07a1-5650-4826-945b-257406f7e1a1";
+        String eipId = "81f3b43e-5a99-4acd-9a15-09e5aff4019e";
         String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIyMTNiYzI4YS1hMTY1LTQ2MTYtYWUwMy0xNmFlZDNkZmJkYTYiLCJleHAiOjE1NjM0MjE1NjMsIm5iZiI6MCwiaWF0IjoxNTYzNDE2MTYzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImYwZjY1NTRhLWExNGYtNGYyMS04OGQ3LTViNTRhZmJjNzVkYyIsImF1dGhfdGltZSI6MTU2MzQxNDM1Nywic2Vzc2lvbl9zdGF0ZSI6IjE2ZTA3ODY3LWFmZGUtNGNmOS1hMmZiLTgxN2VjNzM5OGRjYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.lat_JDKXefrXZ4cylqaCf5XrLd-nXYz6NXUMtbhyobt33RU5D6mAO1xT8BuKLm4E4fw9e4KY5v2EgUuvWFnvvuyZNJ7lw6ER6P_YpwBgKuf9ol2nnJjkkcpFKOHPePQurMxV1fFxox-4YcgAeCF6qT2QJAKkRQCz1uacabUJ672POO9HXIhAZRcNhctAvg6VRB-cAlElOfT-48ZVbG2WlN1xn6dr2SdV7waVOQzcTh2ZjTXcQRNQzHtY_8vLiyFXOVE_dghBGnh986FlauobvCxh2tJfamig4AFGJm_1FKXtt5d1pTxKq901cxsS5O1D2aPNqWu7vmQ-H8zKIFet6w";
         EipUpdateParam param = new EipUpdateParam();
         param.setBandwidth(55);
         param.setBillType("hourlySettlement");
         param.setChargemode(null);
         param.setDuration("1");
-        param.setSbwId("0e40e97a-4b30-492e-8472-df3e2c044c2a");
+        param.setSbwId("cf5dd08b-c15a-45d5-b8b6-c01f81495a86");
         param.setPortId(null);
         param.setPrivateIp(null);
         param.setServerId(null);
@@ -568,20 +568,28 @@ public class SbwDaoServiceTest {
 
     @Test
     public void removeEipFromSbw(){
-        String eipId = "32c94568-625c-4e00-bdfc-7fd781073ef2";
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIxNDI1MWNiNS0yNGY0LTQwZGQtYjFkMi1lOWZjMTc2ZmUwOWUiLCJleHAiOjE1NjM5NjMxODAsIm5iZiI6MCwiaWF0IjoxNTYzOTU3NzgwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjQ3NTU2ZTdhLWFlZjMtNGIyYy04NWMxLTA4Y2E4MTUxMjk4NSIsImF1dGhfdGltZSI6MTU2Mzk1NDQ4Miwic2Vzc2lvbl9zdGF0ZSI6IjRlZGQwNGM0LWI0YTMtNGY2Yi05Yzg3LWI1MmZhMzFlYjRhNCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.VYpLCJNQr24m6kN6KgBsT3eBPPXAgOqfnJxgoanguWlP_QfIfKNq4SiRi5A07HLdDqBQTFjZ8kOKOnoRWuMdT4AIwE2TasgeuA-SrHuu3KJ4BPVKBm9MBUbsZrReoKrQRUQMlfWyiOZPSEjziB-v-h2OXWEYD_wDVSiCKvWZuqNk8_cqMpBI0J1zYRB7faCFOQeALIFH-zB-i7_phT4K1jdZaFALid-zmKDWxX1Q8_EbGJqYU3OrcOGY78cEtM3wjVVRxqpG1lT-ssgk0mgf6VDAwab7ovVfolJDbHjMvhak2UoqRCmzGovO_MOcavQif1Ue2_ZIGxOuBMdl5fG1JQ";
+        String eipId = "81f3b43e-5a99-4acd-9a15-09e5aff4019e";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIyMTNiYzI4YS1hMTY1LTQ2MTYtYWUwMy0xNmFlZDNkZmJkYTYiLCJleHAiOjE1NjM0MjE1NjMsIm5iZiI6MCwiaWF0IjoxNTYzNDE2MTYzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImYwZjY1NTRhLWExNGYtNGYyMS04OGQ3LTViNTRhZmJjNzVkYyIsImF1dGhfdGltZSI6MTU2MzQxNDM1Nywic2Vzc2lvbl9zdGF0ZSI6IjE2ZTA3ODY3LWFmZGUtNGNmOS1hMmZiLTgxN2VjNzM5OGRjYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.lat_JDKXefrXZ4cylqaCf5XrLd-nXYz6NXUMtbhyobt33RU5D6mAO1xT8BuKLm4E4fw9e4KY5v2EgUuvWFnvvuyZNJ7lw6ER6P_YpwBgKuf9ol2nnJjkkcpFKOHPePQurMxV1fFxox-4YcgAeCF6qT2QJAKkRQCz1uacabUJ672POO9HXIhAZRcNhctAvg6VRB-cAlElOfT-48ZVbG2WlN1xn6dr2SdV7waVOQzcTh2ZjTXcQRNQzHtY_8vLiyFXOVE_dghBGnh986FlauobvCxh2tJfamig4AFGJm_1FKXtt5d1pTxKq901cxsS5O1D2aPNqWu7vmQ-H8zKIFet6w";
         EipUpdateParam param = new EipUpdateParam();
         param.setBandwidth(5);
         param.setBillType("hourlySettlement");
         param.setChargemode(null);
         param.setDuration("1");
-        param.setSbwId("efbaf00a-7a7b-4a2d-81fe-c9b98c73e50b");
+        param.setSbwId("0e40e97a-4b30-492e-8472-df3e2c044c2a");
         param.setPortId(null);
         param.setPrivateIp(null);
         param.setServerId(null);
         param.setType(null);
 
         ActionResponse actionResponse = sbwDaoService.removeEipFromSbw(eipId,param,token);
+
+        Optional<Eip> optionalEip = eipRepository.findById(eipId);
+        Eip eipEntity = optionalEip.get();
+        Optional<Sbw> sbwOptional = sbwRepository.findById("0e40e97a-4b30-492e-8472-df3e2c044c2a");
+        Sbw sbwEntity = sbwOptional.get();
+        if (actionResponse.getCode() == 200){
+            firewallService.addFipToSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbwEntity.getId());
+        }
 
         assertEquals(ActionResponse.actionSuccess().getCode(),actionResponse.getCode());
     }
@@ -645,4 +653,6 @@ public class SbwDaoServiceTest {
 
         assertEquals(404,actionResponse.getCode());
     }
+
 }
+

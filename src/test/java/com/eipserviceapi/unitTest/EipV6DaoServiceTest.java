@@ -35,7 +35,7 @@ import static org.junit.Assert.*;
 @ContextConfiguration(classes = EipV6DaoService.class)
 @Rollback
 @SpringBootTest(classes = TestEipServiceApplication.class)
-@Transactional(transactionManager = "transactionManager")
+@Transactional
 public class EipV6DaoServiceTest {
 
     @Autowired
