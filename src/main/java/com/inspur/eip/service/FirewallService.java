@@ -688,6 +688,7 @@ public class FirewallService {
                 "configure\r"
                         + "qos-engine first\r"
                         + "root-pipe  " + rootPipeName + "\r"
+                        + "qos-mode police\r"
                         + "pipe-map \r"
                         + "dst-ip " + fip + "/24\r"
                         + "src-addr Any\r"
