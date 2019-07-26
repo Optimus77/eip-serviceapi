@@ -497,6 +497,32 @@ public class EipDaoService {
     }
 
     @Transactional
+    public ActionResponse reNewEipEntity(String eipId, String addTime) {
+
+        Optional<Eip> optional = eipRepository.findById(eipId);
+        if (!optional.isPresent()) {
+            return ActionResponse.actionFailed("Can not find the eip by id:{}" + eipId, HttpStatus.SC_NOT_FOUND);
+        }
+        Eip eipEntity = optional.get();
+        if ((null == eipEntity.getSnatId()) && (null == eipEntity.getDnatId()) && (null != eipEntity.getFloatingIp())) {
+            MethodReturn fireWallReturn = firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
+                    eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
+            if (fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
+                log.info("renew eip entity add nat and qos,{}.  ", eipEntity);
+                eipEntity.setStatus(HsConstants.ACTIVE);
+                eipEntity.setDuration(addTime);
+                eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
+                eipRepository.saveAndFlush(eipEntity);
+            } else {
+                log.error("renew eip error {}", fireWallReturn.getMessage());
+                return ActionResponse.actionFailed("firewall error when renew eip", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            }
+        }
+        return ActionResponse.actionSuccess();
+    }
+
+
+    @Transactional
     public ActionResponse reNewEipEntity(String eipId, String addTime, String token) {
 
         Optional<Eip> optional = eipRepository.findById(eipId);
@@ -672,6 +698,11 @@ public class EipDaoService {
 
     public int statisEipCountBySbw(String sbwId, int isDelete) {
         return (int) eipRepository.countBySbwIdAndIsDelete(sbwId, 0);
+    }
+
+    @Transactional
+    public List<Eip> findFlowAccountEipList(String chargeMode){
+        return eipRepository.findByChargeModeAndStatusAndIsDelete(chargeMode,HsConstants.ACTIVE, 0);
     }
 
 }
