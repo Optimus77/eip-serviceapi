@@ -13,14 +13,14 @@ import java.util.List;
 public class FlowAccountProductList {
 
     private String region;
-    //    可用区
+    //    可用区，如果无，则填空""
     private String availableZone;
     //    产品类型
     private String productTypeCode;
     //    实例Id
     private String instanceId;
-    //实例名称
-    private String instanceName;
+    //实例名称,如果无则instanceName传空""
+    private String instanceName ="";
     //产品详情列表
     private List<OrderProductItem> itemList;
     //非必需， 忙时计量数据

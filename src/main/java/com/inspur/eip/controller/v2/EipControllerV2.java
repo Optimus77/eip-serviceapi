@@ -4,7 +4,6 @@ import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.LogLevel;
-import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.ReturnMsgUtil;
@@ -196,26 +195,6 @@ public class EipControllerV2 {
         return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
     }
 
-    /**
-     * admin
-     * get eips instance detail
-     * @return  retrun
-     */
-    @PermissionContext(whitelist=true)
-    @GetMapping(value = "/eips/adminquery")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value="getEipByConditions",notes="get")
-    public ResponseEntity adminGetEipByKey(
-        @RequestParam(required = false) String id,
-        @RequestParam(required = false) String status,
-        @RequestParam(required = false) String fip,
-        @RequestParam(required = false) String instanceId,
-        @RequestParam(required = false) String startTime,
-        @RequestParam(required = false) String eipAddress)  {
-
-        return eipService.adminGetEipByKey(id,eipAddress,fip,instanceId,startTime,status);
-    }
-
     @PermissionContext(
             service="eip",
             action="UpdateEip",
@@ -261,34 +240,6 @@ public class EipControllerV2 {
         }
 
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
-
-    }
-
-    //admin
-    @PermissionContext(whitelist=true)
-    @PutMapping(value = "/eips/{id}/action/adminUpdate", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value = "update eip", notes = "put")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "path", name = "eip_id", value = "the id of eip", required = true, dataType = "String"),
-    })
-    public ResponseEntity adminUpdateEip(@PathVariable("id") String eipId,
-                                         @RequestParam(required = false) String eipAddress,
-                                         @Valid @RequestBody EipUpdateParamWrapper param , BindingResult result) {
-
-        if (result.hasErrors()) {
-            StringBuffer msgBuffer = new StringBuffer();
-            List<FieldError> fieldErrors = result.getFieldErrors();
-            for (FieldError fieldError : fieldErrors) {
-                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
-            }
-            log.info("{}",msgBuffer);
-            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()), HttpStatus.BAD_REQUEST);
-        }
-        EipUpdateParam updateParam = param.getEip();
-        return eipService.adminUpdateEip(eipId,eipAddress,updateParam);
-
-
 
     }
 
