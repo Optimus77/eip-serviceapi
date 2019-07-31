@@ -279,13 +279,15 @@ public class QosService {
     }
 
     private String disablePipe(String pipeName){
-        String disableCmd = HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.QOS_ENGINE_FIRST_ENTER+ HillStoneConfigConsts.ROOT_PIPE_SPACE
-                +pipeName + HillStoneConfigConsts.SSH_ENTER +HillStoneConfigConsts.DISABLE +HillStoneConfigConsts.ENTER_END;
+        String disableCmd = HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.QOS_ENGINE_FIRST_ENTER+
+                HillStoneConfigConsts.ROOT_PIPE_SPACE +pipeName + HillStoneConfigConsts.SSH_ENTER +HillStoneConfigConsts.DISABLE
+                +HillStoneConfigConsts.ENTER_END;
         return disableCmd;
     }
     private String noDisablePipe(String pipeName){
-        String noDisableCmd = HillStoneConfigConsts.CONFIGURE_MODEL_ENTER +HillStoneConfigConsts.QOS_ENGINE_FIRST_ENTER+ HillStoneConfigConsts.ROOT_PIPE_SPACE
-                +pipeName + HillStoneConfigConsts.SSH_ENTER +HillStoneConfigConsts.NO_DISABLE +HillStoneConfigConsts.ENTER_END;
+        String noDisableCmd = HillStoneConfigConsts.CONFIGURE_MODEL_ENTER +HillStoneConfigConsts.QOS_ENGINE_FIRST_ENTER+
+                HillStoneConfigConsts.ROOT_PIPE_SPACE +pipeName + HillStoneConfigConsts.SSH_ENTER +HillStoneConfigConsts.NO_DISABLE
+                +HillStoneConfigConsts.ENTER_END;
         return noDisableCmd;
     }
 
