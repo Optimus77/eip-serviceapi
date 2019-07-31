@@ -160,7 +160,6 @@ public class FireWallCommondService {
                 log.error(ErrorStatus.SC_FIREWALL_SERVER_ERROR +"show result:{}",json);
                 throw new EipInternalServerException(ErrorStatus.SC_FIREWALL_SERVER_ERROR.getCode(),ErrorStatus.SC_FIREWALL_SERVER_ERROR.getMessage());
             }
-//            System.out.println(retStr.toString());
             close();
             return json;
         } catch (Exception e) {

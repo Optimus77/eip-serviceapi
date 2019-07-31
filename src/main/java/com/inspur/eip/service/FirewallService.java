@@ -813,7 +813,7 @@ public class FirewallService {
      * @return
      */
     public boolean cmdInsertIpToAddressBook( String param,  String addressType,  String fireWallId) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.ADDRESS_SPACE + param +HillStoneConfigConsts.SSH_ENTER);
         switch (addressType) {
             case HillStoneConfigConsts.IP_ADDRESS_TYPE:
@@ -859,7 +859,7 @@ public class FirewallService {
      * @return
      */
     public boolean cmdDelAddressBookByEntry( String entryName, String fireWallId){
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.NO_SPACE +HillStoneConfigConsts.ADDRESS_SPACE + entryName );
         sb.append(HillStoneConfigConsts.ENTER_END);
 //        configure\rno address 192.168.1.11\rend
@@ -882,7 +882,7 @@ public class FirewallService {
      * @throws EipInternalServerException
      */
     public boolean cmdOperateStatisticsBook(String entryName,String firewallId, boolean flag) throws EipInternalServerException{
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         if(!flag){
             sb.append(HillStoneConfigConsts.NO_SPACE);
         }
@@ -904,7 +904,7 @@ public class FirewallService {
      * @return
      */
     public JSONObject cmdShowStatisticsByAddressBook( String entryName, String period, String fireWallId){
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.SHOW_SPACE + HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName);
         switch (period){
             case "":
