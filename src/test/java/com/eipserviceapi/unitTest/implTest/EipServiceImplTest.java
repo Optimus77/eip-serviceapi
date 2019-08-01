@@ -1,15 +1,20 @@
 package com.eipserviceapi.unitTest.implTest;
 
 import com.eipserviceapi.TestEipServiceApplication;
+import com.eipserviceapi.unitTest.TokenUtil;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.eip.EipPool;
+import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.service.EipDaoService;
+import com.inspur.eip.service.WebControllerService;
 import com.inspur.eip.service.impl.EipServiceImpl;
 //import groovy.util.logging.Slf4j;
 import com.inspur.eip.util.constant.HsConstants;
 import groovy.util.logging.Slf4j;
+import jdk.nashorn.internal.parser.Token;
+import org.apache.http.HttpException;
 import org.apache.kafka.common.protocol.types.Field;
 import org.junit.After;
 import org.junit.Before;
@@ -28,9 +33,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.security.Principal;
 import java.util.*;
 
@@ -42,6 +48,7 @@ import static org.junit.Assert.*;
 @SpringBootTest(classes = TestEipServiceApplication.class)
 @Transactional
 public class EipServiceImplTest {
+
     @Autowired
     EipServiceImpl eipServiceImpl;
 
@@ -51,14 +58,20 @@ public class EipServiceImplTest {
     @Autowired
     private EipPoolRepository eipPoolRepository;
 
+
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest(){
+
 
             @Override
             public String getHeader(String name) {
-                //todo 测试之前摘取token
-                return "bearer " + "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJiZGIzNTQ1MC1mODBiLTQyOTUtODQ5ZC1kM2NmNDBkMmI2M2YiLCJleHAiOjE1NjQxMDg3MjUsIm5iZiI6MCwiaWF0IjoxNTY0MTAzMzI1LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImE5Yzc5ZGMwLTAzODAtNGRhOS1hZTJkLTAwYzFmYTIwMzE4NSIsImF1dGhfdGltZSI6MTU2NDEwMzMxMiwic2Vzc2lvbl9zdGF0ZSI6IjE3YjlkZDgzLTI2MTQtNDAwYS05OWE1LWRlZTUyZDVjNjFkNiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.Wb6cYGBxoQJEd9Mf2PbIKDrzJThLQfhhgwj6y99BBCrXY8nFxq0PEwDTbR3pEAWVihXAJxHxaZk2auI-bMTk69ZTpbDOqo-5ccsM5UufYUiDtgwkbMj2qNCWxFNZ3IViMOOOHR9owVMCiEpyveTTrdKvCshUjCuMlbrYhaKcjRFU5QGihjrZ9UPY6oYIrDKztzMM4sGTqYcHK4CIu28G1cQRTGK6qgXrtnNGOntaZeD22gQqOVsKdSxXOed6hkT7nmjz4NtiZEvNIVuONfM6LkJYFzTHPBbNNXZa20Zu2YZTOU4DqiCOtPzfH52AlcvVUGBmWSSFEmjqVhALzNPYNQ";
+                try {
+                    return "bearer " + TokenUtil.getToken("lishenghao","1qaz2wsx3edc");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
             }
 
             @Override
@@ -475,30 +488,6 @@ public class EipServiceImplTest {
 
         assertEquals(HttpStatus.FAILED_DEPENDENCY,responseEntity.getStatusCode());
     }
-
-
- /*   @Test
-    public void errorAllocateEip() throws KeycloakTokenException {
-        EipAllocateParam eipConfig = new EipAllocateParam();
-        eipConfig.setChargemode(HsConstants.CHARGE_MODE_BANDWIDTH);
-        eipConfig.setBandwidth(100);
-        eipConfig.setBillType(HsConstants.HOURLYSETTLEMENT);
-        eipConfig.setIptype("BGP");
-        eipConfig.setIpv6("no");
-        eipConfig.setRegion("cn-north-3");
-        eipConfig.setSbwId(null);
-        eipConfig.setDuration("1");
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJkODM0OTkwNS1iYzcwLTQxZjQtOWJlMC0wNWQ3Mjk5OTVkODYiLCJleHAiOjE1NjEwMDU0MzMsIm5iZiI6MCwiaWF0IjoxNTYxMDAwMDMzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjA0MzQ0NWJlLWE3ZmEtNDZmNy05OTkwLWNhMWQ5ZmRlYmJjNiIsImF1dGhfdGltZSI6MTU2MDk5ODIzMSwic2Vzc2lvbl9zdGF0ZSI6ImNiMjJjYTQ2LTA2NjctNDVkYi04NzNiLTNjZjhhOGRkMmIzMCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.knnSyiRFfH3J3URnTygvs4e-2rxh8U7HWmagtGZ3FUg-j_w37e50Z8gFOBoaoOMChl3IEoYtBSJXk9nj_AlCYZqZ3QZET2fsuoB0ERwoUXtyK9uZOPR1PaRAfLURRTBbui5MtbUZ8nni3esbz01DeJaWtjo22Dx1VhdAUQwPRulu2td2InkGO-_HvLhgLv173a5mEnQsH2_nSl9m8axFLeM9kz_Tr6Xb9MecTny_y8XWy2hxF4ihnq5AYRhEnTATUvJxAoYc6aJYCs-cxxcKHnqp7n17r3UbVa1E1O6wZ3P5xBWLnBp-GVM8bkekJ_WCcYGFMZ2Ev2gLa6Unb_oXFw";
-        String operater = "unitTest";
-
-        EipPool eip = eipDaoService.getOneEipFromPool();
-        Eip eipMo = eipDaoService.allocateEip(eipConfig, eip,operater, token);
-        if (eipMo != null){
-            assertEquals(HttpStatus.OK,HttpStatus.OK);
-        }else {
-            assertEquals(ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR,ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR);
-        }
-    }*/
 
 
     @Test
