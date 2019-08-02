@@ -95,6 +95,13 @@ public class EipDaoService {
                     eipEntity.getEipAddress(), eipEntity.getId());
             return null;
         }
+        //按需 且 计费模式为流量计费
+        if (HsConstants.HOURLYSETTLEMENT.equalsIgnoreCase(eipConfig.getBillType()) &&
+                HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipConfig.getChargeMode())){
+            //创建地址簿
+             firewallService.cmdCreateOrDeleteAddressBook(eip.getIp(), eip.getFireWallId(), true);
+             firewallService.cmdOperateStatisticsBook(eip.getIp(), eip.getFireWallId(), true);
+        }
 
         Eip eipMo = new Eip();
         eipMo.setEipAddress(eip.getIp());
@@ -164,7 +171,15 @@ public class EipDaoService {
                     return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 }
             }
+            //删除 监控集和地址簿，需要保证顺序执行，否则无法删除地址簿
+            if(HsConstants.HOURLYSETTLEMENT.equalsIgnoreCase(eipEntity.getBillType()) &&
+                    HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
+                boolean statis = firewallService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false);
+                if (statis){
+                    firewallService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(),eipEntity.getFirewallId(),false);
+                }
 
+            }
             eipEntity.setIsDelete(1);
             eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
             eipEntity.setEipV6Id(null);
@@ -226,6 +241,14 @@ public class EipDaoService {
                 }
             }
 
+            if(HsConstants.HOURLYSETTLEMENT.equalsIgnoreCase(eipEntity.getBillType()) &&
+                    HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
+                boolean statis = firewallService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false);
+                if (statis){
+                    firewallService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(),eipEntity.getFirewallId(),false);
+                }
+
+            }
             eipEntity.setIsDelete(1);
             eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
             eipEntity.setEipV6Id(null);

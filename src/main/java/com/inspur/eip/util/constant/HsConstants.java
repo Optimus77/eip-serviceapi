@@ -23,6 +23,7 @@ public class HsConstants {
 	public static final String RESUMESERVER = "resumeServer";
 	public static final String CHARGE_MODE_BANDWIDTH = "Bandwidth";
 	public static final String CHARGE_MODE_SHAREDBANDWIDTH = "SharedBandwidth";
+	public static final String CHARGE_MODE_TRAFFIC = "traffic";
 
 	//	orderType
 	public static final String NEW_ORDERTYPE = "new";

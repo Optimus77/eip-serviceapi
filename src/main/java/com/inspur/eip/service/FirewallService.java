@@ -821,7 +821,7 @@ public class FirewallService {
         sb.append( HillStoneConfigConsts.ADDRESS_SPACE + entryName ).append(HillStoneConfigConsts.ENTER_END);
         //        configure\r[no] address 192.168.1.11\rend
         String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), null);
-        if (StringUtils.isNotBlank(strResult) && (strResult.contains("already added") || strResult.contains("unrecognized keyword"))) {
+        if (StringUtils.isNotBlank(strResult) && (strResult.contains("already added"))) {
             log.warn("This entity is already added");
             return true;
         }else if (StringUtils.isBlank(strResult)) {
@@ -911,7 +911,7 @@ public class FirewallService {
      * @return
      * @throws EipInternalServerException
      */
-    public boolean cmdOperateStatisticsBook(String entryName,String fip, String firewallId, boolean control) throws EipInternalServerException{
+    public boolean cmdOperateStatisticsBook(String entryName, String firewallId, boolean control) throws EipInternalServerException{
         StringBuilder sb = new StringBuilder();
         sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER);
         if(!control){
@@ -921,6 +921,7 @@ public class FirewallService {
 //        configure\r address 192.168.1.11\rend
         String strResult = fireWallCommondService.execCustomCommand(firewallId, sb.toString(), null);
         if (StringUtils.isNotBlank(strResult) && strResult.contains("unrecognized keyword")){
+            log.warn(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage(),"address Book not exist");
             throw new EipInternalServerException(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getCode(), ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage());
         }else {
             return true;
