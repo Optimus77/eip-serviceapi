@@ -806,15 +806,66 @@ public class FirewallService {
     }
 
     /**
-     * 创建一条地址簿，并且将传入的参数插入地址簿中，支持多种地址类型，入参需调用方做非空校验
-     * @param param
-     * @param addressType
+     *
+     * @param entryName     eipAddress
+     * @param fireWallId    防火墙id
+     * @param control      创建或者删除操作  true:创建   flase：删除
+     * @return
+     */
+    public  boolean cmdCreateOrDeleteAddressBook(String entryName, String fireWallId, boolean control){
+        StringBuilder sb = new StringBuilder();
+        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER);
+        if (!control){
+            sb.append(HillStoneConfigConsts.NO_SPACE);
+        }
+        sb.append( HillStoneConfigConsts.ADDRESS_SPACE + entryName ).append(HillStoneConfigConsts.ENTER_END);
+        //        configure\r[no] address 192.168.1.11\rend
+        String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), null);
+        if (StringUtils.isNotBlank(strResult) && (strResult.contains("already added") || strResult.contains("unrecognized keyword"))) {
+            log.warn("This entity is already added");
+            return true;
+        }else if (StringUtils.isBlank(strResult)) {
+            return true;
+        }
+        throw new EipInternalServerException(ErrorStatus.FIREWALL_DEAL_ADDRESS_BOOK_ERROR.getCode(),ErrorStatus.FIREWALL_DEAL_ADDRESS_BOOK_ERROR.getMessage());
+    }
+
+//    /**
+//     * 根据地址簿名称删除地址簿，入参需调用方做非空校验
+//     * @param entryName  eipAddress
+//     * @param fireWallId
+//     * @return
+//     */
+//    public boolean cmdDelAddressBookByEntry( String entryName, String fireWallId ){
+//        StringBuilder sb = new StringBuilder();
+//        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.NO_SPACE +HillStoneConfigConsts.ADDRESS_SPACE + entryName );
+//        sb.append(HillStoneConfigConsts.ENTER_END);
+////        configure\rno address 192.168.1.11\rend
+//        String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), null);
+//        if (StringUtils.isNotBlank(strResult) && strResult.contains("unrecognized keyword")){
+//            log.warn("This entity doesn't exist in address book");
+//            return true;
+//        }else if (StringUtils.isBlank(strResult)){
+//            return true;
+//        }
+//        throw new EipInternalServerException(ErrorStatus.FIREWALL_DEAL_ADDRESS_BOOK_ERROR.getCode(),ErrorStatus.FIREWALL_DEAL_ADDRESS_BOOK_ERROR.getMessage());
+//    }
+
+    /**
+     * 向地址簿中插入要匹配的条件，支持多种地址类型，入参需调用方做非空校验
+     * @param entryName 地址簿名称
+     * @param param  匹配项
+     * @param addressType  参数类型：case中已罗列
      * @param fireWallId
      * @return
      */
-    public boolean cmdInsertIpToAddressBook( String param,  String addressType,  String fireWallId) {
+    public boolean cmdInsertIpToAddressBook( String entryName, String param,  String addressType,  String fireWallId, boolean control) {
         StringBuilder sb = new StringBuilder();
-        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.ADDRESS_SPACE + param +HillStoneConfigConsts.SSH_ENTER);
+        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.ADDRESS_SPACE + entryName +HillStoneConfigConsts.SSH_ENTER);
+        sb.append(HillStoneConfigConsts.ENTER_END);
+        if (!control){
+            sb.append(HillStoneConfigConsts.NO_SPACE);
+        }
         switch (addressType) {
             case HillStoneConfigConsts.IP_ADDRESS_TYPE:
                 //ip 10.110.29.206/32
@@ -853,41 +904,20 @@ public class FirewallService {
     }
 
     /**
-     * 根据地址簿名称删除地址簿，入参需调用方做非空校验
-     * @param entryName
-     * @param fireWallId
-     * @return
-     */
-    public boolean cmdDelAddressBookByEntry( String entryName, String fireWallId){
-        StringBuilder sb = new StringBuilder();
-        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.NO_SPACE +HillStoneConfigConsts.ADDRESS_SPACE + entryName );
-        sb.append(HillStoneConfigConsts.ENTER_END);
-//        configure\rno address 192.168.1.11\rend
-        String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), null);
-        if (StringUtils.isNotBlank(strResult) && strResult.contains("unrecognized keyword")){
-            log.warn("This entity doesn't exist in address book");
-            return true;
-        }else if (StringUtils.isBlank(strResult)){
-            return true;
-        }
-        throw new EipInternalServerException(ErrorStatus.FIREWALL_DEAL_ADDRESS_BOOK_ERROR.getCode(),ErrorStatus.FIREWALL_DEAL_ADDRESS_BOOK_ERROR.getMessage());
-    }
-
-    /**
      * cmd to create statistics book
-     * @param entryName     address book 中已经存在的对象
+     * @param entryName     address book 中已经存在的对象,name为Eip地址
      * @param firewallId
-     * @param flag      true :创建监控地址簿  flase :删除监控地址簿
+     * @param control      true :创建监控地址簿  flase :删除监控地址簿
      * @return
      * @throws EipInternalServerException
      */
-    public boolean cmdOperateStatisticsBook(String entryName,String firewallId, boolean flag) throws EipInternalServerException{
+    public boolean cmdOperateStatisticsBook(String entryName,String fip, String firewallId, boolean control) throws EipInternalServerException{
         StringBuilder sb = new StringBuilder();
-        if(!flag){
+        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER);
+        if(!control){
             sb.append(HillStoneConfigConsts.NO_SPACE);
         }
-        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.ADDRESS_SPACE + entryName);
-        sb.append(HillStoneConfigConsts.ENTER_END);
+        sb.append(HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName+HillStoneConfigConsts.ENTER_END);
 //        configure\r address 192.168.1.11\rend
         String strResult = fireWallCommondService.execCustomCommand(firewallId, sb.toString(), null);
         if (StringUtils.isNotBlank(strResult) && strResult.contains("unrecognized keyword")){

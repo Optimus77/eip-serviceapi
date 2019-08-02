@@ -37,8 +37,8 @@ public class FlowService {
     public Map<String, Long> staticsFlowByPeriod(int lineNum, String entryName, String period, String firewallId) {
 
         ConcurrentHashMap<String, Long> flowMap = new ConcurrentHashMap<>(3);
-        if (StringUtils.isBlank(entryName) || StringUtils.isBlank(period)) {
-            log.warn(ErrorStatus.VALIADATE_NAME_ERROR.getMessage() + "entryName:{}，period:{}", entryName, period);
+        if ( StringUtils.isBlank(entryName) || StringUtils.isBlank(period)) {
+            log.warn(ErrorStatus.VALIADATE_NAME_ERROR.getMessage() + "entryName:{},period:{}", entryName,period);
             throw new EipBadRequestException(ErrorStatus.VALIADATE_NAME_ERROR.getCode(), ErrorStatus.VALIADATE_NAME_ERROR.getMessage());
         }
 // flowStr not null

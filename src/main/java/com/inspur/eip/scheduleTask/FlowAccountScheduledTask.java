@@ -51,12 +51,13 @@ public class FlowAccountScheduledTask {
         try {
             List<Eip> trafficEips = eipDaoService.findFlowAccountEipList("Traffic");
             for (Eip eip : trafficEips) {
-                Map<String, Long> map = flowService.staticsFlowByPeriod(1, eip.getFloatingIp(), "lasthour", eip.getFirewallId());
+                Map<String, Long> map = flowService.staticsFlowByPeriod(1, eip.getEipAddress(),  "lasthour", eip.getFirewallId());
                 if (map.containsKey(HillStoneConfigConsts.UP_TYPE)){
                     Long up = map.get(HillStoneConfigConsts.UP_TYPE);
                     Long down = map.get(HillStoneConfigConsts.DOWN_TYPE);
                     Long sum = map.get(HillStoneConfigConsts.SUM_TYPE);
                     FlowAccount2Bss flowBean = getFlowAccount2BssBean(eip, up, down, sum);
+
                     this.sendOrderMessageToBss(flowBean);
                 }
             }
