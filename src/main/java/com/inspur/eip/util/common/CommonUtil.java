@@ -11,7 +11,6 @@ import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
-import com.inspur.icp.common.entity.OsConfig;
 import com.inspur.icp.common.util.Base64Util;
 import com.inspur.icp.common.util.OSClientUtil;
 import lombok.Setter;
@@ -19,21 +18,16 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.core.transport.Config;
-import org.openstack4j.model.common.Identifier;
-import org.openstack4j.openstack.OSFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.inspur.eip.util.constant.HsConstants.SCHEDULETIME;
 
 @Slf4j
 @Component

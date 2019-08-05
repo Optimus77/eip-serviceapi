@@ -19,7 +19,9 @@ import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
+import com.inspur.iam.adapter.entity.User;
 import com.inspur.iam.adapter.util.ListFilterUtil;
+import com.inspur.iam.adapter.util.SecurityContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.model.common.ActionResponse;
@@ -190,6 +192,7 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity listEips(int currentPage, int limit, String status) {
 
         try {
+            //User loginUser = SecurityContextUtil.getLoginUser();
             String projcectid = CommonUtil.getUserId();
             log.debug("listEips  of user, userId:{}", projcectid);
             if (projcectid == null) {

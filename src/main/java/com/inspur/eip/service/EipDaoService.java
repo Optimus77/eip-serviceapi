@@ -150,11 +150,15 @@ public class EipDaoService {
                 log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
                 return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
             }
-            if (null != eipEntity.getFloatingIpId() && !neutronService.deleteFloatingIp(eipEntity.getRegion(),
-                    eipEntity.getFloatingIpId(),
-                    eipEntity.getInstanceId(), token)) {
-                msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
-                log.error(msg);
+            if (null != eipEntity.getFloatingIpId() ) {
+                if(neutronService.deleteFloatingIp(eipEntity.getRegion(), eipEntity.getFloatingIpId(), eipEntity.getInstanceId(), token)){
+                    eipEntity.setFloatingIp(null);
+                    eipEntity.setFloatingIpId(null);
+                } else {
+                    msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
+                    log.error(msg);
+                }
+
             }
             if(eipEntity.getEipV6Id() != null){
                 ActionResponse delV6Ret = eipV6DaoService.deleteEipV6(eipEntity.getEipV6Id(), token);
@@ -212,9 +216,15 @@ public class EipDaoService {
                 firewallService.delNatAndQos(eipEntity);
                 log.error(msg);
             }
-            if (null != eipEntity.getFloatingIpId() && !neutronService.superDeleteFloatingIp(eipEntity.getFloatingIpId(), eipEntity.getInstanceId())) {
-                msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
-                log.error(msg);
+            if (null != eipEntity.getFloatingIpId() ) {
+                if(neutronService.superDeleteFloatingIp( eipEntity.getFloatingIpId(), eipEntity.getInstanceId())){
+                    eipEntity.setFloatingIp(null);
+                    eipEntity.setFloatingIpId(null);
+                } else {
+                    msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
+                    log.error(msg);
+                }
+
             }
 
             if(eipEntity.getEipV6Id() != null){
