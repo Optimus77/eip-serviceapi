@@ -859,7 +859,7 @@ public class FirewallService {
      * @param fireWallId
      * @return
      */
-    public boolean cmdInsertIpToAddressBook( String entryName, String param,  String addressType,  String fireWallId, boolean control) {
+    public boolean cmdInsertOrRemoveParamInAddressBook(String entryName, String param, String addressType, String fireWallId, boolean control) {
         StringBuilder sb = new StringBuilder();
         sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.ADDRESS_SPACE + entryName +HillStoneConfigConsts.SSH_ENTER);
         sb.append(HillStoneConfigConsts.ENTER_END);
@@ -895,7 +895,7 @@ public class FirewallService {
 //        configure\raddress 192.168.1.10\rip 192.168.1.10/32\rend
         String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), null);
         if (StringUtils.isNotBlank(strResult) && strResult.contains("already added")) {
-            log.warn("This entity is already added");
+            log.warn("This param already added:{}",param);
             return true;
         } else if (StringUtils.isBlank(strResult)) {
             return true;
