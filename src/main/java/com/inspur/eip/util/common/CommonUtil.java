@@ -469,6 +469,29 @@ public class CommonUtil {
 
     }
 
+    /**
+     * 是否是超级管理员权限
+     * @return
+     */
+    public static boolean isSuperAccount(String token) {
+
+        if(null == token){
+            log.error("User has no token.");
+            return false;
+        }
+        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+        String  realmAccess = null;
+        if (jsonObject.has("realm_access")){
+            realmAccess = jsonObject.getJSONObject("realm_access").toString();
+        }
+        if (realmAccess!= null && realmAccess.contains("OPERATE_ADMIN")){
+            log.info("Client token, User has right to operation, realmAccess:{}", realmAccess);
+            return true;
+        }else{
+            log.error("User has no right to operation.{}", jsonObject.toString());
+            return false;
+        }
+    }
 
 
 }
