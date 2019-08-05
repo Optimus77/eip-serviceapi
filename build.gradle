@@ -18,7 +18,7 @@ buildscript {
     // if you need to use test by junit4 delete is code
     gradle.taskGraph.whenReady {
         tasks.each { task ->
-            if (task.name.contains("test"))
+            if (task.name.contains("Test"))
             {
                 task.enabled = false
             }
