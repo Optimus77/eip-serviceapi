@@ -1,11 +1,7 @@
 package com.inspur.eip.service;
 
-
-import com.inspur.eip.entity.EipUpdateParam;
 import org.springframework.http.ResponseEntity;
-
 import java.util.List;
-
 
 public interface IEipService {
 

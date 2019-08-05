@@ -2,6 +2,7 @@ package com.inspur.eip.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.*;
+import com.inspur.eip.entity.bss.*;
 import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.entity.eip.EipReturnBase;
@@ -94,6 +95,13 @@ public class RabbitMqServiceImpl {
             }
             response = eipService.atomCreateEip(eipConfig, eipOrder.getToken(), null);
             if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
+                if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
+                    if(response.getStatusCodeValue() == 420){
+                        webService.returnsIpv6Websocket("false", "createEip", eipOrder.getToken());
+                    }else{
+                        webService.returnsIpv6Websocket("false", "createNatWithEip", eipOrder.getToken());
+                    }
+                }
                 log.warn("create eip failed, return code:{}", response.getStatusCodeValue());
             } else {
                 eipReturn = response.getBody();
@@ -140,8 +148,12 @@ public class RabbitMqServiceImpl {
                 for (OrderProduct orderProduct : orderProducts) {
                     eipId = orderProduct.getInstanceId();
                 }
-                //软删除实例，用户主动发起，必须带token
-                response = eipDaoService.deleteEip(eipId, eipOrder.getToken());
+                if(CommonUtil.isSuperAccount(eipOrder.getToken())){
+                    response = eipDaoService.adminDeleteEip(eipId);
+                }else {
+                    //软删除实例，用户主动发起，必须带token
+                    response = eipDaoService.deleteEip(eipId, eipOrder.getToken());
+                }
                 if (response.isSuccess()) {
                     if (eipOrder.getConsoleCustomization().containsKey("operateType") &&
                             eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")) {

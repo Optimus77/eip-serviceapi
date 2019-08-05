@@ -9,6 +9,7 @@ public class HillStoneConfigConsts {
     public static final String SRC_ADDR_ANY_ENTER = "src-addr any\r";
     public static final String EXIT_ENTER = "exit\r";
     public static final String ENTER_END = "\rend";
+    public static final String END = "end";
     public static final String D_TYPE_ADDRESS_ENTER = "/32\r";
     public static final String C_TYPE_ADDRESS_ENTER = "/24\r";
     public static final String B_TYPE_ADDRESS_ENTER = "/16\r";
@@ -29,7 +30,23 @@ public class HillStoneConfigConsts {
     public static final String SPACE_TOP = " top";
     public static final String SPACE_BOTTOM = " bottom";
     public static final String ROOT_PIPE_SPACE = "root-pipe ";
+    public static final String ADDRESS_SPACE = "address ";
+    public static final String NO_SPACE = "no ";
+    public static final String SHOW_SPACE = "show ";
+    public static final String STATISTICS_SPACE = "statistics ";
 
+
+    //address type
+    public static final String IP_ADDRESS_TYPE = "ip";
+    public static final String HOST_ADDRESS_TYPE = "host";
+    public static final String RANGE_ADDRESS_TYPE = "range";
+    public static final String COUNTRY_ADDRESS_TYPE = "country";
+    public static final String MEMBER_ADDRESS_TYPE = "member";
+    //period
+    public static final String CURRENT_PERIOD_TYPE = "current";
+    public static final String LASTHOUR_PERIOD_TYPE = "lasthour";
+    public static final String LASTDAY_PERIOD_TYPE = "lastday";
+    public static final String LASTMONTH_PERIOD_TYPE = "lastmonth";
 
     //commond
     public static final String ACTION_DENY = "deny";
@@ -42,6 +59,11 @@ public class HillStoneConfigConsts {
     public static final String DISABLE = "disable";
     //    启用
     public static final String NO_DISABLE = "no disable";
+    public static final String D_TYPE_ADDRESS= "/32";
+
+    public static final String UP_TYPE= "UP";
+    public static final String DOWN_TYPE= "DOWN";
+    public static final String SUM_TYPE= "SUM";
 
 
 }

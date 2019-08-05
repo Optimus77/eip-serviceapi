@@ -4,9 +4,13 @@ import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.ConnectionMonitor;
 import ch.ethz.ssh2.Session;
 import ch.ethz.ssh2.StreamGobbler;
+import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.fw.Firewall;
+import com.inspur.eip.exception.EipInternalServerException;
+import com.inspur.eip.util.constant.ErrorStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -72,7 +76,7 @@ public class FireWallCommondService {
     synchronized String execCustomCommand(String fireWallId, String cmd, String expectStr) {
 
         try {
-            if(!bConnect){
+            if (!bConnect) {
                 Firewall firewall = firewallService.getFireWallById(fireWallId);
 //                initConnection("10.110.29.206", "test", "test");
                 initConnection(firewall.getIp(), firewall.getUser(), firewall.getPasswd());
@@ -83,26 +87,26 @@ public class FireWallCommondService {
 
             String line;
             String retStr = null;
-            while (null != (line = stdout.readLine())){
-                log.debug(line);
+            while (null != (line = stdout.readLine())) {
+                log.info(line);
                 if ((null != expectStr && line.contains(expectStr)) || (line.contains("Error"))) {
                     retStr = line;
-                    if(line.contains("Error")){
+                    if (line.contains("Error")) {
                         log.info(line);
                     }
                 }
 
                 if (line.contains("end")) {
-                    if(line.contains("#")){
+                    if (line.contains("#")) {
                         String endStr = stdout.readLine();
-                        if(null == retStr && null != expectStr){
-                            if (null != endStr && endStr.contains(expectStr)){
+                        if (null == retStr && null != expectStr) {
+                            if (null != endStr && endStr.contains(expectStr)) {
                                 retStr = endStr;
                             }
                         }
                         log.info("Command return:{}, end string:{}", retStr, endStr);
                         return retStr;
-                    }else {
+                    } else {
                         log.error("Firewall not connect, end string:{}.");
                         //close();
                         return "ERROR";
@@ -116,6 +120,54 @@ public class FireWallCommondService {
         return null;
     }
 
+    /**
+     * show statistics address entryName
+     * @param fireWallId
+     * @param cmd
+     * @return
+     */
+    public synchronized JSONObject cmdShowStasiticsAddress(String fireWallId, String cmd) {
+        try {
+            JSONObject json = new JSONObject();
+            if (!bConnect) {
+                Firewall firewall = firewallService.getFireWallById(fireWallId);
+//                initConnection("10.110.29.206", "test", "test");
+                initConnection(firewall.getIp(), firewall.getUser(), firewall.getPasswd());
+                log.info("firewall connection reinit.");
+            }
+            printWriter.write(cmd + "\r\n");
+            printWriter.flush();
+
+            String line;
+            StringBuffer upLine= new StringBuffer();
+            StringBuffer downLine = new StringBuffer();
+            while (null != (line = stdout.readLine()) && !line.contains("end")) {
+                log.debug(line);
+                if (StringUtils.isNotBlank(line)){
+                    if (line.startsWith("UP")) {
+                        json.put("UP",upLine.append(line));
+                    }else if (line.startsWith("DOWN")){
+                        json.put("DOWN",downLine.append(line));
+                    } else if (line.startsWith(" --More--") &&line.contains("\b") && line.contains("DOWN")){
+                        json.put("DOWN",downLine.append(line.substring(line.lastIndexOf("\b")+1)));
+                    } else if (line.contains("^-----")){
+                        log.error(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND+":{}",line);
+                        throw new EipInternalServerException(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getCode(),ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage());
+                    }
+                }
+            }
+            if (json.size()<2 ){
+                log.error(ErrorStatus.SC_FIREWALL_SERVER_ERROR +"show result:{}",json);
+                throw new EipInternalServerException(ErrorStatus.SC_FIREWALL_SERVER_ERROR.getCode(),ErrorStatus.SC_FIREWALL_SERVER_ERROR.getMessage());
+            }
+            close();
+            return json;
+        } catch (Exception e) {
+            log.error("Error when init :", e);
+        }
+        log.error("Commond get no return.");
+        return null;
+    }
 
 
     private void close() {
@@ -157,11 +209,11 @@ public class FireWallCommondService {
 //                +"service my-service1\r"
 //                +"action permit\r"
 //                +"end");
-        if(null != ret){
+        if (null != ret) {
             System.out.print(ret);
         }
         long currentTimeMillis1 = System.currentTimeMillis();
-        System.out.println("\r\nganymed-ssh2 time:"+(currentTimeMillis1-currentTimeMillis));
+        System.out.println("\r\nganymed-ssh2 time:" + (currentTimeMillis1 - currentTimeMillis));
         //sshAgent.close();
     }
 }

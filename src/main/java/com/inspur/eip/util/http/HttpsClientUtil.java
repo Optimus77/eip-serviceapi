@@ -173,7 +173,7 @@ public class HttpsClientUtil {
 			response = httpClient.execute(httpPost);
 
             String resultString = EntityUtils.toString(response.getEntity(), "utf-8");
-            log.info("return status code:{} body:{}", response.getStatusLine().getStatusCode(), resultString);
+//            log.info("return status code:{} body:{}", response.getStatusLine().getStatusCode(), resultString);
             return ReturnResult.actionResult(resultString, response.getStatusLine().getStatusCode());
 		} catch (Exception e) {
 			e.printStackTrace();

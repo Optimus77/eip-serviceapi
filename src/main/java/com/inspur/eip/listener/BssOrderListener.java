@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.inspur.eip.entity.ReciveOrder;
+import com.inspur.eip.entity.bss.ReciveOrder;
 import com.inspur.eip.exception.EipBadRequestException;
 import com.inspur.eip.exception.EipInternalServerException;
 import com.inspur.eip.service.impl.RabbitMqServiceImpl;

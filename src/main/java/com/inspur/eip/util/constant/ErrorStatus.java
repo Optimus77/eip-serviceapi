@@ -113,7 +113,7 @@ public enum ErrorStatus {
     /**
      * ENTITY_BADREQUEST_ERROR
      */
-    ENTITY_BADREQUEST_ERROR("106.000400","Bad request error,can't find data info!"),
+    ENTITY_BADREQUEST_ERROR("106.000400","Bad request error,param not correct!"),
 
     /**
      * ENTITY_ILLEGAL_ARGUMENT_ERROR
@@ -148,8 +148,15 @@ public enum ErrorStatus {
     /**
      * add qos in firewall
      */
-    FIREWALL_ADD_QOS_ERROR("106.994500", "Failed to add qos config  in firewall! -")
-    ;
+    FIREWALL_ADD_QOS_ERROR("106.994500", "Failed to add qos config  in firewall! -"),
+    /**
+     * add IP in firewall addressbook
+     */
+    FIREWALL_DEAL_ADDRESS_BOOK_ERROR("106.994500", "Failed to manage ip config to AddressBook! -"),
+    /**
+     * 未被承认的 输入
+     */
+    FIREWALL_UNRECOGNIZED_COMMAND("106.994500", "unrecognized command ,please check the param-");
 
     private final String code;
 

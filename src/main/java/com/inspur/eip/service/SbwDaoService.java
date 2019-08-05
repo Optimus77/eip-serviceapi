@@ -56,6 +56,7 @@ public class SbwDaoService {
             //sbw instance id
             String sbwId = CommonUtil.getUUID();
             if (!ValidatorUtil.isDOT_STANDARD_STR(sbwConfig.getSbwName())) {
+                log.warn(ErrorStatus.VALIADATE_NAME_ERROR.getMessage() + ":{}", sbwConfig.getSbwName());
                 throw new EipBadRequestException(ErrorStatus.VALIADATE_NAME_ERROR.getCode(), ErrorStatus.VALIADATE_NAME_ERROR.getMessage());
             }
 //            Firewall firewall = firewallRepository.findFirewallByRegion(sbwConfig.getRegion());
@@ -92,12 +93,13 @@ public class SbwDaoService {
         }
         return null;
     }
+
     @Transactional
     public Sbw getSbwById(String sbwId) {
         Optional<Sbw> sbw = sbwRepository.findById(sbwId);
         if (sbw.isPresent()) {
             return sbw.get();
-        }else {
+        } else {
             log.error("Faild to find sbw by id:" + sbwId);
             return null;
         }
@@ -144,7 +146,7 @@ public class SbwDaoService {
                     sbwBean.setStatus(HsConstants.DELETE);
                     sbwBean.setUpdatedTime(CommonUtil.getGmtDate());
                     sbwRepository.saveAndFlush(sbwBean);
-                    log.info("Atom user delete sbw And delete sbw qos successfully, id:{}", sbwId);
+                    log.info("user delete sbw qos success, qosName:{}", sbwId);
                     return ActionResponse.actionSuccess();
                 } else {
                     //防火墙qos删除失败，
@@ -161,8 +163,7 @@ public class SbwDaoService {
                 return ActionResponse.actionSuccess();
             }
         }
-        msg = "Faild to find sbw by id:" + sbwId;
-        log.error(msg);
+        log.error("Faild to find sbw by id:" + sbwId);
         return ActionResponse.actionFailed(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage(), HttpStatus.SC_NOT_FOUND);
 
     }
@@ -182,6 +183,7 @@ public class SbwDaoService {
                 log.warn(ErrorStatus.ENTITY_NOT_FOND_IN_DB + sbwId);
                 return ActionResponse.actionFailed(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage(), HttpStatus.SC_NOT_FOUND);
             }
+            //此处如果该共享带宽中有其他EIP  则删除失败，需要用户先手动去移出共享带宽中eip
             ipCount = eipRepository.countBySbwIdAndIsDelete(sbwBean.getId(), 0);
             if (ipCount > 0) {
                 log.error(ErrorStatus.EIP_IN_SBW_SO_THAT_CAN_NOT_DELETE.getMessage(), HttpStatus.SC_BAD_REQUEST);
@@ -199,7 +201,7 @@ public class SbwDaoService {
                     sbwBean.setStatus(HsConstants.DELETE);
                     sbwBean.setUpdatedTime(CommonUtil.getGmtDate());
                     sbwRepository.saveAndFlush(sbwBean);
-                    log.info("Atom soft admin delete sbw successfully, id:{}", sbwId);
+                    log.info("admin delete sbw success, qosName:{}", sbwId);
                     return ActionResponse.actionSuccess();
                 } else {
                     //qos
@@ -238,16 +240,14 @@ public class SbwDaoService {
 //            return ActionResponse.actionFailed(ErrorStatus.FIREWALL_NOT_FOND_IN_DB.getMessage() + sbw.getRegion(), HttpStatus.SC_BAD_REQUEST);
 //        }
         if (StringUtils.isNotEmpty(sbw.getStatus()) && HsConstants.ACTIVE.equalsIgnoreCase(sbw.getStatus())) {
-            if (StringUtils.isNotEmpty(sbw.getPipeId())) {
-                boolean stop = qosService.controlPipe(firewallId, sbwId, true);
-                if (stop) {
-                    sbw.setUpdatedTime(CommonUtil.getGmtDate());
-                    sbw.setStatus(HsConstants.STOP);
-                    sbwRepository.saveAndFlush(sbw);
-                    return ActionResponse.actionSuccess();
-                } else {
-                    return ActionResponse.actionFailed(ErrorStatus.SC_FIREWALL_QOS_UNAVAILABLE.getMessage(), Integer.parseInt(ErrorStatus.SC_FIREWALL_QOS_UNAVAILABLE.getCode()));
-                }
+            boolean stop = qosService.controlPipe(firewallId, sbwId, true);
+            if (stop) {
+                sbw.setUpdatedTime(CommonUtil.getGmtDate());
+                sbw.setStatus(HsConstants.STOP);
+                sbwRepository.saveAndFlush(sbw);
+                return ActionResponse.actionSuccess();
+            } else {
+                return ActionResponse.actionFailed(ErrorStatus.SC_FIREWALL_QOS_UNAVAILABLE.getMessage(), Integer.parseInt(ErrorStatus.SC_FIREWALL_QOS_UNAVAILABLE.getCode()));
             }
             //已经是禁用状态|异常数据没有状态值
         } else {
@@ -256,7 +256,6 @@ public class SbwDaoService {
             sbwRepository.saveAndFlush(sbw);
             return ActionResponse.actionSuccess();
         }
-        return ActionResponse.actionFailed(ErrorStatus.SC_INTERNAL_SERVER_ERROR.getMessage(), Integer.parseInt(ErrorStatus.SC_INTERNAL_SERVER_ERROR.getCode()));
     }
 
     /**
@@ -339,16 +338,14 @@ public class SbwDaoService {
 //            return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
 //        }
         if (StringUtils.isNotEmpty(sbw.getStatus()) && HsConstants.STOP.equalsIgnoreCase(sbw.getStatus())) {
-            if (StringUtils.isNotEmpty(sbw.getPipeId())) {
-                boolean resume = qosService.controlPipe(firewallId, sbwId, false);
-                if (resume) {
-                    sbw.setUpdatedTime(CommonUtil.getGmtDate());
-                    sbw.setStatus(HsConstants.ACTIVE);
-                    sbwRepository.saveAndFlush(sbw);
-                    return ActionResponse.actionSuccess();
-                } else {
-                    return ActionResponse.actionFailed(ErrorStatus.SC_FIREWALL_QOS_UNAVAILABLE.getMessage(), Integer.parseInt(ErrorStatus.SC_FIREWALL_QOS_UNAVAILABLE.getCode()));
-                }
+            boolean resume = qosService.controlPipe(firewallId, sbwId, false);
+            if (resume) {
+                sbw.setUpdatedTime(CommonUtil.getGmtDate());
+                sbw.setStatus(HsConstants.ACTIVE);
+                sbwRepository.saveAndFlush(sbw);
+                return ActionResponse.actionSuccess();
+            } else {
+                return ActionResponse.actionFailed(ErrorStatus.SC_FIREWALL_QOS_UNAVAILABLE.getMessage(), Integer.parseInt(ErrorStatus.SC_FIREWALL_QOS_UNAVAILABLE.getCode()));
             }
         } else {
             sbw.setUpdatedTime(CommonUtil.getGmtDate());
@@ -356,7 +353,6 @@ public class SbwDaoService {
             sbwRepository.saveAndFlush(sbw);
             return ActionResponse.actionSuccess();
         }
-        return ActionResponse.actionFailed(ErrorStatus.SC_INTERNAL_SERVER_ERROR.getMessage(), Integer.parseInt(ErrorStatus.SC_INTERNAL_SERVER_ERROR.getCode()));
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -381,8 +377,8 @@ public class SbwDaoService {
                 sbw.setSbwName(newSbwName);
                 sbw.setUpdatedTime(CommonUtil.getGmtDate());
                 sbwRepository.saveAndFlush(sbw);
-                log.info(ConstantClassField.UPDATE_SBW_CONFIG_SUCCESS+":{}",sbw.toString());
-            }else {
+                log.info(ConstantClassField.UPDATE_SBW_CONFIG_SUCCESS + ":{}", sbw.toString());
+            } else {
                 log.warn("In rename sbw process,failed to find the sbw by id:{} ", sbwId);
                 throw new EipNotFoundException(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getCode(), ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage());
             }
@@ -462,7 +458,7 @@ public class SbwDaoService {
         String pipeId;
         String sbwId = eipUpdateParam.getSbwId();
         /*check sbwId request param*/
-        if (StringUtils.isBlank(sbwId)){
+        if (StringUtils.isBlank(sbwId)) {
             log.error("param have no sbwId,Eip add to sbw must transmit:{} ", sbwId);
             return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.SBW_NOT_FOND_BY_ID), HttpStatus.SC_BAD_REQUEST);
         }
@@ -524,10 +520,10 @@ public class SbwDaoService {
             eipEntity.setBandWidth(eipUpdateParam.getBandwidth());
             eipRepository.saveAndFlush(eipEntity);
 
-            log.info("Eip add to sbw success.:{}",eipEntity);
+            log.info("Eip add to sbw success.:{}", eipEntity);
             return ActionResponse.actionSuccess();
         }
-        log.error("Failed to remove ip in sbw,eip:{},sbwId:{}" + eipEntity +  sbwId);
+        log.error("Failed to add ip in sbw,eip:{},sbwId:{}" + eipEntity + sbwId);
         return ActionResponse.actionFailed(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage(), HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
     }
@@ -546,7 +542,7 @@ public class SbwDaoService {
         String msg;
         String sbwId = eipUpdateParam.getSbwId();
         /*check sbwId request param*/
-        if (StringUtils.isBlank(sbwId)){
+        if (StringUtils.isBlank(sbwId)) {
             log.error("param have no sbwId,Eip add to sbw must transmit:{} ", sbwId);
             return ActionResponse.actionFailed(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage(), HttpStatus.SC_BAD_REQUEST);
         }
@@ -565,6 +561,7 @@ public class SbwDaoService {
             return ActionResponse.actionFailed(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage(), HttpStatus.SC_NOT_FOUND);
         }
         Sbw sbw = optionalSbw.get();
+
         boolean removeStatus = true;
         String newPipId = null;
         if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)) {
@@ -575,16 +572,15 @@ public class SbwDaoService {
             newPipId = firewallService.addQos(eipEntity.getFloatingIp(), eipEntity.getEipAddress(), String.valueOf(eipUpdateParam.getBandwidth()),
                     eipEntity.getFirewallId());
             if (null != newPipId) {
-                removeStatus = firewallService.removeFipFromSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbw.getPipeId(),sbw.getId());
-                log.info("remove fip result:{}",removeStatus);
+                removeStatus = firewallService.removeFipFromSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbw.getId());
             } else {
                 removeStatus = false;
             }
         }
-
+        //如果EIP未绑定虚机，只更新数据库，待绑定时候有fip再加入共享带宽
         if (removeStatus || CommonUtil.qosDebug) {
-            eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
             //update the eip table
+            eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
             eipEntity.setPipId(newPipId);
             eipEntity.setSbwId(null);
             eipEntity.setBandWidth(eipUpdateParam.getBandwidth());
@@ -593,10 +589,10 @@ public class SbwDaoService {
 
             sbw.setUpdatedTime(CommonUtil.getGmtDate());
             sbwRepository.saveAndFlush(sbw);
-            log.info("Eip add to sbw success.:{}",eipEntity);
+            log.info("Eip remove to sbw success.:{}", eipEntity);
             return ActionResponse.actionSuccess();
         }
-        msg = "Failed to remove ip in sbw,eip:{},sbwId:{}" + eipEntity +  sbwId;
+        msg = "Failed to remove ip in sbw,eip:{},sbwId:{}" + eipEntity + sbwId;
         log.error(msg);
         return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }

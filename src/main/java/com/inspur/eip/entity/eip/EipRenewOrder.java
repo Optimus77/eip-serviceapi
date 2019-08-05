@@ -1,7 +1,7 @@
 package com.inspur.eip.entity.eip;
 
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eip.entity.OrderProduct;
+import com.inspur.eip.entity.bss.OrderProduct;
 import lombok.Data;
 
 import java.util.List;

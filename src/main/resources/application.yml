@@ -106,13 +106,16 @@ spring:
 
 # IAM
 iam:
-#  url: http://service.inspurtest.com/auth
+  #url: http://service.inspurtest.com/auth
 #  测试/staging/生产 配置
   url: http://iam-apiserver.iam.svc.cluster.local:9101/auth
+#  url: http://service.inspurtest.com/auth
   ladon:
-#    url: http://10.110.25.71:48156/auth
+    #url: http://10.110.25.71:48156/auth
 #  测试/staging/生产 配置
     url: http://iam-auth-ladon.iam.svc.cluster.local:8090/auth
+#    url: http://10.110.25.71:48156/auth
+
 common:
   region: cn-north-3
 resttemplate:
@@ -157,14 +160,23 @@ bss:
 
 slbUrl: http://cn-north-3.10.110.25.123.xip.io/slb/v1/servers
 
-#administrator rights
-openstackIp: 10.110.28.35
-openstackUrl: https://10.110.28.35:5000/v3
-userNameS: admineip
-passwordS: eip1qaz2wsx
-projectIdS: f9ba41b61a6146c1a392815ea088c437
-userDomainIdS: default
-debugRegionS: inspurtest
+##administrator rights
+#openstackIp: 10.110.28.35
+#openstackUrl: https://10.110.28.35:5000/v3
+#userNameS: admineip
+#passwordS: eip1qaz2wsx
+#projectIdS: f9ba41b61a6146c1a392815ea088c437
+#userDomainIdS: default
+#debugRegionS: inspurtest
+
+openstack:
+  authUrl: https://10.110.28.35:5000/v3
+  authRegion: inspurtest
+  domain: Default
+  interfaceType: admin
+  username: admineip
+  password: eip1qaz2wsx
+  projectName: admineip
 
 #Firewall configuration
 firewall:

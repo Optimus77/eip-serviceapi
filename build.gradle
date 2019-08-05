@@ -15,6 +15,15 @@ buildscript {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath group: 'com.inspur.cloud', name: 'cloud-gradle-plugin', version: '3.0.0-SNAPSHOT'
     }
+    // if you need to use test by junit4 delete is code
+    gradle.taskGraph.whenReady {
+        tasks.each { task ->
+            if (task.name.contains("Test"))
+            {
+                task.enabled = false
+            }
+        }
+    }
 }
 
 apply plugin: 'java'
@@ -51,7 +60,7 @@ dependencies {
     compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
     compile group: 'com.alibaba', name: 'druid-spring-boot-starter', version: '1.1.10'
     compile group: 'ch.ethz.ganymed', name: 'ganymed-ssh2', version: '262'
-    compile('com.inspur.icp:common-util:0.0.2-SNAPSHOT'){
+    compile('com.inspur.icp:common-util:0.0.3-SNAPSHOT'){
         exclude(module: 'servlet-api')
         exclude(module: 'logback-classic')
     }
@@ -105,4 +114,5 @@ test {
         destinationFile = file("$buildDir/jacoco/test.exec")
     }
 }
+
 

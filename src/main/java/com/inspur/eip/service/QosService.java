@@ -1,14 +1,12 @@
 package com.inspur.eip.service;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
-import java.util.*;
 
 import com.inspur.eip.entity.Qos.*;
 import com.inspur.eip.exception.EipInternalServerException;
@@ -20,7 +18,6 @@ import com.inspur.eip.util.http.HsHttpClient;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.extern.slf4j.Slf4j;
@@ -174,29 +171,23 @@ public class QosService {
     /**
      * remove
      *
-     * @param floatIp fip
+     * @param floatIp 入参不能为空
      * @param sbwId 管道名称
      * @return ret
      */
-    HashMap<String, String> removeIpFromPipe(String floatIp, String sbwId) {
-        HashMap<String, String> res = new HashMap();
-        if (StringUtils.isBlank(floatIp)) {
-            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-            return res;
-        }
+    Boolean removeIpFromPipe(String floatIp, String sbwId) {
         String IP32 = IpUtil.ipToLong(floatIp);
         if (StringUtils.isBlank(IP32)) {
-            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-            return res;
+            return false;
         }
         Gson gson = new Gson();
         try {
             String pipeId = getQosPipeId(sbwId);
             if (StringUtils.isBlank(pipeId)){
-                res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-                return res;
+                log.error("can not find pipeId by qosName, sbwId:{}",sbwId);
+                return false;
             }
-            //query qos pipe details by pipeId
+            //query qos pipeId(eg:1563535650434929525) by pipeId
             JSONArray ipContent = getQosRuleByPipeId(pipeId);
             if (ipContent != null && ipContent.length() > 0) {
                 ConcurrentHashMap<String, IpRange> map = new ConcurrentHashMap(2);
@@ -204,7 +195,8 @@ public class QosService {
                     String json = ipContent.get(i).toString();
                     IpContent content = gson.fromJson(json, IpContent.class);
                     if (content != null) {
-                        if ((content.getIpRange().getMin() != null && IP32.equals(content.getIpRange().getMin())) || (content.getIpRange().getMax() != null && IP32.equals(content.getIpRange().getMax()))) {
+                        if ((content.getIpRange().getMin() != null && IP32.equals(content.getIpRange().getMin()))
+                                || (content.getIpRange().getMax() != null && IP32.equals(content.getIpRange().getMax()))) {
                             map.put(content.getId(), content.getIpRange());
                         }
                     }
@@ -213,19 +205,17 @@ public class QosService {
                     Boolean result = deleteIpFromPipe(pipeId, id);
                     if (result){
                         log.info("Rest remove floating ip success :{}", result);
-                        res.put(HsConstants.SUCCESS, HsConstants.TRUE);
+                        return true;
                     }else {
-                        res.put(HsConstants.SUCCESS, HsConstants.FALSE);
                         log.warn("Rest remove floating ip success :{}", result);
+                        return false;
                     }
                 }
-            }else {
-                res.put(HsConstants.SUCCESS, HsConstants.FALSE);
             }
         } catch (Exception e) {
             log.error("Exception in remove fip from SbwQos:{}" + e.getMessage());
         }
-        return res;
+        return false;
     }
     /**
      * @param pipeId   管道id
@@ -289,13 +279,15 @@ public class QosService {
     }
 
     private String disablePipe(String pipeName){
-        String disableCmd = HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.QOS_ENGINE_FIRST_ENTER+ HillStoneConfigConsts.ROOT_PIPE_SPACE
-                +pipeName + HillStoneConfigConsts.SSH_ENTER +HillStoneConfigConsts.DISABLE +HillStoneConfigConsts.ENTER_END;
+        String disableCmd = HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.QOS_ENGINE_FIRST_ENTER+
+                HillStoneConfigConsts.ROOT_PIPE_SPACE +pipeName + HillStoneConfigConsts.SSH_ENTER +HillStoneConfigConsts.DISABLE
+                +HillStoneConfigConsts.ENTER_END;
         return disableCmd;
     }
     private String noDisablePipe(String pipeName){
-        String noDisableCmd = HillStoneConfigConsts.CONFIGURE_MODEL_ENTER +HillStoneConfigConsts.QOS_ENGINE_FIRST_ENTER+ HillStoneConfigConsts.ROOT_PIPE_SPACE
-                +pipeName + HillStoneConfigConsts.SSH_ENTER +HillStoneConfigConsts.NO_DISABLE +HillStoneConfigConsts.ENTER_END;
+        String noDisableCmd = HillStoneConfigConsts.CONFIGURE_MODEL_ENTER +HillStoneConfigConsts.QOS_ENGINE_FIRST_ENTER+
+                HillStoneConfigConsts.ROOT_PIPE_SPACE +pipeName + HillStoneConfigConsts.SSH_ENTER +HillStoneConfigConsts.NO_DISABLE
+                +HillStoneConfigConsts.ENTER_END;
         return noDisableCmd;
     }
 

@@ -18,21 +18,16 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.core.transport.Config;
-import org.openstack4j.model.common.Identifier;
-import org.openstack4j.openstack.OSFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.inspur.eip.util.constant.HsConstants.SCHEDULETIME;
 
 @Slf4j
 @Component
@@ -43,38 +38,38 @@ public class CommonUtil {
 
     @Setter
     private static org.json.JSONObject KeyClockInfo;
-    @Value("${openstackIp}")
-    private String openstackIp;
-    @Value("${openstackUrl}")
-    private String openstackUrl;
-    @Value("${userNameS}")
-    private String userNameS;
-    @Value("${passwordS}")
-    private String passwordS;
-    @Value("${projectIdS}")
-    private String projectIdS;
-    @Value("${userDomainIdS}")
-    private String userDomainIdS;
-    @Value("${debugRegionS}")
-    private String debugRegionS;
-
-    @Value("${scheduleTime}")
-    private String scheduleTime;
+//    @Value("${openstackIp}")
+//    private String openstackIp;
+//    @Value("${openstackUrl}")
+//    private String openstackUrl;
+//    @Value("${userNameS}")
+//    private String userNameS;
+//    @Value("${passwordS}")
+//    private String passwordS;
+//    @Value("${projectIdS}")
+//    private String projectIdS;
+//    @Value("${userDomainIdS}")
+//    private String userDomainIdS;
+//    @Value("${debugRegionS}")
+//    private String debugRegionS;
+//
+//    @Value("${scheduleTime}")
+//    private String scheduleTime;
 
     private static Config config = Config.newConfig().withSSLVerificationDisabled();
     private static Map<String,String> userConfig = new HashMap<>(16);
 
-    @PostConstruct
-    public void init(){
-        userConfig.put("openstackIp",openstackIp);
-        userConfig.put("userNameS",userNameS);
-        userConfig.put("passwordS",passwordS);
-        userConfig.put("projectIdS",projectIdS);
-        userConfig.put("userDomainIdS",userDomainIdS);
-        userConfig.put("debugRegionS",debugRegionS);
-        userConfig.put("openstackUrl",openstackUrl);
-        userConfig.put(SCHEDULETIME, scheduleTime);
-    }
+//    @PostConstruct
+//    public void init(){
+//        userConfig.put("openstackIp",openstackIp);
+//        userConfig.put("userNameS",userNameS);
+//        userConfig.put("passwordS",passwordS);
+//        userConfig.put("projectIdS",projectIdS);
+//        userConfig.put("userDomainIdS",userDomainIdS);
+//        userConfig.put("debugRegionS",debugRegionS);
+//        userConfig.put("openstackUrl",openstackUrl);
+//        userConfig.put(SCHEDULETIME, scheduleTime);
+//    }
 
 
     //    Greenwich mean time
@@ -289,17 +284,24 @@ public class CommonUtil {
         return userConfig;
     }
 
-    //administrator rights
+    //administrator rights2.0
     public static OSClient.OSClientV3 getOsClientV3(){
-        //String token = getKeycloackToken();
-        return OSFactory.builderV3()
-                .endpoint(userConfig.get("openstackUrl"))
-                .credentials(userConfig.get("userNameS"), userConfig.get("passwordS"),
-                        Identifier.byId(userConfig.get("userDomainIdS")))
-                .withConfig(config)
-                .scopeToProject(Identifier.byId(userConfig.get("projectIdS")))
-                .authenticate().useRegion(userConfig.get("debugRegionS"));
+//          调公共包的AdminClient（administrator rights）
+        return OSClientUtil.getClient();
     }
+
+//    //administrator rights1.0
+//    public static OSClient.OSClientV3 getOsClientV3(){
+//        //String token = getKeycloackToken();
+////        return OSFactory.builderV3()
+////                .endpoint(userConfig.get("openstackUrl"))
+////                .credentials(userConfig.get("userNameS"), userConfig.get("passwordS"),
+////                        Identifier.byId(userConfig.get("userDomainIdS")))
+////                .withConfig(config)
+////                .scopeToProject(Identifier.byId(userConfig.get("projectIdS")))
+////                .authenticate().useRegion(userConfig.get("debugRegionS"));
+//    }
+
 
 
     public static OSClient.OSClientV3 getOsClientV3Util(String userRegion) throws KeycloakTokenException {
@@ -332,7 +334,7 @@ public class CommonUtil {
         if(jsonObject.has("project")){
             String project = (String) jsonObject.get("project");
             log.debug("Get openstack ip:{}, region:{}, project:{}.",userConfig.get("openstackIp"), userRegion, project);
-            return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
+            return OSClientUtil.getClient(token);
         }else {
             String clientId = jsonObject.getString("clientId");
             if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
@@ -396,7 +398,16 @@ public class CommonUtil {
         return projectName;
     }
 
-    public static String getU(String token)throws KeycloakTokenException {
+    public static String getProjectId()throws KeycloakTokenException {
+
+        String token = getKeycloackToken();
+        if(null == token){
+            throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
+        }else {
+            return getProjectId(token);
+        }
+    }
+    public static String getProjectId(String token)throws KeycloakTokenException {
 
         if(null == token){
             throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NULL));
@@ -405,6 +416,8 @@ public class CommonUtil {
         String projectId = null;
         if (jsonObject.has("project_id")) {
             projectId = (String) jsonObject.get("project_id");
+        }else {
+            projectId = (String) jsonObject.get("sub");
         }
         if (projectId != null) {
             log.info("project_id:{}", projectId);
@@ -456,6 +469,29 @@ public class CommonUtil {
 
     }
 
+    /**
+     * 是否是超级管理员权限
+     * @return
+     */
+    public static boolean isSuperAccount(String token) {
+
+        if(null == token){
+            log.error("User has no token.");
+            return false;
+        }
+        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+        String  realmAccess = null;
+        if (jsonObject.has("realm_access")){
+            realmAccess = jsonObject.getJSONObject("realm_access").toString();
+        }
+        if (realmAccess!= null && realmAccess.contains("OPERATE_ADMIN")){
+            log.info("Client token, User has right to operation, realmAccess:{}", realmAccess);
+            return true;
+        }else{
+            log.error("User has no right to operation.{}", jsonObject.toString());
+            return false;
+        }
+    }
 
 
 }

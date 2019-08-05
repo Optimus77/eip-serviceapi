@@ -2,6 +2,8 @@ package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.*;
+import com.inspur.eip.entity.bss.ReciveOrder;
+import com.inspur.eip.entity.eip.EipReturnBase;
 import com.inspur.eip.util.*;
 import com.inspur.eip.util.common.ClientTokenUtil;
 import com.inspur.eip.util.common.CommonUtil;
@@ -11,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.protocol.HTTP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -55,7 +58,7 @@ public class WebControllerService {
             }
 
     }
-    public void returnsIpv6Websocket( String result, String type, String token){
+    public void returnsIpv6Websocket(String result, String type, String token){
         try {
             WebSocketEntity wbEntity = new WebSocketEntity();
             wbEntity.setUserName(CommonUtil.getUsername(token));
@@ -64,7 +67,9 @@ public class WebControllerService {
             String retMessage;
             if(type.equalsIgnoreCase("createNatWithEip")) {
                 retMessage = "createNat" + result + "&" + "createEIP" + result;
-            }else {
+            }else if (type.equalsIgnoreCase("createEip")){
+                retMessage = "createNat" + result + "&" + "createEIP success";
+            }else{
                 retMessage = "deleteNat" + result + "&" + "deleteEIP" + result;
             }
             wbEntity.setMessage(retMessage);
@@ -79,6 +84,7 @@ public class WebControllerService {
         }
 
     }
+
 
     /**
      * get token from mq

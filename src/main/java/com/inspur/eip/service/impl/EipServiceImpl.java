@@ -19,7 +19,9 @@ import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
+import com.inspur.iam.adapter.entity.User;
 import com.inspur.iam.adapter.util.ListFilterUtil;
+import com.inspur.iam.adapter.util.SecurityContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.model.common.ActionResponse;
@@ -92,7 +94,10 @@ public class EipServiceImpl implements IEipService {
                 BeanUtils.copyProperties(eipMo, eipInfo);
                 log.info("Atom create a eip success:{}", eipMo);
                 if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
-                    eipV6Service.atomCreateEipV6(eipMo.getId(), token);
+                    ResponseEntity responseEntity = eipV6Service.atomCreateEipV6(eipMo.getId(), token);
+                    if(responseEntity.getStatusCodeValue() != org.apache.http.HttpStatus.SC_OK){
+                        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_IPV6_CREATE_FALSE, "ipv6 create false"), HttpStatus.METHOD_FAILURE);
+                    }
                 }
                 return new ResponseEntity<>(eipInfo, HttpStatus.OK);
             } else {
@@ -187,6 +192,7 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity listEips(int currentPage, int limit, String status) {
 
         try {
+            //User loginUser = SecurityContextUtil.getLoginUser();
             String projcectid = CommonUtil.getUserId();
             log.debug("listEips  of user, userId:{}", projcectid);
             if (projcectid == null) {
@@ -200,8 +206,8 @@ public class EipServiceImpl implements IEipService {
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
                /* String querySql="select * from eip where is_delete='0' and user_id= '"+projcectid+"'";
                 Page<Eip> page =
-                        ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);*/
-
+                        ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);
+*/
                 Page<Eip> page = eipRepository.findByUserIdAndIsDelete(projcectid, 0, pageable);
                 for (Eip eip : page.getContent()) {
                     if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
@@ -226,7 +232,13 @@ public class EipServiceImpl implements IEipService {
                 data.put(HsConstants.PAGE_NO, currentPage);
                 data.put(HsConstants.PAGE_SIZE, limit);
             } else {
+
                 List<Eip> eipList = eipDaoService.findByUserId(projcectid);
+
+                // 通过ListFilterUtil工具类进行筛选—adapter中提供
+                // ListFilterUtil.filterListData(数据列表，业务实体类型)
+                //List<Eip> dataList = ListFilterUtil.filterListData(eipList, Eip.class);
+
                 for (Eip eip : eipList) {
                     if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
                         continue;
@@ -562,7 +574,6 @@ public class EipServiceImpl implements IEipService {
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
     @Override
     public ResponseEntity eipUnbindWithInstacnce(String eipId, String instanceId) {
         String code = ReturnStatus.SC_PARAM_ERROR;
@@ -623,7 +634,6 @@ public class EipServiceImpl implements IEipService {
         log.error(msg);
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     @Override
     public ResponseEntity getEipCount() {
@@ -773,4 +783,5 @@ public class EipServiceImpl implements IEipService {
         }
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
+
 }

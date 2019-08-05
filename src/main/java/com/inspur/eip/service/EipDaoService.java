@@ -21,11 +21,14 @@ import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -147,11 +150,15 @@ public class EipDaoService {
                 log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
                 return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
             }
-            if (null != eipEntity.getFloatingIpId() && !neutronService.deleteFloatingIp(eipEntity.getRegion(),
-                    eipEntity.getFloatingIpId(),
-                    eipEntity.getInstanceId(), token)) {
-                msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
-                log.error(msg);
+            if (null != eipEntity.getFloatingIpId() ) {
+                if(neutronService.deleteFloatingIp(eipEntity.getRegion(), eipEntity.getFloatingIpId(), eipEntity.getInstanceId(), token)){
+                    eipEntity.setFloatingIp(null);
+                    eipEntity.setFloatingIpId(null);
+                } else {
+                    msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
+                    log.error(msg);
+                }
+
             }
             if(eipEntity.getEipV6Id() != null){
                 ActionResponse delV6Ret = eipV6DaoService.deleteEipV6(eipEntity.getEipV6Id(), token);
@@ -209,9 +216,15 @@ public class EipDaoService {
                 firewallService.delNatAndQos(eipEntity);
                 log.error(msg);
             }
-            if (null != eipEntity.getFloatingIpId() && !neutronService.superDeleteFloatingIp(eipEntity.getFloatingIpId(), eipEntity.getInstanceId())) {
-                msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
-                log.error(msg);
+            if (null != eipEntity.getFloatingIpId() ) {
+                if(neutronService.superDeleteFloatingIp( eipEntity.getFloatingIpId(), eipEntity.getInstanceId())){
+                    eipEntity.setFloatingIp(null);
+                    eipEntity.setFloatingIpId(null);
+                } else {
+                    msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
+                    log.error(msg);
+                }
+
             }
 
             if(eipEntity.getEipV6Id() != null){
@@ -379,7 +392,6 @@ public class EipDaoService {
         return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
     }
 
-
     @Transactional
     public ActionResponse disassociateInstanceWithEip(Eip eipEntity) {
 
@@ -518,6 +530,7 @@ public class EipDaoService {
         }
         return ActionResponse.actionSuccess();
     }
+
 
     @Transactional
     public ActionResponse reNewEipEntity(String eipId, String addTime, String token) {
@@ -697,5 +710,9 @@ public class EipDaoService {
         return (int) eipRepository.countBySbwIdAndIsDelete(sbwId, 0);
     }
 
+    @Transactional
+    public List<Eip> findFlowAccountEipList(String chargeMode){
+        return eipRepository.findByChargeModeAndStatusAndIsDelete(chargeMode,HsConstants.ACTIVE, 0);
+    }
 
 }

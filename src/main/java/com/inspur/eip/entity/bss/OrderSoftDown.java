@@ -1,9 +1,10 @@
-package com.inspur.eip.entity;
+package com.inspur.eip.entity.bss;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
-
+@Builder
 @Data
 public class OrderSoftDown {
     private String region;
