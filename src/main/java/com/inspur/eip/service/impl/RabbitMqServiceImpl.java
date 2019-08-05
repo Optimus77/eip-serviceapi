@@ -148,8 +148,12 @@ public class RabbitMqServiceImpl {
                 for (OrderProduct orderProduct : orderProducts) {
                     eipId = orderProduct.getInstanceId();
                 }
-                //软删除实例，用户主动发起，必须带token
-                response = eipDaoService.deleteEip(eipId, eipOrder.getToken());
+                if(CommonUtil.isSuperAccount(eipOrder.getToken())){
+                    response = eipDaoService.adminDeleteEip(eipId);
+                }else {
+                    //软删除实例，用户主动发起，必须带token
+                    response = eipDaoService.deleteEip(eipId, eipOrder.getToken());
+                }
                 if (response.isSuccess()) {
                     if (eipOrder.getConsoleCustomization().containsKey("operateType") &&
                             eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")) {
