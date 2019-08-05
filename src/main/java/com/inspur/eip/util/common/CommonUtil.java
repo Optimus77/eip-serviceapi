@@ -396,7 +396,16 @@ public class CommonUtil {
         return projectName;
     }
 
-    public static String getU(String token)throws KeycloakTokenException {
+    public static String getProjectId()throws KeycloakTokenException {
+
+        String token = getKeycloackToken();
+        if(null == token){
+            throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
+        }else {
+            return getProjectId(token);
+        }
+    }
+    public static String getProjectId(String token)throws KeycloakTokenException {
 
         if(null == token){
             throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NULL));
@@ -405,6 +414,8 @@ public class CommonUtil {
         String projectId = null;
         if (jsonObject.has("project_id")) {
             projectId = (String) jsonObject.get("project_id");
+        }else {
+            projectId = (String) jsonObject.get("sub");
         }
         if (projectId != null) {
             log.info("project_id:{}", projectId);

@@ -59,13 +59,11 @@ public class HillStoneConfigConsts {
     public static final String DISABLE = "disable";
     //    启用
     public static final String NO_DISABLE = "no disable";
-
-
     public static final String D_TYPE_ADDRESS= "/32";
 
-
-
-
+    public static final String UP_TYPE= "UP";
+    public static final String DOWN_TYPE= "DOWN";
+    public static final String SUM_TYPE= "SUM";
 
 
 }

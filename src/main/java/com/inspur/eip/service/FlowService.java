@@ -3,6 +3,7 @@ package com.inspur.eip.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.exception.EipBadRequestException;
 import com.inspur.eip.util.constant.ErrorStatus;
+import com.inspur.eip.util.constant.HillStoneConfigConsts;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,14 @@ public class FlowService {
     @Autowired
     private FirewallService firewallService;
 
+    /**
+     *
+     * @param lineNum   需要统计的分钟数，最大支持1小时，即60
+     * @param entryName     addressbook name
+     * @param period        周期，lasthour
+     * @param firewallId    防火墙id
+     * @return
+     */
     public Map<String, Long> staticsFlowByPeriod(int lineNum, String entryName, String period, String firewallId) {
 
         ConcurrentHashMap<String, Long> flowMap = new ConcurrentHashMap<>(3);
@@ -34,8 +43,8 @@ public class FlowService {
         }
 // flowStr not null
         JSONObject json = firewallService.cmdShowStatisticsByAddressBook(entryName, period, firewallId);
-        String[] upArrs = json.getString("UP").replace("UP  :", " ").trim().split(SPACE_REGEX);
-        String[] downArrs = json.getString("DOWN").replace("DOWN:", " ").trim().split(SPACE_REGEX);
+        String[] upArrs = json.getString(HillStoneConfigConsts.UP_TYPE).replace("UP  :", " ").trim().split(SPACE_REGEX);
+        String[] downArrs = json.getString(HillStoneConfigConsts.DOWN_TYPE).replace("DOWN:", " ").trim().split(SPACE_REGEX);
 
         int[] upInt = new int[upArrs.length];
         int[] downInt = new int[downArrs.length];
@@ -54,9 +63,9 @@ public class FlowService {
                 downFlow = downFlow + downInt[i];
             }
 
-            flowMap.put("UP",upFlow);
-            flowMap.put("DOWN",downFlow);
-            flowMap.put("SUM",upFlow + downFlow);
+            flowMap.put(HillStoneConfigConsts.UP_TYPE, upFlow);
+            flowMap.put(HillStoneConfigConsts.DOWN_TYPE, downFlow);
+            flowMap.put(HillStoneConfigConsts.SUM_TYPE, upFlow + downFlow);
         }else {
             log.error(ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage()+ "lineNum:{}", lineNum);
             throw new EipBadRequestException(ErrorStatus.ENTITY_BADREQUEST_ERROR.getCode(), ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage());
