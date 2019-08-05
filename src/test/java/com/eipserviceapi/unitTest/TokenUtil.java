@@ -2,7 +2,6 @@ package com.eipserviceapi.unitTest;
 
 
 import com.google.gson.Gson;
-import net.minidev.json.JSONObject;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -89,9 +88,4 @@ public class TokenUtil {
             conn.setDoInput(true);
         }
     }
-
-//    public static void main(String[] args) throws Exception {
-//        String token = getToken("lishenghao", "1qaz2wsx3edc");
-//        System.out.println(token);
-//    }
 }
