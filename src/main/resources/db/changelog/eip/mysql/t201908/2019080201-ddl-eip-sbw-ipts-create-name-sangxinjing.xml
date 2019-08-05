@@ -1,0 +1,135 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <changeSet author="xinjing" id="201908021101">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="eip"></tableExists>
+            </not>
+        </preConditions>
+        <createTable tableName="eip" remarks="EIP表">
+            <column name="id" type="VARCHAR(36)" remarks="id">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="band_width" type="int(11)" remarks="带宽"/>
+            <column name="bill_type" type="VARCHAR(20)" remarks="带宽类型"/>
+            <column name="charge_mode" type="VARCHAR(20)" remarks="收费类型"/>
+            <column name="created_time" type="datetime" remarks="创建时间"/>
+            <column name="dnat_id" type="VARCHAR(8)" remarks="Dnat规则"/>
+            <column name="duration" type="VARCHAR(4)" remarks="购买时长"/>
+            <column name="eip_address" type="VARCHAR(15)" remarks="EIP的IP"/>
+            <column name="firewall_id" type="VARCHAR(36)" remarks="防火墙ID"/>
+            <column name="floating_ip" type="VARCHAR(15)" remarks="FLPIP"/>
+            <column name="floating_ip_id" type="VARCHAR(36)" remarks="FLPID"/>
+            <column name="instance_id" type="VARCHAR(36)" remarks="实例ID"/>
+            <column name="instance_type" type="VARCHAR(2)" remarks="实例类型"/>
+            <column name="ip_type" type="VARCHAR(10)" remarks="EIP的类型"/>
+            <column name="ip_version" type="VARCHAR(4)" remarks="IP类型"/>
+            <column name="name" type="VARCHAR(128)" remarks="绑定实例的类型"/>
+            <column name="pip_id" type="VARCHAR(36)" remarks="QOS规则"/>
+            <column name="port_id" type="VARCHAR(36)" remarks="实例的端口ID"/>
+            <column name="private_ip_address" type="VARCHAR(15)" remarks="实例的IP"/>
+            <column name="project_id" type="VARCHAR(36)" remarks="项目ID"/>
+            <column name="region" type="VARCHAR(36)" remarks="Openstack的域"/>
+            <column name="snat_id" type="VARCHAR(8)" remarks="SNAT规则"/>
+            <column name="status" type="VARCHAR(8)" remarks="实例的状态"/>
+            <column name="updated_time" type="datetime" remarks="更新时间"/>
+            <column name="is_delete" type="INT(11)" remarks="是否软删除"/>
+            <column name="old_band_width" type="INT(11)" remarks="EIP的历史带宽"/>
+            <column name="user_id" type="VARCHAR(36)" remarks="用户的ID"/>
+            <column name="eipv6id" type="VARCHAR(36)" remarks="IPV6的ID"/>
+            <column name="sbw_id" type="VARCHAR(36)" remarks="共享带宽的ID"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="xinjing" id="201908021102">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="eip_pool"></tableExists>
+            </not>
+        </preConditions>
+        <createTable tableName="eip_pool" remarks="EIP池">
+            <column name="id" type="INT(11)" remarks="id">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="fire_wall_id" type="VARCHAR(36)" remarks="防火墙的ID"/>
+            <column name="ip" type="VARCHAR(15)" remarks="EIP的IP"/>
+            <column name="state" type="VARCHAR(2)" remarks="EIP状态"/>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet author="xinjing" id="201908021103">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="sbw"></tableExists>
+            </not>
+        </preConditions>
+        <createTable tableName="sbw" remarks="共享带宽表">
+            <column name="id" type="VARCHAR(36)" remarks="id">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="band_width" type="int(11)" remarks="带宽"/>
+            <column name="bill_type" type="VARCHAR(20)" remarks="带宽类型"/>
+            <column name="created_time" type="datetime" remarks="创建时间"/>
+            <column name="duration" type="VARCHAR(4)" remarks="购买时长"/>
+            <column name="is_delete" type="INT(11)" remarks="是否软删除"/>
+            <column name="pip_id" type="VARCHAR(36)" remarks="QOS规则"/>
+            <column name="project_id" type="VARCHAR(36)" remarks="项目ID"/>
+            <column name="project_name" type="VARCHAR(128)" remarks="项目名称"/>
+            <column name="region" type="VARCHAR(36)" remarks="Openstack的域"/>
+            <column name="status" type="VARCHAR(8)" remarks="实例的状态"/>
+            <column name="updated_time" type="datetime" remarks="更新时间"/>
+            <column name="sbw_name" type="VARCHAR(128)" remarks="共享带宽的名称"/>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet author="xinjing" id="201908021104">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="eipv6"></tableExists>
+            </not>
+        </preConditions>
+        <createTable tableName="eipv6" remarks="IPV6表">
+            <column name="id" type="VARCHAR(36)" remarks="id">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="created_time" type="datetime" remarks="创建时间"/>
+            <column name="dnatpt_id" type="int(11)" remarks="DNAT带宽"/>
+            <column name="firewall_id" type="VARCHAR(36)" remarks="防火墙ID"/>
+            <column name="floating_ip" type="VARCHAR(15)" remarks="FLP的IP"/>
+            <column name="ip_version" type="VARCHAR(4)" remarks="IPV6"/>
+            <column name="ipv4" type="VARCHAR(15)" remarks="IPV4"/>
+            <column name="ipv6" type="VARCHAR(128)" remarks="IPV6"/>
+            <column name="is_delete" type="INT(11)" remarks="是否软删除"/>
+            <column name="project_id" type="VARCHAR(36)" remarks="项目ID"/>
+            <column name="region" type="VARCHAR(36)" remarks="Openstack的域"/>
+            <column name="snatpt_id" type="VARCHAR(8)" remarks="SNAT带宽"/>
+            <column name="status" type="VARCHAR(8)" remarks="实例的状态"/>
+            <column name="updated_time" type="datetime" remarks="更新时间"/>
+            <column name="user_id" type="VARCHAR(36)" remarks="用户名称"/>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet author="xinjing" id="201908021105">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="eip_poolv6"></tableExists>
+            </not>
+        </preConditions>
+        <createTable tableName="eip_poolv6" remarks="IPV6池">
+            <column name="id" type="INT(11)" remarks="id">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="fire_wall_id" type="VARCHAR(36)" remarks="防火墙的ID"/>
+            <column name="ip" type="VARCHAR(128)" remarks="EIP的IP"/>
+            <column name="state" type="VARCHAR(2)" remarks="EIP状态"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

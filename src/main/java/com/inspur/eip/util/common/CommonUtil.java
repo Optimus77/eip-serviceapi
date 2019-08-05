@@ -11,6 +11,7 @@ import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
+import com.inspur.icp.common.entity.OsConfig;
 import com.inspur.icp.common.util.Base64Util;
 import com.inspur.icp.common.util.OSClientUtil;
 import lombok.Setter;
@@ -43,38 +44,38 @@ public class CommonUtil {
 
     @Setter
     private static org.json.JSONObject KeyClockInfo;
-    @Value("${openstackIp}")
-    private String openstackIp;
-    @Value("${openstackUrl}")
-    private String openstackUrl;
-    @Value("${userNameS}")
-    private String userNameS;
-    @Value("${passwordS}")
-    private String passwordS;
-    @Value("${projectIdS}")
-    private String projectIdS;
-    @Value("${userDomainIdS}")
-    private String userDomainIdS;
-    @Value("${debugRegionS}")
-    private String debugRegionS;
-
-    @Value("${scheduleTime}")
-    private String scheduleTime;
+//    @Value("${openstackIp}")
+//    private String openstackIp;
+//    @Value("${openstackUrl}")
+//    private String openstackUrl;
+//    @Value("${userNameS}")
+//    private String userNameS;
+//    @Value("${passwordS}")
+//    private String passwordS;
+//    @Value("${projectIdS}")
+//    private String projectIdS;
+//    @Value("${userDomainIdS}")
+//    private String userDomainIdS;
+//    @Value("${debugRegionS}")
+//    private String debugRegionS;
+//
+//    @Value("${scheduleTime}")
+//    private String scheduleTime;
 
     private static Config config = Config.newConfig().withSSLVerificationDisabled();
     private static Map<String,String> userConfig = new HashMap<>(16);
 
-    @PostConstruct
-    public void init(){
-        userConfig.put("openstackIp",openstackIp);
-        userConfig.put("userNameS",userNameS);
-        userConfig.put("passwordS",passwordS);
-        userConfig.put("projectIdS",projectIdS);
-        userConfig.put("userDomainIdS",userDomainIdS);
-        userConfig.put("debugRegionS",debugRegionS);
-        userConfig.put("openstackUrl",openstackUrl);
-        userConfig.put(SCHEDULETIME, scheduleTime);
-    }
+//    @PostConstruct
+//    public void init(){
+//        userConfig.put("openstackIp",openstackIp);
+//        userConfig.put("userNameS",userNameS);
+//        userConfig.put("passwordS",passwordS);
+//        userConfig.put("projectIdS",projectIdS);
+//        userConfig.put("userDomainIdS",userDomainIdS);
+//        userConfig.put("debugRegionS",debugRegionS);
+//        userConfig.put("openstackUrl",openstackUrl);
+//        userConfig.put(SCHEDULETIME, scheduleTime);
+//    }
 
 
     //    Greenwich mean time
@@ -289,17 +290,24 @@ public class CommonUtil {
         return userConfig;
     }
 
-    //administrator rights
+    //administrator rights2.0
     public static OSClient.OSClientV3 getOsClientV3(){
-        //String token = getKeycloackToken();
-        return OSFactory.builderV3()
-                .endpoint(userConfig.get("openstackUrl"))
-                .credentials(userConfig.get("userNameS"), userConfig.get("passwordS"),
-                        Identifier.byId(userConfig.get("userDomainIdS")))
-                .withConfig(config)
-                .scopeToProject(Identifier.byId(userConfig.get("projectIdS")))
-                .authenticate().useRegion(userConfig.get("debugRegionS"));
+//          调公共包的AdminClient（administrator rights）
+        return OSClientUtil.getClient();
     }
+
+//    //administrator rights1.0
+//    public static OSClient.OSClientV3 getOsClientV3(){
+//        //String token = getKeycloackToken();
+////        return OSFactory.builderV3()
+////                .endpoint(userConfig.get("openstackUrl"))
+////                .credentials(userConfig.get("userNameS"), userConfig.get("passwordS"),
+////                        Identifier.byId(userConfig.get("userDomainIdS")))
+////                .withConfig(config)
+////                .scopeToProject(Identifier.byId(userConfig.get("projectIdS")))
+////                .authenticate().useRegion(userConfig.get("debugRegionS"));
+//    }
+
 
 
     public static OSClient.OSClientV3 getOsClientV3Util(String userRegion) throws KeycloakTokenException {
@@ -332,7 +340,7 @@ public class CommonUtil {
         if(jsonObject.has("project")){
             String project = (String) jsonObject.get("project");
             log.debug("Get openstack ip:{}, region:{}, project:{}.",userConfig.get("openstackIp"), userRegion, project);
-            return OSClientUtil.getOSClientV3(userConfig.get("openstackIp"),token,project,userRegion);
+            return OSClientUtil.getClient(token);
         }else {
             String clientId = jsonObject.getString("clientId");
             if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){

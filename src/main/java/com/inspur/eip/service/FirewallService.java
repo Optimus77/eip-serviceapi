@@ -813,7 +813,7 @@ public class FirewallService {
      * @return
      */
     public boolean cmdInsertIpToAddressBook( String param,  String addressType,  String fireWallId) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.ADDRESS_SPACE + param +HillStoneConfigConsts.SSH_ENTER);
         switch (addressType) {
             case HillStoneConfigConsts.IP_ADDRESS_TYPE:
@@ -859,7 +859,7 @@ public class FirewallService {
      * @return
      */
     public boolean cmdDelAddressBookByEntry( String entryName, String fireWallId){
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.NO_SPACE +HillStoneConfigConsts.ADDRESS_SPACE + entryName );
         sb.append(HillStoneConfigConsts.ENTER_END);
 //        configure\rno address 192.168.1.11\rend
@@ -874,13 +874,37 @@ public class FirewallService {
     }
 
     /**
+     * cmd to create statistics book
+     * @param entryName     address book 中已经存在的对象
+     * @param firewallId
+     * @param flag      true :创建监控地址簿  flase :删除监控地址簿
+     * @return
+     * @throws EipInternalServerException
+     */
+    public boolean cmdOperateStatisticsBook(String entryName,String firewallId, boolean flag) throws EipInternalServerException{
+        StringBuilder sb = new StringBuilder();
+        if(!flag){
+            sb.append(HillStoneConfigConsts.NO_SPACE);
+        }
+        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.ADDRESS_SPACE + entryName);
+        sb.append(HillStoneConfigConsts.ENTER_END);
+//        configure\r address 192.168.1.11\rend
+        String strResult = fireWallCommondService.execCustomCommand(firewallId, sb.toString(), null);
+        if (StringUtils.isNotBlank(strResult) && strResult.contains("unrecognized keyword")){
+            throw new EipInternalServerException(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getCode(), ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage());
+        }else {
+            return true;
+        }
+    }
+
+    /**
      * 通过查看统计地址簿查看流量统计信息，入参需调用方做非空校验
      * @param entryName
      * @param period
      * @return
      */
     public JSONObject cmdShowStatisticsByAddressBook( String entryName, String period, String fireWallId){
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.SHOW_SPACE + HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName);
         switch (period){
             case "":
@@ -912,5 +936,6 @@ public class FirewallService {
             throw new EipBadRequestException(ErrorStatus.ENTITY_BADREQUEST_ERROR.getCode(), ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage());
         }
     }
+
 
 }
