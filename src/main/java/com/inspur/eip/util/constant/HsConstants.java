@@ -6,9 +6,12 @@ public class HsConstants {
     public static final String CPS = "2";
     public static final String SLB = "3";
     public static final String VERSION_REST = "/v2.0";
+    //code-value
 	public static final String IS_SBW = "is_SBW";
 	public static final String YES = "yes";
 	public static final String WITH_IPV6 = "withIpv6";
+	public static final String CHARGEMODE = "chargeMode";
+
     public static final String PAYSUCCESS = "paySuccess";
     public static final String NOTFOUND = "NOT_FOUND";
 	public static final String CREATESUCCESS = "createSuccess";
@@ -23,7 +26,7 @@ public class HsConstants {
 	public static final String RESUMESERVER = "resumeServer";
 	public static final String CHARGE_MODE_BANDWIDTH = "Bandwidth";
 	public static final String CHARGE_MODE_SHAREDBANDWIDTH = "SharedBandwidth";
-	public static final String CHARGE_MODE_TRAFFIC = "traffic";
+	public static final String CHARGE_MODE_TRAFFIC = "Traffic";
 
 	//	orderType
 	public static final String NEW_ORDERTYPE = "new";

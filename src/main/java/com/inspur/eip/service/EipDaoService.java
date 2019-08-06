@@ -62,7 +62,7 @@ public class EipDaoService {
     private EipV6DaoService eipV6DaoService;
 
     @Autowired
-    private FlowAccountScheduledTask flowTaskService;
+    private FlowService flowService;
 
 
     /**
@@ -73,7 +73,6 @@ public class EipDaoService {
      */
     @Transactional(rollbackFor = Exception.class)
     public Eip allocateEip(EipAllocateParam eipConfig, EipPool eip, String operater, String token) throws KeycloakTokenException {
-
 
         if (!eip.getState().equals("0")) {
             log.error("Fatal Error! eip state is not free, state:{}.", eip.getState());
@@ -99,9 +98,10 @@ public class EipDaoService {
         //按需 且 计费模式为流量计费
         if (HsConstants.HOURLYSETTLEMENT.equalsIgnoreCase(eipConfig.getBillType()) &&
                 HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipConfig.getChargeMode())){
-            //创建地址簿
-             firewallService.cmdCreateOrDeleteAddressBook(eip.getIp(), eip.getFireWallId(), true);
-             firewallService.cmdOperateStatisticsBook(eip.getIp(), eip.getFireWallId(), true);
+            //创建地址簿 和 监控地址簿
+            if (firewallService.cmdCreateOrDeleteAddressBook(eip.getIp(), eip.getFireWallId(), true)){
+                firewallService.cmdOperateStatisticsBook(eip.getIp(), eip.getFireWallId(), true);
+            }
         }
 
         Eip eipMo = new Eip();
@@ -176,9 +176,13 @@ public class EipDaoService {
             if(HsConstants.HOURLYSETTLEMENT.equalsIgnoreCase(eipEntity.getBillType()) &&
                     HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
                 //删除前向bss发送流量统计数据
-                flowTaskService.oneHourReportFlowAccount();
-                boolean statis = firewallService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false);
-                if (statis){
+                int i = CommonUtil.countMinuteFromPoint();
+                //如果是整点，则以定时任务为准
+                if (i !=0){
+                    flowService.releaseReportFlowAccount(i,eipEntity);
+                }
+                boolean statistics = firewallService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false);
+                if (statistics){
                     firewallService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(),eipEntity.getFirewallId(),false);
                 }
 
@@ -246,8 +250,14 @@ public class EipDaoService {
 
             if(HsConstants.HOURLYSETTLEMENT.equalsIgnoreCase(eipEntity.getBillType()) &&
                     HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
-                boolean statis = firewallService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false);
-                if (statis){
+                //删除前向bss发送流量统计数据
+                int i = CommonUtil.countMinuteFromPoint();
+                //如果是整点，则以定时任务为准
+                if (i !=0){
+                    flowService.releaseReportFlowAccount(i,eipEntity);
+                }
+                boolean statistics = firewallService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false);
+                if (statistics){
                     firewallService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(),eipEntity.getFirewallId(),false);
                 }
 

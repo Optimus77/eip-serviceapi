@@ -493,8 +493,6 @@ public class RabbitMqServiceImpl {
         List<OrderProduct> orderProducts = eipOrder.getProductList();
 
         eipAllocateParam.setBillType(eipOrder.getBillType());
-        eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
-
         for (OrderProduct orderProduct : orderProducts) {
             if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
                 continue;
@@ -507,6 +505,8 @@ public class RabbitMqServiceImpl {
                     eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
                 } else if (orderProductItem.getCode().equals(HsConstants.PROVIDER)) {
                     eipAllocateParam.setIpType(orderProductItem.getValue());
+                }else if (orderProductItem.getCode().equals(HsConstants.CHARGEMODE)){
+                    eipAllocateParam.setChargeMode(orderProductItem.getValue());
                 } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
                         orderProductItem.getValue().equals(HsConstants.YES)) {
                     eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
@@ -668,12 +668,4 @@ public class RabbitMqServiceImpl {
         rabbitTemplate.convertAndSend(exchange, changeKey, obj);
     }
 
-//    private void sendOrderMessageToBss(String orderKey,Console2BssResult obj) {
-//        log.info("+++++++Send Order message to Console：+++++++:{}", JSONObject.toJSONString(obj));
-//        rabbitTemplate.convertAndSend(exchange, orderKey, obj);
-//    }
-//    private void sendChangeMessageToBss(String changeKey, OrderSoftDown obj) {
-//        log.info("-------Send Change message to Console：-------:{}", JSONObject.toJSONString(obj));
-//        rabbitTemplate.convertAndSend(exchange, changeKey, obj);
-//    }
 }

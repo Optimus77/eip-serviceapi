@@ -821,35 +821,15 @@ public class FirewallService {
         sb.append( HillStoneConfigConsts.ADDRESS_SPACE + entryName ).append(HillStoneConfigConsts.ENTER_END);
         //        configure\r[no] address 192.168.1.11\rend
         String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), null);
-        if (StringUtils.isNotBlank(strResult) && (strResult.contains("already added"))) {
-            log.warn("This entity is already added");
-            return true;
+        if (StringUtils.isNotBlank(strResult) && strResult.contains("unrecognized keyword") ) {
+            log.warn(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage()+":{}",strResult);
+            return false;
         }else if (StringUtils.isBlank(strResult)) {
             return true;
         }
+        log.error(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage()+ ":{}",strResult);
         throw new EipInternalServerException(ErrorStatus.FIREWALL_DEAL_ADDRESS_BOOK_ERROR.getCode(),ErrorStatus.FIREWALL_DEAL_ADDRESS_BOOK_ERROR.getMessage());
     }
-
-//    /**
-//     * 根据地址簿名称删除地址簿，入参需调用方做非空校验
-//     * @param entryName  eipAddress
-//     * @param fireWallId
-//     * @return
-//     */
-//    public boolean cmdDelAddressBookByEntry( String entryName, String fireWallId ){
-//        StringBuilder sb = new StringBuilder();
-//        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.NO_SPACE +HillStoneConfigConsts.ADDRESS_SPACE + entryName );
-//        sb.append(HillStoneConfigConsts.ENTER_END);
-////        configure\rno address 192.168.1.11\rend
-//        String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), null);
-//        if (StringUtils.isNotBlank(strResult) && strResult.contains("unrecognized keyword")){
-//            log.warn("This entity doesn't exist in address book");
-//            return true;
-//        }else if (StringUtils.isBlank(strResult)){
-//            return true;
-//        }
-//        throw new EipInternalServerException(ErrorStatus.FIREWALL_DEAL_ADDRESS_BOOK_ERROR.getCode(),ErrorStatus.FIREWALL_DEAL_ADDRESS_BOOK_ERROR.getMessage());
-//    }
 
     /**
      * 向地址簿中插入要匹配的条件，支持多种地址类型，入参需调用方做非空校验
@@ -921,11 +901,13 @@ public class FirewallService {
 //        configure\r address 192.168.1.11\rend
         String strResult = fireWallCommondService.execCustomCommand(firewallId, sb.toString(), null);
         if (StringUtils.isNotBlank(strResult) && strResult.contains("unrecognized keyword")){
-            log.warn(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage(),"address Book not exist");
-            throw new EipInternalServerException(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getCode(), ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage());
-        }else {
+            log.warn(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage(),"statistics address book not exist");
+            return false;
+        }else if (StringUtils.isBlank(strResult)){
             return true;
         }
+        log.error(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage()+ ":{}",strResult);
+        throw new EipInternalServerException(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getCode(), ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage());
     }
 
     /**
