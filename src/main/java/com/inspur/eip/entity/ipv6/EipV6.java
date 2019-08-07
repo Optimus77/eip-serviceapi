@@ -45,4 +45,8 @@ public class EipV6 {
 
     private int isDelete=0;
 
+    private String projectId;
+
+    private String userName;
+
 }

@@ -44,5 +44,7 @@ public class Sbw implements Serializable {
     private String status ;
 
     //username :login name
-    private String projectName;
+    private String userName;
+
+    private String userId;
 }

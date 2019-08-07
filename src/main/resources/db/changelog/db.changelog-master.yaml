@@ -24,5 +24,7 @@ databaseChangeLog:
         ##      file: db/changelog/eip/mysql/t201906/2019062705-ddl-eip_poolv6-modify-filed-name-zerah.xml
       ##  - include:
       ##      file: db/changelog/eip/mysql/t201906/2019070401-ddl-alter-table-engine-zerah.xml
-
-
+  - include:
+      file: db/changelog/eip/mysql/t201908/2019080601-ddl-eip-sbw-eipv6-add-columName-modify-filed-name-liuyesheng.xml
+  - include:
+      file: db/changelog/eip/mysql/t201908/2019080701-ddl-eip-eipv6-add-columName-modify-filed-name-liuyesheng.xml

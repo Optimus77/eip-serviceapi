@@ -108,7 +108,7 @@ public class EipDaoService {
         eipMo.setBandWidth(eipConfig.getBandwidth());
         eipMo.setRegion(eipConfig.getRegion());
         eipMo.setSbwId(eipConfig.getSbwId());
-        String userId = CommonUtil.getUserId(token);
+        String userId = CommonUtil.getProjectId(token);
         log.debug("get tenantid:{} from clientv3", userId);
         eipMo.setUserId(userId);
         eipMo.setProjectId(CommonUtil.getProjectName(token));
@@ -151,6 +151,7 @@ public class EipDaoService {
                 return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
             }
             if (null != eipEntity.getFloatingIpId() ) {
+
                 if(neutronService.deleteFloatingIp(eipEntity.getRegion(), eipEntity.getFloatingIpId(), eipEntity.getInstanceId(), token)){
                     eipEntity.setFloatingIp(null);
                     eipEntity.setFloatingIpId(null);
@@ -323,7 +324,7 @@ public class EipDaoService {
         eipRepository.saveAndFlush(eip);
 
         try {
-            if (!eip.getUserId().equals(CommonUtil.getUserId())) {
+            if (!eip.getProjectId().equals(CommonUtil.getProjectId())) {
                 log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
                 return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
                         CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
@@ -432,7 +433,7 @@ public class EipDaoService {
             }
             eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
             String eipAddress = eipEntity.getEipAddress();
-            boolean unbindIpv6Ret = eipV6DaoService.unBindIpv6WithInstance(eipAddress, eipEntity.getUserId());
+            boolean unbindIpv6Ret = eipV6DaoService.unBindIpv6WithInstance(eipAddress, eipEntity.getProjectId());
             if (!unbindIpv6Ret) {
                 neutronService.associaInstanceWithFloatingIp(eipEntity, eipEntity.getInstanceId(), eipEntity.getPortId());
                 firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
@@ -563,11 +564,11 @@ public class EipDaoService {
     }
 
     public List<Eip> findByUserId(String projectId) {
-        return eipRepository.findByUserIdAndIsDelete(projectId, 0);
+        return eipRepository.findByProjectIdAndIsDelete(projectId, 0);
     }
 
     public Eip findByEipAddress(String eipAddr) throws KeycloakTokenException {
-        return eipRepository.findByEipAddressAndUserIdAndIsDelete(eipAddr, CommonUtil.getUserId(), 0);
+        return eipRepository.findByEipAddressAndProjectIdAndIsDelete(eipAddr, CommonUtil.getProjectId(), 0);
     }
 
     public Eip findByInstanceId(String instanceId) {
@@ -586,9 +587,9 @@ public class EipDaoService {
         return eipEntity;
     }
 
-    public long getInstanceNum(String userId) {
+    public long getInstanceNum(String projectId) {
 
-        String sql = "select count(1) as num from eip where user_id='" + userId + "'" + "and is_delete=0";
+        String sql = "select count(1) as num from eip where user_id='" + projectId + "'" + "and is_delete=0";
 
         Map<String, Object> map = jdbcTemplate.queryForMap(sql);
         long num = (long) map.get("num");

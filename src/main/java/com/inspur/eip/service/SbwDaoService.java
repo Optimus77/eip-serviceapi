@@ -76,10 +76,10 @@ public class SbwDaoService {
                         .region(sbwConfig.getRegion())
                         .createdTime(CommonUtil.getGmtDate())
                         .updatedTime(CommonUtil.getGmtDate())
-                        .projectId(CommonUtil.getUserId(token))
+                        .projectId(CommonUtil.getProjectId(token))
                         .isDelete(0)
                         .status(HsConstants.ACTIVE)
-                        .projectName(CommonUtil.getProjectName(token))
+                        .userName(CommonUtil.getProjectName(token))
                         .build();
                 sbw = sbwRepository.saveAndFlush(sbw);
                 return sbw;
@@ -372,7 +372,7 @@ public class SbwDaoService {
                 }
                 if (!CommonUtil.isAuthoried(sbw.getProjectId())) {
                     log.warn("User have no write to operate sbw:{}", sbwId);
-                    throw new EipUnauthorizedException(HttpStatus.SC_FORBIDDEN, ErrorStatus.SC_FORBIDDEN.getCode(), ErrorStatus.SC_FORBIDDEN.getMessage(), CommonUtil.getUserId());
+                    throw new EipUnauthorizedException(HttpStatus.SC_FORBIDDEN, ErrorStatus.SC_FORBIDDEN.getCode(), ErrorStatus.SC_FORBIDDEN.getMessage(), CommonUtil.getProjectId());
                 }
                 sbw.setSbwName(newSbwName);
                 sbw.setUpdatedTime(CommonUtil.getGmtDate());
@@ -432,7 +432,7 @@ public class SbwDaoService {
             sbwEntity.setUpdatedTime(CommonUtil.getGmtDate());
             sbwRepository.saveAndFlush(sbwEntity);
 
-            Stream<Eip> stream = eipRepository.findByUserIdAndIsDeleteAndSbwId(sbwEntity.getProjectId(), 0, sbwId).stream();
+            Stream<Eip> stream = eipRepository.findByProjectIdAndIsDeleteAndSbwId(sbwEntity.getProjectId(), 0, sbwId).stream();
             stream.forEach(eip -> {
                 eip.setBandWidth(param.getBandwidth());
                 eip.setUpdatedTime(CommonUtil.getGmtDate());

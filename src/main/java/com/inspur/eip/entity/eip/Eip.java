@@ -78,4 +78,6 @@ public class Eip implements Serializable {
 
     private String eipV6Id;
 
+    private String userName;
+
 }

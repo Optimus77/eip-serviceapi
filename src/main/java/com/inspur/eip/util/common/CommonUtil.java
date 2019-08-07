@@ -11,6 +11,7 @@ import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
+import com.inspur.iam.adapter.util.SecurityContextUtil;
 import com.inspur.icp.common.util.Base64Util;
 import com.inspur.icp.common.util.OSClientUtil;
 import lombok.Setter;
@@ -98,7 +99,7 @@ public class CommonUtil {
         return null;
     }
 
-    public static String getUserId()throws KeycloakTokenException {
+    /*public static String getUserId()throws KeycloakTokenException {
 
         String token = getKeycloackToken();
         if(null == token){
@@ -126,7 +127,7 @@ public class CommonUtil {
                 throw new KeycloakTokenException("400-Bad request:can't get jsonObject info from header,please check");
             }
         }
-    }
+    }*/
 
     private static JSONObject decodeUserInfo(String keycloakToken) {
         Base64.Decoder decoder = Base64.getDecoder();
@@ -400,7 +401,7 @@ public class CommonUtil {
 
     public static String getProjectId()throws KeycloakTokenException {
 
-        String token = getKeycloackToken();
+        String token = SecurityContextUtil.getAccessToken();
         if(null == token){
             throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
         }else {
@@ -414,10 +415,10 @@ public class CommonUtil {
         }
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
         String projectId = null;
-        if (jsonObject.has("project_id")) {
-            projectId = (String) jsonObject.get("project_id");
-        }else {
+        if(SecurityContextUtil.getLoginUser().getIsRootUser()){
             projectId = (String) jsonObject.get("sub");
+        } else {
+            projectId = (String) jsonObject.get("project_id");
         }
         if (projectId != null) {
             log.info("project_id:{}", projectId);

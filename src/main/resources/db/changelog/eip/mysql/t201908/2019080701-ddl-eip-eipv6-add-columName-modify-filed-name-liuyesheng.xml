@@ -1,0 +1,30 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <changeSet author="liuyesheng" id="201908060102">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="eip" columnName="projectId"></columnExists>
+        </preConditions>
+
+        <renameColumn catalogName="icp_eip" columnDataType="varchar(36)" newColumnName="user_id" oldColumnName="projectId" schemaName="public" tableName="eip"/>
+
+        <comment>修改eip表中通用字段名称：projectId->user_id </comment>
+    </changeSet>
+
+    <changeSet id="201908060108" author="liyesheng">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="eipv6" columnName="user_id"></columnExists>
+            </not>
+        </preConditions>
+        <addColumn tableName="eipv6" schemaName="public" catalogName="icp_eip">
+            <column name="user_id" type="varchar(36)" remarks="用户id"></column>
+        </addColumn>
+        <comment>添加额eipv6中user_id</comment>
+    </changeSet>
+
+
+</databaseChangeLog>

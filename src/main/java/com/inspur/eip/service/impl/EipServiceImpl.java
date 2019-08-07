@@ -74,7 +74,7 @@ public class EipServiceImpl implements IEipService {
             String sbwId = eipConfig.getSbwId();
             if (StringUtils.isNotBlank(sbwId)) {
                 Sbw sbwEntity = sbwDaoService.getSbwById(sbwId);
-                if (null == sbwEntity || (!sbwEntity.getProjectId().equalsIgnoreCase(CommonUtil.getUserId(token)))) {
+                if (null == sbwEntity || (!sbwEntity.getProjectId().equalsIgnoreCase(CommonUtil.getProjectId(token)))) {
                     log.warn(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
                     return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_RESOURCE_NOTENOUGH,
                             "Can not find sbw"), HttpStatus.FAILED_DEPENDENCY);
@@ -192,8 +192,11 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity listEips(int currentPage, int limit, String status) {
 
         try {
-            //User loginUser = SecurityContextUtil.getLoginUser();
-            String projcectid = CommonUtil.getUserId();
+            User loginUser = SecurityContextUtil.getLoginUser();
+            String id = loginUser.getId();
+            String name = loginUser.getName();
+            log.info("id:{},name:{}",id,name);
+            String projcectid = CommonUtil.getProjectId();
             log.debug("listEips  of user, userId:{}", projcectid);
             if (projcectid == null) {
                 return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_UNAUTHORIZED.getCode(),
@@ -204,11 +207,11 @@ public class EipServiceImpl implements IEipService {
             if (currentPage != 0) {
                 Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
-               /* String querySql="select * from eip where is_delete='0' and user_id= '"+projcectid+"'";
+                String querySql="select * from eip where is_delete='0' and user_id= '"+id+"'";
                 Page<Eip> page =
                         ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);
-*/
-                Page<Eip> page = eipRepository.findByUserIdAndIsDelete(projcectid, 0, pageable);
+
+                //Page<Eip> page = eipRepository.findByUserIdAndIsDelete(projcectid, 0, pageable);
                 for (Eip eip : page.getContent()) {
                     if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
                         continue;
@@ -233,13 +236,13 @@ public class EipServiceImpl implements IEipService {
                 data.put(HsConstants.PAGE_SIZE, limit);
             } else {
 
-                List<Eip> eipList = eipDaoService.findByUserId(projcectid);
+                List<Eip> eipList = eipDaoService.findByUserId(id);
 
                 // 通过ListFilterUtil工具类进行筛选—adapter中提供
-                // ListFilterUtil.filterListData(数据列表，业务实体类型)
-                //List<Eip> dataList = ListFilterUtil.filterListData(eipList, Eip.class);
+                //ListFilterUtil.filterListData(数据列表，业务实体类型)
+                List<Eip> dataList = ListFilterUtil.filterListData(eipList, Eip.class);
 
-                for (Eip eip : eipList) {
+                for (Eip eip : dataList) {
                     if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
                         continue;
                     }
@@ -283,7 +286,7 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity listEipsV(int currentPage, int limit, String status) {
 
         try {
-            String projcectid = CommonUtil.getUserId();
+            String projcectid = CommonUtil.getProjectId();
             log.debug("listEips  of user, userId:{}", projcectid);
             if (projcectid == null) {
                 return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
@@ -294,7 +297,7 @@ public class EipServiceImpl implements IEipService {
             if (currentPage != 0) {
                 Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
-                Page<Eip> page = eipRepository.findByUserIdAndIsDelete(projcectid, 0, pageable);
+                Page<Eip> page = eipRepository.findByProjectIdAndIsDelete(projcectid, 0, pageable);
                 for (Eip eip : page.getContent()) {
                     if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
                         continue;
@@ -638,8 +641,8 @@ public class EipServiceImpl implements IEipService {
     @Override
     public ResponseEntity getEipCount() {
         try {
-            String userId = CommonUtil.getUserId();
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, "get instance_num_success", eipDaoService.getInstanceNum(userId)), HttpStatus.OK);
+            String projectId = CommonUtil.getProjectId();
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, "get instance_num_success", eipDaoService.getInstanceNum(projectId)), HttpStatus.OK);
         } catch (KeycloakTokenException e) {
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN, e.getMessage(), null), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
@@ -718,9 +721,9 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity listEipsByBandWidth(String status) {
 
         try {
-            String userId = CommonUtil.getUserId();
-            log.debug("listEips  of user, userId:{}", userId);
-            if (userId == null) {
+            String projectId = CommonUtil.getProjectId();
+            log.debug("listEips  of user, userId:{}", projectId);
+            if (projectId == null) {
                 return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
                         "get projcetid error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
@@ -728,10 +731,10 @@ public class EipServiceImpl implements IEipService {
             JSONArray eips = new JSONArray();
             ArrayList<Eip> newList = new ArrayList<>();
             ArrayList<Eip> newEipList = new ArrayList<>();
-            List<Eip> eipList = eipDaoService.findByUserId(userId);
+            List<Eip> eipList = eipDaoService.findByUserId(projectId);
             for (Eip eip : eipList) {
                 String eipAddress = eip.getEipAddress();
-                EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipAddress, userId, 0);
+                EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, projectId, 0);
                 if (eipV6 == null) {
                     newEipList.add(eip);
                 }
