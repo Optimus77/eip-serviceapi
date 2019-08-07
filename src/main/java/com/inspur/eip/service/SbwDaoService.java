@@ -79,7 +79,8 @@ public class SbwDaoService {
                         .projectId(CommonUtil.getProjectId(token))
                         .isDelete(0)
                         .status(HsConstants.ACTIVE)
-                        .userName(CommonUtil.getProjectName(token))
+                        .userName(CommonUtil.getUsername(token))
+                        .userId(CommonUtil.getUserId())
                         .build();
                 sbw = sbwRepository.saveAndFlush(sbw);
                 return sbw;

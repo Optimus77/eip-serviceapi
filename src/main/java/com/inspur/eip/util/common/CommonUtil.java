@@ -99,7 +99,7 @@ public class CommonUtil {
         return null;
     }
 
-    /*public static String getUserId()throws KeycloakTokenException {
+    public static String getUserId()throws KeycloakTokenException {
 
         String token = getKeycloackToken();
         if(null == token){
@@ -127,7 +127,7 @@ public class CommonUtil {
                 throw new KeycloakTokenException("400-Bad request:can't get jsonObject info from header,please check");
             }
         }
-    }*/
+    }
 
     private static JSONObject decodeUserInfo(String keycloakToken) {
         Base64.Decoder decoder = Base64.getDecoder();
@@ -415,11 +415,14 @@ public class CommonUtil {
         }
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
         String projectId = null;
-        if(SecurityContextUtil.getLoginUser().getIsRootUser()){
-            projectId = (String) jsonObject.get("sub");
-        } else {
-            projectId = (String) jsonObject.get("project_id");
+        if(jsonObject != null){
+            if(SecurityContextUtil.getLoginUser().getIsRootUser()){
+                projectId = (String) jsonObject.get("sub");
+            } else {
+                projectId = (String) jsonObject.get("project_id");
+            }
         }
+
         if (projectId != null) {
             log.info("project_id:{}", projectId);
         }

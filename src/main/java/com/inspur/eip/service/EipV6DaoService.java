@@ -116,16 +116,18 @@ public class EipV6DaoService {
         eipMo.setFirewallId(eipPoolv6.getFireWallId());
         eipMo.setRegion(eip.getRegion());
         eipMo.setIpv4(eip.getEipAddress());
-        String userId = CommonUtil.getProjectId(token);
-        log.debug("get tenantid:{} from clientv3", userId);
-        eipMo.setUserId(userId);
+        String projectId = CommonUtil.getProjectId(token);
+        log.debug("get tenantid:{} from clientv3", projectId);
+        eipMo.setProjectId(projectId);
+        eipMo.setUserId(CommonUtil.getUserId());
+        eipMo.setUserName(CommonUtil.getUsername(token));
         eipMo.setIsDelete(0);
         eipMo.setCreatedTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipMo);
         eip.setEipV6Id(eipMo.getId());
         eip.setUpdatedTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eip);
-        log.info("User:{} success allocate eipv6:{}",userId, eipMo.getId());
+        log.info("User:{} success allocate eipv6:{}",projectId, eipMo.getId());
         return eipMo;
     }
 

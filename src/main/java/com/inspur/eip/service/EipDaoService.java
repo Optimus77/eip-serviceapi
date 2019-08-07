@@ -108,17 +108,18 @@ public class EipDaoService {
         eipMo.setBandWidth(eipConfig.getBandwidth());
         eipMo.setRegion(eipConfig.getRegion());
         eipMo.setSbwId(eipConfig.getSbwId());
-        String userId = CommonUtil.getProjectId(token);
-        log.debug("get tenantid:{} from clientv3", userId);
-        eipMo.setUserId(userId);
-        eipMo.setProjectId(CommonUtil.getProjectName(token));
+        String projectId = CommonUtil.getProjectId(token);
+        log.debug("get tenantid:{} from clientv3", projectId);
+        eipMo.setProjectId(projectId);
+        eipMo.setUserId(CommonUtil.getUserId());
+        eipMo.setUserName(CommonUtil.getUsername(token));
         eipMo.setIsDelete(0);
         if (null != operater) {
             eipMo.setName(operater);
         }
         eipMo.setCreatedTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eipMo);
-        log.debug("User:{} success allocate eip:{}", userId, eipMo.getId());
+        log.debug("User:{} success allocate eip:{}", projectId, eipMo.getId());
         return eipMo;
     }
 
