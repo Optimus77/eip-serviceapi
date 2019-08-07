@@ -158,7 +158,7 @@ bss:
 
 
 
-slbUrl: http://cn-north-3.10.110.25.123.xip.io/slb/v1/servers
+slbUrl: http://cn-north-3.10.110.25.123.xip.io/slb/v1/servers/
 
 ##administrator rights
 #openstackIp: 10.110.28.35
