@@ -563,7 +563,7 @@ public class EipDaoService {
         return ActionResponse.actionSuccess();
     }
 
-    public List<Eip> findByUserId(String projectId) {
+    public List<Eip> findByProjectId(String projectId) {
         return eipRepository.findByProjectIdAndIsDelete(projectId, 0);
     }
 
