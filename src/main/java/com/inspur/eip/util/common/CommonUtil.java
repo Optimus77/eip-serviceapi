@@ -416,7 +416,7 @@ public class CommonUtil {
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
         String projectId = null;
         if(jsonObject != null){
-            if(SecurityContextUtil.getLoginUser().getIsRootUser()){
+            if(!jsonObject.has("project_id")){
                 projectId = (String) jsonObject.get("sub");
             } else {
                 projectId = (String) jsonObject.get("project_id");
@@ -424,7 +424,7 @@ public class CommonUtil {
         }
 
         if (projectId != null) {
-            log.info("project_id:{}", projectId);
+            log.debug("project_id:{}", projectId);
         }
         return projectId;
     }
@@ -437,8 +437,8 @@ public class CommonUtil {
             return false;
         }
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-        String userId = (String) jsonObject.get("sub");
-        if(userId.equals(projectId)){
+        String projectIdToken = (String) jsonObject.get("sub");
+        if(projectIdToken.equals(projectId)){
             return true;
         }
         String clientId = null;
@@ -454,13 +454,21 @@ public class CommonUtil {
         }
     }
 
-    public static boolean verifyToken(String token, String userId){
+    public static boolean verifyToken(String token, String projectId){
+        String projectIdInToken = null;
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-
-        String userIdInToken = (String) jsonObject.get("sub");
-        if(userIdInToken.equals(userId)){
+        if(jsonObject.has("project_id")){
+            projectIdInToken = (String) jsonObject.get("project_id");
+        } else {
+            projectIdInToken = (String) jsonObject.get("sub");
+        }
+        if(projectIdInToken != null){
+            log.debug("project_id:{}", projectIdInToken);
+        }
+        if(projectIdInToken.equals(projectId)){
             return true;
         }
+
         String  realmAccess = null;
         if (jsonObject.has("realm_access")){
             realmAccess = jsonObject.getJSONObject("realm_access").toString();

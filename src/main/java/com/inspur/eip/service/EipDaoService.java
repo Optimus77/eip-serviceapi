@@ -147,7 +147,7 @@ public class EipDaoService {
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
             }
-            if (!CommonUtil.verifyToken(token, eipEntity.getUserId())) {
+            if (!CommonUtil.verifyToken(token, eipEntity.getProjectId())) {
                 log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
                 return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
             }
@@ -403,7 +403,7 @@ public class EipDaoService {
             log.error("disassociateInstanceWithEip In disassociate process,failed to find the eip ");
             return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
         }
-        if (!CommonUtil.isAuthoried(eipEntity.getUserId())) {
+        if (!CommonUtil.isAuthoried(eipEntity.getProjectId())) {
             log.error("User have no write to delete eip:{}", eipEntity.getId());
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
