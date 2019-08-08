@@ -80,7 +80,7 @@ public class SbwDaoService {
                         .isDelete(0)
                         .status(HsConstants.ACTIVE)
                         .userName(CommonUtil.getUsername(token))
-                        .userId(CommonUtil.getUserId())
+                        .userId(CommonUtil.getUserId(token))
                         .build();
                 sbw = sbwRepository.saveAndFlush(sbw);
                 return sbw;

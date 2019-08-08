@@ -111,7 +111,7 @@ public class EipDaoService {
         String projectId = CommonUtil.getProjectId(token);
         log.debug("get tenantid:{} from clientv3", projectId);
         eipMo.setProjectId(projectId);
-        eipMo.setUserId(CommonUtil.getUserId());
+        eipMo.setUserId(CommonUtil.getUserId(token));
         eipMo.setUserName(CommonUtil.getUsername(token));
         eipMo.setIsDelete(0);
         if (null != operater) {
