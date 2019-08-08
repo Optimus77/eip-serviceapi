@@ -476,7 +476,7 @@ public class EipDaoService {
             log.error("EIP is already bound to eipv6");
             return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR), HttpStatus.SC_NOT_FOUND);
         }
-        if (!CommonUtil.verifyToken(token, eipEntity.getUserId())) {
+        if (!CommonUtil.verifyToken(token, eipEntity.getProjectId())) {
             log.error("User have no write to operate eip:{}", eipid);
             return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN), HttpStatus.SC_FORBIDDEN);
         }
@@ -542,7 +542,7 @@ public class EipDaoService {
             return ActionResponse.actionFailed("Can not find the eip by id:{}" + eipId, HttpStatus.SC_NOT_FOUND);
         }
         Eip eipEntity = optional.get();
-        if (!CommonUtil.verifyToken(token, eipEntity.getUserId())) {
+        if (!CommonUtil.verifyToken(token, eipEntity.getProjectId())) {
             log.error("User have no write to renew eip:{}", eipId);
             return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN), HttpStatus.SC_FORBIDDEN);
         }

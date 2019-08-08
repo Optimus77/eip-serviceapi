@@ -473,7 +473,7 @@ public class SbwDaoService {
             log.error("EIP is already bound to eipv6");
             return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR), HttpStatus.SC_NOT_FOUND);
         }
-        if (!CommonUtil.verifyToken(token, eipEntity.getUserId())) {
+        if (!CommonUtil.verifyToken(token, eipEntity.getProjectId())) {
             log.error("User have no write to operate eip:{}", eipId);
             return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN), HttpStatus.SC_FORBIDDEN);
         }
@@ -552,7 +552,7 @@ public class SbwDaoService {
             return ActionResponse.actionFailed(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage(), HttpStatus.SC_NOT_FOUND);
         }
         Eip eipEntity = optionalEip.get();
-        if (!CommonUtil.verifyToken(token, eipEntity.getUserId())) {
+        if (!CommonUtil.verifyToken(token, eipEntity.getProjectId())) {
             log.error("User have no write to delete eip:{}", eipid);
             return ActionResponse.actionFailed(ErrorStatus.SC_FORBIDDEN.getMessage(), HttpStatus.SC_FORBIDDEN);
         }

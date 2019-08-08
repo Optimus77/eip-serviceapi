@@ -160,7 +160,7 @@ public class EipV6DaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
-        if(!CommonUtil.verifyToken(token,eipV6Entity.getUserId())){
+        if(!CommonUtil.verifyToken(token,eipV6Entity.getProjectId())){
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipv6id);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
