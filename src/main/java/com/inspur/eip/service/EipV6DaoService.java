@@ -119,7 +119,7 @@ public class EipV6DaoService {
         String projectId = CommonUtil.getProjectId(token);
         log.debug("get tenantid:{} from clientv3", projectId);
         eipMo.setProjectId(projectId);
-        eipMo.setUserId(CommonUtil.getUserId());
+        eipMo.setUserId(CommonUtil.getUserId(token));
         eipMo.setUserName(CommonUtil.getUsername(token));
         eipMo.setIsDelete(0);
         eipMo.setCreatedTime(CommonUtil.getGmtDate());
@@ -186,7 +186,7 @@ public class EipV6DaoService {
         eipV6Entity.setIsDelete(1);
         eipV6Entity.setUpdatedTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipV6Entity);
-        Eip eip = eipRepository.findByEipAddressAndProjectIdAndIsDelete(eipV6Entity.getIpv4(), eipV6Entity.getUserId(), 0);
+        Eip eip = eipRepository.findByEipAddressAndProjectIdAndIsDelete(eipV6Entity.getIpv4(), eipV6Entity.getProjectId(), 0);
         if(eip == null){
             msg = "Failed to fetch eip based on ipv4";
             log.error(msg);
