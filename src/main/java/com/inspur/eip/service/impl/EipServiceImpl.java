@@ -107,7 +107,7 @@ public class EipServiceImpl implements IEipService {
             }
 
         } catch (Exception e) {
-            log.error("Exception in atomCreateEip", e.getMessage());
+            log.error("Exception in atomCreateEip", e);
             code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
             msg = e.getMessage() + "";
         }
