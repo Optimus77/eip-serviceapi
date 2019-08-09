@@ -65,9 +65,9 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.jdbc.Driver
     druid:
-      url: jdbc:mysql://10.110.1.26:3306/icp_eip?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8
-      username: eip
-      password: eip0914
+      url: jdbc:mysql://localhost:3306/icp_eip?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8
+      username: root
+      password: 123456a
       initialSize: 5
       minIdle: 3
       maxActive: 200
@@ -198,4 +198,9 @@ regionCode: cn-north-3
 scheduleTime: 0 0/5 * * * ?
 minEipNum: 0
 
-
+#bss
+#bss:
+#  quota: http://10.221.2.6.xip.io:9080/crm/quota
+#  product: http://10.221.2.6:9080/product/detail
+#  submit: http://10.221.2.6:9080/order/submitpay
+#  instance: http://10.221.2.6:9080/order/instanceInfo/
