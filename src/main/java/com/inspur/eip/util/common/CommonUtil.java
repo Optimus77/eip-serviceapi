@@ -469,14 +469,6 @@ public class CommonUtil {
             return true;
         }
 
-        String  realmAccess = null;
-        if (jsonObject.has("realm_access")){
-            realmAccess = jsonObject.getJSONObject("realm_access").toString();
-        }
-        if (realmAccess!= null && realmAccess.contains("OPERATE_ADMIN")){
-            log.info("Client token, User has right to operation, realmAccess:{}", realmAccess);
-            return true;
-        }
         return false;
 
     }
@@ -497,10 +489,10 @@ public class CommonUtil {
             realmAccess = jsonObject.getJSONObject("realm_access").toString();
         }
         if (realmAccess!= null && realmAccess.contains("OPERATE_ADMIN")){
-            log.info("Client token, User has right to operation, realmAccess:{}", realmAccess);
+            log.info("admin account, realmAccess:{}", realmAccess);
             return true;
         }else{
-            log.error("User has no right to operation.{}", jsonObject.toString());
+            log.error("Not admin account.{}", jsonObject.toString());
             return false;
         }
     }

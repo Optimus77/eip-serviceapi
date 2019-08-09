@@ -226,7 +226,6 @@ public class EipDaoService {
                     msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
                     log.error(msg);
                 }
-
             }
 
             if(eipEntity.getEipV6Id() != null){
@@ -278,10 +277,7 @@ public class EipDaoService {
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
         Eip eipEntity = optional.get();
-//        if(!CommonUtil.isAuthoried(eipEntity.getUserId())){
-//            log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipid);
-//            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
-//        }
+
         eipEntity.setStatus(HsConstants.STOP);
         eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
         MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
