@@ -207,11 +207,11 @@ public class EipServiceImpl implements IEipService {
             if (currentPage != 0) {
                 Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
-               /* String querySql="select * from eip where is_delete='0' and user_id= '"+id+"'";
+                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"'";
                 Page<Eip> page =
-                        ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);*/
+                        ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);
 
-                Page<Eip> page = eipRepository.findByProjectIdAndIsDelete(projcectId, 0, pageable);
+                //Page<Eip> page = eipRepository.findByProjectIdAndIsDelete(projcectId, 0, pageable);
                 for (Eip eip : page.getContent()) {
                     if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
                         continue;

@@ -82,7 +82,7 @@ public class FlowAccountScheduledTask {
         flowBean.setSettleCycle("Day");
         flowBean.setCount("1");
         flowBean.setIndex("1");
-        flowBean.setUserId(eip.getUserId());
+        flowBean.setProjectId(eip.getProjectId());
         flowBean.setProductLineCode("EIP");
         ArrayList<FlowAccountProductList> productLists = new ArrayList<>();
 
