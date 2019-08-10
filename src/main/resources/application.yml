@@ -198,9 +198,7 @@ regionCode: cn-north-3
 scheduleTime: 0 0/5 * * * ?
 minEipNum: 0
 
-#bss
-bss:
+bssUrl:
   quota: http://10.221.2.6.xip.io:9080/crm/quota
   product: http://10.221.2.6:9080/product/detail
   submit: http://10.221.2.6:9080/order/submitpay
-  instance: http://10.221.2.6:9080/order/instanceInfo/

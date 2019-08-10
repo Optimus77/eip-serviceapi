@@ -1,11 +1,11 @@
 package com.inspur.eip.controller.v2;
 
+import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.openapi.OpenCreateEip;
 import com.inspur.eip.service.OpenApiService;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.ReturnStatus;
-import com.inspur.iam.adapter.annotation.PermissionContext;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,26 +14,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping(value= "/v1.1", produces={"application/json;charset=UTF-8"})
-@Api(value = "/v1.1", description = "eip API")
+@RequestMapping(value= VersionConstant.REST_VERSION_1_1, produces={"application/json;charset=UTF-8"})
+@Api(value = "/v1.1", description = "openEip API")
 @Validated
 public class OpenApiEipController {
 
     @Autowired
     private OpenApiService openApiService;
 
-    @PermissionContext(service = "ebs", action = "CreateEip", resourceType = "volume")
-    @PostMapping("/eips/creat")
+    @PostMapping("/eips/Eip")
+    @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity OpenApiCreateEip(@Valid @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
         log.info("Allocate a eip:{}.", openCreateEip.toString());
         if (result.hasErrors()) {

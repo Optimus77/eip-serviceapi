@@ -21,18 +21,18 @@ import java.util.*;
 
 @Slf4j
 @Service
-public abstract class OpenApiEipServiceImpl implements OpenApiService {
+public  class OpenApiEipServiceImpl implements OpenApiService {
 
-    @Value("${region.code}")
-    private String regionCode;
+    @Value("${regionCode}")
+    protected String regionCode;
 
-    @Value("${bss.quota}")
-    private String bssQuotaUrl;
+    @Value("${bssUrl.quota}")
+    protected String bssQuotaUrl;
 
-    @Value("${bss.submit}")
-    private String bssSubmitUrl;
+    @Value("${bssUrl.submit}")
+    protected String bssSubmitUrl;
 
-    @Value("${bss.product}")
+    @Value("${bssUrl.product}")
     protected String bssProductUrl;
 
     @Override
