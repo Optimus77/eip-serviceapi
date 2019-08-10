@@ -1,7 +1,7 @@
 package com.inspur.eip.service;
 
 
-import com.inspur.eip.entity.eip.EipAllocateParam;
+import com.inspur.eip.entity.openapi.OpenCreateEip;
 import org.springframework.http.ResponseEntity;
 
 public interface OpenApiService {
@@ -12,7 +12,7 @@ public interface OpenApiService {
      * Openapi create eip
      * @return the json result
      */
-    ResponseEntity OpenapiCreateEip(EipAllocateParam eipAllocateParam, String token);
+    ResponseEntity OpenapiCreateEip(OpenCreateEip openCreateEip, String token);
 
 
 }
