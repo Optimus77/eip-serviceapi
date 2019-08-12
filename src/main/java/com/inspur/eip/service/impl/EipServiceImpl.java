@@ -192,10 +192,6 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity listEips(int currentPage, int limit, String status) {
 
         try {
-            /*User loginUser = SecurityContextUtil.getLoginUser();
-            String id = loginUser.getId();
-            String name = loginUser.getName();
-            log.info("id:{},name:{}",id,name);*/
             String projcectId = CommonUtil.getProjectId();
             log.debug("listEips  of user, userId:{}", projcectId);
             if (projcectId == null) {
@@ -237,11 +233,7 @@ public class EipServiceImpl implements IEipService {
             } else {
 
                 List<Eip> eipList = eipDaoService.findByProjectId(projcectId);
-
-                // 通过ListFilterUtil工具类进行筛选—adapter中提供
-                //ListFilterUtil.filterListData(数据列表，业务实体类型)
                 List<Eip> dataList = ListFilterUtil.filterListData(eipList, Eip.class);
-
                 for (Eip eip : dataList) {
                     if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
                         continue;

@@ -14,6 +14,7 @@ import com.inspur.eip.util.*;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
+import com.inspur.iam.adapter.util.ListFilterUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.model.common.ActionResponse;
@@ -27,6 +28,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +50,9 @@ public class EipV6ServiceImpl implements IEipV6Service {
 
     @Autowired
     private NatPtService natPtService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
 
 
@@ -110,7 +116,10 @@ public class EipV6ServiceImpl implements IEipV6Service {
             if(pageNo!=0){
                 Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable =PageRequest.of(pageNo-1,pageSize,sort);
-                Page<EipV6> page=eipV6Repository.findByProjectIdAndIsDelete(projectId, 0, pageable);
+                String querySql="select * from eipv6 where is_delete='0' and project_id= '"+projectId+"'";
+                Page<EipV6> page =
+                        ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, EipV6.class);
+
                 for(EipV6 eipV6:page.getContent()){
                     if (eipV6.getIpv4() == null || eipV6.getIpv4().equals("")) {
                         log.error("Failed to obtain eipv4 in eipv6",eipV6.getIpv4());
@@ -150,7 +159,8 @@ public class EipV6ServiceImpl implements IEipV6Service {
                 data.put("data", eipv6s);
             }else{
                 List<EipV6> eipV6List=eipV6DaoService.findEipV6ByUserId(projectId);
-                for(EipV6 eipV6:eipV6List){
+                List<EipV6> dataList = ListFilterUtil.filterListData(eipV6List, Eip.class);
+                for(EipV6 eipV6:dataList){
                     if (eipV6.getIpv4() == null || eipV6.getIpv4().equals("")) {
                         log.error("Failed to obtain eipv4 in eipv6",eipV6.getIpv4());
                         return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),"Failed to obtain eipv4 in eipv6"), HttpStatus.BAD_REQUEST);
