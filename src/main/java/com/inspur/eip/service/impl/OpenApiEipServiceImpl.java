@@ -38,6 +38,13 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
     @Override
     public ResponseEntity OpenapiCreateEip(OpenCreateEip openCreateEip, String token) {
 
+        //检验请求参数
+        if (EipConstant.BILLTYPE_MONTHLY.equals(openCreateEip.getBillType())){
+            if (StringUtils.isBlank(openCreateEip.getDuration())){
+                throw new EipInternalServerException(ErrorStatus.INVALID_BILL_TYPE.getCode(),ErrorStatus.INVALID_BILL_TYPE.getMessage());
+            }
+        }
+
         //查询用户配额
         Map<String, String> paramMap = new HashMap<>();
         try {
@@ -71,7 +78,7 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
                 .availableZone("")
                 .productTypeCode(EipConstant.PRODUCT_TYPE_CODE)
                 .instanceCount("1")
-//                .itemList(items)
+                .itemList(items)
                 .build();
         List<Product> products = new ArrayList<>();
         products.add(product);
@@ -84,6 +91,7 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
                     .consoleOrderFlowId(UUID.randomUUID().toString().replaceAll("-", ""))
                     .billType(openCreateEip.getBillType())
                     .duration(openCreateEip.getDuration())
+                    .durationUnit("hourlySettlement".equalsIgnoreCase(openCreateEip.getBillType()) ? "H" : "M")
                     .orderWhat(EipConstant.ORDER_WHAT_FORMAL)
                     .orderSource(EipConstant.ORDER_SOURCE_OPENAPI)
                     .orderType(EipConstant.ORDER_TYPE_NEW)

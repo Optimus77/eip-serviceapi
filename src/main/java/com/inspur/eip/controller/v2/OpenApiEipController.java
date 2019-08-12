@@ -6,6 +6,7 @@ import com.inspur.eip.service.OpenApiService;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.ReturnStatus;
+import com.inspur.iam.adapter.annotation.PermissionContext;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +30,10 @@ public class OpenApiEipController {
     @Autowired
     private OpenApiService openApiService;
 
-    @PostMapping("/eips/Eip")
+    @PermissionContext(whitelist=true)
+    @PostMapping("/eips/createEip")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity OpenApiCreateEip(@Valid @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
+    public ResponseEntity OpenApiCreateEip( @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
         log.info("Allocate a eip:{}.", openCreateEip.toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();

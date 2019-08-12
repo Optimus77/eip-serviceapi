@@ -22,6 +22,9 @@ public class OpenCreateEip implements Serializable {
     @Pattern(regexp="[0-9-]{1,2}", message="param purchase time error.")
     private String duration;
 
+    @TypeConstraint(allowedValues = {"M","H"}, message = "Only M,H is allowed. ")
+    private String DurationUnit;
+
     private String ipv6 ;
 
     @NotBlank(message = "can not be blank.")
