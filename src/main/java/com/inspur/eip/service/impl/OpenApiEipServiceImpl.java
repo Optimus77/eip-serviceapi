@@ -97,7 +97,7 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
                     .setCount("1")
                     .consoleOrderFlowId(UUID.randomUUID().toString().replaceAll("-", ""))
                     .billType(openCreateEip.getBillType())
-                    .duration("1")
+                    .duration(openCreateEip.getDuration())
                     .durationUnit("hourlySettlement".equalsIgnoreCase(openCreateEip.getBillType()) ? "H" : "M")
                     .orderWhat(EipConstant.ORDER_WHAT_FORMAL)
                     .orderSource(EipConstant.ORDER_SOURCE_OPENAPI)
