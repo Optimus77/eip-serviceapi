@@ -221,6 +221,7 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
                 .availableZone("")
                 .productTypeCode(EipConstant.PRODUCT_TYPE_CODE)
                 .instanceCount("1")
+                .instanceId(openCreateEip.getEipId())
                 .itemList(items)
                 .build();
         List<Product> products = new ArrayList<>();
@@ -231,11 +232,13 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
                     .token(token)
                     .orderRoute(EipConstant.ORDER_ROUTE)
                     .setCount("1")
+                    .duration("1")
+                    .durationUnit("H")
                     .consoleOrderFlowId(UUID.randomUUID().toString().replaceAll("-", ""))
                     .billType(EipConstant.BILLTYPE_HOURLYSETTLEMENT)
                     .orderWhat(EipConstant.ORDER_WHAT_FORMAL)
                     .orderSource(EipConstant.ORDER_SOURCE_OPENAPI)
-                    .orderType(EipConstant.ORDER_TYPE_NEW)
+                    .orderType(EipConstant.ORDER_TYPE_UNSUNSCRIBE)
                     .productList(products)
                     .build();
             return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
