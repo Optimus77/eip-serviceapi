@@ -23,7 +23,9 @@ public class OpenCreateEip implements Serializable {
     private String duration;
 
     @TypeConstraint(allowedValues = {"M","H"}, message = "Only M,H is allowed. ")
-    private String DurationUnit;
+    private String durationUnit;
+
+    private String eipId;
 
     private String ipv6 ;
 
@@ -36,6 +38,9 @@ public class OpenCreateEip implements Serializable {
 
     @Range(min=1,max=500,message = "value must be 1-500.")
     private String bandwidth;
+
+    @Range(min=5,max=500,message = "value must be 1-500.")
+    private String sbwBandwidth;
 
     @JsonProperty("sbwId")
     private String sbwId;

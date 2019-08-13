@@ -15,4 +15,11 @@ public interface OpenApiService {
     ResponseEntity OpenapiCreateEip(OpenCreateEip openCreateEip, String token);
 
 
+    /**
+     * Openapi create eipAddSbw
+     * @return the json result
+     */
+    ResponseEntity OpenapiCreateEipAddSbw(OpenCreateEip openCreateEip, String token);
+
+
 }
