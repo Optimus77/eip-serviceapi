@@ -3,10 +3,12 @@ package com.inspur.eip.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.openapi.*;
 import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.exception.EipInternalServerException;
 import com.inspur.eip.exception.KeycloakTokenException;
+import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.SbwRepository;
 import com.inspur.eip.service.OpenApiService;
 import com.inspur.eip.util.common.CommonUtil;
@@ -41,6 +43,9 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
 
     @Autowired
     private SbwRepository sbwRepository;
+
+    @Autowired
+    private EipRepository eipRepository;
 
     @Override
     public ResponseEntity OpenapiCreateEip(OpenCreateEip openCreateEip, String token) {
@@ -125,7 +130,6 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
         Sbw eipEntity = optional.get();
         Integer bandwidthI =eipEntity.getBandWidth();
         String bandwidth = bandwidthI.toString();
-        log.info(bandwidth);
         if (StringUtils.isBlank(bandwidth)){
             throw new EipInternalServerException(ErrorStatus.SBW_NOT_FOUND.getCode(),ErrorStatus.SBW_NOT_FOUND.getMessage());
         }
@@ -190,6 +194,57 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
         return null;
     }
 
+
+    @Override
+    public ResponseEntity OpenapiDeleteEip(OpenCreateEip openCreateEip, String token) {
+
+        //检验请求参数
+        if (StringUtils.isBlank(openCreateEip.getEipId())){
+                throw new EipInternalServerException(ErrorStatus.EIP_ID_EMPTY.getCode(),ErrorStatus.EIP_ID_EMPTY.getMessage());
+        }
+
+        List<Item> items = new ArrayList<>();
+        JSONArray itemArraryList = getUserProductItems(token);
+        if (null != itemArraryList && !itemArraryList.isEmpty()) {
+            Optional<Eip> optionalEip = eipRepository.findById(openCreateEip.getEipId());
+            Eip eipEntity = optionalEip.get();
+            Integer bandwidthI =eipEntity.getBandWidth();
+            String bandwidth = bandwidthI.toString();
+            for (int i = 0; i < itemArraryList.size(); i++) {
+                buildItemList(items,itemArraryList,i,bandwidth,openCreateEip.getSbwName(),openCreateEip.getSbwId());
+            }
+        }
+//      创建EIP订单报文
+        Product product = Product.builder()
+                .region(regionCode)
+                .productLineCode(EipConstant.PRODUCT_LINE_CODE)
+                .availableZone("")
+                .productTypeCode(EipConstant.PRODUCT_TYPE_CODE)
+                .instanceCount("1")
+                .itemList(items)
+                .build();
+        List<Product> products = new ArrayList<>();
+        products.add(product);
+        try {
+            Order order = Order.builder()
+                    .userId(CommonUtil.getUserId(token))
+                    .token(token)
+                    .orderRoute(EipConstant.ORDER_ROUTE)
+                    .setCount("1")
+                    .consoleOrderFlowId(UUID.randomUUID().toString().replaceAll("-", ""))
+                    .billType(EipConstant.BILLTYPE_HOURLYSETTLEMENT)
+                    .orderWhat(EipConstant.ORDER_WHAT_FORMAL)
+                    .orderSource(EipConstant.ORDER_SOURCE_OPENAPI)
+                    .orderType(EipConstant.ORDER_TYPE_NEW)
+                    .productList(products)
+                    .build();
+            return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+        } catch (KeycloakTokenException e) {
+            log.info("Openapi Delete EIP Erroe");
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 
 

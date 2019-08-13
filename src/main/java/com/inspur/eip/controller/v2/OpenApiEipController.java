@@ -62,4 +62,22 @@ public class OpenApiEipController {
         return openApiService.OpenapiCreateEipAddSbw(openCreateEip, CommonUtil.getKeycloackToken());
     }
 
+
+    @PermissionContext(whitelist=true)
+    @DeleteMapping("/eips/deleteEip")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity OpenApiDeleteEip( @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
+        log.info("Allocate a eip:{}.", openCreateEip.toString());
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+                    HttpStatus.BAD_REQUEST);
+        }
+        return openApiService.OpenapiDeleteEip(openCreateEip, CommonUtil.getKeycloackToken());
+    }
+
 }

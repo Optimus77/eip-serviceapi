@@ -22,4 +22,12 @@ public interface OpenApiService {
     ResponseEntity OpenapiCreateEipAddSbw(OpenCreateEip openCreateEip, String token);
 
 
+    /**
+     * Openapi delete eip
+     * @return the json result
+     */
+    ResponseEntity OpenapiDeleteEip(OpenCreateEip openCreateEip, String token);
+
+
+
 }
