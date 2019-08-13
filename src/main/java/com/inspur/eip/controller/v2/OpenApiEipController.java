@@ -80,4 +80,39 @@ public class OpenApiEipController {
         return openApiService.OpenapiDeleteEip(openCreateEip, CommonUtil.getKeycloackToken());
     }
 
+    @PermissionContext(whitelist=true)
+    @PutMapping("/eips/renewEip")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity OpenApirenewEip( @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
+        log.info("Allocate a eip:{}.", openCreateEip.toString());
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+                    HttpStatus.BAD_REQUEST);
+        }
+        return openApiService.OpenapiRenewEip(openCreateEip, CommonUtil.getKeycloackToken());
+    }
+
+    @PermissionContext(whitelist=true)
+    @PutMapping("/eips/updateBindwidth")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity OpenApiEipupdateBindWidth( @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
+        log.info("Allocate a eip:{}.", openCreateEip.toString());
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+                    HttpStatus.BAD_REQUEST);
+        }
+        return openApiService.OpenapiEipupdateBindwidth(openCreateEip, CommonUtil.getKeycloackToken());
+    }
+
+
 }

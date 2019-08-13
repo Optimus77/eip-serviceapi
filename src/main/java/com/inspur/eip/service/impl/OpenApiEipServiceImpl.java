@@ -249,7 +249,118 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
         return null;
     }
 
+    @Override
+    public ResponseEntity OpenapiRenewEip(OpenCreateEip openCreateEip, String token) {
 
+        if (StringUtils.isBlank(openCreateEip.getEipId())) {
+            throw new EipInternalServerException(ErrorStatus.EIP_ID_EMPTY.getCode(),ErrorStatus.EIP_ID_EMPTY.getMessage());
+        }
+        if (StringUtils.isBlank(openCreateEip.getDuration())) {
+            throw new EipInternalServerException(ErrorStatus.INVALID_BILL_TYPE.getCode(),ErrorStatus.INVALID_BILL_TYPE.getMessage());
+        }
+
+        List<Item> items = new ArrayList<>();
+        JSONArray itemArraryList = getUserProductItems(token);
+        if (null != itemArraryList && !itemArraryList.isEmpty()) {
+            Optional<Eip> optionalEip = eipRepository.findById(openCreateEip.getEipId());
+            Eip eipEntity = optionalEip.get();
+            Integer bandwidthI =eipEntity.getBandWidth();
+            String bandwidth = bandwidthI.toString();
+            for (int i = 0; i < itemArraryList.size(); i++) {
+                buildItemList(items,itemArraryList,i,bandwidth,openCreateEip.getSbwName(),openCreateEip.getSbwId());
+            }
+        }
+        Product product = Product.builder()
+                .region(regionCode)
+                .productLineCode(EipConstant.PRODUCT_LINE_CODE)
+                .availableZone("")
+                .productTypeCode(EipConstant.PRODUCT_TYPE_CODE)
+                .instanceCount("1")
+                .instanceId(openCreateEip.getEipId())
+                .itemList(items)
+                .build();
+        List<Product> productList = new ArrayList<>();
+        productList.add(product);
+        Order order = null;
+        try {
+            order = Order.builder()
+                    .userId(CommonUtil.getUserId(token))
+                    .token(token)
+                    .orderRoute(EipConstant.ORDER_ROUTE)
+                    .setCount("1")
+                    .consoleOrderFlowId(UUID.randomUUID().toString().replaceAll("-", ""))
+                    .billType(EipConstant.BILLTYPE_MONTHLY)
+                    .duration(openCreateEip.getDuration())
+                    .orderWhat(EipConstant.ORDER_WHAT_FORMAL)
+                    .orderSource(EipConstant.ORDER_SOURCE_OPENAPI)
+                    .orderType(EipConstant.ORDER_TYPE_RENEW)
+                    .productList(productList)
+                    .build();
+            return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+        } catch (KeycloakTokenException e) {
+            log.info("Openapi Renew EIP Erroe");
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public ResponseEntity OpenapiEipupdateBindwidth(OpenCreateEip openCreateEip, String token) {
+
+        if (StringUtils.isBlank(openCreateEip.getEipId())) {
+            throw new EipInternalServerException(ErrorStatus.EIP_ID_EMPTY.getCode(),ErrorStatus.EIP_ID_EMPTY.getMessage());
+        }
+        if (StringUtils.isBlank(openCreateEip.getNewBandwidth())) {
+            throw new EipInternalServerException(ErrorStatus.EIP_BANDWIDTH_EMPTY.getCode(),ErrorStatus.EIP_BANDWIDTH_EMPTY.getMessage());
+        }
+//        // 比较更新前后带宽大小
+//        JSONObject eipObject = getEip(request, request.getParameter("EipId"));
+//        // 按需可以调大调小,包年包月只能调大
+//        if(EipConstant.BILLTYPE_MONTHLY.equals(eipObject.getJSONObject("eip").getString("billType"))){
+//            if(Integer.parseInt(request.getParameter("NewBandwidth")) <= eipObject.getJSONObject("eip").getIntValue("bandwidth")){
+//                throw new EipInvalidParameterException(EipExceptionCodeEnum.EIP_BANDWIDTH_ERROR);
+//            }
+//        }
+
+        List<Item> newItems = new ArrayList<>();
+        JSONArray itemArraryList = getUserProductItems(token);
+        if (null != itemArraryList && !itemArraryList.isEmpty()) {
+            for (int i = 0; i < itemArraryList.size(); i++) {
+                buildItemList(newItems, itemArraryList,i,openCreateEip.getNewBandwidth(),openCreateEip.getSbwName(),openCreateEip.getSbwId());
+            }
+        }
+        Product product = Product.builder()
+                .region(regionCode)
+                .productLineCode(EipConstant.PRODUCT_LINE_CODE)
+                .availableZone("")
+                .productTypeCode(EipConstant.PRODUCT_TYPE_CODE)
+                .instanceCount("1")
+                .instanceId(openCreateEip.getEipId())
+                .itemList(newItems)
+                .build();
+        List<Product> productList = new ArrayList<>();
+        productList.add(product);
+        Order order = null;
+        try {
+            order = Order.builder()
+                    .userId(CommonUtil.getUserId(token))
+                    .token(token)
+                    .orderRoute(EipConstant.ORDER_ROUTE)
+                    .setCount("1")
+                    .consoleOrderFlowId(UUID.randomUUID().toString().replaceAll("-", ""))
+//                    .billType(eipObject.getJSONObject("eip").getString("billType"))
+                    .orderWhat(EipConstant.ORDER_WHAT_FORMAL)
+                    .orderSource(EipConstant.ORDER_SOURCE_OPENAPI)
+                    .orderType(EipConstant.ORDER_TYPE_CHANGE_CONFIG)
+                    .productList(productList)
+                    .build();
+            return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+        } catch (KeycloakTokenException e) {
+            log.info("Openapi update EIP Bindwidth");
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 
 

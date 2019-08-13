@@ -29,5 +29,18 @@ public interface OpenApiService {
     ResponseEntity OpenapiDeleteEip(OpenCreateEip openCreateEip, String token);
 
 
+    /**
+     * Openapi Renew eip
+     * @return the json result
+     */
+    ResponseEntity OpenapiRenewEip(OpenCreateEip openCreateEip, String token);
+
+
+    /**
+     * Openapi update eip bandwidth
+     * @return the json result
+     */
+    ResponseEntity OpenapiEipupdateBindwidth(OpenCreateEip openCreateEip, String token);
+
 
 }

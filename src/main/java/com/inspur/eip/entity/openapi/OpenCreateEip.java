@@ -28,6 +28,9 @@ public class OpenCreateEip implements Serializable {
     @JsonProperty("eipId")
     private String eipId;
 
+    @JsonProperty("newBandwidth")
+    private String newBandwidth;
+
     private String ipv6 ;
 
     @NotBlank(message = "can not be blank.")
