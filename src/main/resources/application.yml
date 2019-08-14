@@ -87,10 +87,10 @@ spring:
 
     #Rabbit mq common config
   rabbitmq:
-    host: 10.110.10.19
-    port: 5672
-    username: tester
-    password: 123456a?
+    host: 10.110.25.74
+    port: 20908
+    username: guest
+    password: 123456aB
     #    Matchting with dead letter queue can avoid blocking of business queue message.
     listener:
       simple:
