@@ -353,7 +353,7 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
                     .orderRoute(EipConstant.ORDER_ROUTE)
                     .setCount("1")
                     .consoleOrderFlowId(UUID.randomUUID().toString().replaceAll("-", ""))
-                    .billType(openCreateEip.getBillType())
+                    .billType(eipEntity.getBillType())
                     .orderWhat(EipConstant.ORDER_WHAT_FORMAL)
                     .orderSource(EipConstant.ORDER_SOURCE_OPENAPI)
                     .orderType(EipConstant.ORDER_TYPE_CHANGE_CONFIG)
