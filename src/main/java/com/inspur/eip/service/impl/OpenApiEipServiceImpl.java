@@ -313,14 +313,19 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
         if (StringUtils.isBlank(openCreateEip.getNewBandwidth())) {
             throw new EipInternalServerException(ErrorStatus.EIP_BANDWIDTH_EMPTY.getCode(),ErrorStatus.EIP_BANDWIDTH_EMPTY.getMessage());
         }
-//        // 比较更新前后带宽大小
-//        JSONObject eipObject = getEip(request, request.getParameter("EipId"));
-//        // 按需可以调大调小,包年包月只能调大
-//        if(EipConstant.BILLTYPE_MONTHLY.equals(eipObject.getJSONObject("eip").getString("billType"))){
-//            if(Integer.parseInt(request.getParameter("NewBandwidth")) <= eipObject.getJSONObject("eip").getIntValue("bandwidth")){
-//                throw new EipInvalidParameterException(EipExceptionCodeEnum.EIP_BANDWIDTH_ERROR);
-//            }
-//        }
+//      比较更新前后带宽大小；按需可以调大调小,包年包月只能调大
+           Optional<Eip> optionalEip = eipRepository.findById(openCreateEip.getEipId());
+           Eip eipEntity = optionalEip.get();
+           if(EipConstant.BILLTYPE_MONTHLY.equals(eipEntity.getBillType())){
+               String str = openCreateEip.getNewBandwidth();
+               if (str!=null){
+                   Integer newBandwidth =Integer.valueOf(str);
+                   if(newBandwidth <= eipEntity.getBandWidth()){
+                       throw new EipInternalServerException(ErrorStatus.EIP_BANDWIDTH_ERROR.getCode(),ErrorStatus.EIP_BANDWIDTH_ERROR.getMessage());
+                   }
+               }
+
+        }
 
         List<Item> newItems = new ArrayList<>();
         JSONArray itemArraryList = getUserProductItems(token);
@@ -348,7 +353,7 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
                     .orderRoute(EipConstant.ORDER_ROUTE)
                     .setCount("1")
                     .consoleOrderFlowId(UUID.randomUUID().toString().replaceAll("-", ""))
-//                    .billType(eipObject.getJSONObject("eip").getString("billType"))
+                    .billType(openCreateEip.getBillType())
                     .orderWhat(EipConstant.ORDER_WHAT_FORMAL)
                     .orderSource(EipConstant.ORDER_SOURCE_OPENAPI)
                     .orderType(EipConstant.ORDER_TYPE_CHANGE_CONFIG)
