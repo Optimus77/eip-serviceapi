@@ -779,4 +779,9 @@ public class EipServiceImpl implements IEipService {
         return new ResponseEntity<>(data, HttpStatus.OK);
     }
 
+
+    public Eip getEipById(String id) {
+        return eipRepository.findByIdAndIsDelete(id,0);
+    }
+
 }

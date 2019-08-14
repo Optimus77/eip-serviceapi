@@ -610,5 +610,9 @@ public class SbwDaoService {
         return sbwRepository.findByProjectIdAndIsDelete(projectId, isDelte, pageable);
     }
 
+    public Sbw findByIdAndIsDelete(String id,int isDelete){
+        return sbwRepository.findByIdAndIsDelete(id,isDelete);
+    }
+
 
 }

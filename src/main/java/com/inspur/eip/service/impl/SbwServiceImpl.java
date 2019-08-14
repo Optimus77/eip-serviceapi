@@ -245,6 +245,11 @@ public class SbwServiceImpl implements ISbwService {
         return new ResponseEntity<>(ReturnMsgUtil.msg(ErrorStatus.SC_FORBIDDEN.getCode(), ErrorStatus.SC_FORBIDDEN.getMessage(), null), HttpStatus.UNAUTHORIZED);
     }
 
+    @Override
+    public Sbw getSbwById(String id) {
+        return sbwDaoService.findByIdAndIsDelete(id,0);
+    }
+
     /**
      * 包年包月续费
      *
