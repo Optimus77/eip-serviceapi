@@ -1,5 +1,6 @@
 package com.inspur.eip.entity.sbw;
 
+import com.inspur.iam.adapter.annotation.ContextKey;
 import lombok.Builder;
 import lombok.Data;
 
@@ -35,6 +36,7 @@ public class Sbw implements Serializable {
     private Date updatedTime ;
 
     //project id : uuid
+    @ContextKey("accountId")
     private String projectId;
 
     private int isDelete;
@@ -46,5 +48,6 @@ public class Sbw implements Serializable {
     //username :login name
     private String userName;
 
+    @ContextKey("creator")
     private String userId;
 }

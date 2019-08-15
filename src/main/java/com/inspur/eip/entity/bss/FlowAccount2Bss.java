@@ -24,7 +24,7 @@ public class FlowAccount2Bss {
     //当前序号
     private String index;
     //用户id
-    private String userId;
+    private String projectId;
     //产品线编码
     private String productLineCode;
     //非必须，存在闲忙时传入true

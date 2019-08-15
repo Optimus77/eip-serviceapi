@@ -192,10 +192,6 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity listEips(int currentPage, int limit, String status) {
 
         try {
-            /*User loginUser = SecurityContextUtil.getLoginUser();
-            String id = loginUser.getId();
-            String name = loginUser.getName();
-            log.info("id:{},name:{}",id,name);*/
             String projcectId = CommonUtil.getProjectId();
             log.debug("listEips  of user, userId:{}", projcectId);
             if (projcectId == null) {
@@ -207,11 +203,11 @@ public class EipServiceImpl implements IEipService {
             if (currentPage != 0) {
                 Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
-               /* String querySql="select * from eip where is_delete='0' and user_id= '"+id+"'";
+                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"'";
                 Page<Eip> page =
-                        ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);*/
+                        ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);
 
-                Page<Eip> page = eipRepository.findByProjectIdAndIsDelete(projcectId, 0, pageable);
+                //Page<Eip> page = eipRepository.findByProjectIdAndIsDelete(projcectId, 0, pageable);
                 for (Eip eip : page.getContent()) {
                     if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
                         continue;
@@ -237,11 +233,7 @@ public class EipServiceImpl implements IEipService {
             } else {
 
                 List<Eip> eipList = eipDaoService.findByProjectId(projcectId);
-
-                // 通过ListFilterUtil工具类进行筛选—adapter中提供
-                //ListFilterUtil.filterListData(数据列表，业务实体类型)
                 List<Eip> dataList = ListFilterUtil.filterListData(eipList, Eip.class);
-
                 for (Eip eip : dataList) {
                     if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
                         continue;
@@ -785,6 +777,11 @@ public class EipServiceImpl implements IEipService {
                     HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(data, HttpStatus.OK);
+    }
+
+
+    public Eip getEipById(String id) {
+        return eipRepository.findByIdAndIsDelete(id,0);
     }
 
 }

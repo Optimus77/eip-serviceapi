@@ -598,16 +598,20 @@ public class SbwDaoService {
         return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
-    public Page<Sbw> findByIdAndIsDelete(String sbwId, String userId, int isDelete, Pageable pageable) {
-        return sbwRepository.findByIdAndProjectIdAndIsDelete(sbwId, userId, isDelete, pageable);
+    public Page<Sbw> findByIdAndIsDelete(String sbwId, String projectId, int isDelete, Pageable pageable) {
+        return sbwRepository.findByIdAndProjectIdAndIsDelete(sbwId, projectId, isDelete, pageable);
     }
 
-    public Page<Sbw> findByIsDeleteAndSbwName(String userId, int isDelete, String name, Pageable pageable) {
-        return sbwRepository.findByProjectIdAndIsDeleteAndSbwNameContaining(userId, isDelete, name, pageable);
+    public Page<Sbw> findByIsDeleteAndSbwName(String projectId, int isDelete, String name, Pageable pageable) {
+        return sbwRepository.findByProjectIdAndIsDeleteAndSbwNameContaining(projectId, isDelete, name, pageable);
     }
 
-    public Page<Sbw> findByIsDelete(String userId, int isDelte, Pageable pageable) {
-        return sbwRepository.findByProjectIdAndIsDelete(userId, isDelte, pageable);
+    public Page<Sbw> findByIsDelete(String projectId, int isDelte, Pageable pageable) {
+        return sbwRepository.findByProjectIdAndIsDelete(projectId, isDelte, pageable);
+    }
+
+    public Sbw findByIdAndIsDelete(String id,int isDelete){
+        return sbwRepository.findByIdAndIsDelete(id,isDelete);
     }
 
 

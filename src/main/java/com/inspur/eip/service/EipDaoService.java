@@ -387,7 +387,7 @@ public class EipDaoService {
             returnMsg = fireWallReturn.getMessage();
             returnStat = fireWallReturn.getInnerCode();
             if (fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
-                boolean bindRet = eipV6DaoService.bindIpv6WithInstance(eip.getEipAddress(), eip.getFloatingIp(), eip.getUserId());
+                boolean bindRet = eipV6DaoService.bindIpv6WithInstance(eip.getEipAddress(), eip.getFloatingIp(), eip.getProjectId());
                 if (!bindRet) {
                     firewallService.delNatAndQos(eip);
                     neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(),
@@ -628,7 +628,7 @@ public class EipDaoService {
 
     public long getInstanceNum(String projectId) {
 
-        String sql = "select count(1) as num from eip where user_id='" + projectId + "'" + "and is_delete=0";
+        String sql = "select count(1) as num from eip where project_id='" + projectId + "'" + "and is_delete=0";
 
         Map<String, Object> map = jdbcTemplate.queryForMap(sql);
         long num = (long) map.get("num");

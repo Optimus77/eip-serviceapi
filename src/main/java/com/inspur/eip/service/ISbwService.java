@@ -1,6 +1,7 @@
 package com.inspur.eip.service;
 
 
+import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.http.ResponseEntity;
@@ -21,4 +22,6 @@ public interface ISbwService {
     ResponseEntity countSbwNumsByProjectId();
 
     ResponseEntity countSbwNumsByStatus(String status);
+
+    Sbw getSbwById(String id);
 }

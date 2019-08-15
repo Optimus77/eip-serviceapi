@@ -2,10 +2,12 @@ package com.inspur.eip.controller.v2;
 
 import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.sbw.SbwUpdateParamWrapper;
+import com.inspur.eip.service.ISbwService;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.*;
 import com.inspur.iam.adapter.annotation.PermissionContext;
 import com.inspur.eip.util.constant.ReturnStatus;
+import com.inspur.iam.adapter.annotation.ResourceContext;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -52,6 +54,7 @@ public class SbwControllerV2 {
 //        }
 //        return sbwService.atomCreateSbw(sbwConfig.getSbw(), CommonUtil.getKeycloackToken());
 //    }
+
 
     @PermissionContext(
             service="sbw",
@@ -102,10 +105,14 @@ public class SbwControllerV2 {
      * @param sbwId the id of sbw
      * @return retrun
      */
+    @ResourceContext(
+            service= ISbwService.class,
+            method="getSbwById")
     @PermissionContext(
             service="sbw",
             action="GetSbw",
-            resourceType="instance")
+            resourceType="instance",
+            resource="{sbwId}")
     @ICPControllerLog
     @GetMapping(value = "/sbws/{sbw_id}")
     @CrossOrigin(origins = "*", maxAge = 3000)
