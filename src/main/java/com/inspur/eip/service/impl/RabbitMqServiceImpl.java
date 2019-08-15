@@ -193,7 +193,7 @@ public class RabbitMqServiceImpl {
             log.info("Recive update order:{}", JSONObject.toJSONString(eipOrder));
 
             if ((eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS))) {
-                EipUpdateParam eipUpdate = getUpdatParmByOrder(eipOrder);
+                EipUpdateParam eipUpdate = getUpdateParmByOrder(eipOrder);
                 //更配操作
                 if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
                     if (eipUpdate.getSbwId() != null) {
@@ -497,8 +497,6 @@ public class RabbitMqServiceImpl {
         List<OrderProduct> orderProducts = eipOrder.getProductList();
 
         eipAllocateParam.setBillType(eipOrder.getBillType());
-        eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
-
         for (OrderProduct orderProduct : orderProducts) {
             if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
                 continue;
@@ -511,6 +509,12 @@ public class RabbitMqServiceImpl {
                     eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
                 } else if (orderProductItem.getCode().equals(HsConstants.PROVIDER)) {
                     eipAllocateParam.setIpType(orderProductItem.getValue());
+                }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER)){
+                    if (orderProductItem.getValue().equals("1")){
+                        eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_TRAFFIC);
+                    }else {
+                        eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
+                    }
                 } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
                         orderProductItem.getValue().equals(HsConstants.YES)) {
                     eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
@@ -533,7 +537,7 @@ public class RabbitMqServiceImpl {
      * @param eipOrder order
      * @return eip param
      */
-    private EipUpdateParam getUpdatParmByOrder(ReciveOrder eipOrder) {
+    private EipUpdateParam getUpdateParmByOrder(ReciveOrder eipOrder) {
         EipUpdateParam eipAllocateParam = new EipUpdateParam();
 
         List<OrderProduct> orderProducts = eipOrder.getProductList();
@@ -672,12 +676,4 @@ public class RabbitMqServiceImpl {
         rabbitTemplate.convertAndSend(exchange, changeKey, obj);
     }
 
-//    private void sendOrderMessageToBss(String orderKey,Console2BssResult obj) {
-//        log.info("+++++++Send Order message to Console：+++++++:{}", JSONObject.toJSONString(obj));
-//        rabbitTemplate.convertAndSend(exchange, orderKey, obj);
-//    }
-//    private void sendChangeMessageToBss(String changeKey, OrderSoftDown obj) {
-//        log.info("-------Send Change message to Console：-------:{}", JSONObject.toJSONString(obj));
-//        rabbitTemplate.convertAndSend(exchange, changeKey, obj);
-//    }
 }
