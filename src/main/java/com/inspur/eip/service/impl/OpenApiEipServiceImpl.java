@@ -368,9 +368,6 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
             throw new EipInternalServerException(ErrorStatus.EIP_BANDWIDTH_EMPTY.getCode(),ErrorStatus.EIP_BANDWIDTH_EMPTY.getMessage());
         }
 
-        if (StringUtils.isBlank(openCreateEip.getBillType())) {
-            throw new EipInternalServerException(ErrorStatus.INVALID_BILL_TYPE.getCode(),ErrorStatus.INVALID_BILL_TYPE.getMessage());
-        }
         if (EipConstant.BILLTYPE_MONTHLY.equals(openCreateEip.getBillType())) {
             if (StringUtils.isBlank(openCreateEip.getDuration())) {
                 throw new EipInternalServerException(ErrorStatus.INVALID_BILL_TYPE.getCode(),ErrorStatus.INVALID_BILL_TYPE.getMessage());
@@ -414,9 +411,8 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
                 .build();
         List<Product> products = new ArrayList<>();
         products.add(product);
-        Order order = null;
         try {
-            order = Order.builder()
+            Order order = Order.builder()
                     .userId(CommonUtil.getUserId(token))
                     .token(token)
                     .orderRoute(EipConstant.ORDER_ROUTE_IPTS)
@@ -598,13 +594,6 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
         }
         if ("withIpv6".equals(object.getString("code"))) {
             item.setValue("yes");
-            items.add(item);
-        }
-        if ("sbwName".equals(object.getString("code"))) {
-            item.setValue(sbwName);
-            items.add(item);
-        if ("sbwId".equals(object.getString("code")));
-            item.setValue(sbwId);
             items.add(item);
         }
     }

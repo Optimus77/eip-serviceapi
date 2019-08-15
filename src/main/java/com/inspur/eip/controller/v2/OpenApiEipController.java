@@ -115,7 +115,7 @@ public class OpenApiEipController {
     }
 
     @PermissionContext(whitelist=true)
-    @PutMapping("/eips/createIptsBindEip")
+    @PostMapping("/eips/createIptsBindEip")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity OpenApicreateIptsBindEip( @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
         log.info("Allocate a eip:{}.", openCreateEip.toString());
