@@ -10,15 +10,15 @@ public class HsConstants {
 	public static final String IS_SBW = "is_SBW";
 	public static final String YES = "yes";
 	public static final String WITH_IPV6 = "withIpv6";
-	public static final String CHARGEMODE = "chargeMode";
 
-    public static final String PAYSUCCESS = "paySuccess";
-    public static final String NOTFOUND = "NOT_FOUND";
+	public static final String PAYSUCCESS = "paySuccess";
+	public static final String NOTFOUND = "NOT_FOUND";
 	public static final String CREATESUCCESS = "createSuccess";
-    public static final String HOURLYSETTLEMENT = "hourlySettlement";
-    public static final String MONTHLY = "monthly";
-    public static final String PROVIDER = "provider";
+	public static final String HOURLYSETTLEMENT = "hourlySettlement";
+	public static final String MONTHLY = "monthly";
+	public static final String PROVIDER = "provider";
 	public static final String BANDWIDTH = "bandwidth";
+	public static final String TRANSFER = "transfer";
 	public static final String FAIL = "fail";
 	public static final String BINDING ="BINDING";
 	public static final String UNSUBSCRIBE = "unsubscribe";

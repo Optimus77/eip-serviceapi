@@ -411,7 +411,7 @@ public class SbwDaoService {
             log.error("User  not have permission to update sbw bandWidth id:{}", sbwId);
             return ActionResponse.actionFailed(ErrorStatus.SC_FORBIDDEN.getMessage(), HttpStatus.SC_FORBIDDEN);
         }
-        if (param.getBillType().equals(HsConstants.MONTHLY) && param.getBandwidth() < sbwEntity.getBandWidth()) {
+        if (sbwEntity.getBillType().equals(HsConstants.MONTHLY) && param.getBandwidth() < sbwEntity.getBandWidth()) {
             //can’t  modify
             return ActionResponse.actionFailed(ErrorStatus.BILL_TYPE_NOT_CORRECT.getMessage(), HttpStatus.SC_NOT_ACCEPTABLE);
         }
