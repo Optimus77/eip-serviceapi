@@ -126,10 +126,7 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
                 throw new EipInternalServerException(ErrorStatus.SBW_ID_EMPTY.getCode(),ErrorStatus.SBW_ID_EMPTY.getMessage());
         }
         //获取sbw的带宽
-        Optional<Sbw> optional = sbwRepository.findById(openCreateEip.getSbwId());
-        Sbw eipEntity = optional.get();
-        Integer bandwidthI =eipEntity.getBandWidth();
-        String bandwidth = bandwidthI.toString();
+        String bandwidth = getSbwBandwidth(openCreateEip);
         if (StringUtils.isBlank(bandwidth)){
             throw new EipInternalServerException(ErrorStatus.SBW_NOT_FOUND.getCode(),ErrorStatus.SBW_NOT_FOUND.getMessage());
         }
@@ -206,10 +203,7 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
         List<Item> items = new ArrayList<>();
         JSONArray itemArraryList = getUserProductItems(token);
         if (null != itemArraryList && !itemArraryList.isEmpty()) {
-            Optional<Eip> optionalEip = eipRepository.findById(openCreateEip.getEipId());
-            Eip eipEntity = optionalEip.get();
-            Integer bandwidthI =eipEntity.getBandWidth();
-            String bandwidth = bandwidthI.toString();
+            String bandwidth = getEipBandwidth(openCreateEip);
             for (int i = 0; i < itemArraryList.size(); i++) {
                 buildItemList(items,itemArraryList,i,bandwidth,openCreateEip.getSbwName(),openCreateEip.getSbwId());
             }
@@ -262,10 +256,7 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
         List<Item> items = new ArrayList<>();
         JSONArray itemArraryList = getUserProductItems(token);
         if (null != itemArraryList && !itemArraryList.isEmpty()) {
-            Optional<Eip> optionalEip = eipRepository.findById(openCreateEip.getEipId());
-            Eip eipEntity = optionalEip.get();
-            Integer bandwidthI =eipEntity.getBandWidth();
-            String bandwidth = bandwidthI.toString();
+            String bandwidth = getEipBandwidth(openCreateEip);
             for (int i = 0; i < itemArraryList.size(); i++) {
                 buildItemList(items,itemArraryList,i,bandwidth,openCreateEip.getSbwName(),openCreateEip.getSbwId());
             }
@@ -315,23 +306,102 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
         }
 //      比较更新前后带宽大小；按需可以调大调小,包年包月只能调大
            Optional<Eip> optionalEip = eipRepository.findById(openCreateEip.getEipId());
-           Eip eipEntity = optionalEip.get();
-           if(EipConstant.BILLTYPE_MONTHLY.equals(eipEntity.getBillType())){
-               String str = openCreateEip.getNewBandwidth();
-               if (str!=null){
-                   Integer newBandwidth =Integer.valueOf(str);
-                   if(newBandwidth <= eipEntity.getBandWidth()){
-                       throw new EipInternalServerException(ErrorStatus.EIP_BANDWIDTH_ERROR.getCode(),ErrorStatus.EIP_BANDWIDTH_ERROR.getMessage());
-                   }
-               }
+        if (optionalEip.isPresent()){
+            Eip eipEntity = optionalEip.get();
+            if(EipConstant.BILLTYPE_MONTHLY.equals(eipEntity.getBillType())){
+                String str = openCreateEip.getNewBandwidth();
+                if (str!=null){
+                    Integer newBandwidth =Integer.valueOf(str);
+                    if(newBandwidth <= eipEntity.getBandWidth()){
+                        throw new EipInternalServerException(ErrorStatus.EIP_BANDWIDTH_ERROR.getCode(),ErrorStatus.EIP_BANDWIDTH_ERROR.getMessage());
+                    }
+                }
 
+            }
+
+            List<Item> newItems = new ArrayList<>();
+            JSONArray itemArraryList = getUserProductItems(token);
+            if (null != itemArraryList && !itemArraryList.isEmpty()) {
+                for (int i = 0; i < itemArraryList.size(); i++) {
+                    buildItemList(newItems, itemArraryList,i,openCreateEip.getNewBandwidth(),openCreateEip.getSbwName(),openCreateEip.getSbwId());
+                }
+            }
+            Product product = Product.builder()
+                    .region(regionCode)
+                    .productLineCode(EipConstant.PRODUCT_LINE_CODE)
+                    .availableZone("")
+                    .productTypeCode(EipConstant.PRODUCT_TYPE_CODE)
+                    .instanceCount("1")
+                    .instanceId(openCreateEip.getEipId())
+                    .itemList(newItems)
+                    .build();
+            List<Product> productList = new ArrayList<>();
+            productList.add(product);
+            Order order = null;
+            try {
+                order = Order.builder()
+                        .userId(CommonUtil.getUserId(token))
+                        .token(token)
+                        .orderRoute(EipConstant.ORDER_ROUTE)
+                        .setCount("1")
+                        .consoleOrderFlowId(UUID.randomUUID().toString().replaceAll("-", ""))
+                        .billType(eipEntity.getBillType())
+                        .orderWhat(EipConstant.ORDER_WHAT_FORMAL)
+                        .orderSource(EipConstant.ORDER_SOURCE_OPENAPI)
+                        .orderType(EipConstant.ORDER_TYPE_CHANGE_CONFIG)
+                        .productList(productList)
+                        .build();
+                return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+            } catch (KeycloakTokenException e) {
+                log.info("Openapi update EIP Bindwidth");
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+//        购买并绑定IPTS是按需，需要计费；使用已有IPTS按需和报年报月都支持，不需要计费
+    @Override
+    public ResponseEntity OpenapicreateIptsBindEip(OpenCreateEip openCreateEip, String token) {
+
+        if (StringUtils.isBlank(openCreateEip.getBandwidth())) {
+            throw new EipInternalServerException(ErrorStatus.EIP_BANDWIDTH_EMPTY.getCode(),ErrorStatus.EIP_BANDWIDTH_EMPTY.getMessage());
         }
 
-        List<Item> newItems = new ArrayList<>();
+        if (StringUtils.isBlank(openCreateEip.getBillType())) {
+            throw new EipInternalServerException(ErrorStatus.INVALID_BILL_TYPE.getCode(),ErrorStatus.INVALID_BILL_TYPE.getMessage());
+        }
+        if (EipConstant.BILLTYPE_MONTHLY.equals(openCreateEip.getBillType())) {
+            if (StringUtils.isBlank(openCreateEip.getDuration())) {
+                throw new EipInternalServerException(ErrorStatus.INVALID_BILL_TYPE.getCode(),ErrorStatus.INVALID_BILL_TYPE.getMessage());
+            }
+        }
+
+        // 查询用户配额
+        Map<String, String> paramMap = new HashMap<>();
+        try {
+            paramMap.put("userId", CommonUtil.getUserId(token));
+            paramMap.put("region", regionCode);
+            paramMap.put("productLineCode", EipConstant.PRODUCT_LINE_CODE);
+            ResponseEntity responseEntity = HttpClientUtil.doGet(bssQuotaUrl, paramMap, HttpsClientUtil.getHeader());
+            JSONObject responseBodyJson = JSONObject.parseObject(responseEntity.getBody().toString());
+            if ("0".equals(responseBodyJson.getString("code"))) {
+                if (Integer.parseInt(responseBodyJson.getJSONObject("result").getJSONArray("quotaList").getJSONObject(0).getString("leftNumber")) == 0) {
+                    throw new EipInternalServerException(ErrorStatus.EIP_EXCEED_QUOTA.getCode(),ErrorStatus.EIP_EXCEED_QUOTA.getMessage());
+                }
+            } else {
+                throw new EipInternalServerException(ErrorStatus.BSS_CRM_QUOTA_ERROR.getCode(),ErrorStatus.BSS_CRM_QUOTA_ERROR.getMessage());
+            }
+        } catch (KeycloakTokenException e) {
+            e.printStackTrace();
+        }
+
+
+        List<Item> items = new ArrayList<>();
         JSONArray itemArraryList = getUserProductItems(token);
         if (null != itemArraryList && !itemArraryList.isEmpty()) {
             for (int i = 0; i < itemArraryList.size(); i++) {
-                buildItemList(newItems, itemArraryList,i,openCreateEip.getNewBandwidth(),openCreateEip.getSbwName(),openCreateEip.getSbwId());
+                buildIptsBindEip(items,itemArraryList,i,openCreateEip.getBandwidth(),openCreateEip.getSbwName(),openCreateEip.getSbwId());
             }
         }
         Product product = Product.builder()
@@ -340,28 +410,30 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
                 .availableZone("")
                 .productTypeCode(EipConstant.PRODUCT_TYPE_CODE)
                 .instanceCount("1")
-                .instanceId(openCreateEip.getEipId())
-                .itemList(newItems)
+                .itemList(items)
                 .build();
-        List<Product> productList = new ArrayList<>();
-        productList.add(product);
+        List<Product> products = new ArrayList<>();
+        products.add(product);
         Order order = null;
         try {
             order = Order.builder()
                     .userId(CommonUtil.getUserId(token))
                     .token(token)
-                    .orderRoute(EipConstant.ORDER_ROUTE)
+                    .orderRoute(EipConstant.ORDER_ROUTE_IPTS)
                     .setCount("1")
                     .consoleOrderFlowId(UUID.randomUUID().toString().replaceAll("-", ""))
-                    .billType(eipEntity.getBillType())
+                    .billType("hourlySettlement")
+                    .duration("1")
+                    .durationUnit("H")
                     .orderWhat(EipConstant.ORDER_WHAT_FORMAL)
                     .orderSource(EipConstant.ORDER_SOURCE_OPENAPI)
-                    .orderType(EipConstant.ORDER_TYPE_CHANGE_CONFIG)
-                    .productList(productList)
+                    .orderType(EipConstant.ORDER_TYPE_NEW)
+                    .isAutoRenew("false")
+                    .productList(products)
                     .build();
             return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
         } catch (KeycloakTokenException e) {
-            log.info("Openapi update EIP Bindwidth");
+            log.info("Openapi createIptsBindEip Erroe");
             e.printStackTrace();
         }
         return null;
@@ -371,9 +443,27 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
 
 
 
+    private String getEipBandwidth(OpenCreateEip openCreateEip) {
+        Optional<Eip> optionalEip = eipRepository.findById(openCreateEip.getEipId());
+        if (optionalEip.isPresent()){
+            Eip eipEntity = optionalEip.get();
+            Integer bandwidthI =eipEntity.getBandWidth();
+            String bandwidth = bandwidthI.toString();
+            return bandwidth;
+        }
+        return null;
+    }
 
-
-
+    private String getSbwBandwidth(OpenCreateEip openCreateEip) {
+        Optional<Sbw> optional = sbwRepository.findById(openCreateEip.getSbwId());
+        if (optional.isPresent()){
+            Sbw eipEntity = optional.get();
+            Integer bandwidthI =eipEntity.getBandWidth();
+            String bandwidth = bandwidthI.toString();
+            return bandwidth;
+        }
+        return null;
+    }
 
 
 
@@ -472,15 +562,53 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
             item.setValue("no");
             items.add(item);
         }
-        if (null !=sbwName && null !=sbwId) {
-            "sbwName".equals(object.getString("code"));
+        if ("sbwName".equals(object.getString("code"))) {
             item.setValue(sbwName);
             items.add(item);
-            "sbwId".equals(object.getString("code"));
+        }
+        if ("sbwId".equals(object.getString("code"))) {
             item.setValue(sbwId);
             items.add(item);
         }
     }
+
+    private void buildIptsBindEip(List<Item> items, JSONArray itemArrayList, int i,String bandwidth,String sbwName,String sbwId ) {
+        JSONObject object = itemArrayList.getJSONObject(i);
+        Item item = Item.builder().code(object.getString("code"))
+                .build();
+        if ("bandwidth".equals(object.getString("code"))) {
+            if (StringUtils.isBlank(bandwidth)) {
+                item.setValue("1");
+            } else {
+                item.setValue(bandwidth);
+            }
+            items.add(item);
+        }
+        if ("transfer".equals(object.getString("code"))) {
+            item.setValue("0");
+            items.add(item);
+        }
+        if ("IP".equals(object.getString("code"))) {
+            item.setValue("1");
+            items.add(item);
+        }
+        if ("provider".equals(object.getString("code"))) {
+            item.setValue("BGP");
+            items.add(item);
+        }
+        if ("withIpv6".equals(object.getString("code"))) {
+            item.setValue("yes");
+            items.add(item);
+        }
+        if ("sbwName".equals(object.getString("code"))) {
+            item.setValue(sbwName);
+            items.add(item);
+        if ("sbwId".equals(object.getString("code")));
+            item.setValue(sbwId);
+            items.add(item);
+        }
+    }
+
 
     private void buildCreateEipAddSbwItemList(List<Item> items, JSONArray itemArrayList, int i,String bandwidth,String sbwId ) {
         JSONObject object = itemArrayList.getJSONObject(i);
