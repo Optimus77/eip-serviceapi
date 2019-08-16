@@ -368,7 +368,7 @@ public class RabbitMqServiceImpl {
                 }
                 //业务侧执行软删操作，即按需退订，用户主动发起，带token
                 response = sbwService.deleteSbwInfo(sbwId, reciveOrder.getToken());
-                if (response.isSuccess()) {
+                if (response.isSuccess() || HsConstants.STATUS_CODE_404==response.getCode()) {
                     result = HsConstants.STATUS_DELETE;
                     webService.returnSbwWebsocket(sbwId, reciveOrder, "delete");
                     sendOrderMessageToBss(getSbwReturnResult(reciveOrder, sbwId, result));
@@ -497,6 +497,8 @@ public class RabbitMqServiceImpl {
         List<OrderProduct> orderProducts = eipOrder.getProductList();
 
         eipAllocateParam.setBillType(eipOrder.getBillType());
+        // 默认为带宽计费
+        eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
         for (OrderProduct orderProduct : orderProducts) {
             if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
                 continue;
@@ -509,12 +511,9 @@ public class RabbitMqServiceImpl {
                     eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
                 } else if (orderProductItem.getCode().equals(HsConstants.PROVIDER)) {
                     eipAllocateParam.setIpType(orderProductItem.getValue());
-                }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER)){
-                    if (orderProductItem.getValue().equals("1")){
-                        eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_TRAFFIC);
-                    }else {
-                        eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
-                    }
+                }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER) && orderProductItem.getValue().equals("1")){
+                    //  流量计费
+                    eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_TRAFFIC);
                 } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
                         orderProductItem.getValue().equals(HsConstants.YES)) {
                     eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
@@ -527,7 +526,6 @@ public class RabbitMqServiceImpl {
             }
         }
         log.info("Get eip param from order:{}", JSONObject.toJSONString(eipAllocateParam));
-        /*chargemode now use the default value */
         return eipAllocateParam;
     }
 
@@ -542,8 +540,9 @@ public class RabbitMqServiceImpl {
 
         List<OrderProduct> orderProducts = eipOrder.getProductList();
         eipAllocateParam.setBillType(eipOrder.getBillType());
-        eipAllocateParam.setChargemode(HsConstants.CHARGE_MODE_BANDWIDTH);
         eipAllocateParam.setDuration(eipOrder.getDuration());
+        // 默认为带宽计费
+        eipAllocateParam.setChargemode(HsConstants.CHARGE_MODE_BANDWIDTH);
         for (OrderProduct orderProduct : orderProducts) {
             if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
                 continue;
@@ -558,11 +557,13 @@ public class RabbitMqServiceImpl {
                     eipAllocateParam.setChargemode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
                 } else if (orderProductItem.getCode().equals(HsConstants.SBW_ID)) {
                     eipAllocateParam.setSbwId(orderProductItem.getValue());
+                }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER) && orderProductItem.getValue().equals("1")){
+                    //  流量计费
+                    eipAllocateParam.setChargemode(HsConstants.CHARGE_MODE_TRAFFIC);
                 }
             }
         }
         log.debug("Get eip param from bss MQ:{}", eipAllocateParam.toString());
-        /*chargemode now use the default value */
         return eipAllocateParam;
     }
 

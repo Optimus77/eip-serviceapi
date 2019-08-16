@@ -120,7 +120,7 @@ public class SbwDaoService {
         if (optional.isPresent()) {
             Sbw sbwBean = optional.get();
             if (sbwBean.getIsDelete() == 1) {
-                log.error("Faild to find sbw by id:" + sbwId);
+                log.error("Faild to find sbw by id:{}" + sbwId);
                 return ActionResponse.actionFailed(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage(), HttpStatus.SC_NOT_FOUND);
             }
             if (!CommonUtil.verifyToken(token, sbwBean.getProjectId())) {

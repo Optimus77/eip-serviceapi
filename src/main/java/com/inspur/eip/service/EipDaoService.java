@@ -179,8 +179,7 @@ public class EipDaoService {
                 }
             }
             //删除 监控集和地址簿，需要保证顺序执行，否则无法删除地址簿
-            if(HsConstants.HOURLYSETTLEMENT.equalsIgnoreCase(eipEntity.getBillType()) &&
-                    HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
+            if(HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
                 //删除前向bss发送流量统计数据
                 int i = CommonUtil.countMinuteFromPoint();
                 //如果是整点，则以定时任务为准
@@ -259,8 +258,7 @@ public class EipDaoService {
                 }
             }
 
-            if(HsConstants.HOURLYSETTLEMENT.equalsIgnoreCase(eipEntity.getBillType()) &&
-                    HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
+            if(HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
                 //删除前向bss发送流量统计数据
                 int i = CommonUtil.countMinuteFromPoint();
                 //如果是整点，则以定时任务为准
