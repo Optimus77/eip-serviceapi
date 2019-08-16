@@ -120,7 +120,7 @@ public class SbwDaoService {
         if (optional.isPresent()) {
             Sbw sbwBean = optional.get();
             if (sbwBean.getIsDelete() == 1) {
-                log.error("Faild to find sbw by id:" + sbwId);
+                log.error("Faild to find sbw by id:{}" + sbwId);
                 return ActionResponse.actionFailed(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage(), HttpStatus.SC_NOT_FOUND);
             }
             if (!CommonUtil.verifyToken(token, sbwBean.getProjectId())) {
@@ -412,7 +412,7 @@ public class SbwDaoService {
             log.error("User  not have permission to update sbw bandWidth id:{}", sbwId);
             return ActionResponse.actionFailed(ErrorStatus.SC_FORBIDDEN.getMessage(), HttpStatus.SC_FORBIDDEN);
         }
-        if (param.getBillType().equals(HsConstants.MONTHLY) && param.getBandwidth() < sbwEntity.getBandWidth()) {
+        if (sbwEntity.getBillType().equals(HsConstants.MONTHLY) && param.getBandwidth() < sbwEntity.getBandWidth()) {
             //can’t  modify
             return ActionResponse.actionFailed(ErrorStatus.BILL_TYPE_NOT_CORRECT.getMessage(), HttpStatus.SC_NOT_ACCEPTABLE);
         }

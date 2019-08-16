@@ -78,19 +78,34 @@ public class CommonUtil {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         return new Date();
     }
+
+    /**
+     * 计算当前时间与上一个整点时间的分钟差
+     * @return
+     */
+    public static int countMinuteFromPoint() {
+        Date currentTime = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String dateString = formatter.format(currentTime);
+        String min;
+        min = dateString.substring(14, 16);
+        return Integer.parseInt(min);
+    }
+
     /**
      * get the Keycloak authorization token  from httpHeader;
-     * @return  string string
+     *
+     * @return string string
      */
     public static String getKeycloackToken() {
         //important
         ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if(null != requestAttributes) {
+        if (null != requestAttributes) {
             HttpServletRequest request = requestAttributes.getRequest();
             String keyCloackToken = request.getHeader("authorization");
 
             if (keyCloackToken == null) {
-                log.error("Failed to get token,request:{}",request);
+                log.error("Failed to get token,request:{}", request);
                 return null;
             } else {
                 return keyCloackToken;
@@ -99,22 +114,23 @@ public class CommonUtil {
         return null;
     }
 
-    public static String getUserId()throws KeycloakTokenException {
+    public static String getUserId() throws KeycloakTokenException {
 
         String token = getKeycloackToken();
-        if(null == token){
+        if (null == token) {
             throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
-        }else {
+        } else {
             return getUserId(token);
         }
     }
-    public static String getUserId(String token)throws KeycloakTokenException {
 
-        if(null == token){
+    public static String getUserId(String token) throws KeycloakTokenException {
+
+        if (null == token) {
             throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
-        }else{
+        } else {
             JSONObject jsonObject = decodeUserInfo(token);
-            if (jsonObject !=null){
+            if (jsonObject != null) {
                 String sub = (String) jsonObject.get("sub");
                 if (sub != null) {
                     log.debug("getUserId:{}", sub);
@@ -122,7 +138,7 @@ public class CommonUtil {
                 } else {
                     throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
                 }
-            }else {
+            } else {
                 log.info("jsonObject is null");
                 throw new KeycloakTokenException("400-Bad request:can't get jsonObject info from header,please check");
             }
@@ -144,7 +160,6 @@ public class CommonUtil {
     }
 
 
-
     public static String readRequestAsChars(HttpServletRequest request) {
 
         StringBuilder sb = new StringBuilder();
@@ -160,21 +175,21 @@ public class CommonUtil {
         return sb.toString();
     }
 
-    public static String getUsername(String token)throws KeycloakTokenException {
+    public static String getUsername(String token) throws KeycloakTokenException {
 
-        if(null == token){
+        if (null == token) {
             throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
-        }else{
+        } else {
             JSONObject jsonObject = decodeUserInfo(token);
             if (jsonObject != null) {
                 String username = (String) jsonObject.get("preferred_username");
-            if(username!=null){
-                log.info("getUsername:{}", username);
-                return username;
-            }else{
-                throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
-            }
-            }else {
+                if (username != null) {
+                    log.info("getUsername:{}", username);
+                    return username;
+                } else {
+                    throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
+                }
+            } else {
                 log.info("jsonObject is null");
                 throw new KeycloakTokenException("400-Bad request:can't get jsonObject info from header,please check");
             }
@@ -182,45 +197,46 @@ public class CommonUtil {
     }
 
 
-    public static ReturnMsg preCheckParam(EipAllocateParam param){
+    public static ReturnMsg preCheckParam(EipAllocateParam param) {
         String errorMsg = " ";
-        if(null == param){
-            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
+        if (null == param) {
+            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, "Failed to get param.");
         }
-        if((0 >= param.getBandwidth()) || (param.getBandwidth() > 500)){
+        if ((0 >= param.getBandwidth()) || (param.getBandwidth() > 500)) {
             errorMsg = "value must be 1-500.";
         }
-        if(null != param.getChargeMode()) {
-            if (!param.getChargeMode().equalsIgnoreCase(HsConstants.BANDWIDTH) && !param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
-                errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
+        if (null != param.getChargeMode()) {
+            if (!param.getChargeMode().equalsIgnoreCase(HsConstants.BANDWIDTH) && !param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)
+                    && !param.getChargeMode().equals(HsConstants.CHARGE_MODE_TRAFFIC)) {
+                errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth,Traffic is allowed. ";
             }
-            if(param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH) && (null == param.getSbwId())) {
+            if (param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH) && (null == param.getSbwId())) {
                 errorMsg = errorMsg + "SharedBandwidth id is needed in SharedBandwidth charge mode and sbwId not null ";
             }
         }
 
-        if(null != param.getBillType()) {
+        if (null != param.getBillType()) {
             if (!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
                 errorMsg = errorMsg + "Only monthly,hourlySettlement is allowed. ";
             }
         }
-        if(param.getRegion().isEmpty()){
+        if (param.getRegion().isEmpty()) {
             errorMsg = errorMsg + "can not be blank.";
         }
         String tp = param.getIpType();
-        if(null != tp) {
+        if (null != tp) {
             if (!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") &&
                     !tp.equals("5_union") && !tp.equals("BGP")) {
                 errorMsg = errorMsg + "Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
             }
-        }else{
+        } else {
             errorMsg = errorMsg + "Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
         }
-        if(errorMsg.equals(" ")) {
+        if (errorMsg.equals(" ")) {
             return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
-        }else {
+        } else {
             log.error(errorMsg);
-            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,errorMsg);
+            return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, errorMsg);
         }
     }
 
