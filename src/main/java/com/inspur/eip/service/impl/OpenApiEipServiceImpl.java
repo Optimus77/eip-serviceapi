@@ -296,7 +296,7 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
     }
 
     @Override
-    public ResponseEntity OpenapiEipupdateBindwidth(OpenCreateEip openCreateEip, String token) {
+    public ResponseEntity OpenapiEipupdateBandwidth(OpenCreateEip openCreateEip, String token) {
 
         if (StringUtils.isBlank(openCreateEip.getEipId())) {
             throw new EipInternalServerException(ErrorStatus.EIP_ID_EMPTY.getCode(),ErrorStatus.EIP_ID_EMPTY.getMessage());
@@ -362,7 +362,7 @@ public  class OpenApiEipServiceImpl implements OpenApiService {
 
 //        购买并绑定IPTS是按需，需要计费；使用已有IPTS按需和报年报月都支持，不需要计费
     @Override
-    public ResponseEntity OpenapicreateIptsBindEip(OpenCreateEip openCreateEip, String token) {
+    public ResponseEntity OpenapicreateIptsBandEip(OpenCreateEip openCreateEip, String token) {
 
         if (StringUtils.isBlank(openCreateEip.getBandwidth())) {
             throw new EipInternalServerException(ErrorStatus.EIP_BANDWIDTH_EMPTY.getCode(),ErrorStatus.EIP_BANDWIDTH_EMPTY.getMessage());

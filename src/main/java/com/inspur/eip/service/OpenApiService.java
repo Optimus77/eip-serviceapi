@@ -40,7 +40,7 @@ public interface OpenApiService {
      * Openapi update eip bandwidth
      * @return the json result
      */
-    ResponseEntity OpenapiEipupdateBindwidth(OpenCreateEip openCreateEip, String token);
+    ResponseEntity OpenapiEipupdateBandwidth(OpenCreateEip openCreateEip, String token);
 
 
 
@@ -48,6 +48,6 @@ public interface OpenApiService {
      * Openapi update eip bandwidth
      * @return the json result
      */
-    ResponseEntity OpenapicreateIptsBindEip(OpenCreateEip openCreateEip, String token);
+    ResponseEntity OpenapicreateIptsBandEip(OpenCreateEip openCreateEip, String token);
 
 }

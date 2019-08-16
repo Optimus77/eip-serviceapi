@@ -98,9 +98,9 @@ public class OpenApiEipController {
     }
 
     @PermissionContext(whitelist=true)
-    @PutMapping("/eips/updateBindwidth")
+    @PutMapping("/eips/updateBandwidth")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity OpenApiEipupdateBindWidth( @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
+    public ResponseEntity OpenApiEipUpdateBandWidth( @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
         log.info("Allocate a eip:{}.", openCreateEip.toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
@@ -111,13 +111,13 @@ public class OpenApiEipController {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
                     HttpStatus.BAD_REQUEST);
         }
-        return openApiService.OpenapiEipupdateBindwidth(openCreateEip, CommonUtil.getKeycloackToken());
+        return openApiService.OpenapiEipupdateBandwidth(openCreateEip, CommonUtil.getKeycloackToken());
     }
 
     @PermissionContext(whitelist=true)
-    @PostMapping("/eips/createIptsBindEip")
+    @PostMapping("/eips/createIptsBandEip")
     @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity OpenApicreateIptsBindEip( @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
+    public ResponseEntity OpenApicreateIptsBandEip( @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
         log.info("Allocate a eip:{}.", openCreateEip.toString());
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
@@ -128,7 +128,7 @@ public class OpenApiEipController {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
                     HttpStatus.BAD_REQUEST);
         }
-        return openApiService.OpenapicreateIptsBindEip(openCreateEip, CommonUtil.getKeycloackToken());
+        return openApiService.OpenapicreateIptsBandEip(openCreateEip, CommonUtil.getKeycloackToken());
     }
 
 }
