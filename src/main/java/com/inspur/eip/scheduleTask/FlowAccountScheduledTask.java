@@ -59,17 +59,20 @@ public class FlowAccountScheduledTask {
     public void oneHourReportFlowAccount(){
         try {
             List<Eip> trafficEips = eipDaoService.findFlowAccountEipList("Traffic");
-            for (Eip eip : trafficEips) {
-                Map<String, Long> map = flowService.staticsFlowByPeriod(60, eip.getEipAddress(),  "lasthour", eip.getFirewallId());
-                if (map.containsKey(HillStoneConfigConsts.UP_TYPE)){
-                    Long up = map.get(HillStoneConfigConsts.UP_TYPE);
-                    Long down = map.get(HillStoneConfigConsts.DOWN_TYPE);
-                    Long sum = map.get(HillStoneConfigConsts.SUM_TYPE);
-                    FlowAccount2Bss flowBean = flowService.getFlowAccount2BssBean(eip, up, down, sum);
+            if (trafficEips!=null && trafficEips.size()>0){
+                for (Eip eip : trafficEips) {
+                    Map<String, Long> map = flowService.staticsFlowByPeriod(60, eip.getEipAddress(),  "lasthour", eip.getFirewallId());
+                    if (map.containsKey(HillStoneConfigConsts.UP_TYPE)){
+                        Long up = map.get(HillStoneConfigConsts.UP_TYPE);
+                        Long down = map.get(HillStoneConfigConsts.DOWN_TYPE);
+                        Long sum = map.get(HillStoneConfigConsts.SUM_TYPE);
+                        FlowAccount2Bss flowBean = flowService.getFlowAccount2BssBean(eip, up, down, sum);
 
-                    flowService.sendOrderMessageToBss(flowBean);
+                        flowService.sendOrderMessageToBss(flowBean);
+                    }
                 }
             }
+            return;
         } catch (Exception e) {
             log.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()+":{}",e.getMessage());
         }
