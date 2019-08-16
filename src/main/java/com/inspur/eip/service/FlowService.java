@@ -3,12 +3,14 @@ package com.inspur.eip.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.bss.FlowAccount2Bss;
 import com.inspur.eip.entity.bss.FlowAccountProductList;
+import com.inspur.eip.entity.bss.OrderProduct;
 import com.inspur.eip.entity.bss.OrderProductItem;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.exception.EipBadRequestException;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HillStoneConfigConsts;
+import com.inspur.eip.util.constant.HsConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
@@ -145,21 +147,38 @@ public class FlowService {
         product.setInstanceId(eip.getId());
 
         List<OrderProductItem> itemList = new ArrayList<>();
+
+        OrderProductItem bandwidth = new OrderProductItem();
+        bandwidth.setCode(HsConstants.BANDWIDTH);
+        bandwidth.setValue(String.valueOf(eip.getBandWidth()));
+        //暂时只传上行流量
         OrderProductItem upItem = new OrderProductItem();
         upItem.setCode(HillStoneConfigConsts.UP_TYPE);
         upItem.setValue(String.valueOf(up));
 
-        OrderProductItem downItem = new OrderProductItem();
-        upItem.setCode(HillStoneConfigConsts.DOWN_TYPE);
-        upItem.setValue(String.valueOf(down));
+        OrderProductItem provider = new OrderProductItem();
+        provider.setCode(HsConstants.PROVIDER);
+        provider.setValue(eip.getIpType());
 
-        OrderProductItem sumItem = new OrderProductItem();
-        upItem.setCode(HillStoneConfigConsts.SUM_TYPE);
-        upItem.setValue(String.valueOf(sum));
+        OrderProductItem ip = new OrderProductItem();
+        ip.setCode(HsConstants.IP);
+        ip.setValue("1");
 
+        OrderProductItem isSbw = new OrderProductItem();
+        isSbw.setCode(HsConstants.IS_SBW);
+        isSbw.setValue("no");
+
+//        OrderProductItem downItem = new OrderProductItem();
+//        upItem.setCode(HillStoneConfigConsts.DOWN_TYPE);
+//        upItem.setValue(String.valueOf(down));
+
+
+        itemList.add(bandwidth);
         itemList.add(upItem);
-        itemList.add(downItem);
-        itemList.add(sumItem);
+        itemList.add(provider);
+        itemList.add(ip);
+        itemList.add(isSbw);
+//        itemList.add(downItem);
         product.setItemList(itemList);
 
         flowBean.setProductList(productLists);
