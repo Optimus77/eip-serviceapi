@@ -39,6 +39,7 @@ public class EipConstant {
     public static final String ACTION_EIP_ADD_SBW = "EipAddSbw";
     public static final String CHARGEMODE_SHARE_BANDWIDTH = "SharedBandwidth";
     public static final String CHARGEMODE_BANDWIDTH = "Bandwidth";
+    public static final String ORDER_SOURCE_CONSOLE = "console";
 
     public static final String ACTION_CREATE_EIPV6 = "CreateIptsBindEip";
 
