@@ -75,7 +75,6 @@ dependencies {
     runtime('org.springframework.boot:spring-boot-devtools')
     runtime('mysql:mysql-connector-java')
 
-    compile group: 'ch.ethz.ganymed', name: 'ganymed-ssh2', version: '262'
     compileOnly('org.projectlombok:lombok')
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('org.springframework.security:spring-security-test')
