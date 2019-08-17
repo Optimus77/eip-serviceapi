@@ -143,9 +143,7 @@ public class EipDaoService {
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
             }
-            if ((null != eipEntity.getPipId())
-                    || (null != eipEntity.getDnatId())
-                    || (null != eipEntity.getSnatId())) {
+            if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
                 msg = "Failed to delete eip,please unbind eip first." + eipEntity.toString();
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
