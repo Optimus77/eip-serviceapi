@@ -382,10 +382,12 @@ public class OpenApiEipServiceImpl implements OpenApiService {
             paramMap.put("userId", CommonUtil.getUserId(token));
             paramMap.put("region", regionCode);
             paramMap.put("productLineCode", EipConstant.PRODUCT_LINE_CODE);
+            paramMap.put("productTypeCode", EipConstant.PRODUCT_TYPE_CODE);
+            paramMap.put("billType", openCreateEip.getBillType());
             ResponseEntity responseEntity = HttpClientUtil.doGet(bssQuotaUrl, paramMap, HttpsClientUtil.getHeader());
             JSONObject responseBodyJson = JSONObject.parseObject(responseEntity.getBody().toString());
             if ("0".equals(responseBodyJson.getString("code"))) {
-                if (Integer.parseInt(responseBodyJson.getJSONObject("result").getJSONArray("quotaList").getJSONObject(0).getString("leftNumber")) == 0) {
+                if ((Integer.parseInt(responseBodyJson.getJSONObject("result").getJSONArray("data").getJSONObject(0).getJSONArray("typeList").getJSONObject(0).getString("totalAmount")) - Integer.parseInt(responseBodyJson.getJSONObject("result").getJSONArray("data").getJSONObject(0).getJSONArray("typeList").getJSONObject(0).getString("usedAmount"))) <= 0) {
                     throw new EipInternalServerException(ErrorStatus.EIP_EXCEED_QUOTA.getCode(), ErrorStatus.EIP_EXCEED_QUOTA.getMessage());
                 }
             } else {
