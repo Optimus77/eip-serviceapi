@@ -51,6 +51,9 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
                 throw new EipInternalServerException(ErrorStatus.SBW_INVALID_BILL_TYPE.getCode(), ErrorStatus.SBW_INVALID_BILL_TYPE.getMessage());
             }
         }
+        if(Integer.parseInt(openCreateEip.getBandwidth())<5||Integer.parseInt(openCreateEip.getBandwidth())>500){
+            throw new EipInternalServerException(ErrorStatus.SBW_BANDWIDTH_ERROR.getCode(), ErrorStatus.SBW_BANDWIDTH_ERROR.getMessage());
+        }
 
         //查询用户配额
         Map<String, String> paramMap = new HashMap<>();
