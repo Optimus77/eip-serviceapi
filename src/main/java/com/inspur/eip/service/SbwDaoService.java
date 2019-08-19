@@ -34,6 +34,9 @@ public class SbwDaoService {
     @Value("${firewall.id}")
     private String firewallId;
 
+    @Value("${firewall.type}")
+    private String type;
+
     @Autowired
     private SbwRepository sbwRepository;
 
