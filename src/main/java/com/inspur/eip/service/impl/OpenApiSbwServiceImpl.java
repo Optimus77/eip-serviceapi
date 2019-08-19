@@ -61,10 +61,12 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
             paramMap.put("userId", CommonUtil.getUserId(token));
             paramMap.put("region", regionCode);
             paramMap.put("productLineCode", EipConstant.PRODUCTLINE_CODE);
+            paramMap.put("productTypeCode", EipConstant.PRODUCTTYPE_CODE);
+            paramMap.put("billType", openCreateEip.getBillType());
             ResponseEntity responseEntity = HttpClientUtil.doGet(bssQuotaUrl, paramMap, HttpsClientUtil.getHeader());
             JSONObject responseBodyJson = JSONObject.parseObject(responseEntity.getBody().toString());
             if ("0".equals(responseBodyJson.getString("code"))) {
-                if (Integer.parseInt(responseBodyJson.getJSONObject("result").getJSONArray("quotaList").getJSONObject(0).getString("leftNumber")) == 0) {
+                if ((Integer.parseInt(responseBodyJson.getJSONObject("result").getJSONArray("data").getJSONObject(0).getJSONArray("typeList").getJSONObject(0).getString("totalAmount"))-Integer.parseInt(responseBodyJson.getJSONObject("result").getJSONArray("data").getJSONObject(0).getJSONArray("typeList").getJSONObject(0).getString("usedAmount"))) <= 0) {
                     throw new EipInternalServerException(ErrorStatus.SBW_EXCEED_QUOTA.getCode(), ErrorStatus.SBW_EXCEED_QUOTA.getMessage());
                 }
             } else {
