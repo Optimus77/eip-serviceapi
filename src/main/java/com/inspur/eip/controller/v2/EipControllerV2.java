@@ -201,10 +201,14 @@ public class EipControllerV2 {
         return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
     }
 
+    @ResourceContext(
+            service= IEipService.class,
+            method="getEipById")
     @PermissionContext(
             service="eip",
             action="UpdateEip",
-            resourceType="instance")
+            resourceType="instance",
+            resource="{eipId}")
     @PutMapping(value = "/eips/{eip_id}/action/{action}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eip", notes = "put")

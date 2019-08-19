@@ -161,10 +161,14 @@ public class SbwControllerV2 {
      * modify sbw name
      * @return ret
      */
+    @ResourceContext(
+            service= ISbwService.class,
+            method="getSbwById")
     @PermissionContext(
             service="sbw",
             action="UpdateSbw",
-            resourceType="instance")
+            resourceType="instance",
+            resource="{sbwId}")
     @ICPControllerLog
     @PutMapping(value = "/sbws/{sbw_id}/action/rename", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
