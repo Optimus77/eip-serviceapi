@@ -48,7 +48,94 @@ public class OpenApiSbwController {
         return openApiSbwService.OpenapiCreateSbw(openCreateEip, CommonUtil.getKeycloackToken());
     }
 
+    @PermissionContext(whitelist=true)
+    @DeleteMapping("/eips/deleteSbw")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity OpenApiDeleteSbw( @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
+        log.info("Delete a sbw:{}.", openCreateEip.toString());
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+                    HttpStatus.BAD_REQUEST);
+        }
+        return openApiSbwService.OpenapiDeleteSbw(openCreateEip, CommonUtil.getKeycloackToken());
+    }
 
+
+    @PermissionContext(whitelist=true)
+    @PutMapping("/eips/eipAddSbw")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity OpenApiEipAddSbw( @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
+        log.info("Add eip:{} to sbw:{}.", openCreateEip.getEipId(),openCreateEip.getSbwId());
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+                    HttpStatus.BAD_REQUEST);
+        }
+        return openApiSbwService.OpenapiEipAddSbw(openCreateEip, CommonUtil.getKeycloackToken());
+    }
+
+
+    @PermissionContext(whitelist=true)
+    @PutMapping("/eips/eipRemoveSbw")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity OpenApiEipRemoveSbw( @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
+        log.info("Remove eip:{} from sbw:{}.", openCreateEip.getEipId(),openCreateEip.getSbwId());
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+                    HttpStatus.BAD_REQUEST);
+        }
+        return openApiSbwService.OpenapiEipRemoveSbw(openCreateEip, CommonUtil.getKeycloackToken());
+    }
+
+
+    @PermissionContext(whitelist=true)
+    @PutMapping("/eips/renewSbw")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity OpenApirenewEip( @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
+        log.info("renew a sbw:{}.", openCreateEip.toString());
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+                    HttpStatus.BAD_REQUEST);
+        }
+        return openApiSbwService.OpenapiRenewSbw(openCreateEip, CommonUtil.getKeycloackToken());
+    }
+
+
+    @PermissionContext(whitelist=true)
+    @PutMapping("/eips/updateSbwBandwidth")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity OpenApiSbwupdateBandWidth( @RequestBody OpenCreateEip openCreateEip, BindingResult result) {
+        log.info("Update bandwidth of a sbw:{}.", openCreateEip.toString());
+        if (result.hasErrors()) {
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
+                    HttpStatus.BAD_REQUEST);
+        }
+        return openApiSbwService.OpenapiSbwUpdateBandwidth(openCreateEip, CommonUtil.getKeycloackToken());
+    }
 
 
 

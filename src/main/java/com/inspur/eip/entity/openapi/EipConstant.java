@@ -41,6 +41,9 @@ public class EipConstant {
     public static final String CHARGEMODE_BANDWIDTH = "Bandwidth";
     public static final String ORDER_SOURCE_CONSOLE = "console";
 
+    public static final String STATUC_TRUE = "true";
+    public static final String STATUC_FALSE = "false";
+
     public static final String ACTION_CREATE_EIPV6 = "CreateIptsBindEip";
 
 }

@@ -29,6 +29,7 @@ public class Order {
     private String isAutoRenew;
     private JSONObject consoleCustomization;
     private String totalMoney;
+    private String isAutoDeducted;
     private List<Product> originalProductList;
     private List<Product> productList;
 }
