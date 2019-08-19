@@ -55,6 +55,10 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
             throw new EipInternalServerException(ErrorStatus.SBW_BANDWIDTH_ERROR.getCode(), ErrorStatus.SBW_BANDWIDTH_ERROR.getMessage());
         }
 
+        String duration = "1";
+        if(EipConstant.BILLTYPE_MONTHLY.equals(openCreateEip.getBillType()))
+            duration = openCreateEip.getDuration();
+
         //查询用户配额
         Map<String, String> paramMap = new HashMap<>();
         try {
@@ -90,6 +94,7 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
                 .availableZone("")
                 .productTypeCode(EipConstant.PRODUCTTYPE_CODE)
                 .instanceCount("1")
+                .instanceId(null)
                 .itemList(items)
                 .build();
         List<Product> products = new ArrayList<>();
@@ -100,7 +105,7 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
         consoleJson.put("billType", openCreateEip.getBillType());
         consoleJson.put("chargemode", "SharedBandwidth");
         consoleJson.put("bandwidth", openCreateEip.getBandwidth());
-        consoleJson.put("duration", openCreateEip.getDuration());
+        consoleJson.put("duration", duration);
         consoleJson.put("durationUnit", "hourlySettlement".equalsIgnoreCase(openCreateEip.getBillType()) ? "H" : "M");
         consoleJson.put("sharedbandwidthname", openCreateEip.getSbwName());
 
@@ -113,7 +118,7 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
                     .setCount("1")
                     .consoleOrderFlowId(UUID.randomUUID().toString().replaceAll("-", ""))
                     .billType(openCreateEip.getBillType())
-                    .duration(openCreateEip.getDuration())
+                    .duration(duration)
                     .durationUnit("hourlySettlement".equalsIgnoreCase(openCreateEip.getBillType()) ? "H" : "M")
                     .orderWhat(EipConstant.ORDER_WHAT_FORMAL)
                     .orderSource(EipConstant.ORDER_SOURCE_OPENAPI)
@@ -173,6 +178,7 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
                     .orderWhat(EipConstant.ORDER_WHAT_FORMAL)
                     .orderSource(EipConstant.ORDER_SOURCE_OPENAPI)
                     .orderType(EipConstant.ORDER_TYPE_UNSUNSCRIBE)
+                    .isAutoDeducted(EipConstant.STATUC_FALSE)
                     .productList(products)
                     .build();
             return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
@@ -654,10 +660,6 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
         }
         if ("is_SBW".equals(object.getString("code"))) {
             item.setValue("yes");
-            items.add(item);
-        }
-        if ("sbwName".equals(object.getString("code"))) {
-            item.setValue(sbwName);
             items.add(item);
         }
         if ("sbwId".equals(object.getString("code"))) {
