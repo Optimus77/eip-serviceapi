@@ -818,9 +818,9 @@ public class FirewallService {
         if (!control){
             sb.append(HillStoneConfigConsts.NO_SPACE);
         }
-        sb.append( HillStoneConfigConsts.ADDRESS_SPACE + entryName ).append(HillStoneConfigConsts.ENTER_END);
+        sb.append( HillStoneConfigConsts.ADDRESS_SPACE + entryName+ HillStoneConfigConsts.ADDRESSBOOK_SUBFIX ).append(HillStoneConfigConsts.ENTER_END);
         //        configure\r[no] address 192.168.1.11\rend
-        String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), null);
+        String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), "unrecognized keyword");
         if (StringUtils.isNotBlank(strResult) && strResult.contains("unrecognized keyword") ) {
             log.warn(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage()+":{}",strResult);
             return false;
@@ -841,8 +841,7 @@ public class FirewallService {
      */
     public boolean cmdInsertOrRemoveParamInAddressBook(String entryName, String param, String addressType, String fireWallId, boolean control) {
         StringBuilder sb = new StringBuilder();
-        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.ADDRESS_SPACE + entryName +HillStoneConfigConsts.SSH_ENTER);
-        sb.append(HillStoneConfigConsts.ENTER_END);
+        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.ADDRESS_SPACE + entryName + HillStoneConfigConsts.ADDRESSBOOK_SUBFIX +HillStoneConfigConsts.SSH_ENTER);
         if (!control){
             sb.append(HillStoneConfigConsts.NO_SPACE);
         }
@@ -873,11 +872,12 @@ public class FirewallService {
         }
         sb.append(HillStoneConfigConsts.ENTER_END);
 //        configure\raddress 192.168.1.10\rip 192.168.1.10/32\rend
-        String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), null);
+        String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), "unrecognized keyword");
         if (StringUtils.isNotBlank(strResult) && strResult.contains("already added")) {
-            log.warn("This param already added:{}",param);
+            log.warn("This param unrecognized in addressBook:{},failed:{}",entryName,param);
             return true;
         } else if (StringUtils.isBlank(strResult)) {
+            log.debug("This param add to addressBook:{}, success:{}",entryName,param);
             return true;
         }
         throw new EipInternalServerException(ErrorStatus.FIREWALL_DEAL_ADDRESS_BOOK_ERROR.getCode(),ErrorStatus.FIREWALL_DEAL_ADDRESS_BOOK_ERROR.getMessage());
@@ -897,9 +897,9 @@ public class FirewallService {
         if(!control){
             sb.append(HillStoneConfigConsts.NO_SPACE);
         }
-        sb.append(HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName+HillStoneConfigConsts.ENTER_END);
+        sb.append(HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName + HillStoneConfigConsts.ADDRESSBOOK_SUBFIX +HillStoneConfigConsts.ENTER_END);
 //        configure\r address 192.168.1.11\rend
-        String strResult = fireWallCommondService.execCustomCommand(firewallId, sb.toString(), null);
+        String strResult = fireWallCommondService.execCustomCommand(firewallId, sb.toString(), "unrecognized keyword");
         if (StringUtils.isNotBlank(strResult) && strResult.contains("unrecognized keyword")){
             log.warn(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage(),"statistics address book not exist");
             return false;
@@ -918,7 +918,7 @@ public class FirewallService {
      */
     public JSONObject cmdShowStatisticsByAddressBook( String entryName, String period, String fireWallId){
         StringBuilder sb = new StringBuilder();
-        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.SHOW_SPACE + HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName);
+        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.SHOW_SPACE + HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName +  HillStoneConfigConsts.ADDRESSBOOK_SUBFIX);
         switch (period){
             case "":
                 break;

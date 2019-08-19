@@ -19,6 +19,7 @@ public class HsConstants {
 	public static final String PROVIDER = "provider";
 	public static final String BANDWIDTH = "bandwidth";
 	public static final String TRANSFER = "transfer";
+	public static final String IP = "IP";
 	public static final String FAIL = "fail";
 	public static final String BINDING ="BINDING";
 	public static final String UNSUBSCRIBE = "unsubscribe";
