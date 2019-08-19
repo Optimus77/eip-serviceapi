@@ -818,7 +818,7 @@ public class FirewallService {
         if (!control){
             sb.append(HillStoneConfigConsts.NO_SPACE);
         }
-        sb.append( HillStoneConfigConsts.ADDRESS_SPACE + entryName ).append(HillStoneConfigConsts.ENTER_END);
+        sb.append( HillStoneConfigConsts.ADDRESS_SPACE + entryName+ HillStoneConfigConsts.ADDRESSBOOK_SUBFIX ).append(HillStoneConfigConsts.ENTER_END);
         //        configure\r[no] address 192.168.1.11\rend
         String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), "unrecognized keyword");
         if (StringUtils.isNotBlank(strResult) && strResult.contains("unrecognized keyword") ) {
@@ -841,7 +841,7 @@ public class FirewallService {
      */
     public boolean cmdInsertOrRemoveParamInAddressBook(String entryName, String param, String addressType, String fireWallId, boolean control) {
         StringBuilder sb = new StringBuilder();
-        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.ADDRESS_SPACE + entryName +HillStoneConfigConsts.SSH_ENTER);
+        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.ADDRESS_SPACE + entryName + HillStoneConfigConsts.ADDRESSBOOK_SUBFIX +HillStoneConfigConsts.SSH_ENTER);
         if (!control){
             sb.append(HillStoneConfigConsts.NO_SPACE);
         }
@@ -897,7 +897,7 @@ public class FirewallService {
         if(!control){
             sb.append(HillStoneConfigConsts.NO_SPACE);
         }
-        sb.append(HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName+HillStoneConfigConsts.ENTER_END);
+        sb.append(HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName + HillStoneConfigConsts.ADDRESSBOOK_SUBFIX +HillStoneConfigConsts.ENTER_END);
 //        configure\r address 192.168.1.11\rend
         String strResult = fireWallCommondService.execCustomCommand(firewallId, sb.toString(), "unrecognized keyword");
         if (StringUtils.isNotBlank(strResult) && strResult.contains("unrecognized keyword")){
@@ -918,7 +918,7 @@ public class FirewallService {
      */
     public JSONObject cmdShowStatisticsByAddressBook( String entryName, String period, String fireWallId){
         StringBuilder sb = new StringBuilder();
-        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.SHOW_SPACE + HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName);
+        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.SHOW_SPACE + HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName +  HillStoneConfigConsts.ADDRESSBOOK_SUBFIX);
         switch (period){
             case "":
                 break;

@@ -65,5 +65,6 @@ public class HillStoneConfigConsts {
     public static final String DOWN_TYPE= "DOWN";
     public static final String SUM_TYPE= "SUM";
 
+    public static final String ADDRESSBOOK_SUBFIX= "_statis";
 
 }
