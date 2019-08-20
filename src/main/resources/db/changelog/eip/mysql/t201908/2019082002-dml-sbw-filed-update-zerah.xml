@@ -1,0 +1,14 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+
+    <changeSet author="zerah" id="201908200201">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="sbw" columnName="user_name"></columnExists>
+        </preConditions>
+        <renameColumn catalogName="icp_eip" columnDataType="varchar(128)" newColumnName="project_name" oldColumnName="user_name" schemaName="public" tableName="sbw"/>
+    </changeSet>
+</databaseChangeLog>
