@@ -398,7 +398,7 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
     @Override
     public ResponseEntity OpenapiSbwUpdateBandwidth(OpenCreateEip openCreateEip, String token) {
 
-        if (StringUtils.isBlank(openCreateEip.getEipId())) {
+        if (StringUtils.isBlank(openCreateEip.getSbwId())) {
             throw new EipInternalServerException(ErrorStatus.SBW_ID_EMPTY.getCode(),ErrorStatus.SBW_ID_EMPTY.getMessage());
         }
         if (StringUtils.isBlank(openCreateEip.getBandwidth())) {

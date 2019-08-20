@@ -303,7 +303,7 @@ public class OpenApiEipServiceImpl implements OpenApiService {
         if (StringUtils.isBlank(openCreateEip.getEipId())) {
             throw new EipInternalServerException(ErrorStatus.EIP_ID_EMPTY.getCode(), ErrorStatus.EIP_ID_EMPTY.getMessage());
         }
-        if (StringUtils.isBlank(openCreateEip.getNewBandwidth())) {
+        if (StringUtils.isBlank(openCreateEip.getBandwidth())) {
             throw new EipInternalServerException(ErrorStatus.EIP_BANDWIDTH_EMPTY.getCode(), ErrorStatus.EIP_BANDWIDTH_EMPTY.getMessage());
         }
 //      比较更新前后带宽大小；按需可以调大调小,包年包月只能调大
@@ -311,7 +311,7 @@ public class OpenApiEipServiceImpl implements OpenApiService {
         if (optionalEip.isPresent()) {
             Eip eipEntity = optionalEip.get();
             if (EipConstant.BILLTYPE_MONTHLY.equals(eipEntity.getBillType())) {
-                String str = openCreateEip.getNewBandwidth();
+                String str = openCreateEip.getBandwidth();
                 if (str != null) {
                     Integer newBandwidth = Integer.valueOf(str);
                     if (newBandwidth <= eipEntity.getBandWidth()) {
@@ -325,7 +325,7 @@ public class OpenApiEipServiceImpl implements OpenApiService {
             JSONArray itemArraryList = getUserProductItems(token);
             if (null != itemArraryList && !itemArraryList.isEmpty()) {
                 for (int i = 0; i < itemArraryList.size(); i++) {
-                    buildItemList(newItems, itemArraryList, i, openCreateEip.getNewBandwidth(), openCreateEip.getSbwName(), openCreateEip.getSbwId());
+                    buildItemList(newItems, itemArraryList, i, openCreateEip.getBandwidth(), openCreateEip.getSbwName(), openCreateEip.getSbwId());
                 }
             }
             Product product = Product.builder()
