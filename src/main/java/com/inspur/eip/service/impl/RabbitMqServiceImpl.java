@@ -155,7 +155,7 @@ public class RabbitMqServiceImpl {
                     response = eipDaoService.deleteEip(eipId, eipOrder.getToken());
                 }
                 if (response.isSuccess()) {
-                    if (eipOrder.getConsoleCustomization().containsKey("operateType") &&
+                    if (null != eipOrder.getConsoleCustomization() && eipOrder.getConsoleCustomization().containsKey("operateType") &&
                             eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")) {
                         webService.returnsIpv6Websocket("Success", "deleteNatWithEip", eipOrder.getToken());
                     } else {
