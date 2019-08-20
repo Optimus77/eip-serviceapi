@@ -212,12 +212,6 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
             throw new EipInternalServerException(ErrorStatus.SBW_NOT_FOUND.getCode(), ErrorStatus.SBW_NOT_FOUND.getMessage());
         }
 
-        //获取sbw的计费类型
-        String billType = getBillType(openCreateEip);
-        if (StringUtils.isBlank(billType)) {
-            throw new EipInternalServerException(ErrorStatus.SBW_NOT_FOUND.getCode(), ErrorStatus.SBW_NOT_FOUND.getMessage());
-        }
-
 
         List<Item> items = new ArrayList<>();
         JSONArray itemArraryList = getUserProductItemsEipAddSbw(token);
@@ -245,7 +239,7 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
                     .orderRoute(EipConstant.ORDER_ROUTE)
                     .setCount("1")
                     .consoleOrderFlowId(UUID.randomUUID().toString().replaceAll("-", ""))
-                    .billType(billType)
+                    .billType("hourlySettlement")
                     .duration("1")
                     .durationUnit("H")
                     .orderWhat(EipConstant.ORDER_WHAT_FORMAL)
@@ -285,11 +279,6 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
             throw new EipInternalServerException(ErrorStatus.SBW_NOT_FOUND.getCode(), ErrorStatus.SBW_NOT_FOUND.getMessage());
         }
 
-        //获取sbw的计费类型
-        String billType = getBillType(openCreateEip);
-        if (StringUtils.isBlank(billType)) {
-            throw new EipInternalServerException(ErrorStatus.SBW_NOT_FOUND.getCode(), ErrorStatus.SBW_NOT_FOUND.getMessage());
-        }
 
         List<Item> items = new ArrayList<>();
         JSONArray itemArraryList = getUserProductItemsEipAddSbw(token);
@@ -317,7 +306,7 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
                     .orderRoute(EipConstant.ORDER_ROUTE)
                     .setCount("1")
                     .consoleOrderFlowId(UUID.randomUUID().toString().replaceAll("-", ""))
-                    .billType(billType)
+                    .billType("hourlySettlement")
                     .duration("1")
                     .durationUnit("H")
                     .orderWhat(EipConstant.ORDER_WHAT_FORMAL)
