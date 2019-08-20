@@ -180,7 +180,7 @@ public class FlowService {
         itemList.add(isSbw);
 //        itemList.add(downItem);
         product.setItemList(itemList);
-
+        productLists.add(product);
         flowBean.setProductList(productLists);
         return flowBean;
     }
