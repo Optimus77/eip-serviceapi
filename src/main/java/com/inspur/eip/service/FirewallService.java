@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
@@ -33,7 +34,8 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-public class FirewallService {
+@ConditionalOnProperty(value = "firewall.type",havingValue = "hillstone")
+public class FirewallService implements IDevProvider{
 
 
     @Value("${firewall.ip}")
@@ -110,7 +112,7 @@ public class FirewallService {
     }
 
 
-    String addDnat(String innerip, String extip, String equipid) {
+    public String addDnat(String innerip, String extip, String equipid) {
         String ruleid = cmdAddDnat(innerip, extip, equipid);
         if (ruleid != null) {
             return ruleid;
@@ -152,7 +154,7 @@ public class FirewallService {
         return ruleid;
     }
 
-    String addSnat(String innerip, String extip, String equipid) {
+    public String addSnat(String innerip, String extip, String equipid) {
 
         String ruleid = cmdAddSnat(innerip, extip, equipid);
         if (ruleid != null) {
@@ -199,7 +201,7 @@ public class FirewallService {
     }
 
 
-    String addQos(String innerip, String name, String bandwidth, String fireWallId) {
+    public String addQos(String innerip, String name, String bandwidth, String fireWallId) {
         String pipid;
         String inBandWidth = "50";
         if (Integer.valueOf(bandwidth) > 50) {
@@ -219,7 +221,7 @@ public class FirewallService {
      * @param firewallId firewall id
      * @param bindwidth  bind width
      */
-    boolean updateQosBandWidth(String firewallId, String pipId, String pipNmae, String bindwidth, String fip, String eip) {
+    public boolean updateQosBandWidth(String firewallId, String pipId, String pipNmae, String bindwidth, String fip, String eip) {
 
         Firewall fwBean = getFireWallById(firewallId);
         if (fwBean != null) {
@@ -271,7 +273,7 @@ public class FirewallService {
      * @param devId devid
      * @return ret
      */
-    boolean delQos(String pipid, String eip, String fip, String devId) {
+    public boolean delQos(String pipid, String eip, String fip, String devId) {
         if (StringUtils.isNotEmpty(pipid)) {
             if (null != eip && null != fip && pipid.equals(getRootPipeName(fip))) {
                 return cmdDelQos(pipid, eip, devId);
@@ -293,7 +295,7 @@ public class FirewallService {
         return false;
     }
 
-    boolean delDnat(String ruleid, String devId) {
+    public boolean delDnat(String ruleid, String devId) {
         boolean bSuccess = true;
         if (cmdDelDnat(ruleid, devId)) {
             return true;
@@ -325,7 +327,7 @@ public class FirewallService {
         return bSuccess;
     }
 
-    boolean delSnat(String ruleid, String devId) {
+    public boolean delSnat(String ruleid, String devId) {
         boolean bSuccess = true;
         if (cmdDelSnat(ruleid, devId)) {
             return true;
@@ -359,7 +361,7 @@ public class FirewallService {
         return bSuccess;
     }
 
-    MethodReturn addNatAndQos(Eip eip, String fipAddress, String eipAddress, int bandWidth, String firewallId) {
+    public MethodReturn addNatAndQos(Eip eip, String fipAddress, String eipAddress, int bandWidth, String firewallId) {
         String pipId = null;
         String dnatRuleId = null;
         String snatRuleId = null;
@@ -417,7 +419,7 @@ public class FirewallService {
     }
 
 
-    MethodReturn delNatAndQos(Eip eipEntity) {
+    public MethodReturn delNatAndQos(Eip eipEntity) {
 
         String msg = null;
         String returnStat = "200";
@@ -818,9 +820,9 @@ public class FirewallService {
         if (!control){
             sb.append(HillStoneConfigConsts.NO_SPACE);
         }
-        sb.append( HillStoneConfigConsts.ADDRESS_SPACE + entryName ).append(HillStoneConfigConsts.ENTER_END);
+        sb.append( HillStoneConfigConsts.ADDRESS_SPACE + entryName+ HillStoneConfigConsts.ADDRESSBOOK_SUBFIX ).append(HillStoneConfigConsts.ENTER_END);
         //        configure\r[no] address 192.168.1.11\rend
-        String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), null);
+        String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), "unrecognized keyword");
         if (StringUtils.isNotBlank(strResult) && strResult.contains("unrecognized keyword") ) {
             log.warn(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage()+":{}",strResult);
             return false;
@@ -841,8 +843,7 @@ public class FirewallService {
      */
     public boolean cmdInsertOrRemoveParamInAddressBook(String entryName, String param, String addressType, String fireWallId, boolean control) {
         StringBuilder sb = new StringBuilder();
-        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.ADDRESS_SPACE + entryName +HillStoneConfigConsts.SSH_ENTER);
-        sb.append(HillStoneConfigConsts.ENTER_END);
+        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.ADDRESS_SPACE + entryName + HillStoneConfigConsts.ADDRESSBOOK_SUBFIX +HillStoneConfigConsts.SSH_ENTER);
         if (!control){
             sb.append(HillStoneConfigConsts.NO_SPACE);
         }
@@ -873,11 +874,12 @@ public class FirewallService {
         }
         sb.append(HillStoneConfigConsts.ENTER_END);
 //        configure\raddress 192.168.1.10\rip 192.168.1.10/32\rend
-        String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), null);
+        String strResult = fireWallCommondService.execCustomCommand(fireWallId, sb.toString(), "unrecognized keyword");
         if (StringUtils.isNotBlank(strResult) && strResult.contains("already added")) {
-            log.warn("This param already added:{}",param);
+            log.warn("This param unrecognized in addressBook:{},failed:{}",entryName,param);
             return true;
         } else if (StringUtils.isBlank(strResult)) {
+            log.debug("This param add to addressBook:{}, success:{}",entryName,param);
             return true;
         }
         throw new EipInternalServerException(ErrorStatus.FIREWALL_DEAL_ADDRESS_BOOK_ERROR.getCode(),ErrorStatus.FIREWALL_DEAL_ADDRESS_BOOK_ERROR.getMessage());
@@ -897,9 +899,9 @@ public class FirewallService {
         if(!control){
             sb.append(HillStoneConfigConsts.NO_SPACE);
         }
-        sb.append(HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName+HillStoneConfigConsts.ENTER_END);
+        sb.append(HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName + HillStoneConfigConsts.ADDRESSBOOK_SUBFIX +HillStoneConfigConsts.ENTER_END);
 //        configure\r address 192.168.1.11\rend
-        String strResult = fireWallCommondService.execCustomCommand(firewallId, sb.toString(), null);
+        String strResult = fireWallCommondService.execCustomCommand(firewallId, sb.toString(), "unrecognized keyword");
         if (StringUtils.isNotBlank(strResult) && strResult.contains("unrecognized keyword")){
             log.warn(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage(),"statistics address book not exist");
             return false;
@@ -918,7 +920,7 @@ public class FirewallService {
      */
     public JSONObject cmdShowStatisticsByAddressBook( String entryName, String period, String fireWallId){
         StringBuilder sb = new StringBuilder();
-        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.SHOW_SPACE + HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName);
+        sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.SHOW_SPACE + HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName +  HillStoneConfigConsts.ADDRESSBOOK_SUBFIX);
         switch (period){
             case "":
                 break;

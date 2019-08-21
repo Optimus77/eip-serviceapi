@@ -77,7 +77,7 @@
             <column name="created_time" type="datetime" remarks="创建时间"/>
             <column name="duration" type="VARCHAR(4)" remarks="购买时长"/>
             <column name="is_delete" type="INT(11)" remarks="是否软删除"/>
-            <column name="pip_id" type="VARCHAR(36)" remarks="QOS规则"/>
+            <column name="pipe_id" type="VARCHAR(36)" remarks="QOS规则"/>
             <column name="project_id" type="VARCHAR(36)" remarks="项目ID"/>
             <column name="project_name" type="VARCHAR(128)" remarks="项目名称"/>
             <column name="region" type="VARCHAR(36)" remarks="Openstack的域"/>

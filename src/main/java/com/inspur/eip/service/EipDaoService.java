@@ -39,6 +39,8 @@ public class EipDaoService {
     @Value("${fipNetworkId}")
     private String flpnetworkId;
 
+    @Value("${firewall.type}")
+    private String type;
 
     @Autowired
     private EipPoolRepository eipPoolRepository;
@@ -49,8 +51,8 @@ public class EipDaoService {
     @Autowired
     private EipRepository eipRepository;
 
-    @Autowired
-    private FirewallService firewallService;
+    //@Autowired
+    private IDevProvider firewallService;
 
     @Autowired
     private NeutronService neutronService;
@@ -63,6 +65,17 @@ public class EipDaoService {
 
     @Autowired
     private FlowService flowService;
+
+    EipDaoService(){
+        if(type=="hillstone")
+        {
+            firewallService = new FirewallService();
+        }
+        if(type=="lb")
+        {
+            firewallService = new FirewallService();
+        }
+    }
 
 
     /**
@@ -143,9 +156,7 @@ public class EipDaoService {
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
             }
-            if ((null != eipEntity.getPipId())
-                    || (null != eipEntity.getDnatId())
-                    || (null != eipEntity.getSnatId())) {
+            if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
                 msg = "Failed to delete eip,please unbind eip first." + eipEntity.toString();
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
@@ -178,19 +189,9 @@ public class EipDaoService {
                     return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 }
             }
-            //删除 监控集和地址簿，需要保证顺序执行，否则无法删除地址簿
+            //删除 监控集和地址簿，需保证关联的监控集已经删掉，否则无法删除地址簿
             if(HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
-                //删除前向bss发送流量统计数据
-                int i = CommonUtil.countMinuteFromPoint();
-                //如果是整点，则以定时任务为准
-                if (i !=0){
-                    flowService.releaseReportFlowAccount(i,eipEntity);
-                }
-                boolean statistics = firewallService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false);
-                if (statistics){
-                    firewallService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(),eipEntity.getFirewallId(),false);
-                }
-
+                firewallService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(),eipEntity.getFirewallId(),false);
             }
             eipEntity.setIsDelete(1);
             eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
@@ -257,19 +258,9 @@ public class EipDaoService {
                     return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 }
             }
-
+            //删除地址簿，需保证关联的监控集已经删掉
             if(HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
-                //删除前向bss发送流量统计数据
-                int i = CommonUtil.countMinuteFromPoint();
-                //如果是整点，则以定时任务为准
-                if (i !=0){
-                    flowService.releaseReportFlowAccount(i,eipEntity);
-                }
-                boolean statistics = firewallService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false);
-                if (statistics){
-                    firewallService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(),eipEntity.getFirewallId(),false);
-                }
-
+                firewallService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(),eipEntity.getFirewallId(),false);
             }
             eipEntity.setIsDelete(1);
             eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
@@ -478,7 +469,14 @@ public class EipDaoService {
             }
             //从地址簿中删除匹配条件--floating ip
             if (HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
-                firewallService.cmdInsertOrRemoveParamInAddressBook(eipAddress, eipEntity.getFloatingIp(),"ip",eipEntity.getFirewallId(),false);
+                //解绑前向bss发送流量统计数据
+                int i = CommonUtil.countMinuteFromPoint();
+                //如果是整点，则以定时任务为准
+                if (i !=0){
+                    flowService.releaseReportFlowAccount(i,eipEntity);
+                }
+                //删除监控集地址本
+                boolean statistics = firewallService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false);
             }
             eipEntity.setInstanceId(null);
             eipEntity.setInstanceType(null);
