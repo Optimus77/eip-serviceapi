@@ -167,12 +167,10 @@ public class FireWallCommondService {
                 log.error(ErrorStatus.SC_FIREWALL_SERVER_ERROR +"show result:{}",json);
                 throw new EipInternalServerException(ErrorStatus.SC_FIREWALL_SERVER_ERROR.getCode(),ErrorStatus.SC_FIREWALL_SERVER_ERROR.getMessage());
             }
-            close();
             return json;
         } catch (Exception e) {
-            log.error("Error when init :", e);
+            log.error("Commond get no return.:{}",e);
         }
-        log.error("Commond get no return.");
         return null;
     }
 

@@ -138,6 +138,9 @@ bss:
           sbw: key.sbw.order
           ipts: key.ipts.order
         returnRoutingKey: key.return.order
+      flow:
+        exchange: bss.order.v2
+        returnRoutingKey: resource.billing
       deadLetterExchange: exchange.dlx
       deadLetterRoutingKey: key.dlx
     change:

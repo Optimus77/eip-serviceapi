@@ -42,5 +42,9 @@ public interface IDevProvider {
 
     boolean cmdInsertOrRemoveParamInAddressBook(String entryName, String param, String addressType, String fireWallId, boolean control);
 
+    boolean cmdAddSbwQos(String name, String bandwidth, String fireWallId);
 
+    boolean cmdDelSbwQos(String name, String fireWallId);
+
+    JSONObject cmdShowStatisticsByAddressBook(String entryName, String period, String fireWallId);
 }

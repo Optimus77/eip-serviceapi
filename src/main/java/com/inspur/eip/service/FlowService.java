@@ -34,11 +34,8 @@ public class FlowService {
 
     public static final String SPACE_REGEX = "\\s+";
 
-    @Autowired
-    private FirewallService firewallService;
-
-    @Autowired
-    private EipDaoService eipDaoService;
+    //@Autowired
+    private IDevProvider firewallService;
 
     @Autowired
     private RabbitMessagingTemplate rabbitTemplate;
@@ -49,6 +46,14 @@ public class FlowService {
     // 发送订单消息的routingKey
     @Value("${bss.queues.order.binding.returnRoutingKey}")
     private String orderKey;
+
+    @Autowired
+    FlowService(@Value("${firewall.type}")String type,FirewallService firewallService){
+        if(type.equals("hillstone"))
+        {
+            this.firewallService= firewallService;
+        }
+    }
 
 
     /**
