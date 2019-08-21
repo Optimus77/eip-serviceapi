@@ -39,9 +39,6 @@ public class EipDaoService {
     @Value("${fipNetworkId}")
     private String flpnetworkId;
 
-    @Value("${firewall.type}")
-    private String type;
-
     @Autowired
     private EipPoolRepository eipPoolRepository;
 
@@ -66,17 +63,13 @@ public class EipDaoService {
     @Autowired
     private FlowService flowService;
 
-    EipDaoService(){
-        if(type=="hillstone")
+    @Autowired
+    EipDaoService(@Value("${firewall.type}")String type,FirewallService firewallService){
+        if(type.equals("hillstone"))
         {
-            firewallService = new FirewallService();
-        }
-        if(type=="lb")
-        {
-            firewallService = new FirewallService();
+            this.firewallService= firewallService;
         }
     }
-
 
     /**
      * allocate eip

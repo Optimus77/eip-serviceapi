@@ -34,7 +34,7 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-@ConditionalOnProperty(value = "firewall.type",havingValue = "hillstone")
+//@ConditionalOnProperty(value = "firewall.type",havingValue = "hillstone")
 public class FirewallService implements IDevProvider{
 
 
@@ -719,7 +719,7 @@ public class FirewallService implements IDevProvider{
      * @param fireWallId
      * @return
      */
-    synchronized boolean cmdAddSbwQos(String name, String bandwidth, String fireWallId) throws EipInternalServerException {
+    public synchronized boolean cmdAddSbwQos(String name, String bandwidth, String fireWallId) throws EipInternalServerException {
         Boolean flag = Boolean.TRUE;
         String inBandWidth = "50";
         if (Integer.valueOf(bandwidth) > 50) {
@@ -744,7 +744,7 @@ public class FirewallService implements IDevProvider{
         return flag;
     }
 
-    synchronized boolean cmdDelSbwQos(String name, String fireWallId) {
+    public synchronized boolean cmdDelSbwQos(String name, String fireWallId) {
 
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"

@@ -40,11 +40,19 @@ public class SbwDaoService {
     @Autowired
     private EipRepository eipRepository;
 
-    @Autowired
-    private FirewallService firewallService;
+    //@Autowired
+    private IDevProvider firewallService;
 
     @Autowired
     private QosService qosService;
+
+    @Autowired
+    SbwDaoService(@Value("${firewall.type}")String type,FirewallService firewallService){
+        if(type.equals("hillstone"))
+        {
+            this.firewallService= firewallService;
+        }
+    }
 
     public List<Sbw> findByProjectId(String projectId) {
         return sbwRepository.findByProjectIdAndIsDelete(projectId, 0);
