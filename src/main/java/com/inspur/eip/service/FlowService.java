@@ -38,9 +38,6 @@ public class FlowService {
     private IDevProvider firewallService;
 
     @Autowired
-    private EipDaoService eipDaoService;
-
-    @Autowired
     private RabbitMessagingTemplate rabbitTemplate;
 
     @Value("${bss.queues.order.binding.exchange}")

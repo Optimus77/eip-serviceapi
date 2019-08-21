@@ -38,6 +38,9 @@ public class SbwReturnDetail implements Serializable {
 
     @JsonProperty("status")
     private String status;
+    //  前端需要，res:宋丽芳 8.20
+    @JsonProperty("region")
+    private String region;
 
 
 }
