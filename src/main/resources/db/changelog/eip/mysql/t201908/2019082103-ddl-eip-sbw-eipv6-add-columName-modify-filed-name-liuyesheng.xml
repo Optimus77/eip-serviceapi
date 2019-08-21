@@ -35,6 +35,17 @@
         <comment>修改sbw表中通用字段名称：project_name->user_name </comment>
     </changeSet>
 
+    <changeSet id="201908060105" author="liuyesheng">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="eipv6" columnName="project_id"></columnExists>
+            </not>
+        </preConditions>
+        <addColumn tableName="eipv6" catalogName="icp_eip" schemaName="public">
+            <column name="project_id" type="varchar(36)" remarks="项目id"></column>
+        </addColumn>
+    </changeSet>
+
 
     <changeSet author="liuyesheng" id="201908060106">
         <preConditions onFail="MARK_RAN">
