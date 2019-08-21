@@ -4,10 +4,15 @@ package com.inspur.eip.util.common;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
+import com.inspur.eip.config.proxy.DevDriver;
 import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.ReturnMsg;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.exception.KeycloakTokenException;
+import com.inspur.eip.service.FirewallService;
+import com.inspur.eip.service.IDevProvider;
+import com.inspur.eip.service.LbService;
+import com.inspur.eip.util.BeanHander;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
@@ -19,10 +24,12 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.core.transport.Config;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -36,6 +43,8 @@ public class CommonUtil {
 
     public static boolean isDebug = true;
     public static boolean qosDebug = false;
+
+    private IDevProvider firewallService;
 
     @Setter
     private static org.json.JSONObject KeyClockInfo;
@@ -60,8 +69,11 @@ public class CommonUtil {
     private static Config config = Config.newConfig().withSSLVerificationDisabled();
     private static Map<String,String> userConfig = new HashMap<>(16);
 
-//    @PostConstruct
-//    public void init(){
+    @PostConstruct
+    public void init(){
+        LbService firewallService = BeanHander.getBean(LbService.class);
+        log.info("00000000022222200000000000000000000000000{}", firewallService.test());
+        this.firewallService = firewallService;
 //        userConfig.put("openstackIp",openstackIp);
 //        userConfig.put("userNameS",userNameS);
 //        userConfig.put("passwordS",passwordS);
@@ -70,9 +82,18 @@ public class CommonUtil {
 //        userConfig.put("debugRegionS",debugRegionS);
 //        userConfig.put("openstackUrl",openstackUrl);
 //        userConfig.put(SCHEDULETIME, scheduleTime);
-//    }
+    }
 
+    public static IDevProvider getDriverDev(){
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(DevDriver.class);
+        //context.register(DevDriver.class);
+        //context.refresh();
+        IDevProvider providerService = (IDevProvider)context.getBean("firewallService");
+        providerService.test();
+        log.info("test done");
+        return providerService;
 
+    }
     //    Greenwich mean time
     public static Date getGmtDate() {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));

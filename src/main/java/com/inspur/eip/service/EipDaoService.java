@@ -11,6 +11,7 @@ import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.ExtNetRepository;
 import com.inspur.eip.scheduleTask.FlowAccountScheduledTask;
+import com.inspur.eip.util.BeanHander;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.common.MethodReturnUtil;
 import com.inspur.eip.util.constant.HsConstants;
@@ -20,16 +21,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 
 @Slf4j
 @Service
@@ -65,17 +72,8 @@ public class EipDaoService {
 
     @Autowired
     private FlowService flowService;
-
-    EipDaoService(){
-        if(type=="hillstone")
-        {
-            firewallService = new FirewallService();
-        }
-        if(type=="lb")
-        {
-            firewallService = new FirewallService();
-        }
-    }
+    @Autowired
+    private ApplicationContext appContext;
 
 
     /**

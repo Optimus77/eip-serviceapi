@@ -36,4 +36,6 @@ public class EipAllocateParam implements Serializable {
 
     @JsonProperty("sbwId")
     private String sbwId;
+
+    private String groupId;
 }

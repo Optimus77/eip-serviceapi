@@ -6,8 +6,9 @@ import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.SbwRepository;
-import com.inspur.eip.service.FirewallService;
+import com.inspur.eip.service.IDevProvider;
 import com.inspur.eip.service.SbwDaoService;
+import com.inspur.eip.util.common.CommonUtil;
 import groovy.util.logging.Slf4j;
 import org.apache.http.HttpStatus;
 import org.junit.After;
@@ -37,8 +38,7 @@ public class SbwDaoServiceTest {
     @Autowired
     private SbwDaoService sbwDaoService;
 
-    @Autowired
-    private FirewallService firewallService;
+    private IDevProvider firewallService;
 
     @Autowired
     private EipRepository eipRepository;
@@ -48,6 +48,7 @@ public class SbwDaoServiceTest {
 
     @Before
     public void setUp() throws Exception {
+        firewallService = CommonUtil.getDriverDev();
         /*RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest(){
 
             @Override

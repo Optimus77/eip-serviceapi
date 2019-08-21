@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static com.inspur.eip.util.common.CommonUtil.preCheckParam;
 import static com.inspur.eip.util.common.CommonUtil.preSbwCheckParam;
@@ -83,37 +84,43 @@ public class RabbitMqServiceImpl {
     public String createEipInfo(ReciveOrder eipOrder) {
         ResponseEntity<EipReturnBase> response;
         EipReturnBase eipReturn;
+        UUID uuid = null;
         String eipId = null;
+        log.info("Recive create mq:{}", JSONObject.toJSONString(eipOrder));
+        if (!(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) ){
+            log.warn("Order must by payed successfully.");
+            return null;
+        }
         try {
-            log.info("Recive create mq:{}", JSONObject.toJSONString(eipOrder));
-            EipAllocateParam eipConfig = getEipConfigByOrder(eipOrder);
-            ReturnMsg checkRet = preCheckParam(eipConfig);
-            //订单状态，必须支付成功，下同
-            if (!(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) || !(checkRet.getCode().equals(ReturnStatus.SC_OK))) {
-                log.warn(checkRet.getMessage());
-                return null;
-            }
-            response = eipService.atomCreateEip(eipConfig, eipOrder.getToken(), null);
-            if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
-                if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
-                    if(response.getStatusCodeValue() == 420){
-                        webService.returnsIpv6Websocket("false", "createEip", eipOrder.getToken());
-                    }else{
-                        webService.returnsIpv6Websocket("false", "createNatWithEip", eipOrder.getToken());
+            List<EipAllocateParam> eipConfigs = getEipConfigByOrder(eipOrder);
+            for(EipAllocateParam eipConfig: eipConfigs) {
+                ReturnMsg checkRet = preCheckParam(eipConfig);
+                if ( !(checkRet.getCode().equals(ReturnStatus.SC_OK))) {
+                    log.warn(checkRet.getMessage());
+                    return null;
+                }
+                response = eipService.atomCreateEip(eipConfig, eipOrder.getToken(), null);
+                if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
+                    if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
+                        if (response.getStatusCodeValue() == 420) {
+                            webService.returnsIpv6Websocket("false", "createEip", eipOrder.getToken());
+                        } else {
+                            webService.returnsIpv6Websocket("false", "createNatWithEip", eipOrder.getToken());
+                        }
                     }
-                }
-                log.warn("create eip failed, return code:{}", response.getStatusCodeValue());
-            } else {
-                eipReturn = response.getBody();
-                if (null != eipReturn) {
-                    eipId = eipReturn.getId();
-                }
-                if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
-                    webService.returnsIpv6Websocket("Success", "createNatWithEip", eipOrder.getToken());
+                    log.warn("create eip failed, return code:{}", response.getStatusCodeValue());
                 } else {
-                    webService.returnsWebsocket(eipId, eipOrder, "create");
+                    eipReturn = response.getBody();
+                    if (null != eipReturn) {
+                        eipId = eipReturn.getId();
+                    }
+                    if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
+                        webService.returnsIpv6Websocket("Success", "createNatWithEip", eipOrder.getToken());
+                    } else {
+                        webService.returnsWebsocket(eipId, eipOrder, "create");
+                    }
+                    return eipId;
                 }
-                return eipId;
             }
         } catch (Exception e) {
             log.error(ConstantClassField.EXCEPTION_EIP_CREATE, e);
@@ -492,17 +499,19 @@ public class RabbitMqServiceImpl {
      * @param eipOrder order
      * @return eip param
      */
-    private EipAllocateParam getEipConfigByOrder(ReciveOrder eipOrder) {
+    private List<EipAllocateParam> getEipConfigByOrder(ReciveOrder eipOrder) {
+        List<EipAllocateParam> eipAllocateParams = new ArrayList<>();
         EipAllocateParam eipAllocateParam = new EipAllocateParam();
         List<OrderProduct> orderProducts = eipOrder.getProductList();
+        String uuid;
 
-        eipAllocateParam.setBillType(eipOrder.getBillType());
-        // 默认为带宽计费
-        eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
         for (OrderProduct orderProduct : orderProducts) {
             if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
                 continue;
             }
+            eipAllocateParam.setBillType(eipOrder.getBillType());
+            eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
+
             eipAllocateParam.setRegion(orderProduct.getRegion());
             List<OrderProductItem> orderProductItems = orderProduct.getItemList();
 
@@ -524,9 +533,16 @@ public class RabbitMqServiceImpl {
                     eipAllocateParam.setSbwId(orderProductItem.getValue());
                 }
             }
+            eipAllocateParams.add(eipAllocateParam);
+        }
+        if(eipAllocateParams.size() > 1){
+            uuid = UUID.randomUUID().toString();
+            for(EipAllocateParam param1: eipAllocateParams){
+                param1.setGroupId(uuid);
+            }
         }
         log.info("Get eip param from order:{}", JSONObject.toJSONString(eipAllocateParam));
-        return eipAllocateParam;
+        return eipAllocateParams;
     }
 
     /**
