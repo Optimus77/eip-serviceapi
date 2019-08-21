@@ -433,8 +433,13 @@ public class CommonUtil {
             return false;
         }
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-        String userId = (String) jsonObject.get("sub");
-        if(userId.equals(projectId)){
+        String projectIdInToken = null;
+        if(jsonObject.has("project_id")){
+            projectIdInToken = (String) jsonObject.get("project_id");
+        } else {
+            projectIdInToken = (String) jsonObject.get("sub");
+        }
+        if(projectIdInToken.equals(projectId)){
             return true;
         }
         String clientId = null;
@@ -450,21 +455,21 @@ public class CommonUtil {
         }
     }
 
-    public static boolean verifyToken(String token, String userId){
+    public static boolean verifyToken(String token, String projectId){
+        String projectIdInToken = null;
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+        if(jsonObject.has("project_id")){
+            projectIdInToken = (String) jsonObject.get("project_id");
+        } else {
+            projectIdInToken = (String) jsonObject.get("sub");
+        }
+        if(projectIdInToken != null){
+            log.debug("project_id:{}", projectIdInToken);
+        }
+        if(projectIdInToken.equals(projectId)){
+            return true;
+        }
 
-        String userIdInToken = (String) jsonObject.get("sub");
-        if(userIdInToken.equals(userId)){
-            return true;
-        }
-        String  realmAccess = null;
-        if (jsonObject.has("realm_access")){
-            realmAccess = jsonObject.getJSONObject("realm_access").toString();
-        }
-        if (realmAccess!= null && realmAccess.contains("OPERATE_ADMIN")){
-            log.info("Client token, User has right to operation, realmAccess:{}", realmAccess);
-            return true;
-        }
         return false;
 
     }
