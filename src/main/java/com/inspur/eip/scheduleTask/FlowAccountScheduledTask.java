@@ -22,7 +22,7 @@ import java.util.Map;
  **/
 @Component
 @Slf4j
-@EnableScheduling
+//@EnableScheduling
 public class FlowAccountScheduledTask {
 
     @Autowired
