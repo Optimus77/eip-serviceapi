@@ -7,6 +7,7 @@ import com.inspur.eip.entity.fw.Firewall;
 import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.FirewallService;
+import com.inspur.eip.service.IDevProvider;
 import com.inspur.eip.service.MonitorService;
 import com.inspur.eip.util.constant.HsConstants;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,7 @@ public class MonitorServiceImpl implements MonitorService {
     @Value("${minEipNum}")
     private String minEipNum;
 
-    private final FirewallService firewallService;
+    private IDevProvider firewallService;
     private final ProducerHandler producerHandler;
     private final FirewallRepository firewallRepository;
     private final EipDaoService eipDaoService;
@@ -46,11 +47,16 @@ public class MonitorServiceImpl implements MonitorService {
     public MonitorServiceImpl(EipDaoService eipDaoService,
                               FirewallService firewallService,
                               ProducerHandler producerHandler,
-                              FirewallRepository firewallRepository) {
-        this.firewallService = firewallService;
+                              FirewallRepository firewallRepository,
+                              @Value("${firewall.type}")String type) {
+        //this.firewallService = firewallService;
         this.producerHandler = producerHandler;
         this.firewallRepository = firewallRepository;
         this.eipDaoService = eipDaoService;
+        if(type.equals("hillstone"))
+        {
+            this.firewallService= firewallService;
+        }
     }
 
 
