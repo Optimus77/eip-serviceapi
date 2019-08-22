@@ -84,7 +84,6 @@ public class RabbitMqServiceImpl {
     public String createEipInfo(ReciveOrder eipOrder) {
         ResponseEntity<EipReturnBase> response;
         EipReturnBase eipReturn;
-        UUID uuid = null;
         String eipId = null;
         log.info("Recive create mq:{}", JSONObject.toJSONString(eipOrder));
         if (!(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) ){
@@ -99,6 +98,7 @@ public class RabbitMqServiceImpl {
                     log.warn(checkRet.getMessage());
                     return null;
                 }
+                eipId = null;
                 response = eipService.atomCreateEip(eipConfig, eipOrder.getToken(), null);
                 if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
                     if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
@@ -119,9 +119,10 @@ public class RabbitMqServiceImpl {
                     } else {
                         webService.returnsWebsocket(eipId, eipOrder, "create");
                     }
-                    return eipId;
                 }
+                updateEipOrderResult(eipOrder, eipId, eipConfig.getIpType(), HsConstants.SUCCESS);
             }
+            return eipId;
         } catch (Exception e) {
             log.error(ConstantClassField.EXCEPTION_EIP_CREATE, e);
             if (null != eipId) {
@@ -602,6 +603,33 @@ public class RabbitMqServiceImpl {
      * @return Console2BssResult
      */
     private Console2BssResult getEipOrderResult(ReciveOrder reciveOrder, String eipId, String result) {
+        //must not be delete ,set the reference
+        List<OrderProduct> orderProducts = reciveOrder.getProductList();
+
+        for (OrderProduct orderProduct : orderProducts) {
+            orderProduct.setInstanceId(eipId);
+            orderProduct.setInstanceStatus(result);
+            orderProduct.setStatusTime(reciveOrder.getStatusTime());
+        }
+        Console2BssResult console2BssResult = new Console2BssResult();
+        console2BssResult.setUserId(reciveOrder.getUserId());
+        console2BssResult.setConsoleOrderFlowId(reciveOrder.getConsoleOrderFlowId());
+        console2BssResult.setOrderId(reciveOrder.getOrderId());
+
+        List<OrderResultProduct> orderResultProducts = new ArrayList<>();
+        OrderResultProduct orderResultProduct = new OrderResultProduct();
+        if (HsConstants.FAIL.equalsIgnoreCase(result)) {
+            orderResultProduct.setProductSetStatus(result);
+        } else {
+            orderResultProduct.setProductSetStatus(HsConstants.SUCCESS);
+        }
+        orderResultProduct.setProductList(reciveOrder.getProductList());
+        orderResultProducts.add(orderResultProduct);
+        console2BssResult.setProductSetList(orderResultProducts);
+        return console2BssResult;
+    }
+
+    private Console2BssResult updateEipOrderResult(ReciveOrder reciveOrder, String eipId, String type, String result) {
         //must not be delete ,set the reference
         List<OrderProduct> orderProducts = reciveOrder.getProductList();
 

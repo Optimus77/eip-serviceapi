@@ -8,7 +8,6 @@ import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.ReturnMsg;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.exception.KeycloakTokenException;
-import com.inspur.eip.service.IDevProvider;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
@@ -20,15 +19,12 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.core.transport.Config;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -40,25 +36,9 @@ public class CommonUtil {
     public static boolean isDebug = true;
     public static boolean qosDebug = false;
 
-    private IDevProvider firewallService;
-
     @Setter
     private static org.json.JSONObject KeyClockInfo;
-//    @Value("${openstackIp}")
-//    private String openstackIp;
-//    @Value("${openstackUrl}")
-//    private String openstackUrl;
-//    @Value("${userNameS}")
-//    private String userNameS;
-//    @Value("${passwordS}")
-//    private String passwordS;
-//    @Value("${projectIdS}")
-//    private String projectIdS;
-//    @Value("${userDomainIdS}")
-//    private String userDomainIdS;
-//    @Value("${debugRegionS}")
-//    private String debugRegionS;
-//
+
 //    @Value("${scheduleTime}")
 //    private String scheduleTime;
 
@@ -68,16 +48,6 @@ public class CommonUtil {
     @PostConstruct
     public void init(){
 //        IDevProvider firewallService = BeanHander.getBean(IDevProvider.class);
-//        log.info("00000000022222200000000000000000000000000{}", firewallService.toString());
-//        this.firewallService = firewallService;
-
-//        userConfig.put("openstackIp",openstackIp);
-//        userConfig.put("userNameS",userNameS);
-//        userConfig.put("passwordS",passwordS);
-//        userConfig.put("projectIdS",projectIdS);
-//        userConfig.put("userDomainIdS",userDomainIdS);
-//        userConfig.put("debugRegionS",debugRegionS);
-//        userConfig.put("openstackUrl",openstackUrl);
 //        userConfig.put(SCHEDULETIME, scheduleTime);
     }
 
@@ -167,21 +137,6 @@ public class CommonUtil {
         return jsonObject;
     }
 
-
-    public static String readRequestAsChars(HttpServletRequest request) {
-
-        StringBuilder sb = new StringBuilder();
-        try {
-            BufferedReader br = request.getReader();
-            String str;
-            while ((str = br.readLine()) != null) {
-                sb.append(str);
-            }
-        } catch (IOException e) {
-            log.error("ReadAsChars exception", e);
-        }
-        return sb.toString();
-    }
 
     public static String getUsername(String token) throws KeycloakTokenException {
 
@@ -314,19 +269,6 @@ public class CommonUtil {
 //          调公共包的AdminClient（administrator rights）
         return OSClientUtil.getClient();
     }
-
-//    //administrator rights1.0
-//    public static OSClient.OSClientV3 getOsClientV3(){
-//        //String token = getKeycloackToken();
-////        return OSFactory.builderV3()
-////                .endpoint(userConfig.get("openstackUrl"))
-////                .credentials(userConfig.get("userNameS"), userConfig.get("passwordS"),
-////                        Identifier.byId(userConfig.get("userDomainIdS")))
-////                .withConfig(config)
-////                .scopeToProject(Identifier.byId(userConfig.get("projectIdS")))
-////                .authenticate().useRegion(userConfig.get("debugRegionS"));
-//    }
-
 
 
     public static OSClient.OSClientV3 getOsClientV3Util(String userRegion) throws KeycloakTokenException {
@@ -465,17 +407,10 @@ public class CommonUtil {
         if(projectIdToken.equals(projectId)){
             return true;
         }
-        String clientId = null;
-        if(jsonObject.has("clientId")) {
-            clientId = jsonObject.getString("clientId");
-        }
-        if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
-            log.info("Client token, User has right to operation, client:{}", clientId);
-            return true;
-        }else{
-            log.error("User has no right to operation.{}", jsonObject.toString());
-            return false;
-        }
+
+        log.error("User has no right to operation.{}", jsonObject.toString());
+        return false;
+
     }
 
     public static boolean verifyToken(String token, String projectId){
