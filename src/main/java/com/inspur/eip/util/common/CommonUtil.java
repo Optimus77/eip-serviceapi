@@ -31,6 +31,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Slf4j
@@ -41,6 +43,8 @@ public class CommonUtil {
     public static boolean qosDebug = false;
 
     private IDevProvider firewallService;
+
+    public static final Set<String> ipType = Stream.of("mobile", "unicom","telecom","radiotv","BGP").collect(Collectors.toSet());
 
     @Setter
     private static org.json.JSONObject KeyClockInfo;
@@ -264,7 +268,12 @@ public class CommonUtil {
 
         if(null != param.getBillType()) {
             if (!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                errorMsg = errorMsg + "Only monthly,hourlySettlement is allowed. ";
+                errorMsg = errorMsg + "Only mobile,radiotv, telecom, unicom ,  BGP is allowed.\n";
+            }
+        }
+        if (null != param.getIpType()){
+            if (!ipType.contains(param.getIpType())){
+                errorMsg = errorMsg + "Only mobile,radiotv, telecom, unicom ,  BGP is allowed.";
             }
         }
         if(param.getRegion().isEmpty()){

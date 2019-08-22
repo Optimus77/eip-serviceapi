@@ -84,6 +84,7 @@ public class SbwDaoService {
                         .region(sbwConfig.getRegion())
                         .createdTime(CommonUtil.getGmtDate())
                         .updatedTime(CommonUtil.getGmtDate())
+                        .ipType(sbwConfig.getIpType())
                         .projectId(CommonUtil.getProjectId(token))
                         .isDelete(0)
                         .status(HsConstants.ACTIVE)

@@ -703,8 +703,12 @@ public class RabbitMqServiceImplTest {
         OrderProductItem orderProductItem2 = new OrderProductItem();
         orderProductItem2.setCode("sbwName");
         orderProductItem2.setValue("test001");
+        OrderProductItem orderProductItem3 = new OrderProductItem();
+        orderProductItem2.setCode("provider");
+        orderProductItem2.setValue("telecom");
         orderProductItems.add(orderProductItem1);
         orderProductItems.add(orderProductItem2);
+        orderProductItems.add(orderProductItem3);
 
         OrderProduct orderProduct = OrderProduct.builder()
                 .region("cn-north-3")

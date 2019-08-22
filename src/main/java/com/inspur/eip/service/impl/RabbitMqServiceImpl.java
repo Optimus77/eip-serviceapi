@@ -650,6 +650,8 @@ public class RabbitMqServiceImpl {
                     updateParam.setBandwidth(Integer.parseInt(sbwItem.getValue()));
                 } else if (sbwItem.getCode().equals(HsConstants.SBW_NAME)) {
                     updateParam.setSbwName(sbwItem.getValue());
+                }else if (sbwItem.getCode().equals(HsConstants.PROVIDER)){
+                    updateParam.setIpType(sbwItem.getValue());
                 }
             }
         }
