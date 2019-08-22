@@ -1,0 +1,67 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <changeSet author="liuyesheng" id="201908060101">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="eip" columnName="user_name"></columnExists>
+            </not>
+        </preConditions>
+
+        <renameColumn catalogName="icp_eip" columnDataType="varchar(128)" newColumnName="user_name" oldColumnName="project_id" schemaName="public" tableName="eip"/>
+
+        <renameColumn catalogName="icp_eip" columnDataType="varchar(36)" newColumnName="project_id" oldColumnName="user_id" schemaName="public" tableName="eip"/>
+
+        <addColumn tableName="eip" schemaName="public" catalogName="icp_eip">
+            <column name="user_id" type="varchar(36) " remarks="用户id"></column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="liuyesheng" id="201908060104">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="sbw" columnName="user_name"></columnExists>
+            </not>
+        </preConditions>
+
+        <renameColumn catalogName="icp_eip" columnDataType="varchar(128)" newColumnName="user_name" oldColumnName="project_name" schemaName="public" tableName="sbw"/>
+
+        <addColumn tableName="sbw" catalogName="icp_eip" schemaName="public">
+            <column name="user_id" type="varchar(36)" remarks="用户id"></column>
+        </addColumn>
+        <comment>修改sbw表中通用字段名称：project_name->user_name </comment>
+    </changeSet>
+
+    <changeSet id="201908060105" author="liuyesheng">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="eipv6" columnName="project_id"></columnExists>
+            </not>
+        </preConditions>
+        <addColumn tableName="eipv6" catalogName="icp_eip" schemaName="public">
+            <column name="project_id" type="varchar(36)" remarks="项目id"></column>
+        </addColumn>
+    </changeSet>
+
+
+    <changeSet author="liuyesheng" id="201908060106">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="eipv6" columnName="user_name"></columnExists>
+            </not>
+        </preConditions>
+
+        <renameColumn catalogName="icp_eip" columnDataType="varchar(128)" newColumnName="user_name" oldColumnName="project_id" schemaName="public" tableName="eipv6"/>
+
+        <renameColumn catalogName="icp_eip" columnDataType="varchar(36)" newColumnName="project_id" oldColumnName="user_id" schemaName="public" tableName="eipv6"/>
+
+        <addColumn tableName="eipv6" schemaName="public" catalogName="icp_eip">
+            <column name="user_id" type="varchar(36)" remarks="用户id"></column>
+        </addColumn>
+    </changeSet>
+
+
+</databaseChangeLog>

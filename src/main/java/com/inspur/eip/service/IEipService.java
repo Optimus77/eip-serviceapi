@@ -1,5 +1,6 @@
 package com.inspur.eip.service;
 
+import com.inspur.eip.entity.eip.Eip;
 import org.springframework.http.ResponseEntity;
 import java.util.List;
 
@@ -85,5 +86,7 @@ public interface IEipService {
     ResponseEntity getUsingEipCountByStatus(String status);
 
     ResponseEntity getEipDetailsByIpAddress(String eipAddress);
+
+    Eip getEipById(String id);
 
 }

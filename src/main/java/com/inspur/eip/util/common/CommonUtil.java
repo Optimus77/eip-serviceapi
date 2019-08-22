@@ -414,13 +414,15 @@ public class CommonUtil {
         }
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
         String projectId = null;
-        if (jsonObject.has("project_id")) {
-            projectId = (String) jsonObject.get("project_id");
-        }else {
-            projectId = (String) jsonObject.get("sub");
+        if(jsonObject != null){
+            if(!jsonObject.has("project_id")){
+                projectId = (String) jsonObject.get("sub");
+            } else {
+                projectId = (String) jsonObject.get("project_id");
+            }
         }
         if (projectId != null) {
-            log.info("project_id:{}", projectId);
+            log.debug("project_id:{}", projectId);
         }
         return projectId;
     }
@@ -433,13 +435,8 @@ public class CommonUtil {
             return false;
         }
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-        String projectIdInToken = null;
-        if(jsonObject.has("project_id")){
-            projectIdInToken = (String) jsonObject.get("project_id");
-        } else {
-            projectIdInToken = (String) jsonObject.get("sub");
-        }
-        if(projectIdInToken.equals(projectId)){
+        String projectIdToken = (String) jsonObject.get("sub");
+        if(projectIdToken.equals(projectId)){
             return true;
         }
         String clientId = null;
@@ -490,10 +487,10 @@ public class CommonUtil {
             realmAccess = jsonObject.getJSONObject("realm_access").toString();
         }
         if (realmAccess!= null && realmAccess.contains("OPERATE_ADMIN")){
-            log.info("Client token, User has right to operation, realmAccess:{}", realmAccess);
+            log.info("admin account, realmAccess:{}", realmAccess);
             return true;
         }else{
-            log.error("User has no right to operation.{}", jsonObject.toString());
+            log.error("Not admin account.{}", jsonObject.toString());
             return false;
         }
     }
