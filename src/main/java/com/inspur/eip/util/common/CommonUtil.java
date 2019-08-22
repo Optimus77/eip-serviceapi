@@ -367,7 +367,7 @@ public class CommonUtil {
 
     public static String getProjectId()throws KeycloakTokenException {
 
-        String token = SecurityContextUtil.getAccessToken();
+        String token = getKeycloackToken();
         if(null == token){
             throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
         }else {
