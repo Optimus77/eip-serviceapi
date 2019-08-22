@@ -19,6 +19,14 @@ public class AuthenticationUtil {
             }
         } else {
 
+            if(orderType.equals("new")){
+
+            }else if(orderType.equals("changeConfigure")){
+
+            }else{
+
+            }
+
         }
         return true;
     }
