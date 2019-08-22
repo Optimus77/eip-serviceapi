@@ -34,7 +34,7 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-//@ConditionalOnProperty(value = "firewall.type",havingValue = "hillstone")
+@ConditionalOnProperty(value = "firewall.type",havingValue = "hillstone")
 public class FirewallService implements IDevProvider{
 
 
@@ -70,31 +70,8 @@ public class FirewallService implements IDevProvider{
     private Map<String, Firewall> firewallConfigMap = new HashMap<>();
     private String vr = "trust-vr";
 
-//    Firewall getFireWallById(String id) {
-//        if (!firewallConfigMap.containsKey(id)) {
-//
-//            Optional<Firewall> firewall = firewallRepository.findById(id);
-//            if (firewall.isPresent()) {
-//                Firewall fireWallConfig = new Firewall();
-//                Firewall getFireWallEntity = firewall.get();
-//
-//                fireWallConfig.setUser(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getUser()));
-//                fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getPasswd()));
-//                fireWallConfig.setIp(getFireWallEntity.getIp());
-//                fireWallConfig.setPort(getFireWallEntity.getPort());
-//                firewallConfigMap.put(id, fireWallConfig);
-//                log.info("get firewall ip:{}, port:{}, passwd:{}, user:{}", fireWallConfig.getIp(),
-//                        fireWallConfig.getPort(), getFireWallEntity.getUser(), getFireWallEntity.getPasswd());
-//            } else {
-//                log.warn("Failed to find the firewall by id:{}", id);
-//            }
-//        }
-//
-//        return firewallConfigMap.get(id);
-//    }
 
-
-    Firewall getFireWallById(String id) {
+    public Firewall getFireWallById(String id) {
         if (!firewallConfigMap.containsKey(id)) {
 
             Firewall fireWallConfig = new Firewall();
@@ -719,6 +696,7 @@ public class FirewallService implements IDevProvider{
      * @param fireWallId
      * @return
      */
+    @Override
     public synchronized boolean cmdAddSbwQos(String name, String bandwidth, String fireWallId) throws EipInternalServerException {
         Boolean flag = Boolean.TRUE;
         String inBandWidth = "50";
@@ -743,7 +721,7 @@ public class FirewallService implements IDevProvider{
         }
         return flag;
     }
-
+    @Override
     public synchronized boolean cmdDelSbwQos(String name, String fireWallId) {
 
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
@@ -918,6 +896,7 @@ public class FirewallService implements IDevProvider{
      * @param period
      * @return
      */
+    @Override
     public JSONObject cmdShowStatisticsByAddressBook( String entryName, String period, String fireWallId){
         StringBuilder sb = new StringBuilder();
         sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.SHOW_SPACE + HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName +  HillStoneConfigConsts.ADDRESSBOOK_SUBFIX);

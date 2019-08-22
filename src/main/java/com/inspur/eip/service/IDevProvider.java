@@ -6,11 +6,9 @@ import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.fw.Firewall;
 
 public interface IDevProvider {
-    String test();
+
     Firewall getFireWallById(String id);
-    JSONObject cmdShowStatisticsByAddressBook(String entryName, String period, String fireWallId);
-    boolean cmdDelSbwQos(String name, String fireWallId);
-    boolean cmdAddSbwQos(String name, String bandwidth, String fireWallId);
+
     String addDnat(String innerip, String extip, String equipid);
 
     String addSnat(String innerip, String extip, String equipid);

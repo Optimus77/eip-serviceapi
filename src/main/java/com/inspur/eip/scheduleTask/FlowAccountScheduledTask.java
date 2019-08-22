@@ -33,7 +33,7 @@ public class FlowAccountScheduledTask {
 
 
 //    每分钟统计
-    @Scheduled(cron = "0 0/1 * * * * ")
+//    @Scheduled(cron = "0 0/1 * * * * ")
     //    每小时统计
 //    @Scheduled(cron = "0 0 0/1 * * *")
     public void oneHourReportFlowAccount(){

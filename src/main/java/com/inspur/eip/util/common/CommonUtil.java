@@ -4,15 +4,11 @@ package com.inspur.eip.util.common;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
-import com.inspur.eip.config.proxy.DevDriver;
 import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.ReturnMsg;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.exception.KeycloakTokenException;
-import com.inspur.eip.service.FirewallService;
 import com.inspur.eip.service.IDevProvider;
-import com.inspur.eip.service.LbService;
-import com.inspur.eip.util.BeanHander;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
@@ -71,9 +67,10 @@ public class CommonUtil {
 
     @PostConstruct
     public void init(){
-        LbService firewallService = BeanHander.getBean(LbService.class);
-        log.info("00000000022222200000000000000000000000000{}", firewallService.test());
-        this.firewallService = firewallService;
+//        IDevProvider firewallService = BeanHander.getBean(IDevProvider.class);
+//        log.info("00000000022222200000000000000000000000000{}", firewallService.toString());
+//        this.firewallService = firewallService;
+
 //        userConfig.put("openstackIp",openstackIp);
 //        userConfig.put("userNameS",userNameS);
 //        userConfig.put("passwordS",passwordS);
@@ -84,16 +81,6 @@ public class CommonUtil {
 //        userConfig.put(SCHEDULETIME, scheduleTime);
     }
 
-    public static IDevProvider getDriverDev(){
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(DevDriver.class);
-        //context.register(DevDriver.class);
-        //context.refresh();
-        IDevProvider providerService = (IDevProvider)context.getBean("firewallService");
-        providerService.test();
-        log.info("test done");
-        return providerService;
-
-    }
     //    Greenwich mean time
     public static Date getGmtDate() {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
@@ -246,9 +233,9 @@ public class CommonUtil {
         }
         String tp = param.getIpType();
         if (null != tp) {
-            if (!tp.equals("5_bgp") && !tp.equals("5_sbgp") && !tp.equals("5_telcom") &&
-                    !tp.equals("5_union") && !tp.equals("BGP")) {
-                errorMsg = errorMsg + "Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";
+            if (!tp.equals("mobile") && !tp.equals("radiotv") && !tp.equals("telecom") &&
+                    !tp.equals("unicom") && !tp.equals("BGP")) {
+                errorMsg = errorMsg + "Only mobile,radiotv, telecom, unicom ,  BGP is allowed. ";
             }
         } else {
             errorMsg = errorMsg + "Only 5_bgp,5_sbgp, 5_telcom, 5_union ,  BGP is allowed. ";

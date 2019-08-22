@@ -153,25 +153,28 @@ public class RabbitMqServiceImpl {
             if (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 List<OrderProduct> orderProducts = eipOrder.getProductList();
                 for (OrderProduct orderProduct : orderProducts) {
-                    eipId = orderProduct.getInstanceId();
-                }
-                if(CommonUtil.isSuperAccount(eipOrder.getToken())){
-                    response = eipDaoService.adminDeleteEip(eipId);
-                }else {
-                    //软删除实例，用户主动发起，必须带token
-                    response = eipDaoService.deleteEip(eipId, eipOrder.getToken());
-                }
-                if (response.isSuccess()) {
-                    if (null != eipOrder.getConsoleCustomization() && eipOrder.getConsoleCustomization().containsKey("operateType") &&
-                            eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")) {
-                        webService.returnsIpv6Websocket("Success", "deleteNatWithEip", eipOrder.getToken());
-                    } else {
-                        webService.returnsWebsocket(eipId, eipOrder, "delete");
+                    if(!orderProduct.getProductLineCode().equalsIgnoreCase(HsConstants.EIP)){
+                        continue;
                     }
-                    sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.UNSUBSCRIBE));
-                    return response;
-                } else {
-                    log.warn(ConstantClassField.DELETE_EIP_CONFIG_FAILED, response.getFault() + ReturnStatus.SC_INTERNAL_SERVER_ERROR);
+                    eipId = orderProduct.getInstanceId();
+                    if(CommonUtil.isSuperAccount(eipOrder.getToken())){
+                        response = eipDaoService.adminDeleteEip(eipId);
+                    }else {
+                        //软删除实例，用户主动发起，必须带token
+                        response = eipDaoService.deleteEip(eipId, eipOrder.getToken());
+                    }
+                    if (response.isSuccess()) {
+                        if (null != eipOrder.getConsoleCustomization() && eipOrder.getConsoleCustomization().containsKey("operateType") &&
+                                eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")) {
+                            webService.returnsIpv6Websocket("Success", "deleteNatWithEip", eipOrder.getToken());
+                        } else {
+                            webService.returnsWebsocket(eipId, eipOrder, "delete");
+                        }
+                        sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.UNSUBSCRIBE));
+                        return response;
+                    } else {
+                        log.warn(ConstantClassField.DELETE_EIP_CONFIG_FAILED, response.getFault() + ReturnStatus.SC_INTERNAL_SERVER_ERROR);
+                    }
                 }
             } else {
                 log.error(ConstantClassField.ORDER_STATUS_NOT_CORRECT + eipOrder.getOrderStatus());
@@ -195,36 +198,42 @@ public class RabbitMqServiceImpl {
         String eipId = null;
         ActionResponse response = null;
         String result = HsConstants.FAIL;
+        int failedCount=0;
         try {
             eipId = eipOrder.getProductList().get(0).getInstanceId();
             log.info("Recive update order:{}", JSONObject.toJSONString(eipOrder));
 
             if ((eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS))) {
-                EipUpdateParam eipUpdate = getUpdateParmByOrder(eipOrder);
+                List<EipUpdateParam> eipUpdateConfigs = getUpdateParmByOrder(eipOrder);
                 //更配操作
-                if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
-                    if (eipUpdate.getSbwId() != null) {
-                        if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
-                            response = sbwDaoService.addEipIntoSbw(eipId, eipUpdate, eipOrder.getToken());
-                            log.info("add eip to sbw:{}", response);
-                        } else if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_BANDWIDTH)) {
-                            response = sbwDaoService.removeEipFromSbw(eipId, eipUpdate, eipOrder.getToken());
-                            log.info("remove eip from sbw:{}", response);
+                for(EipUpdateParam eipUpdate: eipUpdateConfigs) {
+                    if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
+                        if (eipUpdate.getSbwId() != null) {
+                            if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
+                                response = sbwDaoService.addEipIntoSbw(eipId, eipUpdate, eipOrder.getToken());
+                                log.info("add eip to sbw:{}", response);
+                            } else if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_BANDWIDTH)) {
+                                response = sbwDaoService.removeEipFromSbw(eipId, eipUpdate, eipOrder.getToken());
+                                log.info("remove eip from sbw:{}", response);
+                            }
+                        } else if (eipUpdate.getBillType().equals(HsConstants.MONTHLY) ||
+                                eipUpdate.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                            response = eipDaoService.updateEipEntity(eipId, eipUpdate, eipOrder.getToken());
+                        } else {
+                            log.error(ConstantClassField.BILL_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
                         }
-                    } else if (eipUpdate.getBillType().equals(HsConstants.MONTHLY) ||
-                            eipUpdate.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                        response = eipDaoService.updateEipEntity(eipId, eipUpdate, eipOrder.getToken());
+                        //用户主动发起的包年包月实例续费操作
+                    } else if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
+                        response = eipDaoService.reNewEipEntity(eipId, eipOrder.getDuration(), eipOrder.getToken());
+                        //不支持的订单类型
                     } else {
-                        log.error(ConstantClassField.BILL_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
+                        log.error(ConstantClassField.ORDER_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
                     }
-                    //用户主动发起的包年包月实例续费操作
-                } else if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
-                    response = eipDaoService.reNewEipEntity(eipId, eipOrder.getDuration(), eipOrder.getToken());
-                    //不支持的订单类型
-                } else {
-                    log.error(ConstantClassField.ORDER_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
+                    if (response == null || !response.isSuccess()) {
+                        failedCount += 1;
+                    }
                 }
-                if (response != null && response.isSuccess()) {
+                if (failedCount == 0) {
                     result = HsConstants.SUCCESS;
                     webService.returnsWebsocket(eipId, eipOrder, "update");
                     sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, result));
@@ -501,7 +510,6 @@ public class RabbitMqServiceImpl {
      */
     private List<EipAllocateParam> getEipConfigByOrder(ReciveOrder eipOrder) {
         List<EipAllocateParam> eipAllocateParams = new ArrayList<>();
-        EipAllocateParam eipAllocateParam = new EipAllocateParam();
         List<OrderProduct> orderProducts = eipOrder.getProductList();
         String uuid;
 
@@ -509,6 +517,7 @@ public class RabbitMqServiceImpl {
             if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
                 continue;
             }
+            EipAllocateParam eipAllocateParam = new EipAllocateParam();
             eipAllocateParam.setBillType(eipOrder.getBillType());
             eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
 
@@ -541,7 +550,7 @@ public class RabbitMqServiceImpl {
                 param1.setGroupId(uuid);
             }
         }
-        log.info("Get eip param from order:{}", JSONObject.toJSONString(eipAllocateParam));
+        log.info("Get eip param from order:{}", JSONObject.toJSONString(eipAllocateParams));
         return eipAllocateParams;
     }
 
@@ -551,36 +560,39 @@ public class RabbitMqServiceImpl {
      * @param eipOrder order
      * @return eip param
      */
-    private EipUpdateParam getUpdateParmByOrder(ReciveOrder eipOrder) {
-        EipUpdateParam eipAllocateParam = new EipUpdateParam();
+    private List<EipUpdateParam> getUpdateParmByOrder(ReciveOrder eipOrder) {
+        List<EipUpdateParam> eipUpdateParams = new ArrayList<>();
 
         List<OrderProduct> orderProducts = eipOrder.getProductList();
-        eipAllocateParam.setBillType(eipOrder.getBillType());
-        eipAllocateParam.setDuration(eipOrder.getDuration());
-        // 默认为带宽计费
-        eipAllocateParam.setChargemode(HsConstants.CHARGE_MODE_BANDWIDTH);
         for (OrderProduct orderProduct : orderProducts) {
             if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
                 continue;
             }
+            EipUpdateParam eipUpdateParam = new EipUpdateParam();
+            eipUpdateParam.setBillType(eipOrder.getBillType());
+            eipUpdateParam.setDuration(eipOrder.getDuration());
+            // 默认为带宽计费
+            eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_BANDWIDTH);
+
             List<OrderProductItem> orderProductItems = orderProduct.getItemList();
 
             for (OrderProductItem orderProductItem : orderProductItems) {
                 if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
-                    eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
+                    eipUpdateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
                 } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
                         orderProductItem.getValue().equalsIgnoreCase(HsConstants.YES)) {
-                    eipAllocateParam.setChargemode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
+                    eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
                 } else if (orderProductItem.getCode().equals(HsConstants.SBW_ID)) {
-                    eipAllocateParam.setSbwId(orderProductItem.getValue());
+                    eipUpdateParam.setSbwId(orderProductItem.getValue());
                 }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER) && orderProductItem.getValue().equals("1")){
                     //  流量计费
-                    eipAllocateParam.setChargemode(HsConstants.CHARGE_MODE_TRAFFIC);
+                    eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_TRAFFIC);
                 }
             }
+            eipUpdateParams.add(eipUpdateParam);
         }
-        log.debug("Get eip param from bss MQ:{}", eipAllocateParam.toString());
-        return eipAllocateParam;
+        log.debug("Get eip param from bss MQ:{}", eipUpdateParams.toString());
+        return eipUpdateParams;
     }
 
     /**

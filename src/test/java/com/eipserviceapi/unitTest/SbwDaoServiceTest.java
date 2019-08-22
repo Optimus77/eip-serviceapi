@@ -48,7 +48,6 @@ public class SbwDaoServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        firewallService = CommonUtil.getDriverDev();
         /*RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest(){
 
             @Override

@@ -23,5 +23,5 @@ public class EipPool implements Serializable {
 
     private String state; //0:free 1:unbound 2:bound 9:reserve
 
-
+    private String type;
 }

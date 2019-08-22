@@ -28,7 +28,7 @@ public class FireWallCommondService {
 
 
     @Autowired
-    private FirewallService firewallService;
+    private IDevProvider firewallService;
 
     private Connection connection;
     private Session session;

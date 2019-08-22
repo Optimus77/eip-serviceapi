@@ -24,6 +24,7 @@ import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
 import java.util.HashMap;
@@ -31,7 +32,8 @@ import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
-//@ConditionalOnProperty(value = "firewall.type",havingValue = "radware")
+@Service
+@ConditionalOnProperty(value = "firewall.type",havingValue = "radware")
 public class LbService implements IDevProvider{
 
 
@@ -67,12 +69,6 @@ public class LbService implements IDevProvider{
     private Map<String, Firewall> firewallConfigMap = new HashMap<>();
     private String vr = "trust-vr";
 
-    @Override
-    public  String test(){
-        log.info("this is hillstone service");
-        return "test lb";
-
-    }
     @Override
     public Firewall getFireWallById(String id) {
         if (!firewallConfigMap.containsKey(id)) {
@@ -394,7 +390,7 @@ public class LbService implements IDevProvider{
 
         return null;
     }
-   
+
 
     /**
      *

@@ -25,7 +25,7 @@ public class EipAllocateParam implements Serializable {
     private String ipv6 = "no";
 
     @NotBlank(message = "can not be blank.")
-    @TypeConstraint(allowedValues = {"5_bgp","5_sbgp", "5_telcom", "5_union", "BGP"}, message = "Only 5_bgp,5_sbgp, 5_telcom, 5_union, BGP is allowed. ")
+    @TypeConstraint(allowedValues = {"mobile","radiotv", "telecom", "unicom", "BGP"}, message = "Only mobile,radiotv, telecom, unicom ,  BGP is allowed. ")
     private String ipType;
 
     @TypeConstraint(allowedValues = {"Bandwidth","SharedBandwidth","Traffic"}, message = "Only Bandwidth,SharedBandwidth,Traffic is allowed. ")

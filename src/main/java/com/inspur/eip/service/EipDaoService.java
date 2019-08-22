@@ -48,7 +48,7 @@ public class EipDaoService {
     @Autowired
     private EipRepository eipRepository;
 
-    //@Autowired
+    @Autowired
     private IDevProvider firewallService;
 
     @Autowired
@@ -63,13 +63,13 @@ public class EipDaoService {
     @Autowired
     private FlowService flowService;
 
-    @Autowired
-    EipDaoService(@Value("${firewall.type}")String type,FirewallService firewallService){
-        if(type.equals("hillstone"))
-        {
-            this.firewallService= firewallService;
-        }
-    }
+//    @Autowired
+//    EipDaoService(@Value("${firewall.type}")String type,FirewallService firewallService){
+//        if(type.equals("hillstone"))
+//        {
+//            this.firewallService= firewallService;
+//        }
+//    }
 
     /**
      * allocate eip
@@ -122,6 +122,7 @@ public class EipDaoService {
         eipMo.setBandWidth(eipConfig.getBandwidth());
         eipMo.setRegion(eipConfig.getRegion());
         eipMo.setSbwId(eipConfig.getSbwId());
+        eipMo.setGroupId(eipConfig.getGroupId());
         String projectId = CommonUtil.getProjectId(token);
         log.debug("get tenantid:{} from clientv3", projectId);
         eipMo.setProjectId(projectId);
@@ -204,6 +205,7 @@ public class EipDaoService {
                 eipPoolMo.setFireWallId(eipEntity.getFirewallId());
                 eipPoolMo.setIp(eipEntity.getEipAddress());
                 eipPoolMo.setState("0");
+                eipPoolMo.setType(eipEntity.getIpType());
                 eipPoolRepository.saveAndFlush(eipPoolMo);
                 log.info("Success delete eip:{}", eipEntity.getEipAddress());
             }
@@ -273,6 +275,7 @@ public class EipDaoService {
                 eipPoolMo.setFireWallId(eipEntity.getFirewallId());
                 eipPoolMo.setIp(eipEntity.getEipAddress());
                 eipPoolMo.setState("0");
+                eipPoolMo.setType(eipEntity.getIpType());
                 eipPoolRepository.saveAndFlush(eipPoolMo);
                 log.info("Success delete eip:{}", eipEntity.getEipAddress());
             }
@@ -683,8 +686,11 @@ public class EipDaoService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public synchronized EipPool getOneEipFromPool() {
-        EipPool eipAddress = eipPoolRepository.getEipByRandom();
+    public synchronized EipPool getOneEipFromPool(String type) {
+        if(type == null){
+            type="BGP";
+        }
+        EipPool eipAddress = eipPoolRepository.getEipByRandom(type);
         if (null != eipAddress) {
             eipPoolRepository.deleteById(eipAddress.getId());
             eipPoolRepository.flush();
