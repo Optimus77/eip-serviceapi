@@ -944,7 +944,7 @@ public class FirewallService implements IDevProvider{
         //        configure\rshow statistics address 192.168.1.11 lasthour\rend
         JSONObject json = fireWallCommondService.cmdShowStasiticsAddress(fireWallId, sb.toString());
         if (json !=null){
-            log.info("success show :");
+            log.debug("success show :{}",json);
             return json;
         }else {
             log.error(ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage() + "param not correct,entryName:{},period;{}", entryName,period);

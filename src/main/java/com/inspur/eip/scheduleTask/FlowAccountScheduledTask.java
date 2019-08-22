@@ -22,7 +22,7 @@ import java.util.Map;
  **/
 @Component
 @Slf4j
-@EnableScheduling
+//@EnableScheduling
 public class FlowAccountScheduledTask {
 
     @Autowired
@@ -32,33 +32,14 @@ public class FlowAccountScheduledTask {
     private EipDaoService eipDaoService;
 
 
-
-
-    //每分钟统计
-//    @Scheduled(cron = "0 0/1 * * * * ")
-//    public void oneMinReportFlowAccount(){
-//        try {
-//            List<Eip> trafficEips = eipDaoService.findFlowAccountEipList("Traffic");
-//            for (Eip eip : trafficEips) {
-//                Map<String, Long> map = flowService.staticsFlowByPeriod(1, eip.getEipAddress(),  "lasthour", eip.getFirewallId());
-//                if (map.containsKey(HillStoneConfigConsts.UP_TYPE)){
-//                    Long up = map.get(HillStoneConfigConsts.UP_TYPE);
-//                    Long down = map.get(HillStoneConfigConsts.DOWN_TYPE);
-//                    Long sum = map.get(HillStoneConfigConsts.SUM_TYPE);
-//                    FlowAccount2Bss flowBean = flowService.getFlowAccount2BssBean(eip, up, down, sum);
-//
-//                    flowService.sendOrderMessageToBss(flowBean);
-//                }
-//            }
-//        } catch (Exception e) {
-//            log.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()+":{}",e.getMessage());
-//        }
-//    }
-    //每小时统计
-    @Scheduled(cron = "0 0 0/1 * * *")
+//    每分钟统计
+    @Scheduled(cron = "0 0/1 * * * * ")
+    //    每小时统计
+//    @Scheduled(cron = "0 0 0/1 * * *")
     public void oneHourReportFlowAccount(){
         try {
             List<Eip> trafficEips = eipDaoService.findFlowAccountEipList("Traffic");
+            log.info("start to report flow eip to bss:{}",trafficEips);
             if (trafficEips!=null && trafficEips.size()>0){
                 for (Eip eip : trafficEips) {
                     Map<String, Long> map = flowService.staticsFlowByPeriod(60, eip.getEipAddress(),  "lasthour", eip.getFirewallId());
