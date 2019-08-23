@@ -4,6 +4,7 @@ import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
 import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.LogLevel;
+import com.inspur.eip.service.IEipService;
 import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.ReturnMsgUtil;
@@ -11,6 +12,7 @@ import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.iam.adapter.annotation.PermissionContext;
+import com.inspur.iam.adapter.annotation.ResourceContext;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -146,10 +148,14 @@ public class EipControllerV2 {
      * @param eipId  the id of eip
      * @return  retrun
      */
+    @ResourceContext(
+            service= IEipService.class,
+            method="getEipById")
     @PermissionContext(
             service="eip",
             action="GetEip",
-            resourceType="instance")
+            resourceType="instance",
+            resource="{eipId}")
     @GetMapping(value = "/eips/{eip_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "get detail of  eip instance", notes = "get")
@@ -195,10 +201,14 @@ public class EipControllerV2 {
         return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
     }
 
+    @ResourceContext(
+            service= IEipService.class,
+            method="getEipById")
     @PermissionContext(
             service="eip",
             action="UpdateEip",
-            resourceType="instance")
+            resourceType="instance",
+            resource="{eipId}")
     @PutMapping(value = "/eips/{eip_id}/action/{action}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eip", notes = "put")

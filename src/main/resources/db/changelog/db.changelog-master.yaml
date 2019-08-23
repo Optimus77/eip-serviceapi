@@ -10,6 +10,8 @@ databaseChangeLog:
 #  初始化liquibase changeset 避免没有修改的liquibase 脚本引起报错
   - include:
       file: db/changelog/eip/mysql/t201906/2019062706-ddl-init-zerah.xml
+  - include:
+      file: db\changelog\eip\mysql\t201908\2019082103-ddl-eip-sbw-eipv6-add-columName-modify-filed-name-liuyesheng.xml
 #      file: db/changelog/eip/mysql/t201908/2019080201-ddl-eip-sbw-ipts-create-name-sangxinjing.xml
 #  字段名称，字段长度规范
 #  - include:

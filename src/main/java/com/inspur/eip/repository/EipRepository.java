@@ -21,28 +21,30 @@ public interface EipRepository extends JpaRepository<Eip,String> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Eip> findById(String id);
 
+    Eip findByIdAndIsDelete(String id, int isDelete);
+
     Eip findByInstanceIdAndIsDelete (String instanceId, int isDelete);
 
-    List<Eip> findByUserIdAndIsDelete(String projectId, int isDelete);
+    List<Eip> findByProjectIdAndIsDelete(String projectId, int isDelete);
 
-    Eip findByEipAddressAndUserIdAndIsDelete(String ipAddress, String userId, int isDelete);
+    Eip findByEipAddressAndProjectIdAndIsDelete(String ipAddress, String projectId, int isDelete);
 
     Eip findByEipAddressAndIsDelete(String ipAddress, int isDelete);
 
-    Page<Eip> findByUserIdAndIsDelete(String projectId, int isDelete, Pageable pageable);
+    Page<Eip> findByProjectIdAndIsDelete(String projectId, int isDelete, Pageable pageable);
 
     long countBySbwIdAndIsDelete(String sharedBandWidthId, int isDelete);
 
     long countByPipId(String pipeId);
 
-    Page<Eip> findByUserIdAndIsDeleteAndSbwId(String projectId, int isDelete, String sbwId, Pageable pageable);
+    Page<Eip> findByProjectIdAndIsDeleteAndSbwId(String projectId, int isDelete, String sbwId, Pageable pageable);
 
-    List<Eip> findByUserIdAndIsDeleteAndSbwId(String projectId, int isDelete, String sbwId);
+    List<Eip> findByProjectIdAndIsDeleteAndSbwId(String projectId, int isDelete, String sbwId);
 
-    @Query(value = "SELECT * from eip where user_id=?1 and is_delete=?2 and bill_type=?3 and(sbw_id is null or sbw_id=?4)",nativeQuery = true)
-    List<Eip> getEipListNotBinding(String userId, int isDelete,String billType, String sbwId);
+    @Query(value = "SELECT * from eip where project_id=?1 and is_delete=?2 and bill_type=?3 and(sbw_id is null or sbw_id=?4)",nativeQuery = true)
+    List<Eip> getEipListNotBinding(String projectId, int isDelete,String billType, String sbwId);
 
-    List<Eip> findByUserIdAndIsDeleteAndBillType(String userId, int isDelete,String billType);
+    List<Eip> findByProjectIdAndIsDeleteAndBillType(String projectId, int isDelete,String billType);
 
     List<Eip> findByChargeModeAndStatusAndIsDelete(String chargeMode,String status, int isDelete);
 }

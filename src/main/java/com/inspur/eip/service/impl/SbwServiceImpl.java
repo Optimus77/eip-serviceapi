@@ -22,6 +22,7 @@ import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
+import com.inspur.iam.adapter.util.ListFilterUtil;
 import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +37,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 
 @Slf4j
@@ -52,6 +55,9 @@ public class SbwServiceImpl implements ISbwService {
 
     @Autowired
     private EipV6Repository eipV6Repository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public ResponseEntity atomCreateSbw(SbwUpdateParam sbwConfig, String token) {
@@ -77,26 +83,33 @@ public class SbwServiceImpl implements ISbwService {
     public ResponseEntity listShareBandWidth(Integer pageIndex, Integer pageSize, String searchValue) {
         try {
             String matche = "(\\w{8}(-\\w{4}){3}-\\w{12}?)";
-            String projectid = CommonUtil.getUserId();
-            log.debug("listShareBandWidth  of user, userId:{}", projectid);
-            if (projectid == null) {
+            String projectId = CommonUtil.getProjectId();
+            log.debug("listShareBandWidth  of user, userId:{}", projectId);
+            if (projectId == null) {
                 return new ResponseEntity<>(ReturnMsgUtil.error(String.valueOf(HttpStatus.BAD_REQUEST),
                         "get project id error please check the Authorization param"), HttpStatus.BAD_REQUEST);
             }
             JSONObject data = new JSONObject();
             JSONArray sbws = new JSONArray();
             Page<Sbw> page;
+            String querySql;
             if (pageIndex != 0) {
                 Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(pageIndex - 1, pageSize, sort);
                 if (StringUtils.isNotBlank(searchValue)) {
                     if (searchValue.matches(matche)) {
-                        page = sbwDaoService.findByIdAndIsDelete(searchValue, projectid, 0, pageable);
+                        querySql="select * from sbw where is_delete='0' and project_id= '"+projectId+"'"+" and id="+searchValue;
+                        page = ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Sbw.class);
+                        //page = sbwDaoService.findByIdAndIsDelete(searchValue, projectId, 0, pageable);
                     } else {
-                        page = sbwDaoService.findByIsDeleteAndSbwName(projectid, 0, searchValue, pageable);
+                        querySql="select * from sbw where is_delete='0' and project_id= '"+projectId+"'"+" and sbw_name="+searchValue;
+                        page = ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Sbw.class);
+                        //page = sbwDaoService.findByIsDeleteAndSbwName(projectId, 0, searchValue, pageable);
                     }
                 } else {
-                    page = sbwDaoService.findByIsDelete(projectid, 0, pageable);
+                    querySql="select * from sbw where is_delete='0' and project_id= '"+projectId+"'";
+                     page = ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Sbw.class);
+                    //page = sbwDaoService.findByIsDelete(projectid, 0, pageable);
                 }
                 for (Sbw sbw : page.getContent()) {
                     SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
@@ -111,8 +124,9 @@ public class SbwServiceImpl implements ISbwService {
                 data.put(HsConstants.PAGE_NO, pageIndex);
                 data.put(HsConstants.PAGE_SIZE, pageSize);
             } else {
-                List<Sbw> sbwList = sbwDaoService.findByProjectId(projectid);
-                for (Sbw sbw : sbwList) {
+                List<Sbw> sbwList = sbwDaoService.findByProjectId(projectId);
+                List<Sbw> dataList = ListFilterUtil.filterListData(sbwList, Sbw.class);
+                for (Sbw sbw : dataList) {
                     if (StringUtils.isNotBlank(searchValue)) {
                         continue;
                     }
@@ -199,7 +213,7 @@ public class SbwServiceImpl implements ISbwService {
     @Override
     public ResponseEntity countSbwNumsByProjectId() {
         try {
-            String projectid = CommonUtil.getUserId();
+            String projectid = CommonUtil.getProjectId();
             long num = sbwRepository.countByProjectIdAndIsDelete(projectid, 0);
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, HsConstants.SUCCESS, num), HttpStatus.OK);
         } catch (KeycloakTokenException e) {
@@ -216,7 +230,7 @@ public class SbwServiceImpl implements ISbwService {
     @Override
     public ResponseEntity countSbwNumsByStatus(String status){
         try {
-            String projectId = CommonUtil.getUserId();
+            String projectId = CommonUtil.getProjectId();
             if (status.equals(HsConstants.ACTIVE) || status.equals(HsConstants.STOP)|| status.equals(HsConstants.DELETE)){
                 long num = sbwRepository.countByStatusAndProjectIdAndIsDelete(status, projectId, 0);
                 log.info("Atom get Sbw Count loading……:{}",num);
@@ -229,6 +243,11 @@ public class SbwServiceImpl implements ISbwService {
             log.error("KeycloakTokenException in count sbw nums by status:{}", e.getMessage());
         }
         return new ResponseEntity<>(ReturnMsgUtil.msg(ErrorStatus.SC_FORBIDDEN.getCode(), ErrorStatus.SC_FORBIDDEN.getMessage(), null), HttpStatus.UNAUTHORIZED);
+    }
+
+    @Override
+    public Sbw getSbwById(String id) {
+        return sbwDaoService.findByIdAndIsDelete(id,0);
     }
 
     /**
@@ -283,11 +302,11 @@ public class SbwServiceImpl implements ISbwService {
      * @return ret
      */
     public ResponseEntity sbwListEip(String sbwId, Integer currentPage, Integer limit) {
-        String userId;
+        String projectId;
         try {
-            userId = CommonUtil.getUserId();
-            log.debug("list Eips  in one sbw of user, userId:{}", userId);
-            if (userId == null) {
+            projectId = CommonUtil.getProjectId();
+            log.debug("list Eips  in one sbw of user, userId:{}", projectId);
+            if (projectId == null) {
                 return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_UNAUTHORIZED.getCode(),
                         ErrorStatus.ENTITY_UNAUTHORIZED.getMessage()), HttpStatus.BAD_REQUEST);
             }
@@ -301,7 +320,7 @@ public class SbwServiceImpl implements ISbwService {
             if (currentPage != 0) {
                 Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
-                Page<Eip> page = eipRepository.findByUserIdAndIsDeleteAndSbwId(userId, 0, sbwId, pageable);
+                Page<Eip> page = eipRepository.findByProjectIdAndIsDeleteAndSbwId(projectId, 0, sbwId, pageable);
                 for (Eip eip : page.getContent()) {
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturnDetail);
@@ -316,7 +335,7 @@ public class SbwServiceImpl implements ISbwService {
                 data.put(HsConstants.PAGE_NO, currentPage);
                 data.put(HsConstants.PAGE_SIZE, limit);
             } else {
-                List<Eip> eipList = eipRepository.findByUserIdAndIsDeleteAndSbwId(userId, 0, sbwId);
+                List<Eip> eipList = eipRepository.findByProjectIdAndIsDeleteAndSbwId(projectId, 0, sbwId);
                 for (Eip eip : eipList) {
 
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
@@ -372,8 +391,8 @@ public class SbwServiceImpl implements ISbwService {
      */
     public ResponseEntity getOtherEips(String sbwId) {
         try {
-            String userId = CommonUtil.getUserId();
-            if (userId == null) {
+            String projectId = CommonUtil.getProjectId();
+            if (projectId == null) {
                 return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_UNAUTHORIZED.getCode(),
                         ErrorStatus.ENTITY_UNAUTHORIZED.getMessage()), HttpStatus.BAD_REQUEST);
             }
@@ -382,7 +401,7 @@ public class SbwServiceImpl implements ISbwService {
                 return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_BADREQUEST_ERROR.getCode(),
                         ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage()), HttpStatus.BAD_REQUEST);
             }
-            List<Eip> eipList = eipRepository.findByUserIdAndIsDeleteAndBillType(userId, 0, HsConstants.HOURLYSETTLEMENT);
+            List<Eip> eipList = eipRepository.findByProjectIdAndIsDeleteAndBillType(projectId, 0, HsConstants.HOURLYSETTLEMENT);
             JSONArray eips = new JSONArray();
             JSONObject data = new JSONObject();
 
@@ -391,7 +410,7 @@ public class SbwServiceImpl implements ISbwService {
                 if (StringUtils.isNotBlank(eip.getSbwId())) {
                     continue;
                 }
-                EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eip.getEipAddress(), eip.getUserId(), 0);
+                EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eip.getEipAddress(), eip.getProjectId(), 0);
                 if (eipV6 == null) {
                     EipReturnDetail eipReturn = new EipReturnDetail();
                     BeanUtils.copyProperties(eip, eipReturn);

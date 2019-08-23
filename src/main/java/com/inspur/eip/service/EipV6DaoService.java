@@ -116,16 +116,18 @@ public class EipV6DaoService {
         eipMo.setFirewallId(eipPoolv6.getFireWallId());
         eipMo.setRegion(eip.getRegion());
         eipMo.setIpv4(eip.getEipAddress());
-        String userId = CommonUtil.getUserId(token);
-        log.debug("get tenantid:{} from clientv3", userId);
-        eipMo.setUserId(userId);
+        String projectId = CommonUtil.getProjectId(token);
+        log.debug("get tenantid:{} from clientv3", projectId);
+        eipMo.setProjectId(projectId);
+        eipMo.setUserId(CommonUtil.getUserId(token));
+        eipMo.setUserName(CommonUtil.getUsername(token));
         eipMo.setIsDelete(0);
         eipMo.setCreatedTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipMo);
         eip.setEipV6Id(eipMo.getId());
         eip.setUpdatedTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eip);
-        log.info("User:{} success allocate eipv6:{}",userId, eipMo.getId());
+        log.info("User:{} success allocate eipv6:{}",projectId, eipMo.getId());
         return eipMo;
     }
 
@@ -140,8 +142,8 @@ public class EipV6DaoService {
     }
 
 
-    public List<EipV6> findEipV6ByUserId(String userId){
-        return eipV6Repository.findByUserIdAndIsDelete(userId,0);
+    public List<EipV6> findEipV6ByUserId(String projectId){
+        return eipV6Repository.findByProjectIdAndIsDelete(projectId,0);
     }
 
     public EipV6 findByEipV6IdAndIsDelete(String eipV6Id, int isDelete){
@@ -158,7 +160,7 @@ public class EipV6DaoService {
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
         }
-        if(!CommonUtil.verifyToken(token,eipV6Entity.getUserId())){
+        if(!CommonUtil.verifyToken(token,eipV6Entity.getProjectId())){
             log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eipv6id);
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
@@ -184,7 +186,7 @@ public class EipV6DaoService {
         eipV6Entity.setIsDelete(1);
         eipV6Entity.setUpdatedTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipV6Entity);
-        Eip eip = eipRepository.findByEipAddressAndUserIdAndIsDelete(eipV6Entity.getIpv4(), eipV6Entity.getUserId(), 0);
+        Eip eip = eipRepository.findByEipAddressAndProjectIdAndIsDelete(eipV6Entity.getIpv4(), eipV6Entity.getProjectId(), 0);
         if(eip == null){
             msg = "Failed to fetch eip based on ipv4";
             log.error(msg);
@@ -241,7 +243,7 @@ public class EipV6DaoService {
         eipV6Entity.setIsDelete(1);
         eipV6Entity.setUpdatedTime(CommonUtil.getGmtDate());
         eipV6Repository.saveAndFlush(eipV6Entity);
-        Eip eip = eipRepository.findByEipAddressAndUserIdAndIsDelete(eipV6Entity.getIpv4(), eipV6Entity.getUserId(), 0);
+        Eip eip = eipRepository.findByEipAddressAndProjectIdAndIsDelete(eipV6Entity.getIpv4(), eipV6Entity.getProjectId(), 0);
         if(eip == null){
             msg = "Failed to fetch eip based on ipv4";
             log.error(msg);
@@ -270,9 +272,9 @@ public class EipV6DaoService {
 
 
 
-    boolean bindIpv6WithInstance(String eipAddress, String floatingIp, String userId) throws Exception{
+    boolean bindIpv6WithInstance(String eipAddress, String floatingIp, String projectId) throws Exception{
 
-        EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipAddress, userId, 0);
+        EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, projectId, 0);
         if (eipV6 != null) {
             NatPtV6 natPtV6 = natPtService.addNatPt(eipV6.getIpv6(),eipAddress, floatingIp, eipV6.getFirewallId());
             if (natPtV6 == null) {
@@ -289,9 +291,9 @@ public class EipV6DaoService {
         return  true;
     }
 
-    boolean unBindIpv6WithInstance(String eipAddress, String userId) throws Exception{
+    boolean unBindIpv6WithInstance(String eipAddress, String ProjectId) throws Exception{
 
-        EipV6 eipV6 = eipV6Repository.findByIpv4AndUserIdAndIsDelete(eipAddress, userId, 0);
+        EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, ProjectId, 0);
         if (eipV6 != null) {
             Boolean flag = natPtService.delNatPt(eipV6.getSnatptId(), eipV6.getDnatptId(), eipV6.getFirewallId());
             if (!flag) {

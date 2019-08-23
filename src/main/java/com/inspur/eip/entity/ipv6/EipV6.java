@@ -1,6 +1,7 @@
 package com.inspur.eip.entity.ipv6;;
 
 
+import com.inspur.iam.adapter.annotation.ContextKey;
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -26,6 +27,7 @@ public class EipV6 {
 
     private String floatingIp;
 
+    @ContextKey("creator")
     private String userId;
 
     private String region;
@@ -44,5 +46,10 @@ public class EipV6 {
     private Date updatedTime;
 
     private int isDelete=0;
+
+    @ContextKey("accountId")
+    private String projectId;
+
+    private String userName;
 
 }

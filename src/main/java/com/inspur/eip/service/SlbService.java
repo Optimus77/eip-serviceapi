@@ -43,7 +43,7 @@ class SlbService {
         }catch (Exception e){
             log.error("Exception Get fip status from slb error");
         }
-        return true;
+        return false;
     }
 
 }

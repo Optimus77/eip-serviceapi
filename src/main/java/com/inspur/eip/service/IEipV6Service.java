@@ -1,5 +1,6 @@
 package com.inspur.eip.service;
 
+import com.inspur.eip.entity.ipv6.EipV6;
 import org.springframework.http.ResponseEntity;
 
 
@@ -32,6 +33,8 @@ public interface IEipV6Service {
      * @return        result
      */
     ResponseEntity eipV6bindPort(String id,String eipAddress);
+
+    EipV6 getEipv6ById(String id);
 
 
 }

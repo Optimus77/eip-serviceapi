@@ -1,5 +1,6 @@
 package com.inspur.eip.entity.eip;
 
+import com.inspur.iam.adapter.annotation.ContextKey;
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -62,8 +63,10 @@ public class Eip implements Serializable {
 
     private String status ="DOWN";
 
+    @ContextKey("accountId")
     private String projectId;
 
+    @ContextKey("creator")
     private String userId;
 
     private String region;
@@ -77,5 +80,7 @@ public class Eip implements Serializable {
     private int isDelete=0;
 
     private String eipV6Id;
+
+    private String userName;
 
 }
