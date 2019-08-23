@@ -94,40 +94,7 @@ public class FirewallService implements IDevProvider{
         if (ruleid != null) {
             return ruleid;
         }
-        //添加弹性IP
-        FwDnatVo dnatVo = new FwDnatVo();
-        Firewall accessFirewallBeanByNeid = getFireWallById(equipid);
-        if (accessFirewallBeanByNeid != null) {
-            dnatVo.setManageIP(accessFirewallBeanByNeid.getIp());
-            dnatVo.setManagePort(accessFirewallBeanByNeid.getPort());
-            dnatVo.setManageUser(accessFirewallBeanByNeid.getUser());
-            dnatVo.setManagePwd(accessFirewallBeanByNeid.getPasswd());
-            dnatVo.setDnatid("0");
-            dnatVo.setVrid(vr);
-            dnatVo.setVrname(vr);
-            dnatVo.setSaddrtype("0");
-            dnatVo.setSaddr("Any");
-            dnatVo.setDaddrtype("1");
-            dnatVo.setDaddr(extip);
-            dnatVo.setDnatstat("1");
-            dnatVo.setDescription("");
-            dnatVo.setTransfer("1");//
-            dnatVo.setTransferaddrtype("1");
-            dnatVo.setTransferaddr(innerip);
-            dnatVo.setIstransferport("1");
-            dnatVo.setHa("0");
 
-            NatService dnatimpl = new NatService();
-            FwResponseBody body = dnatimpl.addPDnat(dnatVo);
-            if (body.isSuccess()) {
-
-                FwPortMapResult result = (FwPortMapResult) body.getObject();
-                ruleid = result.getRule_id();
-                log.info("--add dnat successfully.innerIp:{}, dnatId:{}", innerip, ruleid);
-            } else {
-                log.info(innerip + "--Failed to add dnat:" + body.getException());
-            }
-        }
         return ruleid;
     }
 
@@ -138,42 +105,6 @@ public class FirewallService implements IDevProvider{
             return ruleid;
         }
 
-        FwSnatVo vo = new FwSnatVo();
-        Firewall accessFirewallBeanByNeid = getFireWallById(equipid);
-        if (accessFirewallBeanByNeid != null) {
-            vo.setManageIP(accessFirewallBeanByNeid.getIp());
-            vo.setManagePort(accessFirewallBeanByNeid.getPort());
-            vo.setManageUser(accessFirewallBeanByNeid.getUser());
-            vo.setManagePwd(accessFirewallBeanByNeid.getPasswd());
-
-            vo.setVrid(vr);
-            vo.setSnatstat("1");
-            vo.setFlag("20");
-            vo.setSaddr(innerip);
-            vo.setSaddrtype("1");
-            vo.setHa("0");
-            vo.setSnatlog("true");
-            vo.setPos_flag("1");
-            vo.setSnatid("0");
-            vo.setServicename("Any");
-
-            vo.setDaddr("Any");
-            vo.setDaddrtype("1");
-            vo.setTransferaddr(extip);
-
-            vo.setFlag("1");
-
-            NatService dnatimpl = new NatService();
-            FwResponseBody body = dnatimpl.addPSnat(vo);
-            if (body.isSuccess()) {
-                // 创建成功
-                FwSnatVo result = (FwSnatVo) body.getObject();
-                ruleid = result.getSnatid();
-                log.info("--Snat add successfully.innerIp:{}, snatId:{}", innerip, ruleid);
-            } else {
-                log.info(innerip + "--Failed to add snat:" + body.getException());
-            }
-        }
         return ruleid;
     }
 
@@ -273,69 +204,11 @@ public class FirewallService implements IDevProvider{
     }
 
     public boolean delDnat(String ruleid, String devId) {
-        boolean bSuccess = true;
-        if (cmdDelDnat(ruleid, devId)) {
-            return true;
-        }
-
-        if (StringUtils.isNotEmpty(ruleid)) {
-            FwDnatVo vo = new FwDnatVo();
-            Firewall accessFirewallBeanByNeid = getFireWallById(devId);
-            if (accessFirewallBeanByNeid != null) {
-                vo.setManageIP(accessFirewallBeanByNeid.getIp());
-                vo.setManagePort(accessFirewallBeanByNeid.getPort());
-                vo.setManageUser(accessFirewallBeanByNeid.getUser());
-                vo.setManagePwd(accessFirewallBeanByNeid.getPasswd());
-
-                vo.setDnatid(ruleid);
-                vo.setVrid(vr);
-                vo.setVrname(vr);
-
-                NatService dnatimpl = new NatService();
-                FwResponseBody body = dnatimpl.delPDnat(vo);
-                if (body.isSuccess() || (body.getException().getMessage().contains("cannot be found"))) {
-                    bSuccess = true;
-                } else {
-                    bSuccess = false;
-                    log.warn("Failed to del dnat:" + "dev[" + devId + "],ruleid[" + ruleid + "]");
-                }
-            }
-        }
-        return bSuccess;
+        return cmdDelDnat(ruleid, devId);
     }
 
     public boolean delSnat(String ruleid, String devId) {
-        boolean bSuccess = true;
-        if (cmdDelSnat(ruleid, devId)) {
-            return true;
-        }
-
-        if (StringUtils.isNotEmpty(ruleid)) {
-
-            FwSnatVo vo = new FwSnatVo();
-
-            Firewall accessFirewallBeanByNeid = getFireWallById(devId);
-            if (accessFirewallBeanByNeid != null) {
-                vo.setManageIP(accessFirewallBeanByNeid.getIp());
-                vo.setManagePort(accessFirewallBeanByNeid.getPort());
-                vo.setManageUser(accessFirewallBeanByNeid.getUser());
-                vo.setManagePwd(accessFirewallBeanByNeid.getPasswd());
-
-                vo.setVrid(vr);
-                vo.setSnatid(ruleid);
-
-                NatService dnatimpl = new NatService();
-                FwResponseBody body = dnatimpl.delPSnat(vo);
-
-                if (body.isSuccess() || (body.getException().getMessage().contains("cannot be found"))) {
-                    bSuccess = true;
-                } else {
-                    bSuccess = false;
-                    log.info("Failed to del snat:" + "dev[" + devId + "],ruleid[" + ruleid + "]");
-                }
-            }
-        }
-        return bSuccess;
+        return cmdDelSnat(ruleid, devId);
     }
 
     public MethodReturn addNatAndQos(Eip eip, String fipAddress, String eipAddress, int bandWidth, String firewallId) {
