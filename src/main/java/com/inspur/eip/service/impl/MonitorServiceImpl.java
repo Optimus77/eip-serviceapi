@@ -46,9 +46,7 @@ public class MonitorServiceImpl implements MonitorService {
     public MonitorServiceImpl(EipDaoService eipDaoService,
                               IDevProvider firewallService,
                               ProducerHandler producerHandler,
-                              FirewallRepository firewallRepository,
-                              @Value("${firewall.type}")String type) {
-        //this.firewallService = firewallService;
+                              FirewallRepository firewallRepository) {
         this.producerHandler = producerHandler;
         this.firewallRepository = firewallRepository;
         this.eipDaoService = eipDaoService;

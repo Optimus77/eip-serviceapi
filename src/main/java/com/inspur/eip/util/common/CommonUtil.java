@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
 import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.ReturnMsg;
+import com.inspur.eip.entity.fw.Firewall;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.util.ReturnMsgUtil;
@@ -19,6 +20,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.core.transport.Config;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -42,13 +44,47 @@ public class CommonUtil {
 //    @Value("${scheduleTime}")
 //    private String scheduleTime;
 
+    @Value("${firewall.ip}")
+    private String firewallIp;
+
+    @Value("${firewall.port}")
+    private String firewallPort;
+
+    @Value("${firewall.user}")
+    private String firewallUser;
+
+    @Value("${firewall.password}")
+    private String firewallPasswd;
+
+    @Value("${firewall.id}")
+    private String firewallId;
+
+
+    private String secretKey = "EbfYkitulv73I2p0mXI50JMXoaxZTKJ7";
+    private static  Map<String, Firewall> firewallConfigMap = new HashMap<>();
+    private static  String configFirewallId ;
     private static Config config = Config.newConfig().withSSLVerificationDisabled();
     private static Map<String,String> userConfig = new HashMap<>(16);
 
     @PostConstruct
     public void init(){
-//        IDevProvider firewallService = BeanHander.getBean(IDevProvider.class);
-//        userConfig.put(SCHEDULETIME, scheduleTime);
+        Firewall fireWallConfig = new Firewall();
+
+        fireWallConfig.setUser(JaspytUtils.decyptPwd(secretKey, firewallUser));
+        fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, firewallPasswd));
+        fireWallConfig.setIp(firewallIp);
+        fireWallConfig.setPort(firewallPort);
+        configFirewallId = firewallId;
+        firewallConfigMap.put(firewallId, fireWallConfig);
+        log.error("firewall init,id:{} ip:{}, ", firewallId, firewallIp);
+    }
+
+    public static Firewall getFireWallById(String id) {
+        if (!firewallConfigMap.containsKey(id)) {
+            log.error("===============================Can not get firewall by id:{}", id);
+            return firewallConfigMap.get(configFirewallId);
+        }
+        return firewallConfigMap.get(id);
     }
 
     //    Greenwich mean time

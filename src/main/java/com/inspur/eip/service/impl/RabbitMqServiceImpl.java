@@ -282,7 +282,7 @@ public class RabbitMqServiceImpl {
                         continue;
                     }
                     eipId = orderProduct.getInstanceId();
-                    EipUpdateParam eipUpdate = getUpdateParmByOrderv2(orderProduct, eipOrder.getBillType(), eipOrder.getDuration());
+                    EipUpdateParam eipUpdate = getUpdateParmByOrder(orderProduct, eipOrder.getBillType(), eipOrder.getDuration());
                     //更配操作
                     if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
                         if (eipUpdate.getSbwId() != null) {
@@ -703,7 +703,7 @@ public class RabbitMqServiceImpl {
 //        log.debug("Get eip param from bss MQ:{}", eipUpdateParams.toString());
 //        return eipUpdateParams;
 //    }
-    private EipUpdateParam getUpdateParmByOrderv2(OrderProduct orderProduct, String billType, String duration) {
+    private EipUpdateParam getUpdateParmByOrder(OrderProduct orderProduct, String billType, String duration) {
 
         EipUpdateParam eipUpdateParam = new EipUpdateParam();
         eipUpdateParam.setBillType(billType);

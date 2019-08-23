@@ -38,6 +38,7 @@ public class SbwDaoServiceTest {
     @Autowired
     private SbwDaoService sbwDaoService;
 
+    @Autowired
     private IDevProvider firewallService;
 
     @Autowired

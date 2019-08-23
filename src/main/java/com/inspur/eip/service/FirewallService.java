@@ -12,7 +12,6 @@ import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.repository.SbwRepository;
 import com.inspur.eip.util.common.CommonUtil;
-import com.inspur.eip.util.common.JaspytUtils;
 import com.inspur.eip.util.common.MethodReturnUtil;
 import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HillStoneConfigConsts;
@@ -23,32 +22,17 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
 @Service
 @ConditionalOnProperty(value = "firewall.type",havingValue = "hillstone")
 public class FirewallService implements IDevProvider{
-
-
-    @Value("${firewall.ip}")
-    private String firewallIp;
-
-    @Value("${firewall.port}")
-    private String firewallPort;
-
-    @Value("${firewall.user}")
-    private String firewallUser;
-
-    @Value("${firewall.password}")
-    private String firewallPasswd;
 
     @Autowired
     private FirewallRepository firewallRepository;
@@ -65,30 +49,7 @@ public class FirewallService implements IDevProvider{
     @Autowired
     private FireWallCommondService fireWallCommondService;
 
-    //    @Value("${jasypt.password}")
-    private String secretKey = "EbfYkitulv73I2p0mXI50JMXoaxZTKJ7";
-    private Map<String, Firewall> firewallConfigMap = new HashMap<>();
-    private String vr = "trust-vr";
-
-
-    public Firewall getFireWallById(String id) {
-        if (!firewallConfigMap.containsKey(id)) {
-
-            Firewall fireWallConfig = new Firewall();
-
-            fireWallConfig.setUser(JaspytUtils.decyptPwd(secretKey, firewallUser));
-            fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, firewallPasswd));
-            fireWallConfig.setIp(firewallIp);
-            fireWallConfig.setPort(firewallPort);
-            firewallConfigMap.put(id, fireWallConfig);
-            log.info("get firewall ip:{}, port:{}, passwd:{}, user:{}", firewallIp,
-                    firewallPort, firewallUser, firewallPasswd);
-
-        }
-        return firewallConfigMap.get(id);
-    }
-
-
+    @Override
     public String addDnat(String innerip, String extip, String equipid) {
         String ruleid = cmdAddDnat(innerip, extip, equipid);
         if (ruleid != null) {
@@ -97,7 +58,7 @@ public class FirewallService implements IDevProvider{
 
         return ruleid;
     }
-
+    @Override
     public String addSnat(String innerip, String extip, String equipid) {
 
         String ruleid = cmdAddSnat(innerip, extip, equipid);
@@ -108,7 +69,7 @@ public class FirewallService implements IDevProvider{
         return ruleid;
     }
 
-
+    @Override
     public String addQos(String innerip, String name, String bandwidth, String fireWallId) {
         String pipid;
         String inBandWidth = "50";
@@ -129,9 +90,10 @@ public class FirewallService implements IDevProvider{
      * @param firewallId firewall id
      * @param bindwidth  bind width
      */
+    @Override
     public boolean updateQosBandWidth(String firewallId, String pipId, String pipNmae, String bindwidth, String fip, String eip) {
 
-        Firewall fwBean = getFireWallById(firewallId);
+        Firewall fwBean = CommonUtil.getFireWallById(firewallId);
         if (fwBean != null) {
             if (null != fip && pipId.equals(getRootPipeName(fip))) {
                 return cmdUpdateQosBandWidth(eip, fip, bindwidth, firewallId);
@@ -181,12 +143,13 @@ public class FirewallService implements IDevProvider{
      * @param devId devid
      * @return ret
      */
+    @Override
     public boolean delQos(String pipid, String eip, String fip, String devId) {
         if (StringUtils.isNotEmpty(pipid)) {
             if (null != eip && null != fip && pipid.equals(getRootPipeName(fip))) {
                 return cmdDelQos(pipid, eip, devId);
             }
-            Firewall fwBean = getFireWallById(devId);
+            Firewall fwBean = CommonUtil.getFireWallById(devId);
             if (null != fwBean) {
                 QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
                 HashMap<String, String> map = qs.delQosPipe(pipid);
@@ -202,15 +165,16 @@ public class FirewallService implements IDevProvider{
         }
         return false;
     }
-
+    @Override
     public boolean delDnat(String ruleid, String devId) {
         return cmdDelDnat(ruleid, devId);
     }
-
+    @Override
     public boolean delSnat(String ruleid, String devId) {
         return cmdDelSnat(ruleid, devId);
     }
 
+    @Override
     public MethodReturn addNatAndQos(Eip eip, String fipAddress, String eipAddress, int bandWidth, String firewallId) {
         String pipId = null;
         String dnatRuleId = null;
@@ -268,7 +232,7 @@ public class FirewallService implements IDevProvider{
         return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
     }
 
-
+    @Override
     public MethodReturn delNatAndQos(Eip eipEntity) {
 
         String msg = null;
@@ -320,6 +284,7 @@ public class FirewallService implements IDevProvider{
      * @param firewallId id
      * @return ret
      */
+    @Override
     public String addFipToSbwQos(String firewallId, String floatIp, String sbwId) {
         String retPipeId = null;
         if (sbwId.length() == HsConstants.UUID_LENGTH.length()) {
@@ -338,6 +303,7 @@ public class FirewallService implements IDevProvider{
      * @param floatIp    fip
      * @return ret
      */
+    @Override
     public boolean removeFipFromSbwQos(String firewallId, String floatIp, String sbwId) {
         if (StringUtils.isBlank(floatIp)){
             log.error("floating ip is null,floatIp:{}",floatIp);
@@ -346,7 +312,7 @@ public class FirewallService implements IDevProvider{
         if (cmdDelIpInSbwPipe(sbwId, floatIp, firewallId)) {
             return true;
         }
-        Firewall fwBean = getFireWallById(firewallId);
+        Firewall fwBean = CommonUtil.getFireWallById(firewallId);
         if (fwBean != null) {
             qosService.setFwIp(fwBean.getIp());
             qosService.setFwPort(fwBean.getPort());
@@ -362,7 +328,7 @@ public class FirewallService implements IDevProvider{
         return false;
     }
 
-
+    @Override
     public boolean ping(String ipAddress, String fireWallId) {
         try {
 //            String delResult = fireWallCommondService.execCustomCommand(fireWallId,
@@ -769,7 +735,6 @@ public class FirewallService implements IDevProvider{
      * @param period
      * @return
      */
-    @Override
     public JSONObject cmdShowStatisticsByAddressBook( String entryName, String period, String fireWallId){
         StringBuilder sb = new StringBuilder();
         sb.append(HillStoneConfigConsts.CONFIGURE_MODEL_ENTER + HillStoneConfigConsts.SHOW_SPACE + HillStoneConfigConsts.STATISTICS_SPACE + HillStoneConfigConsts.ADDRESS_SPACE + entryName +  HillStoneConfigConsts.ADDRESSBOOK_SUBFIX);
