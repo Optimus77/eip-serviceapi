@@ -31,4 +31,8 @@ public class EipReturnBase implements Serializable {
     @JsonProperty("createdTime")
     @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd'T'HH:mm:ss'Z'")
     private Date createdTime;
+
+    @JsonProperty("groupId")
+    private String groupId;
+
 }
