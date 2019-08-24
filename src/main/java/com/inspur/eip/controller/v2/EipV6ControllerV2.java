@@ -92,14 +92,10 @@ public class EipV6ControllerV2 {
 
     }
 
-    @ResourceContext(
-            service= IEipV6Service.class,
-            method="getEipv6ById")
     @PermissionContext(
             service="ipts",
             action="DeleteIPv6",
-            resourceType="instance",
-            resource="{eipV6Id}")
+            resourceType="instance")
     @DeleteMapping(value = "/eipv6/{eipv6_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity deleteEip(@Size(min=36, max=36, message = "Must be uuid.")
@@ -116,14 +112,10 @@ public class EipV6ControllerV2 {
      * @param eipV6Id the id of eipV6
      * @return retrun
      */
-    @ResourceContext(
-            service= IEipV6Service.class,
-            method="getEipv6ById")
     @PermissionContext(
             service="ipts",
             action="GetIPv6",
-            resourceType="instance",
-            resource="{eipV6Id}")
+            resourceType="instance")
     @GetMapping(value = "/eipv6/{eipv6_id}")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "getEipv6Detail", notes = "get")
@@ -134,14 +126,10 @@ public class EipV6ControllerV2 {
         return eipV6Service.getEipV6Detail(eipV6Id);
     }
 
-    @ResourceContext(
-            service= IEipV6Service.class,
-            method="getEipv6ById")
     @PermissionContext(
             service="ipts",
             action="UpdateIPv6",
-            resourceType="instance",
-            resource="{eipV6Id}")
+            resourceType="instance")
     @PutMapping(value = "/eipv6/{eipv6_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eipv6", notes = "put")

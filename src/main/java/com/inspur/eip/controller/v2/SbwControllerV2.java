@@ -105,14 +105,10 @@ public class SbwControllerV2 {
      * @param sbwId the id of sbw
      * @return retrun
      */
-    @ResourceContext(
-            service= ISbwService.class,
-            method="getSbwById")
     @PermissionContext(
             service="sbw",
             action="GetSbw",
-            resourceType="instance",
-            resource="{sbwId}")
+            resourceType="instance")
     @ICPControllerLog
     @GetMapping(value = "/sbws/{sbw_id}")
     @CrossOrigin(origins = "*", maxAge = 3000)
@@ -161,14 +157,10 @@ public class SbwControllerV2 {
      * modify sbw name
      * @return ret
      */
-    @ResourceContext(
-            service= ISbwService.class,
-            method="getSbwById")
     @PermissionContext(
             service="sbw",
             action="UpdateSbw",
-            resourceType="instance",
-            resource="{sbwId}")
+            resourceType="instance")
     @ICPControllerLog
     @PutMapping(value = "/sbws/{sbw_id}/action/rename", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
