@@ -6,9 +6,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
 import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.ReturnMsg;
+import com.inspur.eip.entity.fw.Firewall;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.exception.KeycloakTokenException;
-import com.inspur.eip.service.IDevProvider;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
@@ -20,15 +20,13 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.core.transport.Config;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,47 +40,56 @@ public class CommonUtil {
     public static boolean isDebug = true;
     public static boolean qosDebug = false;
 
-    private IDevProvider firewallService;
 
     public static final Set<String> ipType = Stream.of("mobile", "unicom","telecom","radiotv","BGP").collect(Collectors.toSet());
 
     @Setter
     private static org.json.JSONObject KeyClockInfo;
-//    @Value("${openstackIp}")
-//    private String openstackIp;
-//    @Value("${openstackUrl}")
-//    private String openstackUrl;
-//    @Value("${userNameS}")
-//    private String userNameS;
-//    @Value("${passwordS}")
-//    private String passwordS;
-//    @Value("${projectIdS}")
-//    private String projectIdS;
-//    @Value("${userDomainIdS}")
-//    private String userDomainIdS;
-//    @Value("${debugRegionS}")
-//    private String debugRegionS;
-//
+
 //    @Value("${scheduleTime}")
 //    private String scheduleTime;
 
+    @Value("${firewall.ip}")
+    private String firewallIp;
+
+    @Value("${firewall.port}")
+    private String firewallPort;
+
+    @Value("${firewall.user}")
+    private String firewallUser;
+
+    @Value("${firewall.password}")
+    private String firewallPasswd;
+
+    @Value("${firewall.id}")
+    private String firewallId;
+
+
+    private String secretKey = "EbfYkitulv73I2p0mXI50JMXoaxZTKJ7";
+    private static  Map<String, Firewall> firewallConfigMap = new HashMap<>();
+    private static  String configFirewallId ;
     private static Config config = Config.newConfig().withSSLVerificationDisabled();
     private static Map<String,String> userConfig = new HashMap<>(16);
 
     @PostConstruct
     public void init(){
-//        IDevProvider firewallService = BeanHander.getBean(IDevProvider.class);
-//        log.info("00000000022222200000000000000000000000000{}", firewallService.toString());
-//        this.firewallService = firewallService;
+        Firewall fireWallConfig = new Firewall();
 
-//        userConfig.put("openstackIp",openstackIp);
-//        userConfig.put("userNameS",userNameS);
-//        userConfig.put("passwordS",passwordS);
-//        userConfig.put("projectIdS",projectIdS);
-//        userConfig.put("userDomainIdS",userDomainIdS);
-//        userConfig.put("debugRegionS",debugRegionS);
-//        userConfig.put("openstackUrl",openstackUrl);
-//        userConfig.put(SCHEDULETIME, scheduleTime);
+        fireWallConfig.setUser(JaspytUtils.decyptPwd(secretKey, firewallUser));
+        fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, firewallPasswd));
+        fireWallConfig.setIp(firewallIp);
+        fireWallConfig.setPort(firewallPort);
+        configFirewallId = firewallId;
+        firewallConfigMap.put(firewallId, fireWallConfig);
+        log.error("firewall init,id:{} ip:{}, ", firewallId, firewallIp);
+    }
+
+    public static Firewall getFireWallById(String id) {
+        if (!firewallConfigMap.containsKey(id)) {
+            log.error("===============================Can not get firewall by id:{}", id);
+            return firewallConfigMap.get(configFirewallId);
+        }
+        return firewallConfigMap.get(id);
     }
 
     //    Greenwich mean time
@@ -171,21 +178,6 @@ public class CommonUtil {
         return jsonObject;
     }
 
-
-    public static String readRequestAsChars(HttpServletRequest request) {
-
-        StringBuilder sb = new StringBuilder();
-        try {
-            BufferedReader br = request.getReader();
-            String str;
-            while ((str = br.readLine()) != null) {
-                sb.append(str);
-            }
-        } catch (IOException e) {
-            log.error("ReadAsChars exception", e);
-        }
-        return sb.toString();
-    }
 
     public static String getUsername(String token) throws KeycloakTokenException {
 
@@ -324,19 +316,6 @@ public class CommonUtil {
         return OSClientUtil.getClient();
     }
 
-//    //administrator rights1.0
-//    public static OSClient.OSClientV3 getOsClientV3(){
-//        //String token = getKeycloackToken();
-////        return OSFactory.builderV3()
-////                .endpoint(userConfig.get("openstackUrl"))
-////                .credentials(userConfig.get("userNameS"), userConfig.get("passwordS"),
-////                        Identifier.byId(userConfig.get("userDomainIdS")))
-////                .withConfig(config)
-////                .scopeToProject(Identifier.byId(userConfig.get("projectIdS")))
-////                .authenticate().useRegion(userConfig.get("debugRegionS"));
-//    }
-
-
 
     public static OSClient.OSClientV3 getOsClientV3Util(String userRegion) throws KeycloakTokenException {
 
@@ -434,7 +413,7 @@ public class CommonUtil {
 
     public static String getProjectId()throws KeycloakTokenException {
 
-        String token = SecurityContextUtil.getAccessToken();
+        String token = getKeycloackToken();
         if(null == token){
             throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
         }else {
@@ -474,17 +453,10 @@ public class CommonUtil {
         if(projectIdToken.equals(projectId)){
             return true;
         }
-        String clientId = null;
-        if(jsonObject.has("clientId")) {
-            clientId = jsonObject.getString("clientId");
-        }
-        if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
-            log.info("Client token, User has right to operation, client:{}", clientId);
-            return true;
-        }else{
-            log.error("User has no right to operation.{}", jsonObject.toString());
-            return false;
-        }
+
+        log.error("User has no right to operation.{}", jsonObject.toString());
+        return false;
+
     }
 
     public static boolean verifyToken(String token, String projectId){

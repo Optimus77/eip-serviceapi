@@ -81,19 +81,85 @@ public class RabbitMqServiceImpl {
      * @param eipOrder order
      * @return return message
      */
+//    public String createEipInfo(ReciveOrder eipOrder) {
+//        ResponseEntity<EipReturnBase> response;
+//        EipReturnBase eipReturn;
+//        String eipId = null;
+//        log.info("Recive create mq:{}", JSONObject.toJSONString(eipOrder));
+//        if (!(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) ){
+//            log.warn("Order must by payed successfully.");
+//            return null;
+//        }
+//        try {
+//            List<EipAllocateParam> eipConfigs = getEipConfigByOrder(eipOrder);
+//            for(EipAllocateParam eipConfig: eipConfigs) {
+//                ReturnMsg checkRet = preCheckParam(eipConfig);
+//                if ( !(checkRet.getCode().equals(ReturnStatus.SC_OK))) {
+//                    log.warn(checkRet.getMessage());
+//                    return null;
+//                }
+//                eipId = null;
+//                response = eipService.atomCreateEip(eipConfig, eipOrder.getToken(), null);
+//                if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
+//                    if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
+//                        if (response.getStatusCodeValue() == 420) {
+//                            webService.returnsIpv6Websocket("false", "createEip", eipOrder.getToken());
+//                        } else {
+//                            webService.returnsIpv6Websocket("false", "createNatWithEip", eipOrder.getToken());
+//                        }
+//                    }
+//                    log.warn("create eip failed, return code:{}", response.getStatusCodeValue());
+//                } else {
+//                    eipReturn = response.getBody();
+//                    if (null != eipReturn) {
+//                        eipId = eipReturn.getId();
+//                    }
+//                    if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
+//                        webService.returnsIpv6Websocket("Success", "createNatWithEip", eipOrder.getToken());
+//                    } else {
+//                        webService.returnsWebsocket(eipId, eipOrder, "create");
+//                    }
+//                }
+//            }
+//            return eipId;
+//        } catch (Exception e) {
+//            log.error(ConstantClassField.EXCEPTION_EIP_CREATE, e);
+//            if (null != eipId) {
+//                eipDaoService.deleteEip(eipId, eipOrder.getToken());
+//                eipId = null;
+//            }
+//        } finally {
+//            if (null == eipId) {
+//                sendOrderMessageToBss(getEipOrderResult(eipOrder, "", HsConstants.FAIL));
+//            } else {
+//                sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
+//            }
+//        }
+//        return eipId;
+//    }
     public String createEipInfo(ReciveOrder eipOrder) {
         ResponseEntity<EipReturnBase> response;
         EipReturnBase eipReturn;
-        UUID uuid = null;
         String eipId = null;
+        String createResult = null;
         log.info("Recive create mq:{}", JSONObject.toJSONString(eipOrder));
-        if (!(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) ){
-            log.warn("Order must by payed successfully.");
-            return null;
-        }
         try {
-            List<EipAllocateParam> eipConfigs = getEipConfigByOrder(eipOrder);
-            for(EipAllocateParam eipConfig: eipConfigs) {
+            if (!(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) ){
+                log.warn("Order must by payed successfully.");
+                return null;
+            }
+            List<OrderProduct> orderProducts = eipOrder.getProductList();
+            String groupId = null;
+            if(eipOrder.getConsoleCustomization().containsKey("groupId")){
+                groupId = CommonUtil.getUUID();
+            }
+
+            for (OrderProduct orderProduct : orderProducts) {
+                if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
+                    continue;
+                }
+                eipId = null;
+                EipAllocateParam eipConfig = getEipConfigByOrder(orderProduct, eipOrder.getBillType(), groupId);
                 ReturnMsg checkRet = preCheckParam(eipConfig);
                 if ( !(checkRet.getCode().equals(ReturnStatus.SC_OK))) {
                     log.warn(checkRet.getMessage());
@@ -108,6 +174,7 @@ public class RabbitMqServiceImpl {
                             webService.returnsIpv6Websocket("false", "createNatWithEip", eipOrder.getToken());
                         }
                     }
+                    createResult = HsConstants.FAIL;
                     log.warn("create eip failed, return code:{}", response.getStatusCodeValue());
                 } else {
                     eipReturn = response.getBody();
@@ -119,9 +186,11 @@ public class RabbitMqServiceImpl {
                     } else {
                         webService.returnsWebsocket(eipId, eipOrder, "create");
                     }
-                    return eipId;
+                    createResult = HsConstants.SUCCESS;
                 }
+                updateEipOrderResult(orderProduct, eipId, eipOrder.getStatusTime(), groupId, createResult);
             }
+            return eipId;
         } catch (Exception e) {
             log.error(ConstantClassField.EXCEPTION_EIP_CREATE, e);
             if (null != eipId) {
@@ -130,9 +199,9 @@ public class RabbitMqServiceImpl {
             }
         } finally {
             if (null == eipId) {
-                sendOrderMessageToBss(getEipOrderResult(eipOrder, "", HsConstants.FAIL));
+                sendOrderMessageToBss(getEipOrderResult(eipOrder, HsConstants.FAIL));
             } else {
-                sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
+                sendOrderMessageToBss(getEipOrderResult(eipOrder, HsConstants.SUCCESS));
             }
         }
         return eipId;
@@ -147,6 +216,7 @@ public class RabbitMqServiceImpl {
     public ActionResponse deleteEipConfig(ReciveOrder eipOrder) {
         String eipId = "";
         ActionResponse response = null;
+        String deleteResult = HsConstants.FAIL;
 
         try {
             log.info("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
@@ -170,21 +240,24 @@ public class RabbitMqServiceImpl {
                         } else {
                             webService.returnsWebsocket(eipId, eipOrder, "delete");
                         }
-                        sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.UNSUBSCRIBE));
-                        return response;
+                        deleteResult = HsConstants.UNSUBSCRIBE;
                     } else {
                         log.warn(ConstantClassField.DELETE_EIP_CONFIG_FAILED, response.getFault() + ReturnStatus.SC_INTERNAL_SERVER_ERROR);
+                        deleteResult = HsConstants.FAIL;
                     }
+                    updateEipOrderResult(orderProduct, eipId, eipOrder.getStatusTime(), null,deleteResult);
                 }
+                sendOrderMessageToBss(getEipOrderResult(eipOrder, deleteResult));
+                return response;
             } else {
                 log.error(ConstantClassField.ORDER_STATUS_NOT_CORRECT + eipOrder.getOrderStatus());
             }
         } catch (Exception e) {
-            sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.FAIL));
+            sendOrderMessageToBss(getEipOrderResult(eipOrder, HsConstants.FAIL));
             log.error(ConstantClassField.EXCEPTION_EIP_DELETE, e);
         }
         log.warn(ConstantClassField.UPDATE_EIP_CONFIG_FAILED, response);
-        sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.FAIL));
+        sendOrderMessageToBss(getEipOrderResult(eipOrder, HsConstants.FAIL));
         return response;
     }
 
@@ -200,13 +273,17 @@ public class RabbitMqServiceImpl {
         String result = HsConstants.FAIL;
         int failedCount=0;
         try {
-            eipId = eipOrder.getProductList().get(0).getInstanceId();
             log.info("Recive update order:{}", JSONObject.toJSONString(eipOrder));
 
             if ((eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS))) {
-                List<EipUpdateParam> eipUpdateConfigs = getUpdateParmByOrder(eipOrder);
-                //更配操作
-                for(EipUpdateParam eipUpdate: eipUpdateConfigs) {
+                List<OrderProduct> orderProducts = eipOrder.getProductList();
+                for (OrderProduct orderProduct : orderProducts) {
+                    if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
+                        continue;
+                    }
+                    eipId = orderProduct.getInstanceId();
+                    EipUpdateParam eipUpdate = getUpdateParmByOrder(orderProduct, eipOrder.getBillType(), eipOrder.getDuration());
+                    //更配操作
                     if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
                         if (eipUpdate.getSbwId() != null) {
                             if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
@@ -231,24 +308,30 @@ public class RabbitMqServiceImpl {
                     }
                     if (response == null || !response.isSuccess()) {
                         failedCount += 1;
+                        result = HsConstants.FAIL;
+                    }else {
+                        result = HsConstants.SUCCESS;
                     }
+                    updateEipOrderResult(orderProduct,eipId,eipOrder.getStatusTime(), null, result);
                 }
                 if (failedCount == 0) {
                     result = HsConstants.SUCCESS;
                     webService.returnsWebsocket(eipId, eipOrder, "update");
-                    sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, result));
+                    sendOrderMessageToBss(getEipOrderResult(eipOrder, result));
                     return response;
+                }else {
+                    result = HsConstants.FAIL;
                 }
             } else {
                 log.error(ConstantClassField.ORDER_STATUS_NOT_CORRECT + eipOrder.getOrderStatus());
             }
         } catch (Exception e) {
             log.error(ConstantClassField.EXCEPTION_EIP_UPDATE, e);
-            sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.FAIL));
+            sendOrderMessageToBss(getEipOrderResult(eipOrder, HsConstants.FAIL));
         }
         log.warn(ConstantClassField.UPDATE_EIP_CONFIG_FAILED, response);
         webService.returnsWebsocket(eipId, eipOrder, "update");
-        sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, result));
+        sendOrderMessageToBss(getEipOrderResult(eipOrder, result));
         return response;
     }
 
@@ -502,97 +585,150 @@ public class RabbitMqServiceImpl {
         return response;
     }
     // Json str parse or packing
-    /**
-     * extract create eip config from BSS MQ
-     *
-     * @param eipOrder order
-     * @return eip param
-     */
-    private List<EipAllocateParam> getEipConfigByOrder(ReciveOrder eipOrder) {
-        List<EipAllocateParam> eipAllocateParams = new ArrayList<>();
-        List<OrderProduct> orderProducts = eipOrder.getProductList();
-        String uuid;
+//    /**
+//     * extract create eip config from BSS MQ
+//     *
+//     * @param eipOrder order
+//     * @return eip param
+//     */
+//    private List<EipAllocateParam> getEipConfigByOrder(ReciveOrder eipOrder) {
+//        List<EipAllocateParam> eipAllocateParams = new ArrayList<>();
+//        List<OrderProduct> orderProducts = eipOrder.getProductList();
+//        String uuid;
+//
+//        for (OrderProduct orderProduct : orderProducts) {
+//            if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
+//                continue;
+//            }
+//            EipAllocateParam eipAllocateParam = new EipAllocateParam();
+//            eipAllocateParam.setBillType(eipOrder.getBillType());
+//            eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
+//
+//            eipAllocateParam.setRegion(orderProduct.getRegion());
+//            List<OrderProductItem> orderProductItems = orderProduct.getItemList();
+//
+//            for (OrderProductItem orderProductItem : orderProductItems) {
+//                if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
+//                    eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
+//                } else if (orderProductItem.getCode().equals(HsConstants.PROVIDER)) {
+//                    eipAllocateParam.setIpType(orderProductItem.getValue());
+//                }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER) && orderProductItem.getValue().equals("1")){
+//                    //  流量计费
+//                    eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_TRAFFIC);
+//                } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
+//                        orderProductItem.getValue().equals(HsConstants.YES)) {
+//                    eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
+//                } else if (orderProductItem.getCode().equals(HsConstants.WITH_IPV6) &&
+//                        orderProductItem.getValue().equals(HsConstants.YES)) {
+//                    eipAllocateParam.setIpv6("yes");
+//                } else if (orderProductItem.getCode().equals(HsConstants.SBW_ID)) {
+//                    eipAllocateParam.setSbwId(orderProductItem.getValue());
+//                }
+//            }
+//            eipAllocateParams.add(eipAllocateParam);
+//        }
+//        if(eipAllocateParams.size() > 1){
+//            uuid = UUID.randomUUID().toString();
+//            for(EipAllocateParam param1: eipAllocateParams){
+//                param1.setGroupId(uuid);
+//            }
+//        }
+//        log.info("Get eip param from order:{}", JSONObject.toJSONString(eipAllocateParams));
+//        return eipAllocateParams;
+//    }
+    private EipAllocateParam getEipConfigByOrder(OrderProduct orderProduct, String billType, String groupId) {
 
-        for (OrderProduct orderProduct : orderProducts) {
-            if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
-                continue;
+        EipAllocateParam eipAllocateParam = new EipAllocateParam();
+        eipAllocateParam.setBillType(billType);
+        eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
+
+        eipAllocateParam.setRegion(orderProduct.getRegion());
+        List<OrderProductItem> orderProductItems = orderProduct.getItemList();
+
+        for (OrderProductItem orderProductItem : orderProductItems) {
+            if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
+                eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
+            } else if (orderProductItem.getCode().equals(HsConstants.PROVIDER)) {
+                eipAllocateParam.setIpType(orderProductItem.getValue());
+            }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER) && orderProductItem.getValue().equals("1")){
+                //  流量计费
+                eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_TRAFFIC);
+            } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
+                    orderProductItem.getValue().equals(HsConstants.YES)) {
+                eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
+            } else if (orderProductItem.getCode().equals(HsConstants.WITH_IPV6) &&
+                    orderProductItem.getValue().equals(HsConstants.YES)) {
+                eipAllocateParam.setIpv6("yes");
+            } else if (orderProductItem.getCode().equals(HsConstants.SBW_ID)) {
+                eipAllocateParam.setSbwId(orderProductItem.getValue());
             }
-            EipAllocateParam eipAllocateParam = new EipAllocateParam();
-            eipAllocateParam.setBillType(eipOrder.getBillType());
-            eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
-
-            eipAllocateParam.setRegion(orderProduct.getRegion());
-            List<OrderProductItem> orderProductItems = orderProduct.getItemList();
-
-            for (OrderProductItem orderProductItem : orderProductItems) {
-                if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
-                    eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
-                } else if (orderProductItem.getCode().equals(HsConstants.PROVIDER)) {
-                    eipAllocateParam.setIpType(orderProductItem.getValue());
-                }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER) && orderProductItem.getValue().equals("1")){
-                    //  流量计费
-                    eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_TRAFFIC);
-                } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
-                        orderProductItem.getValue().equals(HsConstants.YES)) {
-                    eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
-                } else if (orderProductItem.getCode().equals(HsConstants.WITH_IPV6) &&
-                        orderProductItem.getValue().equals(HsConstants.YES)) {
-                    eipAllocateParam.setIpv6("yes");
-                } else if (orderProductItem.getCode().equals(HsConstants.SBW_ID)) {
-                    eipAllocateParam.setSbwId(orderProductItem.getValue());
-                }
-            }
-            eipAllocateParams.add(eipAllocateParam);
         }
-        if(eipAllocateParams.size() > 1){
-            uuid = UUID.randomUUID().toString();
-            for(EipAllocateParam param1: eipAllocateParams){
-                param1.setGroupId(uuid);
-            }
-        }
-        log.info("Get eip param from order:{}", JSONObject.toJSONString(eipAllocateParams));
-        return eipAllocateParams;
+        eipAllocateParam.setGroupId(groupId);
+
+        log.info("Get eip param from order:{}", JSONObject.toJSONString(eipAllocateParam));
+        return eipAllocateParam;
     }
 
-    /**
-     * extract update eip config from BSS MQ
-     *
-     * @param eipOrder order
-     * @return eip param
-     */
-    private List<EipUpdateParam> getUpdateParmByOrder(ReciveOrder eipOrder) {
-        List<EipUpdateParam> eipUpdateParams = new ArrayList<>();
+//    private List<EipUpdateParam> getUpdateParmByOrder(ReciveOrder eipOrder) {
+//        List<EipUpdateParam> eipUpdateParams = new ArrayList<>();
+//
+//        List<OrderProduct> orderProducts = eipOrder.getProductList();
+//        for (OrderProduct orderProduct : orderProducts) {
+//            if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
+//                continue;
+//            }
+//            EipUpdateParam eipUpdateParam = new EipUpdateParam();
+//            eipUpdateParam.setBillType(eipOrder.getBillType());
+//            eipUpdateParam.setDuration(eipOrder.getDuration());
+//            // 默认为带宽计费
+//            eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_BANDWIDTH);
+//
+//            List<OrderProductItem> orderProductItems = orderProduct.getItemList();
+//
+//            for (OrderProductItem orderProductItem : orderProductItems) {
+//                if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
+//                    eipUpdateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
+//                } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
+//                        orderProductItem.getValue().equalsIgnoreCase(HsConstants.YES)) {
+//                    eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
+//                } else if (orderProductItem.getCode().equals(HsConstants.SBW_ID)) {
+//                    eipUpdateParam.setSbwId(orderProductItem.getValue());
+//                }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER) && orderProductItem.getValue().equals("1")){
+//                    //  流量计费
+//                    eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_TRAFFIC);
+//                }
+//            }
+//            eipUpdateParams.add(eipUpdateParam);
+//        }
+//        log.debug("Get eip param from bss MQ:{}", eipUpdateParams.toString());
+//        return eipUpdateParams;
+//    }
+    private EipUpdateParam getUpdateParmByOrder(OrderProduct orderProduct, String billType, String duration) {
 
-        List<OrderProduct> orderProducts = eipOrder.getProductList();
-        for (OrderProduct orderProduct : orderProducts) {
-            if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
-                continue;
+        EipUpdateParam eipUpdateParam = new EipUpdateParam();
+        eipUpdateParam.setBillType(billType);
+        eipUpdateParam.setDuration(duration);
+        // 默认为带宽计费
+        eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_BANDWIDTH);
+
+        List<OrderProductItem> orderProductItems = orderProduct.getItemList();
+
+        for (OrderProductItem orderProductItem : orderProductItems) {
+            if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
+                eipUpdateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
+            } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
+                    orderProductItem.getValue().equalsIgnoreCase(HsConstants.YES)) {
+                eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
+            } else if (orderProductItem.getCode().equals(HsConstants.SBW_ID)) {
+                eipUpdateParam.setSbwId(orderProductItem.getValue());
+            }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER) && orderProductItem.getValue().equals("1")){
+                //  流量计费
+                eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_TRAFFIC);
             }
-            EipUpdateParam eipUpdateParam = new EipUpdateParam();
-            eipUpdateParam.setBillType(eipOrder.getBillType());
-            eipUpdateParam.setDuration(eipOrder.getDuration());
-            // 默认为带宽计费
-            eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_BANDWIDTH);
-
-            List<OrderProductItem> orderProductItems = orderProduct.getItemList();
-
-            for (OrderProductItem orderProductItem : orderProductItems) {
-                if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
-                    eipUpdateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
-                } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
-                        orderProductItem.getValue().equalsIgnoreCase(HsConstants.YES)) {
-                    eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
-                } else if (orderProductItem.getCode().equals(HsConstants.SBW_ID)) {
-                    eipUpdateParam.setSbwId(orderProductItem.getValue());
-                }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER) && orderProductItem.getValue().equals("1")){
-                    //  流量计费
-                    eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_TRAFFIC);
-                }
-            }
-            eipUpdateParams.add(eipUpdateParam);
         }
-        log.debug("Get eip param from bss MQ:{}", eipUpdateParams.toString());
-        return eipUpdateParams;
+
+        log.debug("Get eip param from bss MQ:{}", eipUpdateParam.toString());
+        return eipUpdateParam;
     }
 
     /**
@@ -601,15 +737,8 @@ public class RabbitMqServiceImpl {
      * @param reciveOrder order
      * @return Console2BssResult
      */
-    private Console2BssResult getEipOrderResult(ReciveOrder reciveOrder, String eipId, String result) {
+    private Console2BssResult getEipOrderResult(ReciveOrder reciveOrder,  String result) {
         //must not be delete ,set the reference
-        List<OrderProduct> orderProducts = reciveOrder.getProductList();
-
-        for (OrderProduct orderProduct : orderProducts) {
-            orderProduct.setInstanceId(eipId);
-            orderProduct.setInstanceStatus(result);
-            orderProduct.setStatusTime(reciveOrder.getStatusTime());
-        }
         Console2BssResult console2BssResult = new Console2BssResult();
         console2BssResult.setUserId(reciveOrder.getUserId());
         console2BssResult.setConsoleOrderFlowId(reciveOrder.getConsoleOrderFlowId());
@@ -622,10 +751,34 @@ public class RabbitMqServiceImpl {
         } else {
             orderResultProduct.setProductSetStatus(HsConstants.SUCCESS);
         }
-        orderResultProduct.setProductList(reciveOrder.getProductList());
+        orderResultProduct.setProductList( reciveOrder.getProductList());
         orderResultProducts.add(orderResultProduct);
         console2BssResult.setProductSetList(orderResultProducts);
         return console2BssResult;
+    }
+
+    private void updateEipOrderResult(OrderProduct orderProduct, String eipId, String createIime,String groupId, String result) {
+        //must not be delete ,set the reference
+        int groupFlag = 0;
+
+        orderProduct.setInstanceId(eipId);
+        orderProduct.setStatusTime(createIime);
+        orderProduct.setInstanceStatus(result);
+        if(groupId != null) {
+            List<OrderProductItem> items = orderProduct.getItemList();
+            for(OrderProductItem orderProductItem: items){
+                if(orderProductItem.getCode().equalsIgnoreCase(HsConstants.GROUP_ID)){
+                    orderProductItem.setValue(groupId);
+                    groupFlag = 1;
+                }
+            }
+            if(0 == groupFlag) {
+                OrderProductItem orderProductItem = new OrderProductItem();
+                orderProductItem.setCode(HsConstants.GROUP_ID);
+                orderProductItem.setValue(groupId);
+                orderProduct.getItemList().add(orderProductItem);
+            }
+        }
     }
 
     /**

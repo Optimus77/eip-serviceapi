@@ -61,4 +61,7 @@ public class EipReturnDetail implements Serializable {
     @JsonProperty("ipv6Address")
     private String ipv6;
 
+    @JsonProperty("groupId")
+    private String groupId;
+
 }

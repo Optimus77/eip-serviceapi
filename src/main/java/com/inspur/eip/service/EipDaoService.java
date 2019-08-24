@@ -63,13 +63,6 @@ public class EipDaoService {
     @Autowired
     private FlowService flowService;
 
-//    @Autowired
-//    EipDaoService(@Value("${firewall.type}")String type,FirewallService firewallService){
-//        if(type.equals("hillstone"))
-//        {
-//            this.firewallService= firewallService;
-//        }
-//    }
 
     /**
      * allocate eip

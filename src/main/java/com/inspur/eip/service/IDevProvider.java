@@ -7,12 +7,9 @@ import com.inspur.eip.entity.fw.Firewall;
 
 public interface IDevProvider {
 
-    Firewall getFireWallById(String id);
-
     String addDnat(String innerip, String extip, String equipid);
 
     String addSnat(String innerip, String extip, String equipid);
-
 
     String addQos(String innerip, String name, String bandwidth, String fireWallId);
 
@@ -34,11 +31,11 @@ public interface IDevProvider {
 
     boolean updateQosBandWidth(String firewallId, String pipId, String pipNmae, String bindwidth, String fip, String eip);
 
-    boolean cmdCreateOrDeleteAddressBook(String entryName, String fireWallId, boolean control);
-
-    boolean cmdOperateStatisticsBook(String entryName, String firewallId, boolean control);
-
-    boolean cmdInsertOrRemoveParamInAddressBook(String entryName, String param, String addressType, String fireWallId, boolean control);
+//    boolean cmdCreateOrDeleteAddressBook(String entryName, String fireWallId, boolean control);
+//
+//    boolean cmdOperateStatisticsBook(String entryName, String firewallId, boolean control);
+//
+//    boolean cmdInsertOrRemoveParamInAddressBook(String entryName, String param, String addressType, String fireWallId, boolean control);
 
     boolean cmdAddSbwQos(String name, String bandwidth, String fireWallId);
 
