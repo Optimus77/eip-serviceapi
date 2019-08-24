@@ -167,13 +167,6 @@ public class RabbitMqServiceImpl {
                 }
                 response = eipService.atomCreateEip(eipConfig, eipOrder.getToken(), null);
                 if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
-                    if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
-                        if (response.getStatusCodeValue() == 420) {
-                            webService.returnsIpv6Websocket("false", "createEip", eipOrder.getToken());
-                        } else {
-                            webService.returnsIpv6Websocket("false", "createNatWithEip", eipOrder.getToken());
-                        }
-                    }
                     createResult = HsConstants.FAIL;
                     log.warn("create eip failed, return code:{}", response.getStatusCodeValue());
                 } else {
@@ -181,13 +174,10 @@ public class RabbitMqServiceImpl {
                     if (null != eipReturn) {
                         eipId = eipReturn.getId();
                     }
-                    if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
-                        webService.returnsIpv6Websocket("Success", "createNatWithEip", eipOrder.getToken());
-                    } else {
-                        webService.returnsWebsocket(eipId, eipOrder, "create");
-                    }
                     createResult = HsConstants.SUCCESS;
                 }
+                webService.retWebsocket(eipConfig.getIpv6(),eipId,eipOrder,
+                        "createNatWithEip", "create",response.getStatusCodeValue());
                 updateEipOrderResult(orderProduct, eipId, eipOrder.getStatusTime(), groupId, createResult);
             }
             return eipId;
