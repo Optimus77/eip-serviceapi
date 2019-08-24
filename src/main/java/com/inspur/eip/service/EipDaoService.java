@@ -611,6 +611,11 @@ public class EipDaoService {
         return eipEntity;
     }
 
+    @Transactional
+    public List<Eip> getEipByGroupId(String groupId) {
+        return  eipRepository.findByGroupId(groupId);
+    }
+
     public long getInstanceNum(String projectId) {
 
         String sql = "select count(1) as num from eip where project_id='" + projectId + "'" + "and is_delete=0";

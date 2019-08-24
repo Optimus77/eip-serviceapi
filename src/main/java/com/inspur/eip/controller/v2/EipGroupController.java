@@ -118,7 +118,7 @@ public class EipGroupController {
     })
     public ResponseEntity getEipGroupDetailSecond(@PathVariable("group_id") String groupId){
 
-        return eipService.getEipDetail(groupId);
+        return eipService.getEipGroupDetail(groupId);
     }
 
     @ResourceContext(
