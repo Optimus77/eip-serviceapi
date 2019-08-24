@@ -413,9 +413,10 @@ public class SbwServiceImplTest {
         param.setBillType("hourlySettlement");
         param.setRegion("cn-north-3");
         param.setSbwName("atomUnitTest");
+        param.setDescription("");
         String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJiOWU5YmI0YS1kYWM0LTRhYjUtYmJmOC0zOWQyM2ZhY2NmNzEiLCJleHAiOjE1NjE2MDQ4MjUsIm5iZiI6MCwiaWF0IjoxNTYxNTk5NDI1LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjViYjk2NTk3LWUxN2MtNDgwNi04ZjNhLTViMzAzYzQxY2I2NiIsImF1dGhfdGltZSI6MTU2MTU5OTQyMSwic2Vzc2lvbl9zdGF0ZSI6ImU4ZWZkNWM2LTdiMmYtNGI3Ni04NDFhLTA3ODMxM2EzMzhmZiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsImludml0ZWRfcmVnaW9uIjoiW1wiY24tc291dGgtMVwiXSIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.BcUaYp_YazOOF6iVoIniS61Erosyu6CC1-eE3CNEQf7iFhZmYnOkwV4ukblK0-fCfewX87dCcXIKa7ScjVV2tzSFmJvwc-QyujjIbdee0Yxhlg-YEIRKZcCvG-JLsFv7FXNeDeFp4wdj3WdGfFCZaXJI9V3SBixN8g3BuNI3L92_XMg1nXTZYK-nCw3kWElNbtCzkW8n4KQ7Cl0nCTBhljvERaNnumRAMLl4raWfHSSCjQLxF8MtwkAZAcQWFUHh75nMejUo1rKK2nyJA0Ed_dLFDnu2dkMs82_owIvs-TJTEseMLD16879E_x9gAJldYkTGj1AskQrOp8vrSyZ35Q";
-        ResponseEntity responseEntity = sbwService.atomCreateSbw(param, token);
 
+        ResponseEntity responseEntity = sbwService.atomCreateSbw(param, token);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
 
     }
@@ -610,6 +611,7 @@ public class SbwServiceImplTest {
         String sbwId = "b9141748-a6ec-48b2-a242-bebf8fa165b2";
         SbwUpdateParam param = new SbwUpdateParam();
         param.setSbwName("rename");
+        param.setDescription("描述");
         ResponseEntity responseEntity = sbwService.renameSbw(sbwId, param);
 
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());

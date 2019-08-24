@@ -6,14 +6,14 @@ import com.inspur.eip.entity.MethodReturn;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.exception.EipInternalServerException;
-import com.inspur.eip.repository.EipRepository;
-import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.repository.SbwRepository;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.common.MethodReturnUtil;
+import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -28,39 +28,31 @@ import java.util.Optional;
 public class LbService implements IDevProvider{
 
     @Autowired
-    private FirewallRepository firewallRepository;
-
-    @Autowired
-    private QosService qosService;
-
-    @Autowired
     private SbwRepository sbwRepository;
-
-    @Autowired
-    private EipRepository eipRepository;
 
     @Autowired
     private FireWallCommondService fireWallCommondService;
 
 
     @Override
-    public String addDnat(String innerip, String extip, String equipid) {
-        String ruleid = cmdAddDnat(innerip, extip, equipid);
-        if (ruleid != null) {
-            return ruleid;
+    public String addDnat(String insideIp, String externalIp, String equipId) {
+        String dnatId = this.cmdAddDnat(insideIp, externalIp, equipId);
+        if (StringUtils.isNotBlank(dnatId)) {
+            return dnatId;
         }
+        log.error(ErrorStatus.SC_FIREWALL_DNAT_UNAVAILABLE.getMessage());
+        return null;
 
-        return ruleid;
     }
     @Override
-    public String addSnat(String innerip, String extip, String equipid) {
+    public String addSnat(String insideIp, String externalIp, String equipId) {
 
-        String ruleid = cmdAddSnat(innerip, extip, equipid);
-        if (ruleid != null) {
-            return ruleid;
+        String snatId = this.cmdAddSnat(insideIp, externalIp, equipId);
+        if (StringUtils.isNotBlank(snatId)) {
+            return snatId;
         }
-
-        return ruleid;
+        log.error(ErrorStatus.SC_FIREWALL_DNAT_UNAVAILABLE.getMessage());
+       return null;
     }
 
     @Override
@@ -278,9 +270,7 @@ public class LbService implements IDevProvider{
     }
 
 
-    private String cmdAddDnat(String fip, String eip, String fireWallId) {
-
-
+    private String cmdAddDnat(String insideIp, String externalIp, String equipmentId) {
         return null;
 
     }

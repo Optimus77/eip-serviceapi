@@ -14,6 +14,7 @@
         <addColumn tableName="eip" schemaName="public" catalogName="icp_eip">
             <column name="group_id" type="varchar(36) " remarks="group id"></column>
         </addColumn>
+        <comment>eip表增加group_id</comment>
     </changeSet>
 
     <changeSet author="lhl" id="201908220102">
@@ -26,9 +27,10 @@
         <addColumn tableName="eipv6" schemaName="public" catalogName="icp_eip">
             <column name="group_id" type="varchar(36) " remarks="group id"></column>
         </addColumn>
+        <comment>eipv6表增加group_id</comment>
     </changeSet>
 
-    <changeSet author="lhl" id="201908220104">
+    <changeSet author="lhl" id="201908220103">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="sbw" columnName="ip_type"></columnExists>
@@ -38,10 +40,23 @@
         <addColumn tableName="sbw" catalogName="icp_eip" schemaName="public">
             <column name="ip_type" type="varchar(32)" remarks="线路类型"></column>
         </addColumn>
-        <comment>修改sbw表中通用字段名称：project_name->user_name </comment>
+        <comment>sbw 表增加ip_type</comment>
     </changeSet>
 
-    <changeSet author="lhl" id="201908060106">
+    <changeSet author="zerah" id="201908220104">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="sbw" columnName="description"></columnExists>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="sbw" catalogName="icp_eip" schemaName="public">
+            <column name="description" type="varchar(50)" remarks="共享带宽描述"></column>
+        </addColumn>
+        <comment>sbw 表增加 description</comment>
+    </changeSet>
+
+    <changeSet author="lhl" id="201908220105">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="eip_poolv6" columnName="type"></columnExists>
@@ -51,12 +66,10 @@
         <addColumn tableName="eip_poolv6" schemaName="public" catalogName="icp_eip">
             <column name="type" type="varchar(32)" remarks="线路类型"></column>
         </addColumn>
-
+        <comment>eip_poolv6 增加type</comment>
     </changeSet>
 
-
-
-    <changeSet author="lhl" id="201908060108">
+    <changeSet author="lhl" id="201908220106">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="eip_pool" columnName="type"></columnExists>
@@ -66,12 +79,17 @@
         <addColumn tableName="eip_pool" schemaName="public" catalogName="icp_eip">
             <column name="type" type="varchar(32)" remarks="线路类型"></column>
         </addColumn>
+        <comment>eip_pool增加type</comment>
     </changeSet>
-    <changeSet author="lhl" id="201908080601" >
+
+    <changeSet author="lhl" id="201908220107" >
         <sql>UPDATE eip_pool SET type='BGP'; </sql>
+        <comment>为type字段初始化值</comment>
     </changeSet>
-    <changeSet author="lhl" id="201908080604" >
+
+    <changeSet author="lhl" id="201908220108" >
         <sql>UPDATE eip_poolv6 SET type='BGP'; </sql>
+        <comment>为type字段初始化值</comment>
     </changeSet>
 
 </databaseChangeLog>

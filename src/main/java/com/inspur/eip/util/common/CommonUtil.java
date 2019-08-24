@@ -250,7 +250,7 @@ public class CommonUtil {
      * @return return
      */
     public static ReturnMsg preSbwCheckParam(SbwUpdateParam param){
-        String errorMsg = " ";
+        String errorMsg = "";
         if(null == param){
             return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
         }
@@ -260,7 +260,7 @@ public class CommonUtil {
 
         if(null != param.getBillType()) {
             if (!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                errorMsg = errorMsg + "Only mobile,radiotv, telecom, unicom ,  BGP is allowed.\n";
+                errorMsg = errorMsg + "Only monthy,hourlySettlement, is allowed.";
             }
         }
         if (null != param.getIpType()){
@@ -271,7 +271,7 @@ public class CommonUtil {
         if(param.getRegion().isEmpty()){
             errorMsg = errorMsg + "can not be blank.";
         }
-        if(errorMsg.equals(" ")) {
+        if(errorMsg.equals("")) {
             log.debug(errorMsg);
             return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
         }else {

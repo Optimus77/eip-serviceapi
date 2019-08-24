@@ -368,7 +368,7 @@ public class SbwServiceImpl implements ISbwService {
      */
     public ResponseEntity renameSbw(String sbwId, SbwUpdateParam param) {
         try {
-            if (StringUtils.isBlank(sbwId) || StringUtils.isBlank(param.getSbwName())){
+            if (StringUtils.isBlank(sbwId)){
                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.SC_PARAM_ERROR.getCode(), ErrorStatus.SC_PARAM_ERROR.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
             }else {
                 SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();

@@ -52,4 +52,6 @@ public class Sbw implements Serializable {
     private String userId;
 
     private String ipType;
+
+    private String description;
 }

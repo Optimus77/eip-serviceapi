@@ -27,6 +27,6 @@ public class SbwUpdateParam {
     @TypeConstraint(allowedValues = {"mobile","radiotv", "telecom", "unicom", "BGP"}, message = "Only mobile,radiotv, telecom, unicom ,  BGP is allowed. ")
     private String ipType;
 
-    private String groupId;
+    private String description;
 
 }
