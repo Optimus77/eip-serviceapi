@@ -148,7 +148,7 @@ public class EipControllerV2 {
      * @param eipId  the id of eip
      * @return  retrun
      */
-    @ResourceContext(
+   @ResourceContext(
             service= IEipService.class,
             method="getEipById")
     @PermissionContext(
