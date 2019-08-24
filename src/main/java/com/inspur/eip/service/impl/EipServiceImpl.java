@@ -346,16 +346,6 @@ public class EipServiceImpl implements IEipService {
         }
     }
 
-
-
-
-
-
-
-
-
-
-
     /**
      * get detail of the eip
      *
@@ -391,6 +381,44 @@ public class EipServiceImpl implements IEipService {
         }
 
     }
+
+    /**
+     * get detail of the eip
+     *
+     * @param groupId the id of the eip instance
+     * @return the json result
+     */
+    public ResponseEntity getEipGroupDetail(String groupId) {
+
+        try {
+            JSONArray eipinfo = new JSONArray();
+            List<Eip> eipEntity = eipDaoService.getEipByGroupId(groupId);
+            for(Eip eip: eipEntity)
+            {
+                if(null != eip){
+                    EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                    BeanUtils.copyProperties(eip, eipReturnDetail);
+                    eipReturnDetail.setResourceset(Resourceset.builder()
+                            .resourceId(eip.getInstanceId())
+                            .resourceType(eip.getInstanceType()).build());
+                    if (StringUtils.isNotBlank(eip.getEipV6Id())) {
+                        EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                        if (eipV6 != null) {
+                            eipReturnDetail.setIpv6(eipV6.getIpv6());
+                        }
+                    }
+                    eipinfo.add(eipReturnDetail);
+                }
+            }
+            JSONObject data = new JSONObject();
+            data.put("data",eipinfo);
+            return new ResponseEntity(data,HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Exception in getEipDetail", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     /**
      * get eip by instance id
