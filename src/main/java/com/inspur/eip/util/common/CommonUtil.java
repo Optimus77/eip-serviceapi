@@ -60,7 +60,7 @@ public class CommonUtil {
     private String firewallId;
 
 
-    private String secretKey = "EbfYkitulv73I2p0mXI50JMXoaxZTKJ7";
+    private static  String secretKey = "EbfYkitulv73I2p0mXI50JMXoaxZTKJ7";
     private static  Map<String, Firewall> firewallConfigMap = new HashMap<>();
     private static  String configFirewallId ;
     private static Config config = Config.newConfig().withSSLVerificationDisabled();
