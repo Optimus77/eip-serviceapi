@@ -812,4 +812,140 @@ public class EipServiceImpl implements IEipService {
         return eipRepository.findByIdAndIsDelete(id,0);
     }
 
+
+    /**
+     * eip bind with port
+     *
+     * @param groupId       id
+     * @param serverId server id
+     * @return result
+     */
+    //@Override
+    public ResponseEntity eipGroupBindWithInstance(String groupId, String type, String serverId, String portId, String addrIp) {
+
+        MethodReturn result = null;
+
+        if (StringUtils.isEmpty(serverId)) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_PARA_SERVERID_ERROR)), HttpStatus.BAD_REQUEST);
+        }
+
+        //Eip eipCheck = eipRepository.findByInstanceIdAndIsDelete(serverId, 0);
+       /* if (eipCheck != null) {
+            log.error("The binding failed,  the instanceid  has already bind  eip,instanceid", serverId);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.EIP_BIND_HAS_BAND,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND)), HttpStatus.BAD_REQUEST);
+        }
+*/
+        switch (type) {
+            case HsConstants.ECS:
+                log.debug("bind a server:{} port:{} with id:{}", serverId, portId, groupId);
+                // 1：ecs
+                if (!StringUtils.isEmpty(portId)) {
+                    result = eipDaoService.associateInstanceWithEipGroup(groupId, serverId, type, portId, null);
+                }
+                break;
+            case HsConstants.CPS:
+            case HsConstants.SLB:
+                if (!StringUtils.isEmpty(addrIp)) {
+                    result = eipDaoService.associateInstanceWithEipGroup(groupId, serverId, type, null, addrIp);
+                }
+                break;
+            default:
+                log.warn("no support type param： " + type);
+                break;
+        }
+
+
+        if (null != result) {
+            if (result.getInnerCode().equals(ReturnStatus.SC_OK)) {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_OK, "success"), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(ReturnMsgUtil.error(result.getInnerCode(), result.getMessage()), HttpStatus.valueOf(result.getHttpCode()));
+            }
+        }
+        String msg = "Can not get bind responds when bind eip with server" + serverId;
+        log.error(msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    //@Override
+    public ResponseEntity eipGroupUnbindWithInstacnce(String groupId, String instanceId) {
+        String code ;
+        String msg ;
+        ActionResponse actionResponse = null;
+        List<Eip> eipEntity = null;
+        String flag = "success";
+        try {
+            if (!StringUtils.isEmpty(groupId)) {
+                eipEntity = eipDaoService.getEipListByGroupId(groupId);
+            } else if (!StringUtils.isEmpty(instanceId)) {
+                eipEntity = eipDaoService.findByInstanceIdAndIsDelete(instanceId);
+            }
+            if (!eipEntity.isEmpty()) {
+                for(Eip eip : eipEntity){
+                    String instanceType = eip.getInstanceType();
+                    if (null != instanceType) {
+                        switch (instanceType) {
+                            case HsConstants.ECS:
+                                // 1：ecs
+                                actionResponse = eipDaoService.disassociateInstanceWithEipGroup(eip);
+                                if(actionResponse != null){
+                                    if(!actionResponse.isSuccess()){
+                                        flag="failed";
+                                    }
+                                } else {
+                                    flag="failed";
+                                }
+                                break;
+                            case HsConstants.CPS:
+                            case HsConstants.SLB:
+                                actionResponse = eipDaoService.disassociateInstanceWithEipGroup(eip);
+                                if(actionResponse != null){
+                                    if(actionResponse.isSuccess()){
+                                        flag="success";
+                                    }
+                                } else {
+                                    flag="failed";
+                                }
+                                break;
+                            default:
+                                //default ecs
+                                log.error("no support instance type " + instanceType);;
+                                break;
+                        }
+                    } else {
+                        log.error("Failed to get instance type."+eip.getId());
+                    }
+                }
+
+            } else {
+                code = ReturnStatus.SC_NOT_FOUND;
+                msg = "can not find eip id ：" + groupId;
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            log.error("Exception in unBindPort", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage() + "";
+            return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        if(flag.equals("success")){
+            code = ReturnStatus.SC_OK;
+            msg = ("unbind successfully");
+            log.info(code);
+            log.info(msg);
+            return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
+        } else {
+            code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
+            msg = actionResponse.getFault();
+            log.error(code);
+            log.error(msg);
+        }
+
+        log.error(msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
 }

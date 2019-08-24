@@ -121,23 +121,23 @@ public class EipGroupController {
         return eipService.getEipGroupDetail(groupId);
     }
 
-    @ResourceContext(
+
+/*    @ResourceContext(
             service= IEipService.class,
-            method="getEipById")
+            method="getEipById")*/
     @PermissionContext(
             service="eip",
             action="UpdateEip",
-            resourceType="instance",
-            resource="{groupId}")
+            resourceType="instance")
     @PutMapping(value = "/groups/{group_id}/action/{action}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
-    @ApiOperation(value = "update eip", notes = "put")
+    @ApiOperation(value = "update eipGroup", notes = "put")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "group_id", value = "the id of group", required = true, dataType = "String"),
     })
-    public ResponseEntity updateEip(@PathVariable("group_id") String groupId,
-                                    @PathVariable("action") String action,
-                                    @Valid @RequestBody EipUpdateParamWrapper param , BindingResult result) {
+    public ResponseEntity updateEipGroup(@PathVariable("group_id") String groupId,
+                                         @PathVariable("action") String action,
+                                         @Valid @RequestBody EipUpdateParamWrapper param , BindingResult result) {
 
         if (result.hasErrors()) {
             StringBuffer msgBuffer = new StringBuffer();
@@ -153,9 +153,9 @@ public class EipGroupController {
 
         switch (action){
             case "bind":
-                log.info("bind operate, groupId:{}, param:{}", groupId, updateParam);
+                log.info("bind operate, groupid:{}, param:{}", groupId, updateParam);
                 if (updateParam.getType() != null) {
-                    return eipService.eipBindWithInstance(groupId, updateParam.getType(), updateParam.getServerId(),
+                    return eipService.eipGroupBindWithInstance(groupId, updateParam.getType(), updateParam.getServerId(),
                             updateParam.getPortId(), updateParam.getPrivateIp());
                 } else {
                     msg = "need param serverid and type";
@@ -163,7 +163,7 @@ public class EipGroupController {
                 break;
             case "unbind":
                 log.info("unbind operate, groupid:{}, param:{} ", groupId, updateParam);
-                return eipService.eipUnbindWithInstacnce(groupId, null);
+                return eipService.eipGroupUnbindWithInstacnce(groupId, null);
             default:
                 msg="Param error, unknow action type"+action+"";
                 log.error("Param error, unknow action type. groupid:{}, param:{} ", groupId, updateParam);
@@ -172,6 +172,7 @@ public class EipGroupController {
         return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
 
     }
+
 
 
 }
