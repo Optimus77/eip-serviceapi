@@ -613,10 +613,6 @@ public class EipDaoService {
         return eipEntity;
     }
 
-    @Transactional
-    public List<Eip> getEipByGroupId(String groupId) {
-        return  eipRepository.findByGroupId(groupId);
-    }
 
     public long getInstanceNum(String projectId) {
 

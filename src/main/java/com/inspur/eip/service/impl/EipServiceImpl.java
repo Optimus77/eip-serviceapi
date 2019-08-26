@@ -392,8 +392,8 @@ public class EipServiceImpl implements IEipService {
 
         try {
             JSONArray eipinfo = new JSONArray();
-            List<Eip> eipEntity = eipDaoService.getEipByGroupId(groupId);
-            for(Eip eip: eipEntity)
+            List<Eip> eipEntitys = eipDaoService.getEipListByGroupId(groupId);
+            for(Eip eip: eipEntitys)
             {
                 if(null != eip){
                     EipReturnDetail eipReturnDetail = new EipReturnDetail();
@@ -412,7 +412,7 @@ public class EipServiceImpl implements IEipService {
             }
             JSONObject data = new JSONObject();
             data.put("data",eipinfo);
-            return new ResponseEntity(data,HttpStatus.OK);
+            return new ResponseEntity<>(data,HttpStatus.OK);
         } catch (Exception e) {
             log.error("Exception in getEipDetail", e);
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -882,7 +882,7 @@ public class EipServiceImpl implements IEipService {
             } else if (!StringUtils.isEmpty(instanceId)) {
                 eipEntity = eipDaoService.findByInstanceIdAndIsDelete(instanceId);
             }
-            if (!eipEntity.isEmpty()) {
+            if (null != eipEntity && !eipEntity.isEmpty()) {
                 for(Eip eip : eipEntity){
                     String instanceType = eip.getInstanceType();
                     if (null != instanceType) {
@@ -911,7 +911,7 @@ public class EipServiceImpl implements IEipService {
                                 break;
                             default:
                                 //default ecs
-                                log.error("no support instance type " + instanceType);;
+                                log.error("no support instance type " + instanceType);
                                 break;
                         }
                     } else {
@@ -938,9 +938,13 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
         } else {
             code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
-            msg = actionResponse.getFault();
+            if(null != actionResponse ) {
+                msg = actionResponse.getFault();
+                log.error(msg);
+            }else{
+                msg="no response";
+            }
             log.error(code);
-            log.error(msg);
         }
 
         log.error(msg);

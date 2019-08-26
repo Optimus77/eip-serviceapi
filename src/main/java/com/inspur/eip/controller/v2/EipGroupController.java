@@ -3,8 +3,6 @@ package com.inspur.eip.controller.v2;
 import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
-import com.inspur.eip.entity.LogLevel;
-import com.inspur.eip.service.IEipService;
 import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.ReturnMsgUtil;
@@ -12,16 +10,12 @@ import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.iam.adapter.annotation.PermissionContext;
-import com.inspur.iam.adapter.annotation.ResourceContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -48,8 +42,6 @@ public class EipGroupController {
 
     @Autowired
     private SbwServiceImpl sbwService;
-
-    private String authScret = "kitlv7i2";
 
 
     @PermissionContext(
@@ -152,7 +144,7 @@ public class EipGroupController {
         EipUpdateParam updateParam = param.getEip();
 
         switch (action){
-            case "bind":
+            case HsConstants.BIND:
                 log.info("bind operate, groupid:{}, param:{}", groupId, updateParam);
                 if (updateParam.getType() != null) {
                     return eipService.eipGroupBindWithInstance(groupId, updateParam.getType(), updateParam.getServerId(),
@@ -161,7 +153,7 @@ public class EipGroupController {
                     msg = "need param serverid and type";
                 }
                 break;
-            case "unbind":
+            case HsConstants.UNBIND:
                 log.info("unbind operate, groupid:{}, param:{} ", groupId, updateParam);
                 return eipService.eipGroupUnbindWithInstacnce(groupId, null);
             default:

@@ -232,7 +232,7 @@ public class EipControllerV2 {
         EipUpdateParam updateParam = param.getEip();
 
         switch (action){
-            case "bind":
+            case HsConstants.BIND:
                 log.info("bind operate, eipid:{}, param:{}", eipId, updateParam);
                 if (updateParam.getType() != null) {
                     return eipService.eipBindWithInstance(eipId, updateParam.getType(), updateParam.getServerId(),
@@ -241,7 +241,7 @@ public class EipControllerV2 {
                     msg = "need param serverid and type";
                 }
                 break;
-            case "unbind":
+            case HsConstants.UNBIND:
                 log.info("unbind operate, eipid:{}, param:{} ", eipId, updateParam);
                 return eipService.eipUnbindWithInstacnce(eipId, null);
             default:
