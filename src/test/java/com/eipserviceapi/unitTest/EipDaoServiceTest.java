@@ -2,14 +2,22 @@ package com.eipserviceapi.unitTest;
 
 import com.eipserviceapi.TestEipServiceApplication;
 import com.inspur.eip.entity.EipUpdateParam;
+import com.inspur.eip.entity.eip.Eip;
+import com.inspur.eip.entity.eip.EipAllocateParam;
+import com.inspur.eip.entity.eip.EipPool;
+import com.inspur.eip.exception.KeycloakTokenException;
+import com.inspur.eip.repository.EipPoolRepository;
+import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.service.EipDaoService;
-import com.inspur.eip.service.impl.EipServiceImpl;
+import com.inspur.eip.service.NeutronService;
+import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.constant.HsConstants;
 import groovy.util.logging.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockitoAnnotations;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,41 +27,56 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
-//import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.CoreMatchers.*;
-
 import static org.junit.Assert.*;
+
 @Slf4j
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = EipDaoService.class)
 @Rollback
 @SpringBootTest(classes = TestEipServiceApplication.class)
 @Transactional
+
 public class EipDaoServiceTest {
+
+    @Autowired
+    EipRepository eipRepository;
+
+    @Autowired
+    EipPoolRepository eipPoolRepository;
+
+    @Autowired
+    NeutronService neutronService;
 
     @Autowired
     EipDaoService eipDaoService;
 
+    @Autowired
+    EipV6ServiceImpl eipV6Service;
+
+
     @Before
     public void setUp() throws Exception {
-        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest(){
+        MockitoAnnotations.initMocks(this);
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest() {
+
 
             @Override
             public String getHeader(String name) {
-                //todo 测试之前摘取token
-                return "bearer " + "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIxNDI1MWNiNS0yNGY0LTQwZGQtYjFkMi1lOWZjMTc2ZmUwOWUiLCJleHAiOjE1NjM5NjMxODAsIm5iZiI6MCwiaWF0IjoxNTYzOTU3NzgwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjQ3NTU2ZTdhLWFlZjMtNGIyYy04NWMxLTA4Y2E4MTUxMjk4NSIsImF1dGhfdGltZSI6MTU2Mzk1NDQ4Miwic2Vzc2lvbl9zdGF0ZSI6IjRlZGQwNGM0LWI0YTMtNGY2Yi05Yzg3LWI1MmZhMzFlYjRhNCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.VYpLCJNQr24m6kN6KgBsT3eBPPXAgOqfnJxgoanguWlP_QfIfKNq4SiRi5A07HLdDqBQTFjZ8kOKOnoRWuMdT4AIwE2TasgeuA-SrHuu3KJ4BPVKBm9MBUbsZrReoKrQRUQMlfWyiOZPSEjziB-v-h2OXWEYD_wDVSiCKvWZuqNk8_cqMpBI0J1zYRB7faCFOQeALIFH-zB-i7_phT4K1jdZaFALid-zmKDWxX1Q8_EbGJqYU3OrcOGY78cEtM3wjVVRxqpG1lT-ssgk0mgf6VDAwab7ovVfolJDbHjMvhak2UoqRCmzGovO_MOcavQif1Ue2_ZIGxOuBMdl5fG1JQ";
+                try {
+                    return "bearer " + TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
             }
 
             @Override
@@ -257,7 +280,6 @@ public class EipDaoServiceTest {
             }
 
 
-
             @Override
             public Enumeration<String> getHeaders(String name) {
                 return null;
@@ -414,52 +436,53 @@ public class EipDaoServiceTest {
 
 
     @Test
-    public void adminDeleteEip() {
-        String eipId = "5fc8acda-6608-4d49-9363-c962df4a53f4";
-        ActionResponse actionResponse = eipDaoService.adminDeleteEip(eipId);
-        assertEquals(200,actionResponse.getCode());
+    public void adminDeleteEip() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        ActionResponse actionResponse = eipDaoService.adminDeleteEip(eip.getId());
+        assertEquals(200, actionResponse.getCode());
     }
 
     @Test
-    public void adminDeleteEipNull(){
+    public void adminDeleteEipNull() {
         String eipId = "123";
         ActionResponse actionResponse = eipDaoService.adminDeleteEip(eipId);
-        assertEquals(200,actionResponse.getCode());
+        assertEquals(200, actionResponse.getCode());
     }
 
     @Test
-    public void adminDeleteEipAlreadyDelete(){
+    public void adminDeleteEipAlreadyDelete() {
         String eipId = "453a3f69-da30-470a-af3b-fe57ebea9326";
         ActionResponse actionResponse = eipDaoService.adminDeleteEip(eipId);
-        assertEquals(200,actionResponse.getCode());
+        assertEquals(200, actionResponse.getCode());
     }
 
     @Test
-    public void adminDeleteEipInBind(){
-        String eipId = "18c95fef-11ff-4e6e-8a1e-7a00949f9410";
+    public void adminDeleteEipInBind() {
+        /*String eipId = "18c95fef-11ff-4e6e-8a1e-7a00949f9410";
         ActionResponse actionResponse = eipDaoService.adminDeleteEip(eipId);
-        assertEquals(200,actionResponse.getCode());
+        assertEquals(200, actionResponse.getCode());*/
     }
 
     @Test
-    public void adminDeleteEipWithIpV6(){
-        String eipId = "962d1124-30b2-4c47-8976-f7b5baea6c1d";
-        ActionResponse actionResponse = eipDaoService.adminDeleteEip(eipId);
-        assertEquals(200,actionResponse.getCode());
+    public void adminDeleteEipWithIpV6() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        eipV6Service.atomCreateEipV6(eip.getId(),TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
+        ActionResponse actionResponse = eipDaoService.adminDeleteEip(eip.getId());
+        assertEquals(200, actionResponse.getCode());
     }
 
     @Test
-    public void softDownEip() {
-        String eipId = "09e27ea7-27c8-4def-8ecf-54c00e185bfd";
-        ActionResponse actionResponse = eipDaoService.softDownEip(eipId);
-        assertEquals(200,actionResponse.getCode());
+    public void softDownEip() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        ActionResponse actionResponse = eipDaoService.softDownEip(eip.getId());
+        assertEquals(200, actionResponse.getCode());
     }
 
     @Test
-    public void softDownEipNotFound(){
+    public void softDownEipNotFound() {
         String eipId = "123";
         ActionResponse actionResponse = eipDaoService.softDownEip(eipId);
-        assertEquals(404,actionResponse.getCode());
+        assertEquals(404, actionResponse.getCode());
     }
 
     @Test
@@ -471,169 +494,178 @@ public class EipDaoServiceTest {
     }
 
     @Test
-    public void updateEipEntity() {
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIwNGZhOGRkZS03MjFjLTQ4MTUtOTM1Ni05ZDUxYmQ0YTlkMzQiLCJleHAiOjE1NjI2NjAxNjAsIm5iZiI6MCwiaWF0IjoxNTYyNjU0NzYwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjE0NTEwMzFkLTNlNDItNDRhZS05NTE3LTllNTAyYzFiMjVkOSIsImF1dGhfdGltZSI6MTU2MjY0NzE5MCwic2Vzc2lvbl9zdGF0ZSI6ImYzNDIwNzgxLWRjYzctNGEyMy04ZDIyLTIxMDQ0ZTZjNjZjYiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.ib2jA9Y7ny_rsfw5bSjYY1eEx3S01jzM0ySvd_wzCCTjA8EfqTYqgdGwxzRTvown_ZKh6m8P9RCB4TR58VcylVCf7QoKLN4aJlM70KYmylPO4mZZX39QQlTel1Z7HLqIxU4_FORiQva8IeuDxawwweukKXmLuf7F3hmTd3vVKKYA8t1zMwU36aWp4NO394J2c2FLctcTPXmFmXKmYjUTV4aUHEBC_UyKIHdvhKLjbHRpLZ8i7lm1F4S-sKLcS4HRRj3E5y6vUxLxrhWmQOxjfR1ZJEDfJAhXZQj0xAePSaFQx6O3m6W0yXEUqe_ijOxxJynp-yD0h1aHAXkgq_ajXA";
-        String eipId = "d7de403e-c694-48f8-8057-c26f02a73a50";
+    public void updateEipEntity() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         EipUpdateParam param = new EipUpdateParam();
         param.setBandwidth(123);
         param.setBillType(HsConstants.HOURLYSETTLEMENT);
-        ActionResponse actionResponse = eipDaoService.updateEipEntity(eipId,param,token);
-        assertEquals(200,actionResponse.getCode());
+        ActionResponse actionResponse = eipDaoService.updateEipEntity(eip.getId(), param, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
+        assertEquals(200, actionResponse.getCode());
     }
 
     @Test
-    public void updateEipEntityNotFound(){
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIwNGZhOGRkZS03MjFjLTQ4MTUtOTM1Ni05ZDUxYmQ0YTlkMzQiLCJleHAiOjE1NjI2NjAxNjAsIm5iZiI6MCwiaWF0IjoxNTYyNjU0NzYwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjE0NTEwMzFkLTNlNDItNDRhZS05NTE3LTllNTAyYzFiMjVkOSIsImF1dGhfdGltZSI6MTU2MjY0NzE5MCwic2Vzc2lvbl9zdGF0ZSI6ImYzNDIwNzgxLWRjYzctNGEyMy04ZDIyLTIxMDQ0ZTZjNjZjYiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.ib2jA9Y7ny_rsfw5bSjYY1eEx3S01jzM0ySvd_wzCCTjA8EfqTYqgdGwxzRTvown_ZKh6m8P9RCB4TR58VcylVCf7QoKLN4aJlM70KYmylPO4mZZX39QQlTel1Z7HLqIxU4_FORiQva8IeuDxawwweukKXmLuf7F3hmTd3vVKKYA8t1zMwU36aWp4NO394J2c2FLctcTPXmFmXKmYjUTV4aUHEBC_UyKIHdvhKLjbHRpLZ8i7lm1F4S-sKLcS4HRRj3E5y6vUxLxrhWmQOxjfR1ZJEDfJAhXZQj0xAePSaFQx6O3m6W0yXEUqe_ijOxxJynp-yD0h1aHAXkgq_ajXA";
-        String eipId = "123";
+    public void updateEipEntityNotFound() throws Exception {
+
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         EipUpdateParam param = new EipUpdateParam();
         param.setBandwidth(123);
         param.setBillType(HsConstants.HOURLYSETTLEMENT);
-        ActionResponse actionResponse = eipDaoService.updateEipEntity(eipId,param,token);
-        assertEquals(404,actionResponse.getCode());
+        ActionResponse actionResponse = eipDaoService.updateEipEntity("123", param, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
+        assertEquals(404, actionResponse.getCode());
     }
 
     @Test
-    public void updateEipEntityWithIpV6() {
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIwNGZhOGRkZS03MjFjLTQ4MTUtOTM1Ni05ZDUxYmQ0YTlkMzQiLCJleHAiOjE1NjI2NjAxNjAsIm5iZiI6MCwiaWF0IjoxNTYyNjU0NzYwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjE0NTEwMzFkLTNlNDItNDRhZS05NTE3LTllNTAyYzFiMjVkOSIsImF1dGhfdGltZSI6MTU2MjY0NzE5MCwic2Vzc2lvbl9zdGF0ZSI6ImYzNDIwNzgxLWRjYzctNGEyMy04ZDIyLTIxMDQ0ZTZjNjZjYiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.ib2jA9Y7ny_rsfw5bSjYY1eEx3S01jzM0ySvd_wzCCTjA8EfqTYqgdGwxzRTvown_ZKh6m8P9RCB4TR58VcylVCf7QoKLN4aJlM70KYmylPO4mZZX39QQlTel1Z7HLqIxU4_FORiQva8IeuDxawwweukKXmLuf7F3hmTd3vVKKYA8t1zMwU36aWp4NO394J2c2FLctcTPXmFmXKmYjUTV4aUHEBC_UyKIHdvhKLjbHRpLZ8i7lm1F4S-sKLcS4HRRj3E5y6vUxLxrhWmQOxjfR1ZJEDfJAhXZQj0xAePSaFQx6O3m6W0yXEUqe_ijOxxJynp-yD0h1aHAXkgq_ajXA";
-        String eipId = "91094d7d-0650-4e9f-a08a-06fb5a2c309d";
+    public void updateEipEntityWithIpV6() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        eipV6Service.atomCreateEipV6(eip.getId(),TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
         EipUpdateParam param = new EipUpdateParam();
         param.setBandwidth(123);
         param.setBillType(HsConstants.HOURLYSETTLEMENT);
-        ActionResponse actionResponse = eipDaoService.updateEipEntity(eipId,param,token);
-        assertEquals(404,actionResponse.getCode());
+        ActionResponse actionResponse = eipDaoService.updateEipEntity(eip.getId(), param, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
+        eipV6Service.atomDeleteEipV6(eip.getEipV6Id());
+        assertEquals(404, actionResponse.getCode());
     }
 
     @Test
-    public void updateEipEntityOfOtherUser() {
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIwNGZhOGRkZS03MjFjLTQ4MTUtOTM1Ni05ZDUxYmQ0YTlkMzQiLCJleHAiOjE1NjI2NjAxNjAsIm5iZiI6MCwiaWF0IjoxNTYyNjU0NzYwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjE0NTEwMzFkLTNlNDItNDRhZS05NTE3LTllNTAyYzFiMjVkOSIsImF1dGhfdGltZSI6MTU2MjY0NzE5MCwic2Vzc2lvbl9zdGF0ZSI6ImYzNDIwNzgxLWRjYzctNGEyMy04ZDIyLTIxMDQ0ZTZjNjZjYiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.ib2jA9Y7ny_rsfw5bSjYY1eEx3S01jzM0ySvd_wzCCTjA8EfqTYqgdGwxzRTvown_ZKh6m8P9RCB4TR58VcylVCf7QoKLN4aJlM70KYmylPO4mZZX39QQlTel1Z7HLqIxU4_FORiQva8IeuDxawwweukKXmLuf7F3hmTd3vVKKYA8t1zMwU36aWp4NO394J2c2FLctcTPXmFmXKmYjUTV4aUHEBC_UyKIHdvhKLjbHRpLZ8i7lm1F4S-sKLcS4HRRj3E5y6vUxLxrhWmQOxjfR1ZJEDfJAhXZQj0xAePSaFQx6O3m6W0yXEUqe_ijOxxJynp-yD0h1aHAXkgq_ajXA";
-        String eipId = "60a42b44-6986-4dc7-b39c-ead8eaed0c1b";
+    public void updateEipEntityOfOtherUser() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, "other");
         EipUpdateParam param = new EipUpdateParam();
         param.setBandwidth(123);
         param.setBillType(HsConstants.HOURLYSETTLEMENT);
-        ActionResponse actionResponse = eipDaoService.updateEipEntity(eipId,param,token);
-        assertEquals(403,actionResponse.getCode());
+        ActionResponse actionResponse = eipDaoService.updateEipEntity(eip.getId(), param, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
+        assertEquals(403, actionResponse.getCode());
     }
 
     @Test
-    public void updateEipEntityMonthly() {
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIwNGZhOGRkZS03MjFjLTQ4MTUtOTM1Ni05ZDUxYmQ0YTlkMzQiLCJleHAiOjE1NjI2NjAxNjAsIm5iZiI6MCwiaWF0IjoxNTYyNjU0NzYwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjE0NTEwMzFkLTNlNDItNDRhZS05NTE3LTllNTAyYzFiMjVkOSIsImF1dGhfdGltZSI6MTU2MjY0NzE5MCwic2Vzc2lvbl9zdGF0ZSI6ImYzNDIwNzgxLWRjYzctNGEyMy04ZDIyLTIxMDQ0ZTZjNjZjYiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.ib2jA9Y7ny_rsfw5bSjYY1eEx3S01jzM0ySvd_wzCCTjA8EfqTYqgdGwxzRTvown_ZKh6m8P9RCB4TR58VcylVCf7QoKLN4aJlM70KYmylPO4mZZX39QQlTel1Z7HLqIxU4_FORiQva8IeuDxawwweukKXmLuf7F3hmTd3vVKKYA8t1zMwU36aWp4NO394J2c2FLctcTPXmFmXKmYjUTV4aUHEBC_UyKIHdvhKLjbHRpLZ8i7lm1F4S-sKLcS4HRRj3E5y6vUxLxrhWmQOxjfR1ZJEDfJAhXZQj0xAePSaFQx6O3m6W0yXEUqe_ijOxxJynp-yD0h1aHAXkgq_ajXA";
-        String eipId = "356e2e2d-c5f3-4059-98bd-2cd4ab1883b8";
+    public void updateEipEntityMonthly() throws Exception {
+        Eip eip = creatEip(HsConstants.MONTHLY, null);
         EipUpdateParam param = new EipUpdateParam();
         param.setBandwidth(0);
         param.setBillType(HsConstants.MONTHLY);
-        ActionResponse actionResponse = eipDaoService.updateEipEntity(eipId,param,token);
-        assertEquals(400,actionResponse.getCode());
+        ActionResponse actionResponse = eipDaoService.updateEipEntity(eip.getId(), param, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
+        assertEquals(400, actionResponse.getCode());
     }
 
     @Test
-    public void reNewEipEntity() {
-        String eipId = "09e27ea7-27c8-4def-8ecf-54c00e185bfd";
+    public void reNewEipEntity() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         String addTime = "1";
-        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId,addTime);
-        assertEquals(200,actionResponse.getCode());
+        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eip.getId(), addTime);
+        assertEquals(200, actionResponse.getCode());
     }
 
     @Test
     public void reNewEipEntityInBind() {
-        String eipId = "bc57d6ae-73b3-4c89-a029-171fa02f0e98";
+        /*String eipId = "bc57d6ae-73b3-4c89-a029-171fa02f0e98";
         String addTime = "1";
-        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId,addTime);
-        assertEquals(200,actionResponse.getCode());
+        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
+        assertEquals(200, actionResponse.getCode());*/
     }
 
     @Test
     public void reNewEipEntityNotFound() {
         String eipId = "123";
         String addTime = "1";
-        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId,addTime);
-        assertEquals(404,actionResponse.getCode());
+        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
+        assertEquals(404, actionResponse.getCode());
     }
 
     @Test
-    public void reNewEipEntity1() {
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIwNGZhOGRkZS03MjFjLTQ4MTUtOTM1Ni05ZDUxYmQ0YTlkMzQiLCJleHAiOjE1NjI2NjAxNjAsIm5iZiI6MCwiaWF0IjoxNTYyNjU0NzYwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjE0NTEwMzFkLTNlNDItNDRhZS05NTE3LTllNTAyYzFiMjVkOSIsImF1dGhfdGltZSI6MTU2MjY0NzE5MCwic2Vzc2lvbl9zdGF0ZSI6ImYzNDIwNzgxLWRjYzctNGEyMy04ZDIyLTIxMDQ0ZTZjNjZjYiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.ib2jA9Y7ny_rsfw5bSjYY1eEx3S01jzM0ySvd_wzCCTjA8EfqTYqgdGwxzRTvown_ZKh6m8P9RCB4TR58VcylVCf7QoKLN4aJlM70KYmylPO4mZZX39QQlTel1Z7HLqIxU4_FORiQva8IeuDxawwweukKXmLuf7F3hmTd3vVKKYA8t1zMwU36aWp4NO394J2c2FLctcTPXmFmXKmYjUTV4aUHEBC_UyKIHdvhKLjbHRpLZ8i7lm1F4S-sKLcS4HRRj3E5y6vUxLxrhWmQOxjfR1ZJEDfJAhXZQj0xAePSaFQx6O3m6W0yXEUqe_ijOxxJynp-yD0h1aHAXkgq_ajXA";
-        String eipId = "2b17b38c-ad65-431e-9ed4-b82fc90b5e78";
+    public void reNewEipEntity1() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         String addTime = "1";
-        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId,addTime,token);
-        assertEquals(200,actionResponse.getCode());
+        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eip.getId(), addTime, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
+        assertEquals(200, actionResponse.getCode());
     }
 
     @Test
     public void reNewEipEntity1InBind() {
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIwNGZhOGRkZS03MjFjLTQ4MTUtOTM1Ni05ZDUxYmQ0YTlkMzQiLCJleHAiOjE1NjI2NjAxNjAsIm5iZiI6MCwiaWF0IjoxNTYyNjU0NzYwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjE0NTEwMzFkLTNlNDItNDRhZS05NTE3LTllNTAyYzFiMjVkOSIsImF1dGhfdGltZSI6MTU2MjY0NzE5MCwic2Vzc2lvbl9zdGF0ZSI6ImYzNDIwNzgxLWRjYzctNGEyMy04ZDIyLTIxMDQ0ZTZjNjZjYiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.ib2jA9Y7ny_rsfw5bSjYY1eEx3S01jzM0ySvd_wzCCTjA8EfqTYqgdGwxzRTvown_ZKh6m8P9RCB4TR58VcylVCf7QoKLN4aJlM70KYmylPO4mZZX39QQlTel1Z7HLqIxU4_FORiQva8IeuDxawwweukKXmLuf7F3hmTd3vVKKYA8t1zMwU36aWp4NO394J2c2FLctcTPXmFmXKmYjUTV4aUHEBC_UyKIHdvhKLjbHRpLZ8i7lm1F4S-sKLcS4HRRj3E5y6vUxLxrhWmQOxjfR1ZJEDfJAhXZQj0xAePSaFQx6O3m6W0yXEUqe_ijOxxJynp-yD0h1aHAXkgq_ajXA";
-        String eipId = "bc57d6ae-73b3-4c89-a029-171fa02f0e98";
+        /*Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         String addTime = "1";
-        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId,addTime,token);
-        assertEquals(200,actionResponse.getCode());
+        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
+        assertEquals(200, actionResponse.getCode());*/
     }
 
     @Test
-    public void reNewEipEntity1NotFound() {
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIwNGZhOGRkZS03MjFjLTQ4MTUtOTM1Ni05ZDUxYmQ0YTlkMzQiLCJleHAiOjE1NjI2NjAxNjAsIm5iZiI6MCwiaWF0IjoxNTYyNjU0NzYwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjE0NTEwMzFkLTNlNDItNDRhZS05NTE3LTllNTAyYzFiMjVkOSIsImF1dGhfdGltZSI6MTU2MjY0NzE5MCwic2Vzc2lvbl9zdGF0ZSI6ImYzNDIwNzgxLWRjYzctNGEyMy04ZDIyLTIxMDQ0ZTZjNjZjYiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.ib2jA9Y7ny_rsfw5bSjYY1eEx3S01jzM0ySvd_wzCCTjA8EfqTYqgdGwxzRTvown_ZKh6m8P9RCB4TR58VcylVCf7QoKLN4aJlM70KYmylPO4mZZX39QQlTel1Z7HLqIxU4_FORiQva8IeuDxawwweukKXmLuf7F3hmTd3vVKKYA8t1zMwU36aWp4NO394J2c2FLctcTPXmFmXKmYjUTV4aUHEBC_UyKIHdvhKLjbHRpLZ8i7lm1F4S-sKLcS4HRRj3E5y6vUxLxrhWmQOxjfR1ZJEDfJAhXZQj0xAePSaFQx6O3m6W0yXEUqe_ijOxxJynp-yD0h1aHAXkgq_ajXA";
+    public void reNewEipEntity1NotFound() throws Exception {
         String eipId = "123";
         String addTime = "1";
-        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId,addTime,token);
-        assertEquals(404,actionResponse.getCode());
+        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
+        assertEquals(404, actionResponse.getCode());
     }
 
     @Test
-    public void reNewEipEntity1OfOtherUser() {
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIwNGZhOGRkZS03MjFjLTQ4MTUtOTM1Ni05ZDUxYmQ0YTlkMzQiLCJleHAiOjE1NjI2NjAxNjAsIm5iZiI6MCwiaWF0IjoxNTYyNjU0NzYwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjE0NTEwMzFkLTNlNDItNDRhZS05NTE3LTllNTAyYzFiMjVkOSIsImF1dGhfdGltZSI6MTU2MjY0NzE5MCwic2Vzc2lvbl9zdGF0ZSI6ImYzNDIwNzgxLWRjYzctNGEyMy04ZDIyLTIxMDQ0ZTZjNjZjYiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.ib2jA9Y7ny_rsfw5bSjYY1eEx3S01jzM0ySvd_wzCCTjA8EfqTYqgdGwxzRTvown_ZKh6m8P9RCB4TR58VcylVCf7QoKLN4aJlM70KYmylPO4mZZX39QQlTel1Z7HLqIxU4_FORiQva8IeuDxawwweukKXmLuf7F3hmTd3vVKKYA8t1zMwU36aWp4NO394J2c2FLctcTPXmFmXKmYjUTV4aUHEBC_UyKIHdvhKLjbHRpLZ8i7lm1F4S-sKLcS4HRRj3E5y6vUxLxrhWmQOxjfR1ZJEDfJAhXZQj0xAePSaFQx6O3m6W0yXEUqe_ijOxxJynp-yD0h1aHAXkgq_ajXA";
-        String eipId = "60a42b44-6986-4dc7-b39c-ead8eaed0c1b";
+    public void reNewEipEntity1OfOtherUser() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, "other");
         String addTime = "1";
-        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId,addTime,token);
-        assertEquals(403,actionResponse.getCode());
+        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eip.getId(), addTime, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
+        assertEquals(403, actionResponse.getCode());
     }
 
     @Test
-    public void findByUserId() {
+    public void findByProjectId() {
     }
 
     @Test
-    public void findByEipAddress() {
+    public void findByEipAddress() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        Eip eipEntity = eipDaoService.findByEipAddress(eip.getEipAddress());
+        assertEquals(eip, eipEntity);
     }
 
     @Test
-    public void findByInstanceId() {
+    public void findByInstanceId() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        eip.setInstanceId("20d00e01-afa5-4e8c-a272-77a27b4773f2");
+        eipRepository.saveAndFlush(eip);
+        Eip eipEntity = eipDaoService.findByInstanceId("20d00e01-afa5-4e8c-a272-77a27b4773f2");
+        assertEquals(eip, eipEntity);
     }
 
     @Test
-    public void getEipById() {
+    public void getEipById() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        Eip eipEntity = eipDaoService.getEipById(eip.getId());
+        assertEquals(eip, eipEntity);
     }
 
     @Test
     public void getInstanceNum() {
         String userId = "9d0b67cd-20cb-40b4-8dc4-b0415ca25d72";
         long instanceNum = eipDaoService.getInstanceNum(userId);
-        assertThat(instanceNum,instanceOf(long.class));
+        assertThat(instanceNum, instanceOf(long.class));
     }
 
     @Test
     public void getFreeEipCount() {
         int freeEipCount = eipDaoService.getFreeEipCount();
-        assertThat(freeEipCount,instanceOf(int.class));
+        assertThat(freeEipCount, instanceOf(int.class));
 
     }
 
     @Test
     public void getUsingEipCount() {
         int usingEipCount = eipDaoService.getUsingEipCount();
-        assertThat(usingEipCount,instanceOf(int.class));
+        assertThat(usingEipCount, instanceOf(int.class));
     }
 
     @Test
     public void getTotalBandWidth() {
         int totalBandWidth = eipDaoService.getTotalBandWidth();
-        assertThat(totalBandWidth,instanceOf(int.class));
+        assertThat(totalBandWidth, instanceOf(int.class));
 
     }
 
     @Test
     public void getUsingEipCountByStatus() {
+        int getUsingEipCountByStatus = eipDaoService.getUsingEipCountByStatus("DOWN");
+        assertThat(getUsingEipCountByStatus, instanceOf(int.class));
     }
 
     @Test
     public void getOneEipFromPool() {
+        EipPool eipPool = eipDaoService.getOneEipFromPool();
+        assertThat(eipPool, instanceOf(EipPool.class));
     }
 
     @Test
@@ -645,10 +677,40 @@ public class EipDaoServiceTest {
     }
 
     @Test
-    public void get() {
+    public void get() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        eip.setInstanceId("20d00e01-afa5-4e8c-a272-77a27b4773f2");
+        eipRepository.saveAndFlush(eip);
+        Eip eipEntity = eipDaoService.get("20d00e01-afa5-4e8c-a272-77a27b4773f2");
+        assertEquals(eip, eipEntity);
     }
 
     @Test
     public void statisEipCountBySbw() {
     }
+
+
+    public Eip creatEip(String billType, String user) throws Exception {
+        EipAllocateParam eipConfig = new EipAllocateParam();
+        eipConfig.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
+        eipConfig.setBandwidth(5);
+        eipConfig.setBillType(billType);
+        eipConfig.setIpType("BGP");
+        eipConfig.setIpv6("no");
+        eipConfig.setRegion("cn-north-3");
+        eipConfig.setSbwId(null);
+        eipConfig.setDuration("1");
+        String token = TokenUtil.getToken("lishenghao","1qaz2wsx3edc");
+        if (user == "other")
+            token = TokenUtil.getToken("xinjing","1qaz2wsx3edc");
+        String operater = "unitTest";
+        if (eipPoolRepository.getEipByRandom() == null) {
+            return null;
+        } else {
+            EipPool eip = eipDaoService.getOneEipFromPool();
+            Eip eipEntity = eipDaoService.allocateEip(eipConfig, eip, operater, token);
+            return eipEntity;
+        }
+    }
+
 }

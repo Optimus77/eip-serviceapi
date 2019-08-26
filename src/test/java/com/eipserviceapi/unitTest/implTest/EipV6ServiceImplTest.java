@@ -1,8 +1,20 @@
 package com.eipserviceapi.unitTest.implTest;
 
 import com.eipserviceapi.TestEipServiceApplication;
+import com.eipserviceapi.unitTest.TokenUtil;
+import com.inspur.eip.entity.EipUpdateParam;
+import com.inspur.eip.entity.eip.Eip;
+import com.inspur.eip.entity.eip.EipAllocateParam;
+import com.inspur.eip.entity.eip.EipPool;
+import com.inspur.eip.entity.ipv6.EipV6;
+import com.inspur.eip.entity.sbw.Sbw;
+import com.inspur.eip.entity.sbw.SbwUpdateParam;
+import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipPoolV6Repository;
+import com.inspur.eip.repository.EipRepository;
+import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.EipV6DaoService;
+import com.inspur.eip.service.SbwDaoService;
 import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.constant.HsConstants;
 import groovy.util.logging.Slf4j;
@@ -28,12 +40,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.*;
+
 @Slf4j
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = EipV6ServiceImpl.class)
@@ -46,16 +56,28 @@ public class EipV6ServiceImplTest {
     @Autowired
     EipV6DaoService eipV6DaoService;
     @Autowired
-    private EipPoolV6Repository eipPoolV6Repository;
+    EipPoolV6Repository eipPoolV6Repository;
+    @Autowired
+    EipDaoService eipDaoService;
+    @Autowired
+    EipPoolRepository eipPoolRepository;
+    @Autowired
+    EipRepository eipRepository;
+    @Autowired
+    SbwDaoService sbwDaoService;
 
     @Before
     public void setUp() throws Exception {
-        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest(){
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest() {
 
             @Override
             public String getHeader(String name) {
-                //todo 测试之前摘取token
-                return "bearer " + "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJlOGVkNTQzMS1jNmUzLTQ5NjItYTM0Yy02NDM4NGFiYWUyMjkiLCJleHAiOjE1NjM5NjUwMjcsIm5iZiI6MCwiaWF0IjoxNTYzOTU5NjI3LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjQ3NTU2ZTdhLWFlZjMtNGIyYy04NWMxLTA4Y2E4MTUxMjk4NSIsImF1dGhfdGltZSI6MTU2Mzk1NDQ4Miwic2Vzc2lvbl9zdGF0ZSI6IjRlZGQwNGM0LWI0YTMtNGY2Yi05Yzg3LWI1MmZhMzFlYjRhNCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.XAfNZp6Vxe9aodyYG7hGdvbJSa9Q5rWPvehYDTGHaz6fgPXB55i0J7y72tEnKTexbkE-9z9Rzj_p1gNtzOF7KYjaevwGYqCszAvc6krFnRmoWBDRDGdOu3_spFku_iff1cnw8CLfeiRJGO_L1uaV5t4-xtqbDC3FUX6jCtK97x8TfzdI8lpWsoVDiZ0ph7y9CzdEIvMUTZl7QJRlrAIkggUSp4hAnK9vN6srFAm6rXTSi-cN-_siVOGroOlyFId55RPdpiijL-7ycHaS7Rku9BJV7r-sIDSPHJPG-SPAH-icFPJvS5KEy53KJVWXRmwXK2O55MgNlUfO7TKWCTeGkA";
+                try {
+                    return "bearer " + TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
             }
 
             @Override
@@ -259,7 +281,6 @@ public class EipV6ServiceImplTest {
             }
 
 
-
             @Override
             public Enumeration<String> getHeaders(String name) {
                 return null;
@@ -407,59 +428,65 @@ public class EipV6ServiceImplTest {
     }
 
     @Test
-    public void atomCreateEipV6() {
-        String eipId = "09e27ea7-27c8-4def-8ecf-54c00e185bfd";
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJkODM0OTkwNS1iYzcwLTQxZjQtOWJlMC0wNWQ3Mjk5OTVkODYiLCJleHAiOjE1NjEwMDU0MzMsIm5iZiI6MCwiaWF0IjoxNTYxMDAwMDMzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjA0MzQ0NWJlLWE3ZmEtNDZmNy05OTkwLWNhMWQ5ZmRlYmJjNiIsImF1dGhfdGltZSI6MTU2MDk5ODIzMSwic2Vzc2lvbl9zdGF0ZSI6ImNiMjJjYTQ2LTA2NjctNDVkYi04NzNiLTNjZjhhOGRkMmIzMCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.knnSyiRFfH3J3URnTygvs4e-2rxh8U7HWmagtGZ3FUg-j_w37e50Z8gFOBoaoOMChl3IEoYtBSJXk9nj_AlCYZqZ3QZET2fsuoB0ERwoUXtyK9uZOPR1PaRAfLURRTBbui5MtbUZ8nni3esbz01DeJaWtjo22Dx1VhdAUQwPRulu2td2InkGO-_HvLhgLv173a5mEnQsH2_nSl9m8axFLeM9kz_Tr6Xb9MecTny_y8XWy2hxF4ihnq5AYRhEnTATUvJxAoYc6aJYCs-cxxcKHnqp7n17r3UbVa1E1O6wZ3P5xBWLnBp-GVM8bkekJ_WCcYGFMZ2Ev2gLa6Unb_oXFw";
-        if(eipPoolV6Repository.getEipV6ByRandom()==null)
-        {
-            ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(eipId,token);
-            assertEquals(HttpStatus.FAILED_DEPENDENCY,responseEntity.getStatusCode());
-        }
-        else {
-            ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(eipId,token);
-            assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+    public void atomCreateEipV6() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        if (eipPoolV6Repository.getEipV6ByRandom() == null) {
+            ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
+            assertEquals(HttpStatus.FAILED_DEPENDENCY, responseEntity.getStatusCode());
+        } else {
+            ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
+            eipV6ServiceImpl.atomDeleteEipV6(eip.getEipV6Id());
+            assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         }
     }
+
     @Test
-    public void atomCreateEipV6WithNoV6(){
-        String eipId = "7216e894-6a79-4320-b1db-b4ec1fb8d2e0";
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJkODM0OTkwNS1iYzcwLTQxZjQtOWJlMC0wNWQ3Mjk5OTVkODYiLCJleHAiOjE1NjEwMDU0MzMsIm5iZiI6MCwiaWF0IjoxNTYxMDAwMDMzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjA0MzQ0NWJlLWE3ZmEtNDZmNy05OTkwLWNhMWQ5ZmRlYmJjNiIsImF1dGhfdGltZSI6MTU2MDk5ODIzMSwic2Vzc2lvbl9zdGF0ZSI6ImNiMjJjYTQ2LTA2NjctNDVkYi04NzNiLTNjZjhhOGRkMmIzMCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.knnSyiRFfH3J3URnTygvs4e-2rxh8U7HWmagtGZ3FUg-j_w37e50Z8gFOBoaoOMChl3IEoYtBSJXk9nj_AlCYZqZ3QZET2fsuoB0ERwoUXtyK9uZOPR1PaRAfLURRTBbui5MtbUZ8nni3esbz01DeJaWtjo22Dx1VhdAUQwPRulu2td2InkGO-_HvLhgLv173a5mEnQsH2_nSl9m8axFLeM9kz_Tr6Xb9MecTny_y8XWy2hxF4ihnq5AYRhEnTATUvJxAoYc6aJYCs-cxxcKHnqp7n17r3UbVa1E1O6wZ3P5xBWLnBp-GVM8bkekJ_WCcYGFMZ2Ev2gLa6Unb_oXFw";
-        while (eipPoolV6Repository.getEipV6ByRandom()!=null)
-        {
+    public void atomCreateEipV6WithNoV6() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        while (eipPoolV6Repository.getEipV6ByRandom() != null) {
             eipV6DaoService.getOneEipFromPoolV6();
         }
-        ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(eipId,token);
-        assertEquals(HttpStatus.FAILED_DEPENDENCY,responseEntity.getStatusCode());
+        ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
+        assertEquals(HttpStatus.FAILED_DEPENDENCY, responseEntity.getStatusCode());
     }
+
     @Test
-    public void atomCreateEipV6InBind(){
-        String eipIdInBind = "bc57d6ae-73b3-4c89-a029-171fa02f0e98";
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJkODM0OTkwNS1iYzcwLTQxZjQtOWJlMC0wNWQ3Mjk5OTVkODYiLCJleHAiOjE1NjEwMDU0MzMsIm5iZiI6MCwiaWF0IjoxNTYxMDAwMDMzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjA0MzQ0NWJlLWE3ZmEtNDZmNy05OTkwLWNhMWQ5ZmRlYmJjNiIsImF1dGhfdGltZSI6MTU2MDk5ODIzMSwic2Vzc2lvbl9zdGF0ZSI6ImNiMjJjYTQ2LTA2NjctNDVkYi04NzNiLTNjZjhhOGRkMmIzMCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.knnSyiRFfH3J3URnTygvs4e-2rxh8U7HWmagtGZ3FUg-j_w37e50Z8gFOBoaoOMChl3IEoYtBSJXk9nj_AlCYZqZ3QZET2fsuoB0ERwoUXtyK9uZOPR1PaRAfLURRTBbui5MtbUZ8nni3esbz01DeJaWtjo22Dx1VhdAUQwPRulu2td2InkGO-_HvLhgLv173a5mEnQsH2_nSl9m8axFLeM9kz_Tr6Xb9MecTny_y8XWy2hxF4ihnq5AYRhEnTATUvJxAoYc6aJYCs-cxxcKHnqp7n17r3UbVa1E1O6wZ3P5xBWLnBp-GVM8bkekJ_WCcYGFMZ2Ev2gLa6Unb_oXFw";
+    public void atomCreateEipV6InBind() throws Exception {
+        /*String eipIdInBind = "bc57d6ae-73b3-4c89-a029-171fa02f0e98";
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
         ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(eipIdInBind,token);
-        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());*/
     }
 
     @Test
-    public void eipErrorCreateEipV6Null(){
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJkODM0OTkwNS1iYzcwLTQxZjQtOWJlMC0wNWQ3Mjk5OTVkODYiLCJleHAiOjE1NjEwMDU0MzMsIm5iZiI6MCwiaWF0IjoxNTYxMDAwMDMzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjA0MzQ0NWJlLWE3ZmEtNDZmNy05OTkwLWNhMWQ5ZmRlYmJjNiIsImF1dGhfdGltZSI6MTU2MDk5ODIzMSwic2Vzc2lvbl9zdGF0ZSI6ImNiMjJjYTQ2LTA2NjctNDVkYi04NzNiLTNjZjhhOGRkMmIzMCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.knnSyiRFfH3J3URnTygvs4e-2rxh8U7HWmagtGZ3FUg-j_w37e50Z8gFOBoaoOMChl3IEoYtBSJXk9nj_AlCYZqZ3QZET2fsuoB0ERwoUXtyK9uZOPR1PaRAfLURRTBbui5MtbUZ8nni3esbz01DeJaWtjo22Dx1VhdAUQwPRulu2td2InkGO-_HvLhgLv173a5mEnQsH2_nSl9m8axFLeM9kz_Tr6Xb9MecTny_y8XWy2hxF4ihnq5AYRhEnTATUvJxAoYc6aJYCs-cxxcKHnqp7n17r3UbVa1E1O6wZ3P5xBWLnBp-GVM8bkekJ_WCcYGFMZ2Ev2gLa6Unb_oXFw";
-        ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(null,token);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
+    public void eipErrorCreateEipV6Null() throws Exception {
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(null, token);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
     @Test
-    public void eipErrorCreateEipV6WithSbw(){
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJkODM0OTkwNS1iYzcwLTQxZjQtOWJlMC0wNWQ3Mjk5OTVkODYiLCJleHAiOjE1NjEwMDU0MzMsIm5iZiI6MCwiaWF0IjoxNTYxMDAwMDMzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjA0MzQ0NWJlLWE3ZmEtNDZmNy05OTkwLWNhMWQ5ZmRlYmJjNiIsImF1dGhfdGltZSI6MTU2MDk5ODIzMSwic2Vzc2lvbl9zdGF0ZSI6ImNiMjJjYTQ2LTA2NjctNDVkYi04NzNiLTNjZjhhOGRkMmIzMCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.knnSyiRFfH3J3URnTygvs4e-2rxh8U7HWmagtGZ3FUg-j_w37e50Z8gFOBoaoOMChl3IEoYtBSJXk9nj_AlCYZqZ3QZET2fsuoB0ERwoUXtyK9uZOPR1PaRAfLURRTBbui5MtbUZ8nni3esbz01DeJaWtjo22Dx1VhdAUQwPRulu2td2InkGO-_HvLhgLv173a5mEnQsH2_nSl9m8axFLeM9kz_Tr6Xb9MecTny_y8XWy2hxF4ihnq5AYRhEnTATUvJxAoYc6aJYCs-cxxcKHnqp7n17r3UbVa1E1O6wZ3P5xBWLnBp-GVM8bkekJ_WCcYGFMZ2Ev2gLa6Unb_oXFw";
-        String eipIdWithSbw = "32c94568-625c-4e00-bdfc-7fd781073ef2";
-        ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(eipIdWithSbw,token);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
+    public void eipErrorCreateEipV6WithSbw() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        addEipToSbw(eip.getId(),sbw.getId());
+        ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
+        removeEipFromSbw(eip.getId(),sbw.getId());
+        deleteSbw(sbw.getId());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
     @Test
-    public void eipErrorCreateEipV6WithV6(){
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJkODM0OTkwNS1iYzcwLTQxZjQtOWJlMC0wNWQ3Mjk5OTVkODYiLCJleHAiOjE1NjEwMDU0MzMsIm5iZiI6MCwiaWF0IjoxNTYxMDAwMDMzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjA0MzQ0NWJlLWE3ZmEtNDZmNy05OTkwLWNhMWQ5ZmRlYmJjNiIsImF1dGhfdGltZSI6MTU2MDk5ODIzMSwic2Vzc2lvbl9zdGF0ZSI6ImNiMjJjYTQ2LTA2NjctNDVkYi04NzNiLTNjZjhhOGRkMmIzMCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.knnSyiRFfH3J3URnTygvs4e-2rxh8U7HWmagtGZ3FUg-j_w37e50Z8gFOBoaoOMChl3IEoYtBSJXk9nj_AlCYZqZ3QZET2fsuoB0ERwoUXtyK9uZOPR1PaRAfLURRTBbui5MtbUZ8nni3esbz01DeJaWtjo22Dx1VhdAUQwPRulu2td2InkGO-_HvLhgLv173a5mEnQsH2_nSl9m8axFLeM9kz_Tr6Xb9MecTny_y8XWy2hxF4ihnq5AYRhEnTATUvJxAoYc6aJYCs-cxxcKHnqp7n17r3UbVa1E1O6wZ3P5xBWLnBp-GVM8bkekJ_WCcYGFMZ2Ev2gLa6Unb_oXFw";
-        String eipIdWithV6 = "18c95fef-11ff-4e6e-8a1e-7a00949f9410";
-        ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(eipIdWithV6,token);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
+    public void eipErrorCreateEipV6WithV6() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        eipV6ServiceImpl.atomCreateEipV6(eip.getId(),token);
+        ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
+        eipV6ServiceImpl.atomDeleteEipV6(eip.getEipV6Id());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
     @Test
@@ -468,138 +495,225 @@ public class EipV6ServiceImplTest {
         int pageSize = 10;
         String status = HsConstants.ACTIVE;
         ResponseEntity responseEntity = eipV6ServiceImpl.listEipV6s(pageNo, pageSize, status);
-        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     @Test
-    public void listEipV6sN1S1(){
+    public void listEipV6sN1S1() {
         int pageNo = 1;
         int pageSize = 1;
         String status = null;
         ResponseEntity responseEntity = eipV6ServiceImpl.listEipV6s(pageNo, pageSize, status);
-        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     @Test
-    public void listEipV6sN10S0(){
+    public void listEipV6sN10S0() {
         int pageNo = 10;
         int pageSize = 0;
         String status = HsConstants.ACTIVE;
         ResponseEntity responseEntity = eipV6ServiceImpl.listEipV6s(pageNo, pageSize, status);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
     @Test
-    public void listEipV6sN0S10(){
+    public void listEipV6sN0S10() {
         int pageNo = 0;
         int pageSize = 10;
         String status = HsConstants.ACTIVE;
         ResponseEntity responseEntity = eipV6ServiceImpl.listEipV6s(pageNo, pageSize, status);
-        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     @Test
-    public void atomDeleteEipV6() {
-        String eipV6IdInBindWitEcs = "6ca07302-a89f-4935-b982-a336670f2712";
-        ResponseEntity responseEntity = eipV6ServiceImpl.atomDeleteEipV6(eipV6IdInBindWitEcs);
-        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+    public void atomDeleteEipV6() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        eipV6ServiceImpl.atomCreateEipV6(eip.getId(),token);
+        ResponseEntity responseEntity = eipV6ServiceImpl.atomDeleteEipV6(eip.getEipV6Id());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     @Test
-    public void atomDeleteEipV6Null(){
+    public void atomDeleteEipV6Null() {
         ResponseEntity responseEntity = eipV6ServiceImpl.atomDeleteEipV6(null);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
     @Test
-    public void atomDeleteEipV6IdIsNull(){
+    public void atomDeleteEipV6IdIsNull() {
         String eipV6Id = "";
         ResponseEntity responseEntity = eipV6ServiceImpl.atomDeleteEipV6(eipV6Id);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
-    }
-    @Test
-    public void atomDeleteEipV6OfOtherUser(){
-        String eipV6IdOfOtherUser = "ebeedf5c-19b3-4553-82c8-e6fc7ac98440";
-        ResponseEntity responseEntity = eipV6ServiceImpl.atomDeleteEipV6(eipV6IdOfOtherUser);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
     @Test
-    public void getEipV6Detail() {
-        String eipV6Id = "ef600bea-6cbb-4d26-9ce5-c738c6e22bd5";
-        ResponseEntity responseEntity = eipV6ServiceImpl.getEipV6Detail(eipV6Id);
-        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+    public void atomDeleteEipV6OfOtherUser() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, "other");
+        String token = TokenUtil.getToken("xinjing", "1qaz2wsx3edc");
+        eipV6ServiceImpl.atomCreateEipV6(eip.getId(),token);
+        ResponseEntity responseEntity = eipV6ServiceImpl.atomDeleteEipV6(eip.getEipV6Id());
+        eipV6DaoService.deleteEipV6(eip.getEipV6Id(),token);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
     @Test
-    public void getEipV6DetailNull(){
+    public void getEipV6Detail() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        eipV6ServiceImpl.atomCreateEipV6(eip.getId(),token);
+        ResponseEntity responseEntity = eipV6ServiceImpl.getEipV6Detail(eip.getEipV6Id());
+        eipV6ServiceImpl.atomDeleteEipV6(eip.getEipV6Id());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void getEipV6DetailNull() {
         String eipV6Id = "";
         ResponseEntity responseEntity = eipV6ServiceImpl.getEipV6Detail(eipV6Id);
-        assertEquals(HttpStatus.NOT_FOUND,responseEntity.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
     }
 
     @Test
-    public void getEipV6DetailDelete(){
+    public void getEipV6DetailDelete() {
         String eipV6IdDelete = "065a2b32-7043-4d7b-9a8b-6d91304a702b";
         ResponseEntity responseEntity = eipV6ServiceImpl.getEipV6Detail(eipV6IdDelete);
-        assertEquals(HttpStatus.BAD_REQUEST,responseEntity.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
     }
 
     @Test
-    public void eipV6bindPort() {
-        String eipV6Id = "b81f8d46-ffdb-436d-932e-7e00a6bf85ee";
-        String eip = "10.110.38.118";
-        ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6Id,eip);
-        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+    public void eipV6bindPort() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        Eip eip1 = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        eipV6ServiceImpl.atomCreateEipV6(eip.getId(),token);
+        ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eip.getEipV6Id(), eip1.getEipAddress());
+        eipV6ServiceImpl.atomDeleteEipV6(eip1.getEipV6Id());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     @Test
-    public void eipV6bindPortNull(){
-        ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort("123",null);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
+    public void eipV6bindPortNull() {
+        ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort("123", null);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
     @Test
-    public void eipV6bindPortV6Delete(){
+    public void eipV6bindPortV6Delete() {
         String eipV6IdDelete = "065a2b32-7043-4d7b-9a8b-6d91304a702b";
-        ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6IdDelete,null);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
+        ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6IdDelete, null);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
     @Test
-    public void eipV6bindPortV4Null(){
-        String eipV6Id = "ef600bea-6cbb-4d26-9ce5-c738c6e22bd5";
-        ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6Id,null);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
+    public void eipV6bindPortV4Null() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        eipV6ServiceImpl.atomCreateEipV6(eip.getId(),token);
+        ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eip.getEipV6Id(), null);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
+
     @Test
-    public void eipV6bindPortV6InBindToV4UnBind(){
-        String eipV6Id = "6ca07302-a89f-4935-b982-a336670f2712";
+    public void eipV6bindPortV6InBindToV4UnBind() {
+        /*String eipV6Id = "6ca07302-a89f-4935-b982-a336670f2712";
         String eip = "10.110.38.118";
-        ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6Id,eip);
+        ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6Id, eip);
         eip = "10.110.38.218";
-        eipV6ServiceImpl.eipV6bindPort(eipV6Id,eip);
-        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
-    }
-    @Test
-    public void eipV6bindPortV6UnbindToV4InBind(){
-        String eipV6Id = "b81f8d46-ffdb-436d-932e-7e00a6bf85ee";
-        String eip = "10.110.38.30";
-        ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6Id,eip);
-        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
-    }
-    @Test
-    public void eipV6bindPortInBindToInBind(){
-        String eipV6Id = "6ca07302-a89f-4935-b982-a336670f2712";
-        String eip = "10.110.38.30";
-        ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6Id,eip);
-        eip = "10.110.38.218";
-        eipV6ServiceImpl.eipV6bindPort(eipV6Id,eip);
-        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
-
+        eipV6ServiceImpl.eipV6bindPort(eipV6Id, eip);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());*/
     }
 
     @Test
-    public void findEipV6ByEipV6Id() {
+    public void eipV6bindPortV6UnbindToV4InBind() {
+        /*String eipV6Id = "b81f8d46-ffdb-436d-932e-7e00a6bf85ee";
+        String eip = "10.110.38.30";
+        ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6Id, eip);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());*/
+    }
+
+    @Test
+    public void eipV6bindPortInBindToInBind() {
+        /*String eipV6Id = "6ca07302-a89f-4935-b982-a336670f2712";
+        String eip = "10.110.38.30";
+        ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eipV6Id, eip);
+        eip = "10.110.38.218";
+        eipV6ServiceImpl.eipV6bindPort(eipV6Id, eip);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());*/
+    }
+
+    @Test
+    public void getEipv6ById() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        eipV6ServiceImpl.atomCreateEipV6(eip.getId(),token);
+        EipV6 eipV6 = eipV6DaoService.getEipV6ById(eip.getEipV6Id());
+        EipV6 eipV6Entity = eipV6ServiceImpl.getEipv6ById(eip.getEipV6Id());
+        assertEquals(eipV6, eipV6Entity);
+    }
+
+
+    public Eip creatEip(String billType, String user) throws Exception {
+        EipAllocateParam eipConfig = new EipAllocateParam();
+        eipConfig.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
+        eipConfig.setBandwidth(5);
+        eipConfig.setBillType(billType);
+        eipConfig.setIpType("BGP");
+        eipConfig.setIpv6("no");
+        eipConfig.setRegion("cn-north-3");
+        eipConfig.setSbwId(null);
+        eipConfig.setDuration("1");
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        if (user == "other")
+            token = TokenUtil.getToken("xinjing", "1qaz2wsx3edc");
+        String operater = "unitTest";
+        if (eipPoolRepository.getEipByRandom() == null) {
+            return null;
+        } else {
+            EipPool eip = eipDaoService.getOneEipFromPool();
+            Eip eipEntity = eipDaoService.allocateEip(eipConfig, eip, operater, token);
+            return eipEntity;
+        }
+    }
+
+    public Sbw creatSbw(String billType, String user) throws Exception {
+        SbwUpdateParam param = new SbwUpdateParam();
+        param.setDuration("1");
+        param.setBandwidth(10);
+        param.setBillType(billType);
+        param.setRegion("cn-north-3");
+        param.setSbwName("sbwUnitTest");
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        if (user == "other")
+            token = TokenUtil.getToken("xinjing", "1qaz2wsx3edc");
+        Sbw sbwEntity = sbwDaoService.allocateSbw(param, token);
+        return sbwEntity;
+    }
+
+    public void deleteSbw(String sbwId) throws Exception {
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        Sbw sbw = sbwDaoService.getSbwById(sbwId);
+        if(sbw.getBillType().equals("hourlySettlement"))
+            sbwDaoService.deleteSbw(sbwId, token);
+        else
+            sbwDaoService.adminDeleteSbw(sbwId);
+    }
+
+    public void addEipToSbw(String eipId, String sbwId) throws Exception {
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        EipUpdateParam eipUpdateParam = new EipUpdateParam();
+        Sbw sbw = sbwDaoService.getSbwById(sbwId);
+        eipUpdateParam.setSbwId(sbwId);
+        eipUpdateParam.setBandwidth(sbw.getBandWidth());
+        sbwDaoService.addEipIntoSbw(eipId, eipUpdateParam, token);
+    }
+
+    public void removeEipFromSbw(String eipId, String sbwId) throws Exception {
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        EipUpdateParam eipUpdateParam = new EipUpdateParam();
+        Eip eip = eipDaoService.getEipById(eipId);
+        eipUpdateParam.setSbwId(sbwId);
+        eipUpdateParam.setBandwidth(eip.getOldBandWidth());
+        sbwDaoService.removeEipFromSbw(eipId, eipUpdateParam, token);
     }
 }
