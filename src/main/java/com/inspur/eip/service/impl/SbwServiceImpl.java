@@ -402,10 +402,11 @@ public class SbwServiceImpl implements ISbwService {
                         ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage()), HttpStatus.BAD_REQUEST);
             }
             List<Eip> eipList = eipRepository.findByProjectIdAndIsDeleteAndBillType(projectId, 0, HsConstants.HOURLYSETTLEMENT);
+            List<Eip> dataList = ListFilterUtil.filterListData(eipList, Sbw.class);
             JSONArray eips = new JSONArray();
             JSONObject data = new JSONObject();
 
-            for (Eip eip : eipList) {
+            for (Eip eip : dataList) {
                 //只要该eip加入了任何共享带宽，就不予以显示
                 if (StringUtils.isNotBlank(eip.getSbwId())) {
                     continue;
