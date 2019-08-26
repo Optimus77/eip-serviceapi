@@ -5,11 +5,13 @@ import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.ipv6.EipV6AllocateParamWrapper;
 import com.inspur.eip.entity.ipv6.EipV6UpdateParam;
 import com.inspur.eip.entity.ipv6.EipV6UpdateParamWrapper;
+import com.inspur.eip.service.IEipV6Service;
 import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.iam.adapter.annotation.PermissionContext;
+import com.inspur.iam.adapter.annotation.ResourceContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -37,6 +39,7 @@ public class EipV6ControllerV2 {
 
     @Autowired
     private EipV6ServiceImpl eipV6Service;
+
 
     @PermissionContext(
             service="ipts",
@@ -90,10 +93,14 @@ public class EipV6ControllerV2 {
 
     }
 
+    @ResourceContext(
+            service= IEipV6Service.class,
+            method="getEipv6ById")
     @PermissionContext(
             service="ipts",
             action="DeleteIPv6",
-            resourceType="instance")
+            resourceType="instance",
+            resource="{eipV6Id}")
     @DeleteMapping(value = "/eipv6/{eipv6_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity deleteEip(@Size(min=36, max=36, message = "Must be uuid.")
@@ -110,10 +117,14 @@ public class EipV6ControllerV2 {
      * @param eipV6Id the id of eipV6
      * @return retrun
      */
+    @ResourceContext(
+            service= IEipV6Service.class,
+            method="getEipv6ById")
     @PermissionContext(
             service="ipts",
             action="GetIPv6",
-            resourceType="instance")
+            resourceType="instance",
+            resource="{eipV6Id}")
     @GetMapping(value = "/eipv6/{eipv6_id}")
     @CrossOrigin(origins = "*", maxAge = 3000)
     @ApiOperation(value = "getEipv6Detail", notes = "get")
@@ -124,10 +135,14 @@ public class EipV6ControllerV2 {
         return eipV6Service.getEipV6Detail(eipV6Id);
     }
 
+    @ResourceContext(
+            service= IEipV6Service.class,
+            method="getEipv6ById")
     @PermissionContext(
             service="ipts",
             action="UpdateIPv6",
-            resourceType="instance")
+            resourceType="instance",
+            resource="{eipV6Id}")
     @PutMapping(value = "/eipv6/{eipv6_id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value = "update eipv6", notes = "put")

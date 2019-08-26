@@ -33,4 +33,6 @@ public interface SbwRepository extends JpaRepository<Sbw, String> {
 
     long countByStatusAndProjectIdAndIsDelete(String status,String projectId, int isDelete );
 
+    Sbw findByIdAndIsDelete(String id,int isDelete);
+
 }

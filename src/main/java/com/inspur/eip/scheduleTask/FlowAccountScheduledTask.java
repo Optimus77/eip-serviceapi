@@ -13,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +25,7 @@ import java.util.Map;
  * @Author Zerah
  * @Date 2019/7/24 10:19
  **/
-@Component
+//@Component
 @Slf4j
 //@EnableScheduling
 public class FlowAccountScheduledTask {
@@ -46,7 +45,7 @@ public class FlowAccountScheduledTask {
     private String orderKey;
 
     //每分钟统计
-    @Scheduled(cron = "0 0/1 * * * *")
+    //@Scheduled(cron = "0 0/1 * * * *")
     public void oneMinReportFlowAccount(){
         try {
             List<Eip> trafficEips = eipDaoService.findFlowAccountEipList("Traffic");

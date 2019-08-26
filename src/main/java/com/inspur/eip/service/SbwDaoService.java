@@ -76,10 +76,11 @@ public class SbwDaoService {
                         .region(sbwConfig.getRegion())
                         .createdTime(CommonUtil.getGmtDate())
                         .updatedTime(CommonUtil.getGmtDate())
-                        .projectId(CommonUtil.getUserId(token))
+                        .projectId(CommonUtil.getProjectId(token))
                         .isDelete(0)
                         .status(HsConstants.ACTIVE)
-                        .projectName(CommonUtil.getProjectName(token))
+                        .userName(CommonUtil.getUsername(token))
+                        .userId(CommonUtil.getUserId(token))
                         .build();
                 sbw = sbwRepository.saveAndFlush(sbw);
                 return sbw;
@@ -432,7 +433,7 @@ public class SbwDaoService {
             sbwEntity.setUpdatedTime(CommonUtil.getGmtDate());
             sbwRepository.saveAndFlush(sbwEntity);
 
-            Stream<Eip> stream = eipRepository.findByUserIdAndIsDeleteAndSbwId(sbwEntity.getProjectId(), 0, sbwId).stream();
+            Stream<Eip> stream = eipRepository.findByProjectIdAndIsDeleteAndSbwId(sbwEntity.getProjectId(), 0, sbwId).stream();
             stream.forEach(eip -> {
                 eip.setBandWidth(param.getBandwidth());
                 eip.setUpdatedTime(CommonUtil.getGmtDate());
@@ -472,7 +473,7 @@ public class SbwDaoService {
             log.error("EIP is already bound to eipv6");
             return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_EIPV6_ERROR), HttpStatus.SC_NOT_FOUND);
         }
-        if (!CommonUtil.verifyToken(token, eipEntity.getUserId())) {
+        if (!CommonUtil.verifyToken(token, eipEntity.getProjectId())) {
             log.error("User have no write to operate eip:{}", eipId);
             return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN), HttpStatus.SC_FORBIDDEN);
         }
@@ -551,7 +552,7 @@ public class SbwDaoService {
             return ActionResponse.actionFailed(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage(), HttpStatus.SC_NOT_FOUND);
         }
         Eip eipEntity = optionalEip.get();
-        if (!CommonUtil.verifyToken(token, eipEntity.getUserId())) {
+        if (!CommonUtil.verifyToken(token, eipEntity.getProjectId())) {
             log.error("User have no write to delete eip:{}", eipid);
             return ActionResponse.actionFailed(ErrorStatus.SC_FORBIDDEN.getMessage(), HttpStatus.SC_FORBIDDEN);
         }
@@ -597,17 +598,20 @@ public class SbwDaoService {
         return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
-    public Page<Sbw> findByIdAndIsDelete(String sbwId, String userId, int isDelete, Pageable pageable) {
-        return sbwRepository.findByIdAndProjectIdAndIsDelete(sbwId, userId, isDelete, pageable);
+    public Page<Sbw> findByIdAndIsDelete(String sbwId, String projectId, int isDelete, Pageable pageable) {
+        return sbwRepository.findByIdAndProjectIdAndIsDelete(sbwId, projectId, isDelete, pageable);
     }
 
-    public Page<Sbw> findByIsDeleteAndSbwName(String userId, int isDelete, String name, Pageable pageable) {
-        return sbwRepository.findByProjectIdAndIsDeleteAndSbwNameContaining(userId, isDelete, name, pageable);
+    public Page<Sbw> findByIsDeleteAndSbwName(String projectId, int isDelete, String name, Pageable pageable) {
+        return sbwRepository.findByProjectIdAndIsDeleteAndSbwNameContaining(projectId, isDelete, name, pageable);
     }
 
-    public Page<Sbw> findByIsDelete(String userId, int isDelte, Pageable pageable) {
-        return sbwRepository.findByProjectIdAndIsDelete(userId, isDelte, pageable);
+    public Page<Sbw> findByIsDelete(String projectId, int isDelte, Pageable pageable) {
+        return sbwRepository.findByProjectIdAndIsDelete(projectId, isDelte, pageable);
     }
 
+    public Sbw findByIdAndIsDelete(String id,int isDelete){
+        return sbwRepository.findByIdAndIsDelete(id,isDelete);
+    }
 
 }

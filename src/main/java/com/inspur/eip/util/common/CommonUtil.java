@@ -356,7 +356,7 @@ public class CommonUtil {
     }
 
 
-    public static String getProjectId(String userRegion,  OSClient.OSClientV3 os) throws KeycloakTokenException {
+    public static String getOSClientProjectId(String userRegion,  OSClient.OSClientV3 os) throws KeycloakTokenException {
 
         String token = getKeycloackToken();
         if(null == token){
@@ -366,7 +366,7 @@ public class CommonUtil {
             try{
 //                OSClientV3 os= getOsClientV3Util(userRegion);
                 String projectid_client=os.getToken().getProject().getId();
-                log.info("getProjectId:{}", projectid_client);
+                log.info("get OSClient ProjectId:{}", projectid_client);
                 return projectid_client;
             }catch (Exception e){
                 log.error("get projectid from token error");
@@ -414,13 +414,15 @@ public class CommonUtil {
         }
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
         String projectId = null;
-        if (jsonObject.has("project_id")) {
-            projectId = (String) jsonObject.get("project_id");
-        }else {
-            projectId = (String) jsonObject.get("sub");
+        if(jsonObject != null){
+            if(!jsonObject.has("project_id")){
+                projectId = (String) jsonObject.get("sub");
+            } else {
+                projectId = (String) jsonObject.get("project_id");
+            }
         }
         if (projectId != null) {
-            log.info("project_id:{}", projectId);
+            log.debug("project_id:{}", projectId);
         }
         return projectId;
     }
@@ -432,46 +434,38 @@ public class CommonUtil {
             log.error("User has no token.");
             return false;
         }
-        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-        String projectIdInToken = null;
-        if(jsonObject.has("project_id")){
-            projectIdInToken = (String) jsonObject.get("project_id");
-        } else {
-            projectIdInToken = (String) jsonObject.get("sub");
-        }
-        if(projectIdInToken.equals(projectId)){
-            return true;
-        }
-        String clientId = null;
-        if(jsonObject.has("clientId")) {
-            clientId = jsonObject.getString("clientId");
-        }
-        if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
-            log.info("Client token, User has right to operation, client:{}", clientId);
-            return true;
-        }else{
-            log.error("User has no right to operation.{}", jsonObject.toString());
-            return false;
-        }
+        return verifyToken(token, projectId);
+
+
     }
 
     public static boolean verifyToken(String token, String projectId){
         String projectIdInToken = null;
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+//        if(jsonObject.has("project_id")){
+//            projectIdInToken = (String) jsonObject.get("project_id");
+//        } else {
+//            projectIdInToken = (String) jsonObject.get("sub");
+//        }
+//        if(projectIdInToken.equals(projectId)){
+//            return true;
+//        }
+
         if(jsonObject.has("project_id")){
             projectIdInToken = (String) jsonObject.get("project_id");
-        } else {
+            if(projectIdInToken.equals(projectId)){
+                return true;
+            }
+        }
+
+        if(jsonObject.has("sub")){
             projectIdInToken = (String) jsonObject.get("sub");
-        }
-        if(projectIdInToken != null){
-            log.debug("project_id:{}", projectIdInToken);
-        }
-        if(projectIdInToken.equals(projectId)){
-            return true;
+            if(projectIdInToken.equals(projectId)){
+                return true;
+            }
         }
 
         return false;
-
     }
 
     /**
@@ -490,10 +484,10 @@ public class CommonUtil {
             realmAccess = jsonObject.getJSONObject("realm_access").toString();
         }
         if (realmAccess!= null && realmAccess.contains("OPERATE_ADMIN")){
-            log.info("Client token, User has right to operation, realmAccess:{}", realmAccess);
+            log.info("admin account, realmAccess:{}", realmAccess);
             return true;
         }else{
-            log.error("User has no right to operation.{}", jsonObject.toString());
+            log.error("Not admin account.{}", jsonObject.toString());
             return false;
         }
     }
