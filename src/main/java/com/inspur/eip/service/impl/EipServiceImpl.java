@@ -780,6 +780,7 @@ public class EipServiceImpl implements IEipService {
     }
 
 
+    @Override
     public Eip getEipById(String id) {
         return eipRepository.findByIdAndIsDelete(id,0);
     }

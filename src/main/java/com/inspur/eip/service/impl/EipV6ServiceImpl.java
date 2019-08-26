@@ -416,6 +416,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
     }
 
 
+    @Override
     public EipV6 getEipv6ById(String id) {
         return eipV6DaoService.findByEipV6IdAndIsDelete(id,0);
     }

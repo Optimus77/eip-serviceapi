@@ -95,7 +95,7 @@ public class EipV6ControllerV2 {
 
     @ResourceContext(
             service= IEipV6Service.class,
-            method="getEipById")
+            method="getEipv6ById")
     @PermissionContext(
             service="ipts",
             action="DeleteIPv6",
@@ -119,7 +119,7 @@ public class EipV6ControllerV2 {
      */
     @ResourceContext(
             service= IEipV6Service.class,
-            method="getEipById")
+            method="getEipv6ById")
     @PermissionContext(
             service="ipts",
             action="GetIPv6",
@@ -137,7 +137,7 @@ public class EipV6ControllerV2 {
 
     @ResourceContext(
             service= IEipV6Service.class,
-            method="getEipById")
+            method="getEipv6ById")
     @PermissionContext(
             service="ipts",
             action="UpdateIPv6",
