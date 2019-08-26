@@ -107,7 +107,7 @@ public class SbwControllerV2 {
      */
     @ResourceContext(
             service= ISbwService.class,
-            method="getEipById")
+            method="getSbwById")
     @PermissionContext(
             service="sbw",
             action="GetSbw",
@@ -163,7 +163,7 @@ public class SbwControllerV2 {
      */
     @ResourceContext(
             service= ISbwService.class,
-            method="getEipById")
+            method="getSbwById")
     @PermissionContext(
             service="sbw",
             action="UpdateSbw",
