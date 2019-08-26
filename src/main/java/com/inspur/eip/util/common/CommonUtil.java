@@ -29,6 +29,8 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Slf4j
@@ -37,6 +39,9 @@ public class CommonUtil {
 
     public static boolean isDebug = true;
     public static boolean qosDebug = false;
+
+
+    public static final Set<String> ipType = Stream.of("mobile", "unicom","telecom","radiotv","BGP").collect(Collectors.toSet());
 
     @Setter
     private static org.json.JSONObject KeyClockInfo;
@@ -245,7 +250,7 @@ public class CommonUtil {
      * @return return
      */
     public static ReturnMsg preSbwCheckParam(SbwUpdateParam param){
-        String errorMsg = " ";
+        String errorMsg = "";
         if(null == param){
             return ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,"Failed to get param.");
         }
@@ -255,13 +260,18 @@ public class CommonUtil {
 
         if(null != param.getBillType()) {
             if (!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                errorMsg = errorMsg + "Only monthly,hourlySettlement is allowed. ";
+                errorMsg = errorMsg + "Only monthy,hourlySettlement, is allowed.";
+            }
+        }
+        if (null != param.getIpType()){
+            if (!ipType.contains(param.getIpType())){
+                errorMsg = errorMsg + "Only mobile,radiotv, telecom, unicom ,  BGP is allowed.";
             }
         }
         if(param.getRegion().isEmpty()){
             errorMsg = errorMsg + "can not be blank.";
         }
-        if(errorMsg.equals(" ")) {
+        if(errorMsg.equals("")) {
             log.debug(errorMsg);
             return ReturnMsgUtil.error(ReturnStatus.SC_OK, errorMsg);
         }else {

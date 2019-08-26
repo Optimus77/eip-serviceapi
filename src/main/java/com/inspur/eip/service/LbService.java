@@ -4,12 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.MethodReturn;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.exception.EipInternalServerException;
-import com.inspur.eip.repository.EipRepository;
-import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.repository.SbwRepository;
 import com.inspur.eip.util.common.MethodReturnUtil;
+import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HsConstants;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -22,16 +23,7 @@ import java.net.InetAddress;
 public class LbService implements IDevProvider{
 
     @Autowired
-    private FirewallRepository firewallRepository;
-
-    @Autowired
-    private QosService qosService;
-
-    @Autowired
     private SbwRepository sbwRepository;
-
-    @Autowired
-    private EipRepository eipRepository;
 
     @Autowired
     private FireWallCommondService fireWallCommondService;

@@ -9,6 +9,7 @@ import javax.validation.constraints.Pattern;
 @Data
 public class SbwUpdateParam {
     @NotBlank(message = "can not be blank.")
+    @TypeConstraint(allowedValues = {"cn-north-3","cn-south-1","cn-north-3-gov-1"}, message = "Only cn-north-3,cn-south-1 is allowed. ")
     private String region;
 
     @TypeConstraint(allowedValues = {"monthly","hourlySettlement"}, message = "Only monthly,hourlySettlement is allowed. ")
@@ -21,5 +22,11 @@ public class SbwUpdateParam {
     private int bandwidth;
 
     private String sbwName;
+
+    @NotBlank(message = "can not be blank.")
+    @TypeConstraint(allowedValues = {"mobile","radiotv", "telecom", "unicom", "BGP"}, message = "Only mobile,radiotv, telecom, unicom ,  BGP is allowed. ")
+    private String ipType;
+
+    private String description;
 
 }

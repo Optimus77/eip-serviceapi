@@ -16,6 +16,7 @@ import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
@@ -421,7 +422,6 @@ public class RabbitMqServiceImpl {
             } else {
                 log.warn(ConstantClassField.ORDER_STATUS_NOT_CORRECT);
             }
-            return response;
         } catch (Exception e) {
             if (sbwId != null) {
                 sbwService.deleteSbwInfo(sbwId, reciveOrder.getToken());
@@ -780,6 +780,13 @@ public class RabbitMqServiceImpl {
         SbwUpdateParam updateParam = new SbwUpdateParam();
         updateParam.setBillType(reciveOrder.getBillType());
         updateParam.setDuration(reciveOrder.getDuration());
+        JSONObject customization = reciveOrder.getConsoleCustomization();
+        if (customization!=null){
+            String description = customization.getString("description");
+            if (StringUtils.isNotBlank(description)){
+                updateParam.setDescription(description);
+            }
+        }
         List<OrderProduct> productList = reciveOrder.getProductList();
         for (OrderProduct orderProduct : productList) {
             if (!orderProduct.getProductLineCode().equalsIgnoreCase(HsConstants.SBW)) {
@@ -793,11 +800,13 @@ public class RabbitMqServiceImpl {
                     updateParam.setBandwidth(Integer.parseInt(sbwItem.getValue()));
                 } else if (sbwItem.getCode().equals(HsConstants.SBW_NAME)) {
                     updateParam.setSbwName(sbwItem.getValue());
+                }else if (sbwItem.getCode().equals(HsConstants.PROVIDER)){
+                    updateParam.setIpType(sbwItem.getValue());
                 }
             }
         }
 
-        log.info("Get sbw param from bss MQ:{}", updateParam.toString());
+        log.debug("Get sbw param from bss MQ:{}", updateParam.toString());
         return updateParam;
     }
 
