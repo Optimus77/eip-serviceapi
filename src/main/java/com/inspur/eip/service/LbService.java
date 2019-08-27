@@ -4,11 +4,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.CodeInfo;
 import com.inspur.eip.entity.MethodReturn;
 import com.inspur.eip.entity.eip.Eip;
-import com.inspur.eip.entity.fw.Firewall;
 import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.exception.EipInternalServerException;
 import com.inspur.eip.repository.SbwRepository;
-import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.common.JaspytUtils;
 import com.inspur.eip.util.common.MethodReturnUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
@@ -23,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.util.Optional;
 
@@ -30,22 +30,30 @@ import java.util.Optional;
 @Service("radwareService")
 @ConditionalOnProperty(value = "firewall.type", havingValue = "radware")
 public class LbService implements IDevProvider {
+    @Value("${firewall.ip}")
+    private  String firewallIp;
+    @Value("${firewall.port}")
+    private  String firewallPort;
+    @Value("${firewall.user}")
+    private  String firewallUser;
+    @Value("${firewall.password}")
+    private  String firewallPasswd;
 
-    private static final BaseObject baseObject = new BaseObject();
+    private static  String secretKey = "EbfYkitulv73I2p0mXI50JMXoaxZTKJ7";
 
-    @Value("${firewall.id}")
-    private String firewallId;
+    private static final  BaseObject baseObject =new BaseObject();
+
+    @PostConstruct
+    public void init(){
+        baseObject.setManageUser(JaspytUtils.decyptPwd(secretKey, firewallUser));
+        baseObject.setManagePwd(JaspytUtils.decyptPwd(secretKey, firewallPasswd));
+        baseObject.setManageIP(firewallIp);
+        baseObject.setManagePort(firewallPort);
+    }
 
     @Autowired
     private SbwRepository sbwRepository;
 
-    public LbService() {
-        Firewall firewall = CommonUtil.getFireWallById(firewallId);
-        baseObject.setManageIP(firewall.getIp());
-        baseObject.setManagePort(firewall.getPort());
-        baseObject.setManageUser(firewall.getUser());
-        baseObject.setManagePwd(firewall.getPasswd());
-    }
 
     @Override
     public String addQos(String innerip, String name, String bandwidth, String fireWallId) {

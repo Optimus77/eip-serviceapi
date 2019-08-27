@@ -42,7 +42,8 @@ public class SbwDaoService {
     private EipRepository eipRepository;
 
     @Autowired
-    @Qualifier("radwareService")
+//    @Qualifier("radwareService")
+    @Qualifier("firewallService")
     private IDevProvider providerService;
 
     @Autowired
