@@ -25,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -41,9 +42,7 @@ public class SbwDaoService {
     @Autowired
     private EipRepository eipRepository;
 
-    @Autowired
-//    @Qualifier("radwareService")
-    @Qualifier("firewallService")
+    @Resource(name="firewallService")
     private IDevProvider providerService;
 
     @Autowired

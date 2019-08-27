@@ -183,12 +183,20 @@ openstack:
 
 #Firewall configuration
 firewall:
-  type: radware
-  id: 03b3de91-ec19-465b-ab5d-bbbe2c9a9afc
+  type: hillstone
+  id: 3f26960e-6ac3-4636-aae7-822ef3579288
   ip: 10.110.29.206
   port: 443
-  user: j0sUiT770r/4q8u6x7AkTw==
-  password: j0sUiT770r/4q8u6x7AkTw==
+  user: iojHL/UrEMTtZ3Ec3YtV1/0NdjZmNE14
+  password: dNe9QCSE9S8AgSEshlpAXsklH8yW0vlE
+#  radware equipment
+#firewall:
+#  type: radware
+#  id: 03b3de91-ec19-465b-ab5d-bbbe2c9a9afc
+#  ip: 10.110.29.206
+#  port: 443
+#  user: j0sUiT770r/4q8u6x7AkTw==
+#  password: j0sUiT770r/4q8u6x7AkTw==
 
 #Flpnetwork configuration
 fipNetworkId: f4790efe-5df0-4f04-991b-a3c105e63b71
