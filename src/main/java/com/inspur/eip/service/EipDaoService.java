@@ -518,11 +518,10 @@ public class EipDaoService {
         if (null == eipEntity.getPipId() || eipEntity.getPipId().isEmpty()) {
             updateStatus = true;
         } else {
-            updateStatus = true;
-//                    providerService.updateQosBandWidth(eipEntity.getFirewallId(),
-//                    eipEntity.getPipId(), eipEntity.getId(),
-//                    String.valueOf(param.getBandwidth()),
-//                    eipEntity.getFloatingIp(), eipEntity.getEipAddress());
+            updateStatus = providerService.updateQosBandWidth(eipEntity.getFirewallId(),
+                    eipEntity.getPipId(), eipEntity.getId(),
+                    String.valueOf(param.getBandwidth()),
+                    eipEntity.getFloatingIp(), eipEntity.getEipAddress());
         }
 
         if (updateStatus || CommonUtil.qosDebug) {
