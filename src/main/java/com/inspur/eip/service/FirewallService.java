@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.Optional;
 
 @Slf4j
-@Service
+@Service("firewallService")
 @ConditionalOnProperty(value = "firewall.type",havingValue = "hillstone")
 public class FirewallService implements IDevProvider{
 
