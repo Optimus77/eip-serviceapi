@@ -86,10 +86,34 @@ public class EipGroupController {
         if(StringUtils.isNotBlank(bandwidth)){
             return  eipService.listEipsByBandWidth(status);
         }
-        return  eipService.listEips(Integer.parseInt(pageNo),Integer.parseInt(pageSize),status);
+        return  eipService.listEipsByGroup(Integer.parseInt(pageNo),Integer.parseInt(pageSize),status);
     }
 
+    /**
+     * get eip instance detail
+     * @param eipAddress  the id of eip
+     * @param resourceId  the id of eip
+     * @return  retrun
+     */
+    @PermissionContext(whitelist=true)
+    @GetMapping(value = "/groups")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="getEipGroupByConditions",notes="get")
+    public ResponseEntity getEipByIPAddress(@RequestParam(required = false) String resourceId,
+                                                   @RequestParam(required = false) String eipAddress)  {
 
+        if((null != resourceId) && (null != eipAddress) ){
+            return new ResponseEntity<>("To be wrong.", HttpStatus.FORBIDDEN);
+        } else if(resourceId != null) {
+            log.debug("EipGroupController get eip by instance id:{} ", resourceId);
+            return eipService.getEipByInstanceIdV2(resourceId);
+        } else if (null != eipAddress){
+            log.debug("EipGroupController get eip by ip:{} ", eipAddress);
+
+            return eipService.getEipGroupByIpAddress(eipAddress);
+        }
+        return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
+    }
     /**
      * get eip instance detail
      * @param groupId  the id of eip

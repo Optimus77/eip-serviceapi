@@ -183,7 +183,7 @@ openstack:
 
 #Firewall configuration
 firewall:
-  type: radware
+  type: hillstone
   id: 03b3de91-ec19-465b-ab5d-bbbe2c9a9afc
   ip: 10.110.29.206
   port: 443
