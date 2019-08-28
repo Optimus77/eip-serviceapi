@@ -114,23 +114,22 @@ public class CommonUtil {
         return null;
     }
 
-    public static String getUserId() throws KeycloakTokenException {
+    public static String getUserId()throws KeycloakTokenException {
 
         String token = getKeycloackToken();
-        if (null == token) {
+        if(null == token){
             throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
-        } else {
+        }else {
             return getUserId(token);
         }
     }
+    public static String getUserId(String token)throws KeycloakTokenException {
 
-    public static String getUserId(String token) throws KeycloakTokenException {
-
-        if (null == token) {
+        if(null == token){
             throw new KeycloakTokenException("400-Bad request:can't get Authorization info from header,please check");
-        } else {
+        }else{
             JSONObject jsonObject = decodeUserInfo(token);
-            if (jsonObject != null) {
+            if (jsonObject !=null){
                 String sub = (String) jsonObject.get("sub");
                 if (sub != null) {
                     log.debug("getUserId:{}", sub);
@@ -138,7 +137,7 @@ public class CommonUtil {
                 } else {
                     throw new KeycloakTokenException("400-Bad request:can't get user info from header,please check");
                 }
-            } else {
+            }else {
                 log.info("jsonObject is null");
                 throw new KeycloakTokenException("400-Bad request:can't get jsonObject info from header,please check");
             }
@@ -158,6 +157,7 @@ public class CommonUtil {
         }
         return jsonObject;
     }
+
 
 
     public static String readRequestAsChars(HttpServletRequest request) {
@@ -373,7 +373,7 @@ public class CommonUtil {
     }
 
 
-    public static String getProjectId(String userRegion,  OSClient.OSClientV3 os) throws KeycloakTokenException {
+    public static String getOSClientProjectId(String userRegion,  OSClient.OSClientV3 os) throws KeycloakTokenException {
 
         String token = getKeycloackToken();
         if(null == token){
@@ -383,7 +383,7 @@ public class CommonUtil {
             try{
 //                OSClientV3 os= getOsClientV3Util(userRegion);
                 String projectid_client=os.getToken().getProject().getId();
-                log.info("getProjectId:{}", projectid_client);
+                log.info("get OSClient ProjectId:{}", projectid_client);
                 return projectid_client;
             }catch (Exception e){
                 log.error("get projectid from token error");
@@ -438,7 +438,6 @@ public class CommonUtil {
                 projectId = (String) jsonObject.get("project_id");
             }
         }
-
         if (projectId != null) {
             log.debug("project_id:{}", projectId);
         }
@@ -452,41 +451,38 @@ public class CommonUtil {
             log.error("User has no token.");
             return false;
         }
-        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-        String projectIdToken = (String) jsonObject.get("sub");
-        if(projectIdToken.equals(projectId)){
-            return true;
-        }
-        String clientId = null;
-        if(jsonObject.has("clientId")) {
-            clientId = jsonObject.getString("clientId");
-        }
-        if(null != clientId && clientId.equalsIgnoreCase("iaas-server")){
-            log.info("Client token, User has right to operation, client:{}", clientId);
-            return true;
-        }else{
-            log.error("User has no right to operation.{}", jsonObject.toString());
-            return false;
-        }
+        return verifyToken(token, projectId);
+
+
     }
 
     public static boolean verifyToken(String token, String projectId){
         String projectIdInToken = null;
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+//        if(jsonObject.has("project_id")){
+//            projectIdInToken = (String) jsonObject.get("project_id");
+//        } else {
+//            projectIdInToken = (String) jsonObject.get("sub");
+//        }
+//        if(projectIdInToken.equals(projectId)){
+//            return true;
+//        }
+
         if(jsonObject.has("project_id")){
             projectIdInToken = (String) jsonObject.get("project_id");
-        } else {
+            if(projectIdInToken.equals(projectId)){
+                return true;
+            }
+        }
+
+        if(jsonObject.has("sub")){
             projectIdInToken = (String) jsonObject.get("sub");
-        }
-        if(projectIdInToken != null){
-            log.debug("project_id:{}", projectIdInToken);
-        }
-        if(projectIdInToken.equals(projectId)){
-            return true;
+            if(projectIdInToken.equals(projectId)){
+                return true;
+            }
         }
 
         return false;
-
     }
 
     /**

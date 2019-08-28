@@ -46,5 +46,5 @@ public interface EipRepository extends JpaRepository<Eip,String> {
 
     List<Eip> findByProjectIdAndIsDeleteAndBillType(String projectId, int isDelete,String billType);
 
-    List<Eip> findByChargeModeAndIsDelete(String chargeMode, int isDelete);
+    List<Eip> findByChargeModeAndStatusAndIsDelete(String chargeMode,String status, int isDelete);
 }

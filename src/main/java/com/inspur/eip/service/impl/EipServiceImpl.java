@@ -634,7 +634,10 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity getEipCount() {
         try {
             String projectId = CommonUtil.getProjectId();
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, "get instance_num_success", eipDaoService.getInstanceNum(projectId)), HttpStatus.OK);
+            List<Eip> eipList = eipDaoService.findByProjectId(projectId);
+            List<Eip> dataList = ListFilterUtil.filterListData(eipList, Eip.class);
+            int size = dataList.size();
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, "get instance_num_success", size), HttpStatus.OK);
         } catch (KeycloakTokenException e) {
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN, e.getMessage(), null), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
@@ -724,7 +727,8 @@ public class EipServiceImpl implements IEipService {
             ArrayList<Eip> newList = new ArrayList<>();
             ArrayList<Eip> newEipList = new ArrayList<>();
             List<Eip> eipList = eipDaoService.findByProjectId(projectId);
-            for (Eip eip : eipList) {
+            List<Eip> dataList = ListFilterUtil.filterListData(eipList, Eip.class);
+            for (Eip eip : dataList) {
                 String eipAddress = eip.getEipAddress();
                 EipV6 eipV6 = eipV6Repository.findByIpv4AndProjectIdAndIsDelete(eipAddress, projectId, 0);
                 if (eipV6 == null) {
@@ -780,6 +784,7 @@ public class EipServiceImpl implements IEipService {
     }
 
 
+    @Override
     public Eip getEipById(String id) {
         return eipRepository.findByIdAndIsDelete(id,0);
     }

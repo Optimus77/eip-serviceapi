@@ -98,11 +98,11 @@ public class SbwServiceImpl implements ISbwService {
                 Pageable pageable = PageRequest.of(pageIndex - 1, pageSize, sort);
                 if (StringUtils.isNotBlank(searchValue)) {
                     if (searchValue.matches(matche)) {
-                        querySql="select * from sbw where is_delete='0' and project_id= '"+projectId+"'"+" and id="+searchValue;
+                        querySql="select * from sbw where is_delete='0' and project_id= '"+projectId+"'"+" and id='"+searchValue+"'";
                         page = ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Sbw.class);
                         //page = sbwDaoService.findByIdAndIsDelete(searchValue, projectId, 0, pageable);
                     } else {
-                        querySql="select * from sbw where is_delete='0' and project_id= '"+projectId+"'"+" and sbw_name="+searchValue;
+                        querySql="select * from sbw where is_delete='0' and project_id= '"+projectId+"'"+" and sbw_name='"+searchValue+"'";
                         page = ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Sbw.class);
                         //page = sbwDaoService.findByIsDeleteAndSbwName(projectId, 0, searchValue, pageable);
                     }
@@ -402,10 +402,11 @@ public class SbwServiceImpl implements ISbwService {
                         ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage()), HttpStatus.BAD_REQUEST);
             }
             List<Eip> eipList = eipRepository.findByProjectIdAndIsDeleteAndBillType(projectId, 0, HsConstants.HOURLYSETTLEMENT);
+            List<Eip> dataList = ListFilterUtil.filterListData(eipList, Sbw.class);
             JSONArray eips = new JSONArray();
             JSONObject data = new JSONObject();
 
-            for (Eip eip : eipList) {
+            for (Eip eip : dataList) {
                 //只要该eip加入了任何共享带宽，就不予以显示
                 if (StringUtils.isNotBlank(eip.getSbwId())) {
                     continue;

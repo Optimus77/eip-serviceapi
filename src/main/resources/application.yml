@@ -106,14 +106,14 @@ spring:
 
 # IAM
 iam:
-  #url: http://service.inspurtest.com/auth
+  url: http://service.inspurtest.com/auth
 #  测试/staging/生产 配置
-  url: http://iam-apiserver.iam.svc.cluster.local:9101/auth
+  #url: http://iam-apiserver.iam.svc.cluster.local:9101/auth
 #  url: http://service.inspurtest.com/auth
   ladon:
-    #url: http://10.110.25.71:48156/auth
+    url: http://10.110.25.71:48156/auth
 #  测试/staging/生产 配置
-    url: http://iam-auth-ladon.iam.svc.cluster.local:8090/auth
+    #url: http://iam-auth-ladon.iam.svc.cluster.local:8090/auth
 #    url: http://10.110.25.71:48156/auth
 
 common:

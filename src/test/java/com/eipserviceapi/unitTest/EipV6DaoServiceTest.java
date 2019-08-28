@@ -1,8 +1,14 @@
 package com.eipserviceapi.unitTest;
 
 import com.eipserviceapi.TestEipServiceApplication;
+import com.inspur.eip.entity.eip.Eip;
+import com.inspur.eip.entity.eip.EipAllocateParam;
+import com.inspur.eip.entity.eip.EipPool;
+import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.EipV6DaoService;
+import com.inspur.eip.service.impl.EipV6ServiceImpl;
+import com.inspur.eip.util.constant.HsConstants;
 import groovy.util.logging.Slf4j;
 import org.junit.After;
 import org.junit.Before;
@@ -40,6 +46,12 @@ public class EipV6DaoServiceTest {
 
     @Autowired
     EipV6DaoService eipV6DaoService;
+    @Autowired
+    EipPoolRepository eipPoolRepository;
+    @Autowired
+    EipDaoService eipDaoService;
+    @Autowired
+    EipV6ServiceImpl eipV6Service;
 
     @Before
     public void setUp() throws Exception {
@@ -47,8 +59,12 @@ public class EipV6DaoServiceTest {
 
             @Override
             public String getHeader(String name) {
-                //todo 测试之前摘取token
-                return "bearer " + "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiI5YWI1OTM2NC1kMzgzLTQyNWUtYTE2MS0zZWI5OWM4ODdkZmYiLCJleHAiOjE1NjM5NTkxNTYsIm5iZiI6MCwiaWF0IjoxNTYzOTUzNzU2LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjM5MDFkZGY4LTE1M2UtNGFiNy04OWEzLWM2MGE3OGYzMzAyNSIsImF1dGhfdGltZSI6MTU2Mzk1MzQ3Miwic2Vzc2lvbl9zdGF0ZSI6ImZkZWI5MDYwLWU3MTAtNDA3Yy1iNzQ4LTg3OWY4ODUzZmVjYyIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.oAgHByb4nL1uL4ESQdAMDoyQmw5dsH89fMbbxby_n3BhBnZT4gWB-3hcVw1QFJ23f7qaNDHLtmgZi3N7attvf2-xvYCp2MeU4nXTh5LR8miZzfPqYZ1QE5Byk5K8Q3FKfS4jOFY0EMmU5m_0t3n7tZKskuvb-sdEyQGI_Y9zG9kuBZqwcJnqFv4211oVmIUJ2-N9V6jIWDodoljuHw89F_dkeThoC2AjWSknHA1mZhFZkiBB4Fbd8yK-S4C876HMXikLPcwHc0X84FmaWtSCMMMuiv78DtxpOh6dy5LzmgbuXUcTtfOcMv9-UGhyEHh5e0Epk7DQR69t2DTcjUNGiw";
+                try {
+                    return "bearer " + TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
             }
 
             @Override
@@ -420,9 +436,11 @@ public class EipV6DaoServiceTest {
     }
 
     @Test
-    public void adminDeleteEipV6() {
-        String eipV6Id = "b81f8d46-ffdb-436d-932e-7e00a6bf85ee";
-        ActionResponse actionResponse = eipV6DaoService.adminDeleteEipV6(eipV6Id);
+    public void adminDeleteEipV6() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        eipV6Service.atomCreateEipV6(eip.getId(),token);
+        ActionResponse actionResponse = eipV6DaoService.adminDeleteEipV6(eip.getEipV6Id());
         assertEquals(200,actionResponse.getCode());
     }
 
@@ -447,5 +465,28 @@ public class EipV6DaoServiceTest {
 
     @Test
     public void updateIp() {
+    }
+
+    public Eip creatEip(String billType, String user) throws Exception {
+        EipAllocateParam eipConfig = new EipAllocateParam();
+        eipConfig.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
+        eipConfig.setBandwidth(5);
+        eipConfig.setBillType(billType);
+        eipConfig.setIpType("BGP");
+        eipConfig.setIpv6("no");
+        eipConfig.setRegion("cn-north-3");
+        eipConfig.setSbwId(null);
+        eipConfig.setDuration("1");
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        if (user == "other")
+            token = TokenUtil.getToken("xinjing", "1qaz2wsx3edc");
+        String operater = "unitTest";
+        if (eipPoolRepository.getEipByRandom() == null) {
+            return null;
+        } else {
+            EipPool eip = eipDaoService.getOneEipFromPool();
+            Eip eipEntity = eipDaoService.allocateEip(eipConfig, eip, operater, token);
+            return eipEntity;
+        }
     }
 }

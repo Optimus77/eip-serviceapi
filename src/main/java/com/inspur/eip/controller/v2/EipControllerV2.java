@@ -173,10 +173,7 @@ public class EipControllerV2 {
      * @param resourceId  the id of eip
      * @return  retrun
      */
-    @PermissionContext(
-            service="eip",
-            action="GetEip",
-            resourceType="instance")
+    @PermissionContext(whitelist=true)
     @GetMapping(value = "/eips")
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="getEipByConditions",notes="get")

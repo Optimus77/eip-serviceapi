@@ -130,6 +130,43 @@ public class HttpUtil {
         throw new EipException("Post request throw https error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
+
+    public static String postIam(String url, Map<String,String > header, String body ) throws Exception {
+        HttpClient client;
+
+        if(null == header){
+            header = getHeader();
+        }
+
+        try {
+            client = getCloseableHttpClient();
+            HttpPost httpPost = new HttpPost(url);
+
+            RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(5000)
+                    .setSocketTimeout(10000).setConnectTimeout(10000).build();
+            httpPost.setConfig(requestConfig);
+
+            Iterator<Map.Entry<String, String>> it = header.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<String, String> entry = it.next();
+                httpPost.setHeader(entry.getKey(),entry.getValue());
+            }
+            log.debug("request line:post-{} " ,httpPost.getRequestLine());
+            StringEntity entity = new StringEntity(body, HTTP.UTF_8);
+            entity.setContentType("application/json");
+            entity.setContentEncoding("UTF-8");
+            httpPost.setEntity(entity);
+            HttpResponse httpResponse = client.execute(httpPost);
+            //return httpResponse;
+            String resultString = EntityUtils.toString(httpResponse.getEntity(), "utf-8");
+            return resultString;
+        } catch (Exception e) {
+            log.error("IO Exception when post.{}",e.getMessage());
+        }
+        throw new EipException("Post request throw https error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    }
+
+
     public static ReturnResult delete(String url, Map<String,String > header) throws Exception{
         HttpDelete httpDelete = new HttpDelete(url);
 

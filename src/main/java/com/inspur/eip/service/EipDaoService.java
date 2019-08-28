@@ -22,7 +22,9 @@ import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -743,5 +745,8 @@ public class EipDaoService {
     public List<Eip> findFlowAccountEipList(String chargeMode){
         return eipRepository.findByChargeModeAndIsDelete(chargeMode, 0);
     }
+
+
+
 
 }

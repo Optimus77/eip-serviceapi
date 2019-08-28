@@ -8,7 +8,7 @@ import java.util.Map;
 public class IamParam {
 
     private String region;
-    private String server="iam";
+    private String service="iam";
     private String resourceType;
     private String action;
     private String instanceId;

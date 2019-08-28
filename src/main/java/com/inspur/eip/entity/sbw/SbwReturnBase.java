@@ -27,4 +27,8 @@ public class SbwReturnBase implements Serializable {
 
     @JsonProperty("status")
     private String status;
+
+    //  Ç°¶ËĞèÒª£¬res:ËÎÀö·¼ 8.20
+    @JsonProperty("region")
+    private String region;
 }

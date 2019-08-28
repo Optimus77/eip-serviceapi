@@ -131,7 +131,7 @@ public  class NeutronService {
             log.error("Can not get server when associate with serverId:{}, id:{}", serverId, eip.getId());
             return null;
         }
-        String projectId = CommonUtil.getProjectId(region, osClientV3);
+        String projectId = CommonUtil.getOSClientProjectId(region, osClientV3);
         if (!(projectId.equalsIgnoreCase(port.getTenantId())) || !(projectId.equalsIgnoreCase(server.getTenantId()))) {
             log.error("Port eip and server is not in the same project.UserPorjectId:{}, id in port:{}, id in server:{}",
                     projectId, port.getTenantId(), server.getTenantId());
@@ -262,7 +262,7 @@ public  class NeutronService {
 
         OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region);
         Map<String, String> filteringParams = new HashMap<>();
-        filteringParams.put("tenant_id", CommonUtil.getProjectId(region, osClientV3));
+        filteringParams.put("tenant_id", CommonUtil.getOSClientProjectId(region, osClientV3));
         return osClientV3.compute().servers().list(filteringParams);
     }
 
