@@ -89,4 +89,22 @@ public interface IEipService {
 
     Eip getEipById(String id);
 
+    /**
+     * eip bind with port
+     * @param id      id
+     * @param serverId  server id
+     * @param type   //1：ecs // 2：cps // 3：slb
+     * @param portId   port id
+     * @return        result
+     */
+    ResponseEntity eipGroupBindWithInstance(String id,String type, String serverId, String portId, String slbIp);
+
+    /**
+     *  unbind
+     * @param groupId eipid
+     * @param instanceId  instanceId
+     * @return ret
+     */
+    ResponseEntity eipGroupUnbindWithInstacnce(String groupId, String instanceId);
+
 }

@@ -664,7 +664,7 @@ public class EipDaoServiceTest {
 
     @Test
     public void getOneEipFromPool() {
-        EipPool eipPool = eipDaoService.getOneEipFromPool();
+        EipPool eipPool = eipDaoService.getOneEipFromPool("1");
         assertThat(eipPool, instanceOf(EipPool.class));
     }
 
@@ -704,10 +704,10 @@ public class EipDaoServiceTest {
         if (user == "other")
             token = TokenUtil.getToken("xinjing","1qaz2wsx3edc");
         String operater = "unitTest";
-        if (eipPoolRepository.getEipByRandom() == null) {
+        if (eipPoolRepository.getEipByRandom("1") == null) {
             return null;
         } else {
-            EipPool eip = eipDaoService.getOneEipFromPool();
+            EipPool eip = eipDaoService.getOneEipFromPool("1");
             Eip eipEntity = eipDaoService.allocateEip(eipConfig, eip, operater, token);
             return eipEntity;
         }

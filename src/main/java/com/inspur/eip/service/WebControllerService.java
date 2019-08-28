@@ -10,6 +10,7 @@ import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.http.HttpsClientUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpStatus;
 import org.apache.http.protocol.HTTP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +32,22 @@ public class WebControllerService {
     @Value("${webSocket}")
     private String pushMq;
 
+    public void retWebsocket(String isIpv6,String eipId, ReciveOrder eipOrder, String ipv6Type, String ipv4Type,int retCode){
+        String result;
+        if(retCode != HttpStatus.SC_OK){
+            result = "false";
+        }else {
+            result = "Success";
+        }
+        if (null != isIpv6 && isIpv6.equalsIgnoreCase("yes")) {
+            if(retCode == 420){
+                ipv6Type = "createEip";
+            }
+            returnsIpv6Websocket(result, ipv6Type, eipOrder.getToken());
+        }else {
+            returnsWebsocket(eipId, eipOrder,ipv4Type);
+        }
+    }
     /**
      *  websocket return
      * @param eipId  id

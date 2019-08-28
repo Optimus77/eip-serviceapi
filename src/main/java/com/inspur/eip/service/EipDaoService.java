@@ -50,7 +50,7 @@ public class EipDaoService {
     @Autowired
     private EipRepository eipRepository;
 
-    //@Autowired
+    @Autowired
     private IDevProvider firewallService;
 
     @Autowired
@@ -65,13 +65,6 @@ public class EipDaoService {
     @Autowired
     private FlowService flowService;
 
-    @Autowired
-    EipDaoService(@Value("${firewall.type}")String type,FirewallService firewallService){
-        if(type.equals("hillstone"))
-        {
-            this.firewallService= firewallService;
-        }
-    }
 
     /**
      * allocate eip
@@ -124,6 +117,7 @@ public class EipDaoService {
         eipMo.setBandWidth(eipConfig.getBandwidth());
         eipMo.setRegion(eipConfig.getRegion());
         eipMo.setSbwId(eipConfig.getSbwId());
+        eipMo.setGroupId(eipConfig.getGroupId());
         String projectId = CommonUtil.getProjectId(token);
         log.debug("get tenantid:{} from clientv3", projectId);
         eipMo.setProjectId(projectId);
@@ -206,6 +200,7 @@ public class EipDaoService {
                 eipPoolMo.setFireWallId(eipEntity.getFirewallId());
                 eipPoolMo.setIp(eipEntity.getEipAddress());
                 eipPoolMo.setState("0");
+                eipPoolMo.setType(eipEntity.getIpType());
                 eipPoolRepository.saveAndFlush(eipPoolMo);
                 log.info("Success delete eip:{}", eipEntity.getEipAddress());
             }
@@ -275,6 +270,7 @@ public class EipDaoService {
                 eipPoolMo.setFireWallId(eipEntity.getFirewallId());
                 eipPoolMo.setIp(eipEntity.getEipAddress());
                 eipPoolMo.setState("0");
+                eipPoolMo.setType(eipEntity.getIpType());
                 eipPoolRepository.saveAndFlush(eipPoolMo);
                 log.info("Success delete eip:{}", eipEntity.getEipAddress());
             }
@@ -617,6 +613,7 @@ public class EipDaoService {
         return eipEntity;
     }
 
+
     public long getInstanceNum(String projectId) {
 
         String sql = "select count(1) as num from eip where project_id='" + projectId + "'" + "and is_delete=0";
@@ -685,8 +682,11 @@ public class EipDaoService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public synchronized EipPool getOneEipFromPool() {
-        EipPool eipAddress = eipPoolRepository.getEipByRandom();
+    public synchronized EipPool getOneEipFromPool(String type) {
+        if(type == null){
+            type="BGP";
+        }
+        EipPool eipAddress = eipPoolRepository.getEipByRandom(type);
         if (null != eipAddress) {
             eipPoolRepository.deleteById(eipAddress.getId());
             eipPoolRepository.flush();
@@ -746,7 +746,204 @@ public class EipDaoService {
         return eipRepository.findByChargeModeAndIsDelete(chargeMode, 0);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public MethodReturn associateInstanceWithEipGroup(String groupId, String serverId, String instanceType, String portId, String fip) {
+        NetFloatingIP floatingIP;
+        String returnStat = null;
+        String returnMsg = null;
+        MethodReturn fireWallReturn = null;
+        String flag = "failed";
 
+        List<Eip> eipList = eipRepository.findByGroupIdAndIsDelete(groupId, 0);
+        if (eipList.isEmpty()) {
+            log.error("In associate process, failed to find the eip by groupId:{} ", groupId);
+            return MethodReturnUtil.error(HttpStatus.SC_NOT_FOUND, ReturnStatus.SC_NOT_FOUND,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_NOT_FOND));
+        }
+        for (Eip eip : eipList) {
 
+            if (!(HsConstants.DOWN.equals(eip.getStatus())) || (null != eip.getDnatId()) || (null != eip.getSnatId())) {
+                return MethodReturnUtil.error(HttpStatus.SC_BAD_REQUEST, ReturnStatus.EIP_BIND_HAS_BAND,
+                        CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND));
+            }
+            eip.setStatus(HsConstants.BINDING);
+            eipRepository.saveAndFlush(eip);
+
+            try {
+                if (!eip.getProjectId().equals(CommonUtil.getProjectId())) {
+                    log.error(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), eip.getId());
+                    return MethodReturnUtil.error(HttpStatus.SC_FORBIDDEN, ReturnStatus.SC_FORBIDDEN,
+                            CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDDEN));
+                }
+
+                if (null == fip && instanceType.equals(HsConstants.ECS)) {
+//                String networkId = getExtNetId(eip.getRegion());
+                    if (null == flpnetworkId) {
+                        log.error("Failed to get external net in region:{}. ", eip.getRegion());
+                        return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE,
+                                CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
+                    }
+                    floatingIP = neutronService.createAndAssociateWithFip(eip.getRegion(), flpnetworkId, portId, eip, serverId);
+                    if (null == floatingIP) {
+                        log.error("Fatal Error! Can not get floating when bind ip in network:{}, region:{}, portId:{}.",
+                                flpnetworkId, eip.getRegion(), portId);
+                        return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, ReturnStatus.SC_OPENSTACK_FIP_UNAVAILABLE,
+                                CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_OPENSTACK_ERROR));
+                    }
+                    eip.setFloatingIp(floatingIP.getFloatingIpAddress());
+                    eip.setFloatingIpId(floatingIP.getId());
+                } else {
+                    eip.setFloatingIp(fip);
+                }
+                fireWallReturn = firewallService.addNatAndQos(eip, eip.getFloatingIp(), eip.getEipAddress(),
+                        eip.getBandWidth(), eip.getFirewallId());
+                returnMsg = fireWallReturn.getMessage();
+                returnStat = fireWallReturn.getInnerCode();
+                if (fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
+                    boolean bindRet = eipV6DaoService.bindIpv6WithInstance(eip.getEipAddress(), eip.getFloatingIp(), eip.getProjectId());
+                    if (!bindRet) {
+                        firewallService.delNatAndQos(eip);
+                        neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(),
+                                eip.getFloatingIpId(), serverId, eip.getRegion());
+                        eip.setFloatingIp(null);
+                        eip.setFloatingIpId(null);
+                        eip.setStatus(HsConstants.DOWN);
+                        return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
+                    }
+                    //流量计费类型的eip,从地址簿中删除匹配条件--floating ip
+//                if (HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eip.getChargeMode())){
+//                    firewallService.cmdInsertOrRemoveParamInAddressBook(eip.getEipAddress(),eip.getFloatingIp(),"ip",eip.getFirewallId(),true);
+//                }
+                    eip.setInstanceId(serverId);
+                    eip.setInstanceType(instanceType);
+                    eip.setPortId(portId);
+                    eip.setStatus(HsConstants.ACTIVE);
+                    eip.setUpdatedTime(CommonUtil.getGmtDate());
+
+                    log.info("Bind eip with instance successfully. eip:{}, instance:{}, portId:{}",
+                            eip.getEipAddress(), eip.getInstanceId(), eip.getPortId());
+                    flag = "success";
+
+                } else {
+                    neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(),
+                            eip.getFloatingIpId(), serverId, eip.getRegion());
+                    eip.setFloatingIp(null);
+                    eip.setFloatingIpId(null);
+                }
+            } catch (Exception e) {
+                log.error("band server exception", e);
+                returnStat = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
+                returnMsg = e.getMessage();
+            } finally {
+                if (null == fireWallReturn || fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
+                    eip.setStatus(HsConstants.DOWN);
+                }
+                eipRepository.saveAndFlush(eip);
+            }
+        }
+        if(flag.equals("success")){
+            return MethodReturnUtil.success();
+        }
+
+        return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
+    }
+
+    @Transactional
+    public ActionResponse disassociateInstanceWithEipGroup(Eip eipEntity) {
+
+        String msg = null;
+
+        if (null == eipEntity) {
+            log.error("disassociateInstanceWithEip In disassociate process,failed to find the eip ");
+            return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
+        }
+        if (!CommonUtil.isAuthoried(eipEntity.getProjectId())) {
+            log.error("User have no write to delete eip:{}", eipEntity.getId());
+            return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
+        }
+
+        if (eipEntity.getStatus().equals(HsConstants.DOWN)) {
+            msg = "Error status when disassociate eip:" + eipEntity.toString();
+            log.error(msg);
+            return ActionResponse.actionSuccess();
+        }
+        try {
+            if (null != eipEntity.getFloatingIp() && null != eipEntity.getInstanceId()) {
+                ActionResponse actionResponse = neutronService.disassociateAndDeleteFloatingIp(eipEntity.getFloatingIp(),
+                        eipEntity.getFloatingIpId(),
+                        eipEntity.getInstanceId(), eipEntity.getRegion());
+                if (!actionResponse.isSuccess()) {
+                    msg = "Failed to disassociate port with fip:" + eipEntity.toString();
+                    log.error(msg);
+                    return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                }
+            }
+
+            MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
+            if (fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
+                msg += fireWallReturn.getMessage();
+                eipEntity.setStatus(HsConstants.ERROR);
+            } else {
+                eipEntity.setStatus(HsConstants.DOWN);
+            }
+            eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
+            String eipAddress = eipEntity.getEipAddress();
+            boolean unbindIpv6Ret = eipV6DaoService.unBindIpv6WithInstance(eipAddress, eipEntity.getProjectId());
+            if (!unbindIpv6Ret) {
+                neutronService.associaInstanceWithFloatingIp(eipEntity, eipEntity.getInstanceId(), eipEntity.getPortId());
+                firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
+                        eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
+                msg = "Failed to disassociate  with natPt";
+                log.error(msg);
+                return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            }
+            //从地址簿中删除匹配条件--floating ip
+//            if (HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
+//                //解绑前向bss发送流量统计数据
+//                int i = CommonUtil.countMinuteFromPoint();
+//                //如果是整点，则以定时任务为准
+//                if (i !=0){
+//                    flowService.releaseReportFlowAccount(i,eipEntity);
+//                }
+//                //删除监控集地址本
+//                boolean statistics = firewallService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false);
+//            }
+            eipEntity.setInstanceId(null);
+            eipEntity.setInstanceType(null);
+            eipEntity.setPrivateIpAddress(null);
+            eipEntity.setPortId(null);
+            eipEntity.setFloatingIp(null);
+            eipEntity.setFloatingIpId(null);
+            eipRepository.saveAndFlush(eipEntity);
+        } catch (Exception e) {
+            log.error("Exception  when disassociateInstanceWithEip", e);
+            msg += e.getMessage() + "";
+            eipRepository.saveAndFlush(eipEntity);
+        }
+        if (null != msg) {
+            return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        } else {
+            return ActionResponse.actionSuccess();
+        }
+    }
+
+    @Transactional
+    public List<Eip> getEipListByGroupId(String groupId) {
+
+        Eip eipEntity = null;
+        List<Eip> eipList = eipRepository.findByGroupIdAndIsDelete(groupId,0);
+        return eipList;
+    }
+
+    public List<Eip> findByInstanceIdAndIsDelete(String instanceId) {
+
+        String sql = "select * from eip where instance_id='" + instanceId + "'" + "and is_delete=0";
+
+        RowMapper<Eip> rm = BeanPropertyRowMapper.newInstance(Eip.class);
+        List<Eip> listEips = jdbcTemplate.query(sql, rm);
+
+        return listEips;
+
+    }
 
 }

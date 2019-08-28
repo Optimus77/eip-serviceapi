@@ -1,22 +1,12 @@
 package com.eipserviceapi.unitTest.implTest;
 
 import com.eipserviceapi.TestEipServiceApplication;
-import com.eipserviceapi.unitTest.TokenUtil;
-import com.inspur.eip.entity.EipUpdateParam;
-import com.inspur.eip.entity.eip.Eip;
-import com.inspur.eip.entity.eip.EipAllocateParam;
-import com.inspur.eip.entity.eip.EipPool;
 import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
-import com.inspur.eip.repository.EipPoolRepository;
-import com.inspur.eip.repository.EipPoolV6Repository;
-import com.inspur.eip.repository.EipRepository;
-import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.SbwDaoService;
 import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.constant.ErrorStatus;
-import com.inspur.eip.util.constant.HsConstants;
 import groovy.util.logging.Slf4j;
 import org.junit.After;
 import org.junit.Before;
@@ -40,10 +30,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
-import java.util.*;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Locale;
+import java.util.Map;
 
 import static org.junit.Assert.*;
-
 @Slf4j
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = SbwServiceImpl.class)
@@ -53,30 +45,16 @@ import static org.junit.Assert.*;
 public class SbwServiceImplTest {
 
     @Autowired
-    SbwServiceImpl sbwService;
-    @Autowired
-    SbwDaoService sbwDaoService;
-    @Autowired
-    EipPoolV6Repository eipPoolV6Repository;
-    @Autowired
-    EipDaoService eipDaoService;
-    @Autowired
-    EipPoolRepository eipPoolRepository;
-    @Autowired
-    EipRepository eipRepository;
+    private SbwServiceImpl sbwService;
 
     @Before
     public void setUp() throws Exception {
-        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest() {
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest(){
 
             @Override
             public String getHeader(String name) {
-                try {
-                    return "bearer " + TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return null;
+                //todo 测试之前摘取token
+                return "bearer " + "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJiOWU5YmI0YS1kYWM0LTRhYjUtYmJmOC0zOWQyM2ZhY2NmNzEiLCJleHAiOjE1NjE2MDQ4MjUsIm5iZiI6MCwiaWF0IjoxNTYxNTk5NDI1LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjViYjk2NTk3LWUxN2MtNDgwNi04ZjNhLTViMzAzYzQxY2I2NiIsImF1dGhfdGltZSI6MTU2MTU5OTQyMSwic2Vzc2lvbl9zdGF0ZSI6ImU4ZWZkNWM2LTdiMmYtNGI3Ni04NDFhLTA3ODMxM2EzMzhmZiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsImludml0ZWRfcmVnaW9uIjoiW1wiY24tc291dGgtMVwiXSIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.BcUaYp_YazOOF6iVoIniS61Erosyu6CC1-eE3CNEQf7iFhZmYnOkwV4ukblK0-fCfewX87dCcXIKa7ScjVV2tzSFmJvwc-QyujjIbdee0Yxhlg-YEIRKZcCvG-JLsFv7FXNeDeFp4wdj3WdGfFCZaXJI9V3SBixN8g3BuNI3L92_XMg1nXTZYK-nCw3kWElNbtCzkW8n4KQ7Cl0nCTBhljvERaNnumRAMLl4raWfHSSCjQLxF8MtwkAZAcQWFUHh75nMejUo1rKK2nyJA0Ed_dLFDnu2dkMs82_owIvs-TJTEseMLD16879E_x9gAJldYkTGj1AskQrOp8vrSyZ35Q";
             }
 
             @Override
@@ -280,6 +258,7 @@ public class SbwServiceImplTest {
             }
 
 
+
             @Override
             public Enumeration<String> getHeaders(String name) {
                 return null;
@@ -427,141 +406,132 @@ public class SbwServiceImplTest {
     }
 
     @Test
-    public void atomCreateSbw() throws Exception {
+    public void atomCreateSbw() {
         SbwUpdateParam param = new SbwUpdateParam();
         param.setDuration("1");
         param.setBandwidth(100);
         param.setBillType("hourlySettlement");
         param.setRegion("cn-north-3");
-        param.setSbwName("atomUnitTestNoOtherBuilder");
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        param.setSbwName("atomUnitTest");
+        param.setDescription("");
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJiOWU5YmI0YS1kYWM0LTRhYjUtYmJmOC0zOWQyM2ZhY2NmNzEiLCJleHAiOjE1NjE2MDQ4MjUsIm5iZiI6MCwiaWF0IjoxNTYxNTk5NDI1LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjViYjk2NTk3LWUxN2MtNDgwNi04ZjNhLTViMzAzYzQxY2I2NiIsImF1dGhfdGltZSI6MTU2MTU5OTQyMSwic2Vzc2lvbl9zdGF0ZSI6ImU4ZWZkNWM2LTdiMmYtNGI3Ni04NDFhLTA3ODMxM2EzMzhmZiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsImludml0ZWRfcmVnaW9uIjoiW1wiY24tc291dGgtMVwiXSIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.BcUaYp_YazOOF6iVoIniS61Erosyu6CC1-eE3CNEQf7iFhZmYnOkwV4ukblK0-fCfewX87dCcXIKa7ScjVV2tzSFmJvwc-QyujjIbdee0Yxhlg-YEIRKZcCvG-JLsFv7FXNeDeFp4wdj3WdGfFCZaXJI9V3SBixN8g3BuNI3L92_XMg1nXTZYK-nCw3kWElNbtCzkW8n4KQ7Cl0nCTBhljvERaNnumRAMLl4raWfHSSCjQLxF8MtwkAZAcQWFUHh75nMejUo1rKK2nyJA0Ed_dLFDnu2dkMs82_owIvs-TJTEseMLD16879E_x9gAJldYkTGj1AskQrOp8vrSyZ35Q";
+
         ResponseEntity responseEntity = sbwService.atomCreateSbw(param, token);
-        List<Sbw> list = sbwDaoService.findByProjectId("9d0b67cd-20cb-40b4-8dc4-b0415ca25d72");
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).getSbwName().equals("atomUnitTestNoOtherBuilder")) {
-                deleteSbw(sbw.getId());
-                sbw = list.get(i);
-                break;
-            }
-        }
-        deleteSbw(sbw.getId());
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
 
     }
 
     @Test
-    public void listByIdAndIsDeleteShareBandWidth() throws Exception {
+    public void listByIdAndIsDeleteShareBandWidth() {
         Integer pageIndex = 20;
         Integer pageSize = 100;
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        ResponseEntity responseEntity = sbwService.listShareBandWidth(pageIndex, pageSize, sbw.getId());
-        deleteSbw(sbw.getId());
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        String searchValue = "cf5dd08b-c15a-45d5-b8b6-c01f81495a86";
+        ResponseEntity responseEntity = sbwService.listShareBandWidth(pageIndex, pageSize, searchValue);
+
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
     }
 
     @Test
-    public void listByIsDeleteAndSbwName() throws Exception {
+    public void listByIsDeleteAndSbwName(){
         Integer pageIndex = 20;
         Integer pageSize = 100;
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        ResponseEntity responseEntity = sbwService.listShareBandWidth(pageIndex, pageSize, sbw.getSbwName());
-        deleteSbw(sbw.getId());
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        String searchValue = "unitTest-勿删";
+        ResponseEntity responseEntity = sbwService.listShareBandWidth(pageIndex, pageSize, searchValue);
+
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
     }
 
     @Test
-    public void listByIsDelete() {
+    public void listByIsDelete(){
         Integer pageIndex = 20;
         Integer pageSize = 100;
         String searchValue = null;
         ResponseEntity responseEntity = sbwService.listShareBandWidth(pageIndex, pageSize, searchValue);
 
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
     }
 
     @Test
-    public void listByProjectId() {
+    public void listByProjectId(){
         Integer pageIndex = 0;
         Integer pageSize = 100;
         String searchValue = null;
         ResponseEntity responseEntity = sbwService.listShareBandWidth(pageIndex, pageSize, searchValue);
 
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
     }
 
     @Test
-    public void deleteSbwInfo() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        ActionResponse response = sbwService.deleteSbwInfo(sbw.getId(), token);
-
-        assertEquals(200, response.getCode());
-    }
-
-    @Test
-    public void errorDeletesbwIdIsBlank() throws Exception {
-        String sbwId = null;
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void deleteSbwInfo() {
+        String sbwId = "cf5dd08b-c15a-45d5-b8b6-c01f81495a86";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJiOWU5YmI0YS1kYWM0LTRhYjUtYmJmOC0zOWQyM2ZhY2NmNzEiLCJleHAiOjE1NjE2MDQ4MjUsIm5iZiI6MCwiaWF0IjoxNTYxNTk5NDI1LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjViYjk2NTk3LWUxN2MtNDgwNi04ZjNhLTViMzAzYzQxY2I2NiIsImF1dGhfdGltZSI6MTU2MTU5OTQyMSwic2Vzc2lvbl9zdGF0ZSI6ImU4ZWZkNWM2LTdiMmYtNGI3Ni04NDFhLTA3ODMxM2EzMzhmZiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsImludml0ZWRfcmVnaW9uIjoiW1wiY24tc291dGgtMVwiXSIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.BcUaYp_YazOOF6iVoIniS61Erosyu6CC1-eE3CNEQf7iFhZmYnOkwV4ukblK0-fCfewX87dCcXIKa7ScjVV2tzSFmJvwc-QyujjIbdee0Yxhlg-YEIRKZcCvG-JLsFv7FXNeDeFp4wdj3WdGfFCZaXJI9V3SBixN8g3BuNI3L92_XMg1nXTZYK-nCw3kWElNbtCzkW8n4KQ7Cl0nCTBhljvERaNnumRAMLl4raWfHSSCjQLxF8MtwkAZAcQWFUHh75nMejUo1rKK2nyJA0Ed_dLFDnu2dkMs82_owIvs-TJTEseMLD16879E_x9gAJldYkTGj1AskQrOp8vrSyZ35Q";
         ActionResponse response = sbwService.deleteSbwInfo(sbwId, token);
 
-        assertEquals(400, response.getCode());
+        assertEquals(200,response.getCode());
     }
 
     @Test
-    public void bssSoftDeleteSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        ActionResponse actionResponse = sbwService.bssSoftDeleteSbw(sbw.getId());
+    public void errorDeletesbwIdIsBlank(){
+        String sbwId = null;
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJiOWU5YmI0YS1kYWM0LTRhYjUtYmJmOC0zOWQyM2ZhY2NmNzEiLCJleHAiOjE1NjE2MDQ4MjUsIm5iZiI6MCwiaWF0IjoxNTYxNTk5NDI1LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjViYjk2NTk3LWUxN2MtNDgwNi04ZjNhLTViMzAzYzQxY2I2NiIsImF1dGhfdGltZSI6MTU2MTU5OTQyMSwic2Vzc2lvbl9zdGF0ZSI6ImU4ZWZkNWM2LTdiMmYtNGI3Ni04NDFhLTA3ODMxM2EzMzhmZiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsImludml0ZWRfcmVnaW9uIjoiW1wiY24tc291dGgtMVwiXSIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.BcUaYp_YazOOF6iVoIniS61Erosyu6CC1-eE3CNEQf7iFhZmYnOkwV4ukblK0-fCfewX87dCcXIKa7ScjVV2tzSFmJvwc-QyujjIbdee0Yxhlg-YEIRKZcCvG-JLsFv7FXNeDeFp4wdj3WdGfFCZaXJI9V3SBixN8g3BuNI3L92_XMg1nXTZYK-nCw3kWElNbtCzkW8n4KQ7Cl0nCTBhljvERaNnumRAMLl4raWfHSSCjQLxF8MtwkAZAcQWFUHh75nMejUo1rKK2nyJA0Ed_dLFDnu2dkMs82_owIvs-TJTEseMLD16879E_x9gAJldYkTGj1AskQrOp8vrSyZ35Q";
+        ActionResponse response = sbwService.deleteSbwInfo(sbwId, token);
 
-        assertEquals(200, actionResponse.getCode());
+        assertEquals(400,response.getCode());
     }
 
     @Test
-    public void errorBssSoftDeleteSbw() {
+    public void bssSoftDeleteSbw() {
+        String sbwId = "cf5dd08b-c15a-45d5-b8b6-c01f81495a86";
+        ActionResponse actionResponse = sbwService.bssSoftDeleteSbw(sbwId);
+
+        assertEquals(200,actionResponse.getCode());
+    }
+    @Test
+    public void errorBssSoftDeleteSbw(){
         String sbwId = null;
         ActionResponse actionResponse = sbwService.bssSoftDeleteSbw(sbwId);
 
-        assertEquals(400, actionResponse.getCode());
+        assertEquals(400,actionResponse.getCode());
     }
 
     @Test
-    public void getSbwDetail() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        ResponseEntity sbwDetail = sbwService.getSbwDetail(sbw.getId());
-        deleteSbw(sbw.getId());
-        assertEquals(HttpStatus.OK, sbwDetail.getStatusCode());
+    public void getSbwDetail() {
+        String sbwId = "cf5dd08b-c15a-45d5-b8b6-c01f81495a86";
+        ResponseEntity sbwDetail = sbwService.getSbwDetail(sbwId);
+
+        assertEquals(HttpStatus.OK,sbwDetail.getStatusCode());
     }
 
     @Test
-    public void updateSbwConfig() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void updateSbwConfig() {
+        String sbwId = "cf5dd08b-c15a-45d5-b8b6-c01f81495a86";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJkYTU5MDVlNy04NzJiLTQ0OWItYjFkYy03YzRlZmZmZWMxYTUiLCJleHAiOjE1NjE5NTExODEsIm5iZiI6MCwiaWF0IjoxNTYxOTQ1NzgxLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjlkOTY5OTdjLTU2OWEtNDZmNC1iY2FjLTYzMDliODA3NGM5ZCIsImF1dGhfdGltZSI6MTU2MTk0NTc3OSwic2Vzc2lvbl9zdGF0ZSI6ImFlMWUzYzMyLTRkNGItNGM5OS1iNzU0LTMyNzkyZGZkNzEyMSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsImludml0ZWRfcmVnaW9uIjoiW1wiY24tc291dGgtMVwiXSIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.jJmhFY9G52OlURM0_8hOU4a7A-aLryalggjtsf-nLi5Spqg8gKA82zXTk-O7UtnJ9ZIHXQjCHQw7lrwQjv9dody_W6aDXPdD-6cIjb3X3sCer-CZGV2gWZs5KtlA_8VypNeyjJST1mLwSIp4vtALMSPEUZt229E74GL2uIkp6jmVcrwtN4ez81yIusYsrCZsSs8D6CIe_P0_O14E_HDAvy1h_AwNlNwHSd7k3bGqrkz-0NtMJtq6IKTmOtOqFvsHdp20UaRMmL3hAgu5MnxiM2lXxmkXSNgetMbexVlWGrLpumEpZoYYJ4nB6wQJKGOva3utGRwUpoXnMsGiR6Yn9g";
         SbwUpdateParam param = new SbwUpdateParam();
         param.setSbwName("unitTestCheckout");
         param.setRegion("cn-north-3");
         param.setBillType("hourlySettlement");
         param.setBandwidth(202);
         param.setDuration("1");
-        ActionResponse response = sbwService.updateSbwConfig(sbw.getId(), param, token);
-        deleteSbw(sbw.getId());
-        assertEquals(200, response.getCode());
+        ActionResponse response = sbwService.updateSbwConfig(sbwId, param, token);
+
+        assertEquals(200,response.getCode());
     }
 
     @Test
-    public void errorUpdateSbwConfig() throws Exception {
+    public void errorUpdateSbwConfig(){
         String sbwId = null;
         SbwUpdateParam param = new SbwUpdateParam();
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJiOWU5YmI0YS1kYWM0LTRhYjUtYmJmOC0zOWQyM2ZhY2NmNzEiLCJleHAiOjE1NjE2MDQ4MjUsIm5iZiI6MCwiaWF0IjoxNTYxNTk5NDI1LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjViYjk2NTk3LWUxN2MtNDgwNi04ZjNhLTViMzAzYzQxY2I2NiIsImF1dGhfdGltZSI6MTU2MTU5OTQyMSwic2Vzc2lvbl9zdGF0ZSI6ImU4ZWZkNWM2LTdiMmYtNGI3Ni04NDFhLTA3ODMxM2EzMzhmZiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsImludml0ZWRfcmVnaW9uIjoiW1wiY24tc291dGgtMVwiXSIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.BcUaYp_YazOOF6iVoIniS61Erosyu6CC1-eE3CNEQf7iFhZmYnOkwV4ukblK0-fCfewX87dCcXIKa7ScjVV2tzSFmJvwc-QyujjIbdee0Yxhlg-YEIRKZcCvG-JLsFv7FXNeDeFp4wdj3WdGfFCZaXJI9V3SBixN8g3BuNI3L92_XMg1nXTZYK-nCw3kWElNbtCzkW8n4KQ7Cl0nCTBhljvERaNnumRAMLl4raWfHSSCjQLxF8MtwkAZAcQWFUHh75nMejUo1rKK2nyJA0Ed_dLFDnu2dkMs82_owIvs-TJTEseMLD16879E_x9gAJldYkTGj1AskQrOp8vrSyZ35Q";
         ActionResponse response = sbwService.updateSbwConfig(sbwId, param, token);
 
-        assertEquals(500, response.getCode());
+        assertEquals(500,response.getCode());
     }
 
     @Test
     public void countSbwNumsByProjectId() {
         ResponseEntity sbwCount = sbwService.countSbwNumsByProjectId();
 
-        assertEquals(HttpStatus.OK, sbwCount.getStatusCode());
+        assertEquals(HttpStatus.OK,sbwCount.getStatusCode());
     }
 
     @Test
@@ -573,88 +543,78 @@ public class SbwServiceImplTest {
     }
 
     @Test
-    public void restartSbwService() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.MONTHLY, null);
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void restartSbwService() {
+        String sbwId = "b9141748-a6ec-48b2-a242-bebf8fa165b2";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJiOWU5YmI0YS1kYWM0LTRhYjUtYmJmOC0zOWQyM2ZhY2NmNzEiLCJleHAiOjE1NjE2MDQ4MjUsIm5iZiI6MCwiaWF0IjoxNTYxNTk5NDI1LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjViYjk2NTk3LWUxN2MtNDgwNi04ZjNhLTViMzAzYzQxY2I2NiIsImF1dGhfdGltZSI6MTU2MTU5OTQyMSwic2Vzc2lvbl9zdGF0ZSI6ImU4ZWZkNWM2LTdiMmYtNGI3Ni04NDFhLTA3ODMxM2EzMzhmZiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsImludml0ZWRfcmVnaW9uIjoiW1wiY24tc291dGgtMVwiXSIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.BcUaYp_YazOOF6iVoIniS61Erosyu6CC1-eE3CNEQf7iFhZmYnOkwV4ukblK0-fCfewX87dCcXIKa7ScjVV2tzSFmJvwc-QyujjIbdee0Yxhlg-YEIRKZcCvG-JLsFv7FXNeDeFp4wdj3WdGfFCZaXJI9V3SBixN8g3BuNI3L92_XMg1nXTZYK-nCw3kWElNbtCzkW8n4KQ7Cl0nCTBhljvERaNnumRAMLl4raWfHSSCjQLxF8MtwkAZAcQWFUHh75nMejUo1rKK2nyJA0Ed_dLFDnu2dkMs82_owIvs-TJTEseMLD16879E_x9gAJldYkTGj1AskQrOp8vrSyZ35Q";
         SbwUpdateParam param = new SbwUpdateParam();
         param.setDuration("1");
         param.setRegion("cn-north-3");
-        ActionResponse response = sbwService.restartSbwService(sbw.getId(), param, token);
-        deleteSbw(sbw.getId());
-        assertEquals(200, response.getCode());
+        ActionResponse response = sbwService.restartSbwService(sbwId, param, token);
+
+        assertEquals(200,response.getCode());
     }
 
     @Test
-    public void errorRestartSbwService() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void errorRestartSbwService(){
+        String sbwId = "b9141748-a6ec-48b2-a242-bebf8fa165b2";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJiOWU5YmI0YS1kYWM0LTRhYjUtYmJmOC0zOWQyM2ZhY2NmNzEiLCJleHAiOjE1NjE2MDQ4MjUsIm5iZiI6MCwiaWF0IjoxNTYxNTk5NDI1LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjViYjk2NTk3LWUxN2MtNDgwNi04ZjNhLTViMzAzYzQxY2I2NiIsImF1dGhfdGltZSI6MTU2MTU5OTQyMSwic2Vzc2lvbl9zdGF0ZSI6ImU4ZWZkNWM2LTdiMmYtNGI3Ni04NDFhLTA3ODMxM2EzMzhmZiIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsImludml0ZWRfcmVnaW9uIjoiW1wiY24tc291dGgtMVwiXSIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.BcUaYp_YazOOF6iVoIniS61Erosyu6CC1-eE3CNEQf7iFhZmYnOkwV4ukblK0-fCfewX87dCcXIKa7ScjVV2tzSFmJvwc-QyujjIbdee0Yxhlg-YEIRKZcCvG-JLsFv7FXNeDeFp4wdj3WdGfFCZaXJI9V3SBixN8g3BuNI3L92_XMg1nXTZYK-nCw3kWElNbtCzkW8n4KQ7Cl0nCTBhljvERaNnumRAMLl4raWfHSSCjQLxF8MtwkAZAcQWFUHh75nMejUo1rKK2nyJA0Ed_dLFDnu2dkMs82_owIvs-TJTEseMLD16879E_x9gAJldYkTGj1AskQrOp8vrSyZ35Q";
         SbwUpdateParam param = new SbwUpdateParam();
-        ActionResponse response = sbwService.restartSbwService(sbw.getId(), param, token);
-        deleteSbw(sbw.getId());
-        assertEquals(400, response.getCode());
+        ActionResponse response = sbwService.restartSbwService(sbwId, param, token);
+
+        assertEquals(400,response.getCode());
     }
 
     @Test
-    public void stopSbwService() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+    public void stopSbwService() {
+        String sbwId = "b9141748-a6ec-48b2-a242-bebf8fa165b2";
         SbwUpdateParam param = new SbwUpdateParam();
         param.setDuration("0");
-        ActionResponse response = sbwService.stopSbwService(sbw.getId(), param);
-        deleteSbw(sbw.getId());
-        assertEquals(200, response.getCode());
+        ActionResponse response = sbwService.stopSbwService(sbwId, param);
+
+        assertEquals(200,response.getCode());
     }
 
     @Test
-    public void errorStopSbwService() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+    public void errorStopSbwService() {
+        String sbwId = "b9141748-a6ec-48b2-a242-bebf8fa165b2";
         SbwUpdateParam param = new SbwUpdateParam();
         param.setDuration(null);
-        ActionResponse response = sbwService.stopSbwService(sbw.getId(), param);
-        deleteSbw(sbw.getId());
-        assertEquals(400, response.getCode());
+        ActionResponse response = sbwService.stopSbwService(sbwId, param);
+
+        assertEquals(400,response.getCode());
     }
 
     @Test
-    public void sbwListEip() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(), sbw.getId());
+    public void sbwListEip() {
+        String sbwId = "0e40e97a-4b30-492e-8472-df3e2c044c2a";
         Integer currentPage = 20;
         Integer limit = 50;
-        ResponseEntity responseEntity = sbwService.sbwListEip(sbw.getId(), currentPage, limit);
-        removeEipFromSbw(eip.getId(), sbw.getId());
-        deleteSbw(sbw.getId());
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        ResponseEntity responseEntity = sbwService.sbwListEip(sbwId, currentPage, limit);
+
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
 
     }
 
     @Test
-    public void sbwListEipWithSbwIsNull() {
-        String sbwId = "123";
+    public void sbwListEipWithNOCurrentPage() {
+        String sbwId = "0e40e97a-4b30-492e-8472-df3e2c044c2a";
         Integer currentPage = 0;
         Integer limit = 50;
         ResponseEntity responseEntity = sbwService.sbwListEip(sbwId, currentPage, limit);
-        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
+
     }
 
     @Test
-    public void sbwListEipWithNOCurrentPage() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Integer currentPage = 0;
-        Integer limit = 50;
-        ResponseEntity responseEntity = sbwService.sbwListEip(sbw.getId(), currentPage, limit);
-        deleteSbw(sbw.getId());
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-    }
-
-    @Test
-    public void renameSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+    public void renameSbw() {
+        String sbwId = "b9141748-a6ec-48b2-a242-bebf8fa165b2";
         SbwUpdateParam param = new SbwUpdateParam();
         param.setSbwName("rename");
-        ResponseEntity responseEntity = sbwService.renameSbw(sbw.getId(), param);
-        deleteSbw(sbw.getId());
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        param.setDescription("描述");
+        ResponseEntity responseEntity = sbwService.renameSbw(sbwId, param);
+
+        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
     }
 
     @Test
@@ -664,87 +624,15 @@ public class SbwServiceImplTest {
         param.setSbwName(null);
         ResponseEntity responseEntity = sbwService.renameSbw(sbwId, param);
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
     }
 
 
     @Test
-    public void getOtherEips() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        ResponseEntity otherEips = sbwService.getOtherEips(sbw.getId());
-        deleteSbw(sbw.getId());
-        assertEquals(HttpStatus.OK, otherEips.getStatusCode());
-    }
-
-    @Test
-    public void getOtherEipsSbwIsNull(){
-        String sbwId = "123";
+    public void getOtherEips() {
+        String sbwId = "0e40e97a-4b30-492e-8472-df3e2c044c2a";
         ResponseEntity otherEips = sbwService.getOtherEips(sbwId);
-        assertEquals(HttpStatus.BAD_REQUEST, otherEips.getStatusCode());
-    }
 
-
-    public Eip creatEip(String billType, String user) throws Exception {
-        EipAllocateParam eipConfig = new EipAllocateParam();
-        eipConfig.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
-        eipConfig.setBandwidth(5);
-        eipConfig.setBillType(billType);
-        eipConfig.setIpType("BGP");
-        eipConfig.setIpv6("no");
-        eipConfig.setRegion("cn-north-3");
-        eipConfig.setSbwId(null);
-        eipConfig.setDuration("1");
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        if (user == "other")
-            token = TokenUtil.getToken("xinjing", "1qaz2wsx3edc");
-        String operater = "unitTest";
-        if (eipPoolRepository.getEipByRandom() == null) {
-            return null;
-        } else {
-            EipPool eip = eipDaoService.getOneEipFromPool();
-            Eip eipEntity = eipDaoService.allocateEip(eipConfig, eip, operater, token);
-            return eipEntity;
-        }
-    }
-
-    public Sbw creatSbw(String billType, String user) throws Exception {
-        SbwUpdateParam param = new SbwUpdateParam();
-        param.setDuration("1");
-        param.setBandwidth(10);
-        param.setBillType(billType);
-        param.setRegion("cn-north-3");
-        param.setSbwName("sbwUnitTest");
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        if (user == "other")
-            token = TokenUtil.getToken("xinjing", "1qaz2wsx3edc");
-        Sbw sbwEntity = sbwDaoService.allocateSbw(param, token);
-        return sbwEntity;
-    }
-
-    public void deleteSbw(String sbwId) throws Exception {
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        Sbw sbw = sbwDaoService.getSbwById(sbwId);
-        if(sbw.getBillType().equals("hourlySettlement"))
-            sbwDaoService.deleteSbw(sbwId, token);
-        else
-            sbwDaoService.adminDeleteSbw(sbwId);
-    }
-
-    public void addEipToSbw(String eipId, String sbwId) throws Exception {
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        EipUpdateParam eipUpdateParam = new EipUpdateParam();
-        Sbw sbw = sbwDaoService.getSbwById(sbwId);
-        eipUpdateParam.setSbwId(sbwId);
-        eipUpdateParam.setBandwidth(sbw.getBandWidth());
-        sbwDaoService.addEipIntoSbw(eipId, eipUpdateParam, token);
-    }
-
-    public void removeEipFromSbw(String eipId, String sbwId) throws Exception {
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        EipUpdateParam eipUpdateParam = new EipUpdateParam();
-        Eip eip = eipDaoService.getEipById(eipId);
-        eipUpdateParam.setSbwId(sbwId);
-        eipUpdateParam.setBandwidth(eip.getOldBandWidth());
-        sbwDaoService.removeEipFromSbw(eipId, eipUpdateParam, token);
+        assertEquals(HttpStatus.OK,otherEips.getStatusCode());
     }
 }

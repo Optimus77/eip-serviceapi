@@ -28,7 +28,10 @@ public class SbwReturnBase implements Serializable {
     @JsonProperty("status")
     private String status;
 
-    //  Ç°¶ËĞèÒª£¬res:ËÎÀö·¼ 8.20
+    @JsonProperty("ipType")
+    private String ipType;
+
+    //  å‰ç«¯éœ€è¦ï¼Œres:å®‹ä¸½èŠ³ 8.20
     @JsonProperty("region")
     private String region;
 }

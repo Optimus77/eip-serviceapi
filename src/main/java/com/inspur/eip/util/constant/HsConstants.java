@@ -28,7 +28,9 @@ public class HsConstants {
 	public static final String CHARGE_MODE_BANDWIDTH = "Bandwidth";
 	public static final String CHARGE_MODE_SHAREDBANDWIDTH = "SharedBandwidth";
 	public static final String CHARGE_MODE_TRAFFIC = "Traffic";
-
+	public static final String GROUP_ID = "groupId";
+	public static final String BIND = "bind";
+	public static final String UNBIND = "unbind";
 	//	orderType
 	public static final String NEW_ORDERTYPE = "new";
 	public static final String CHANGECONFIGURE_ORDERTYPE = "changeConfigure";

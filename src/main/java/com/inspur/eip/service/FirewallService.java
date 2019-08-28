@@ -12,7 +12,6 @@ import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.repository.SbwRepository;
 import com.inspur.eip.util.common.CommonUtil;
-import com.inspur.eip.util.common.JaspytUtils;
 import com.inspur.eip.util.common.MethodReturnUtil;
 import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HillStoneConfigConsts;
@@ -23,32 +22,17 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
 @Service
-//@ConditionalOnProperty(value = "firewall.type",havingValue = "hillstone")
+@ConditionalOnProperty(value = "firewall.type",havingValue = "hillstone")
 public class FirewallService implements IDevProvider{
-
-
-    @Value("${firewall.ip}")
-    private String firewallIp;
-
-    @Value("${firewall.port}")
-    private String firewallPort;
-
-    @Value("${firewall.user}")
-    private String firewallUser;
-
-    @Value("${firewall.password}")
-    private String firewallPasswd;
 
     @Autowired
     private FirewallRepository firewallRepository;
@@ -65,154 +49,78 @@ public class FirewallService implements IDevProvider{
     @Autowired
     private FireWallCommondService fireWallCommondService;
 
-    //    @Value("${jasypt.password}")
-    private String secretKey = "EbfYkitulv73I2p0mXI50JMXoaxZTKJ7";
-    private Map<String, Firewall> firewallConfigMap = new HashMap<>();
-    private String vr = "trust-vr";
-
-//    Firewall getFireWallById(String id) {
-//        if (!firewallConfigMap.containsKey(id)) {
-//
-//            Optional<Firewall> firewall = firewallRepository.findById(id);
-//            if (firewall.isPresent()) {
-//                Firewall fireWallConfig = new Firewall();
-//                Firewall getFireWallEntity = firewall.get();
-//
-//                fireWallConfig.setUser(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getUser()));
-//                fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, getFireWallEntity.getPasswd()));
-//                fireWallConfig.setIp(getFireWallEntity.getIp());
-//                fireWallConfig.setPort(getFireWallEntity.getPort());
-//                firewallConfigMap.put(id, fireWallConfig);
-//                log.info("get firewall ip:{}, port:{}, passwd:{}, user:{}", fireWallConfig.getIp(),
-//                        fireWallConfig.getPort(), getFireWallEntity.getUser(), getFireWallEntity.getPasswd());
-//            } else {
-//                log.warn("Failed to find the firewall by id:{}", id);
-//            }
-//        }
-//
-//        return firewallConfigMap.get(id);
-//    }
-
-
-    Firewall getFireWallById(String id) {
-        if (!firewallConfigMap.containsKey(id)) {
-
-            Firewall fireWallConfig = new Firewall();
-
-            fireWallConfig.setUser(JaspytUtils.decyptPwd(secretKey, firewallUser));
-            fireWallConfig.setPasswd(JaspytUtils.decyptPwd(secretKey, firewallPasswd));
-            fireWallConfig.setIp(firewallIp);
-            fireWallConfig.setPort(firewallPort);
-            firewallConfigMap.put(id, fireWallConfig);
-            log.info("get firewall ip:{}, port:{}, passwd:{}, user:{}", firewallIp,
-                    firewallPort, firewallUser, firewallPasswd);
-
+    private String addDnat(String fip, String eip, String fireWallId) {
+        String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
+                "configure\r"
+                        + "ip vrouter trust-vr\r"
+                        + "dnatrule top from  Any to " + eip + " service Any trans-to " + fip + "\r"
+                        + "end",
+                "rule ID=");
+        if (strDnatPtId == null) {
+            log.error("Failed to add dnat", strDnatPtId);
+            return null;
         }
-        return firewallConfigMap.get(id);
+        if (strDnatPtId.contains("=")) {
+            return strDnatPtId.split("=")[1].trim();
+        } else {
+            log.error("cmd add dnat error, return:{}", strDnatPtId);
+            return null;
+        }
     }
 
-
-    public String addDnat(String innerip, String extip, String equipid) {
-        String ruleid = cmdAddDnat(innerip, extip, equipid);
-        if (ruleid != null) {
-            return ruleid;
+    private String addSnat(String fip, String eip, String fireWallId) {
+        String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
+                "configure\r"
+                        + "ip vrouter trust-vr\r"
+                        + "snatrule top from " + fip + " to Any service Any trans-to " + eip + " mode static\r"
+                        + "end",
+                "rule ID=");
+        if (strDnatPtId == null) {
+            log.error("Failed to add snat", strDnatPtId);
+            return null;
         }
-        //添加弹性IP
-        FwDnatVo dnatVo = new FwDnatVo();
-        Firewall accessFirewallBeanByNeid = getFireWallById(equipid);
-        if (accessFirewallBeanByNeid != null) {
-            dnatVo.setManageIP(accessFirewallBeanByNeid.getIp());
-            dnatVo.setManagePort(accessFirewallBeanByNeid.getPort());
-            dnatVo.setManageUser(accessFirewallBeanByNeid.getUser());
-            dnatVo.setManagePwd(accessFirewallBeanByNeid.getPasswd());
-            dnatVo.setDnatid("0");
-            dnatVo.setVrid(vr);
-            dnatVo.setVrname(vr);
-            dnatVo.setSaddrtype("0");
-            dnatVo.setSaddr("Any");
-            dnatVo.setDaddrtype("1");
-            dnatVo.setDaddr(extip);
-            dnatVo.setDnatstat("1");
-            dnatVo.setDescription("");
-            dnatVo.setTransfer("1");//
-            dnatVo.setTransferaddrtype("1");
-            dnatVo.setTransferaddr(innerip);
-            dnatVo.setIstransferport("1");
-            dnatVo.setHa("0");
+        return strDnatPtId.split("=")[1].trim();
 
-            NatService dnatimpl = new NatService();
-            FwResponseBody body = dnatimpl.addPDnat(dnatVo);
-            if (body.isSuccess()) {
-
-                FwPortMapResult result = (FwPortMapResult) body.getObject();
-                ruleid = result.getRule_id();
-                log.info("--add dnat successfully.innerIp:{}, dnatId:{}", innerip, ruleid);
-            } else {
-                log.info(innerip + "--Failed to add dnat:" + body.getException());
-            }
-        }
-        return ruleid;
     }
 
-    public String addSnat(String innerip, String extip, String equipid) {
-
-        String ruleid = cmdAddSnat(innerip, extip, equipid);
-        if (ruleid != null) {
-            return ruleid;
-        }
-
-        FwSnatVo vo = new FwSnatVo();
-        Firewall accessFirewallBeanByNeid = getFireWallById(equipid);
-        if (accessFirewallBeanByNeid != null) {
-            vo.setManageIP(accessFirewallBeanByNeid.getIp());
-            vo.setManagePort(accessFirewallBeanByNeid.getPort());
-            vo.setManageUser(accessFirewallBeanByNeid.getUser());
-            vo.setManagePwd(accessFirewallBeanByNeid.getPasswd());
-
-            vo.setVrid(vr);
-            vo.setSnatstat("1");
-            vo.setFlag("20");
-            vo.setSaddr(innerip);
-            vo.setSaddrtype("1");
-            vo.setHa("0");
-            vo.setSnatlog("true");
-            vo.setPos_flag("1");
-            vo.setSnatid("0");
-            vo.setServicename("Any");
-
-            vo.setDaddr("Any");
-            vo.setDaddrtype("1");
-            vo.setTransferaddr(extip);
-
-            vo.setFlag("1");
-
-            NatService dnatimpl = new NatService();
-            FwResponseBody body = dnatimpl.addPSnat(vo);
-            if (body.isSuccess()) {
-                // 创建成功
-                FwSnatVo result = (FwSnatVo) body.getObject();
-                ruleid = result.getSnatid();
-                log.info("--Snat add successfully.innerIp:{}, snatId:{}", innerip, ruleid);
-            } else {
-                log.info(innerip + "--Failed to add snat:" + body.getException());
-            }
-        }
-        return ruleid;
-    }
-
-
-    public String addQos(String innerip, String name, String bandwidth, String fireWallId) {
+    @Override
+    public String addQos(String fip, String eip, String bandwidth, String fireWallId) {
         String pipid;
         String inBandWidth = "50";
         if (Integer.valueOf(bandwidth) > 50) {
             inBandWidth = bandwidth;
         }
-        pipid = cmdAddQos(name, innerip, inBandWidth, bandwidth, fireWallId);
-        if (null != pipid) {
-            return pipid;
-        }
 
-        return pipid;
+        if (null == fip || null == eip) {
+            return null;
+        }
+        String rootPipeNmae = getRootPipeName(fip);
+        if (0 >= eipRepository.countByPipId(rootPipeNmae)) {
+            boolean result = cmdAddRootPipe(rootPipeNmae, eip, fip, inBandWidth, bandwidth, fireWallId);
+            log.info("Add root-pipe {}, result:{}", rootPipeNmae, result);
+            if (result) {
+                return rootPipeNmae;
+            }
+            return null;
+        }
+        String retString = "Tip: Pipe \"" + eip + "\" is enabled";
+        String strResult = fireWallCommondService.execCustomCommand(fireWallId,
+                "configure\r"
+                        + "qos-engine first\r"
+                        + "root-pipe  " + rootPipeNmae + "\r"
+                        + "pipe  " + eip + "\r"
+                        + "pipe-map \r"
+                        + "dst-ip " + fip + "/32\r"
+                        + "exit\r"
+                        + "pipe-rule forward reserve-bandwidth Mbps 1 max Mbps " + inBandWidth + "\r"
+                        + "pipe-rule backward reserve-bandwidth Mbps 1 max Mbps " + bandwidth + "\r"
+                        + "end",
+                retString);
+        if (strResult == null || !strResult.contains(retString)) {
+            log.error("Failed to add cmd qos", strResult);
+            return null;
+        }
+        return rootPipeNmae;
     }
 
     /**
@@ -221,27 +129,18 @@ public class FirewallService implements IDevProvider{
      * @param firewallId firewall id
      * @param bindwidth  bind width
      */
+    @Override
     public boolean updateQosBandWidth(String firewallId, String pipId, String pipNmae, String bindwidth, String fip, String eip) {
 
-        Firewall fwBean = getFireWallById(firewallId);
+        Firewall fwBean = CommonUtil.getFireWallById(firewallId);
         if (fwBean != null) {
             if (null != fip && pipId.equals(getRootPipeName(fip))) {
                 return cmdUpdateQosBandWidth(eip, fip, bindwidth, firewallId);
             } else if (pipId.length() == "9dea38f8-f59c-4847-ba43-f0ef61a6986c".length()) {
                 return cmdUpdateRootQosBandWidth(firewallId, pipNmae, bindwidth);
             }
-            QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
-            HashMap<String, String> map = qs.updateQosPipe(pipId, pipNmae, bindwidth);
-            JSONObject resJson = (JSONObject) JSONObject.toJSON(map);
-            log.info("", resJson);
-            if (resJson.getBoolean(HsConstants.SUCCESS)) {
-                log.info("updateQosBandWidth: " + firewallId + " --success==bindwidth：" + bindwidth);
-            } else {
-                log.info("updateQosBandWidth: " + firewallId + " --fail==bindwidth：" + bindwidth);
-            }
-            return resJson.getBoolean(HsConstants.SUCCESS);
         }
-        return Boolean.parseBoolean("False");
+        return false;
     }
 
     private boolean cmdUpdateRootQosBandWidth(String fireWallId, String pipNmae, String bandwidth) {
@@ -273,12 +172,13 @@ public class FirewallService implements IDevProvider{
      * @param devId devid
      * @return ret
      */
+    @Override
     public boolean delQos(String pipid, String eip, String fip, String devId) {
         if (StringUtils.isNotEmpty(pipid)) {
             if (null != eip && null != fip && pipid.equals(getRootPipeName(fip))) {
                 return cmdDelQos(pipid, eip, devId);
             }
-            Firewall fwBean = getFireWallById(devId);
+            Firewall fwBean = CommonUtil.getFireWallById(devId);
             if (null != fwBean) {
                 QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
                 HashMap<String, String> map = qs.delQosPipe(pipid);
@@ -295,72 +195,8 @@ public class FirewallService implements IDevProvider{
         return false;
     }
 
-    public boolean delDnat(String ruleid, String devId) {
-        boolean bSuccess = true;
-        if (cmdDelDnat(ruleid, devId)) {
-            return true;
-        }
 
-        if (StringUtils.isNotEmpty(ruleid)) {
-            FwDnatVo vo = new FwDnatVo();
-            Firewall accessFirewallBeanByNeid = getFireWallById(devId);
-            if (accessFirewallBeanByNeid != null) {
-                vo.setManageIP(accessFirewallBeanByNeid.getIp());
-                vo.setManagePort(accessFirewallBeanByNeid.getPort());
-                vo.setManageUser(accessFirewallBeanByNeid.getUser());
-                vo.setManagePwd(accessFirewallBeanByNeid.getPasswd());
-
-                vo.setDnatid(ruleid);
-                vo.setVrid(vr);
-                vo.setVrname(vr);
-
-                NatService dnatimpl = new NatService();
-                FwResponseBody body = dnatimpl.delPDnat(vo);
-                if (body.isSuccess() || (body.getException().getMessage().contains("cannot be found"))) {
-                    bSuccess = true;
-                } else {
-                    bSuccess = false;
-                    log.warn("Failed to del dnat:" + "dev[" + devId + "],ruleid[" + ruleid + "]");
-                }
-            }
-        }
-        return bSuccess;
-    }
-
-    public boolean delSnat(String ruleid, String devId) {
-        boolean bSuccess = true;
-        if (cmdDelSnat(ruleid, devId)) {
-            return true;
-        }
-
-        if (StringUtils.isNotEmpty(ruleid)) {
-
-            FwSnatVo vo = new FwSnatVo();
-
-            Firewall accessFirewallBeanByNeid = getFireWallById(devId);
-            if (accessFirewallBeanByNeid != null) {
-                vo.setManageIP(accessFirewallBeanByNeid.getIp());
-                vo.setManagePort(accessFirewallBeanByNeid.getPort());
-                vo.setManageUser(accessFirewallBeanByNeid.getUser());
-                vo.setManagePwd(accessFirewallBeanByNeid.getPasswd());
-
-                vo.setVrid(vr);
-                vo.setSnatid(ruleid);
-
-                NatService dnatimpl = new NatService();
-                FwResponseBody body = dnatimpl.delPSnat(vo);
-
-                if (body.isSuccess() || (body.getException().getMessage().contains("cannot be found"))) {
-                    bSuccess = true;
-                } else {
-                    bSuccess = false;
-                    log.info("Failed to del snat:" + "dev[" + devId + "],ruleid[" + ruleid + "]");
-                }
-            }
-        }
-        return bSuccess;
-    }
-
+    @Override
     public MethodReturn addNatAndQos(Eip eip, String fipAddress, String eipAddress, int bandWidth, String firewallId) {
         String pipId = null;
         String dnatRuleId = null;
@@ -418,7 +254,7 @@ public class FirewallService implements IDevProvider{
         return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
     }
 
-
+    @Override
     public MethodReturn delNatAndQos(Eip eipEntity) {
 
         String msg = null;
@@ -470,15 +306,37 @@ public class FirewallService implements IDevProvider{
      * @param firewallId id
      * @return ret
      */
-    public String addFipToSbwQos(String firewallId, String floatIp, String sbwId) {
-        String retPipeId = null;
-        if (sbwId.length() == HsConstants.UUID_LENGTH.length()) {
-            retPipeId = cmdAddIp2SbwPipe(sbwId, floatIp, firewallId);
-            if (null != retPipeId) {
-                return retPipeId;
-            }
+    @Override
+    public String addFipToSbwQos(String firewallId, String fip, String sbwId) {
+        if (sbwId.length() != HsConstants.UUID_LENGTH.length()) {
+            return null;
         }
-        return retPipeId;
+        String retCheck = "unrecognized keyword 1";
+        String pipeMapId = "1";
+        String strResult = fireWallCommondService.execCustomCommand(firewallId,
+                "configure\r"
+                        + "qos-engine first\r"
+                        + "root-pipe  " + sbwId + "\r"
+                        + "pipe-map " + pipeMapId + "\r"
+                        + "end",
+                retCheck);
+        if (strResult != null && strResult.contains(retCheck)) {
+            pipeMapId = "";
+        }
+
+        String addResult = fireWallCommondService.execCustomCommand(firewallId,
+                "configure\r"
+                        + "qos-engine first\r"
+                        + "root-pipe  " + sbwId + "\r"
+                        + "pipe-map " + pipeMapId + "\r"
+                        + "dst-ip " + fip + "/32\r"
+                        + "end",
+                null);
+        if (addResult == null) {
+            return sbwId;
+        }
+        log.error("Failed to add cmd qos", strResult);
+        return null;
     }
 
     /**
@@ -488,6 +346,7 @@ public class FirewallService implements IDevProvider{
      * @param floatIp    fip
      * @return ret
      */
+    @Override
     public boolean removeFipFromSbwQos(String firewallId, String floatIp, String sbwId) {
         if (StringUtils.isBlank(floatIp)){
             log.error("floating ip is null,floatIp:{}",floatIp);
@@ -496,7 +355,7 @@ public class FirewallService implements IDevProvider{
         if (cmdDelIpInSbwPipe(sbwId, floatIp, firewallId)) {
             return true;
         }
-        Firewall fwBean = getFireWallById(firewallId);
+        Firewall fwBean = CommonUtil.getFireWallById(firewallId);
         if (fwBean != null) {
             qosService.setFwIp(fwBean.getIp());
             qosService.setFwPort(fwBean.getPort());
@@ -512,19 +371,10 @@ public class FirewallService implements IDevProvider{
         return false;
     }
 
-
+    @Override
     public boolean ping(String ipAddress, String fireWallId) {
         try {
-//            String delResult = fireWallCommondService.execCustomCommand(fireWallId,
-//                    "configure\r"
-//                            + "end",
-//                    null);
-//            if (null != delResult && delResult.equals("ERROR")) {
-//                log.error("Firewall connection check error:{}", delResult);
-//                return false;
-//            } else {
-//                return true;
-//            }
+
             int  timeOut =  3000 ;
             return InetAddress.getByName(ipAddress).isReachable(timeOut);
         } catch (Exception e) {
@@ -532,7 +382,7 @@ public class FirewallService implements IDevProvider{
         }
     }
 
-    private Boolean cmdDelSnat(String snatId, String fireWallId) {
+    private Boolean delSnat(String snatId, String fireWallId) {
         if (snatId != null) {
             String delResult = fireWallCommondService.execCustomCommand(fireWallId,
                     "configure\r"
@@ -551,7 +401,7 @@ public class FirewallService implements IDevProvider{
         return true;
     }
 
-    private Boolean cmdDelDnat(String dnatId, String fireWallId) {
+    private Boolean delDnat(String dnatId, String fireWallId) {
         if (null != dnatId) {
             String delResult = fireWallCommondService.execCustomCommand(fireWallId,
                     "configure\r"
@@ -571,40 +421,40 @@ public class FirewallService implements IDevProvider{
     }
 
 
-    private String cmdAddDnat(String fip, String eip, String fireWallId) {
-
-        String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
-                "configure\r"
-                        + "ip vrouter trust-vr\r"
-                        + "dnatrule top from  Any to " + eip + " service Any trans-to " + fip + "\r"
-                        + "end",
-                "rule ID=");
-        if (strDnatPtId == null) {
-            log.error("Failed to add dnat", strDnatPtId);
-            return null;
-        }
-        if (strDnatPtId.contains("=")) {
-            return strDnatPtId.split("=")[1].trim();
-        } else {
-            log.error("cmd add dnat error, return:{}", strDnatPtId);
-            return null;
-        }
-    }
-
-    private String cmdAddSnat(String fip, String eip, String fireWallId) {
-
-        String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
-                "configure\r"
-                        + "ip vrouter trust-vr\r"
-                        + "snatrule top from " + fip + " to Any service Any trans-to " + eip + " mode static\r"
-                        + "end",
-                "rule ID=");
-        if (strDnatPtId == null) {
-            log.error("Failed to add snat", strDnatPtId);
-            return null;
-        }
-        return strDnatPtId.split("=")[1].trim();
-    }
+//    private String cmdAddDnat(String fip, String eip, String fireWallId) {
+//
+//        String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
+//                "configure\r"
+//                        + "ip vrouter trust-vr\r"
+//                        + "dnatrule top from  Any to " + eip + " service Any trans-to " + fip + "\r"
+//                        + "end",
+//                "rule ID=");
+//        if (strDnatPtId == null) {
+//            log.error("Failed to add dnat", strDnatPtId);
+//            return null;
+//        }
+//        if (strDnatPtId.contains("=")) {
+//            return strDnatPtId.split("=")[1].trim();
+//        } else {
+//            log.error("cmd add dnat error, return:{}", strDnatPtId);
+//            return null;
+//        }
+//    }
+//
+//    private String cmdAddSnat(String fip, String eip, String fireWallId) {
+//
+//        String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
+//                "configure\r"
+//                        + "ip vrouter trust-vr\r"
+//                        + "snatrule top from " + fip + " to Any service Any trans-to " + eip + " mode static\r"
+//                        + "end",
+//                "rule ID=");
+//        if (strDnatPtId == null) {
+//            log.error("Failed to add snat", strDnatPtId);
+//            return null;
+//        }
+//        return strDnatPtId.split("=")[1].trim();
+//    }
 
 
     public Boolean cmdDelQos(String rootPipeName, String eip, String fireWallId) {
@@ -627,38 +477,38 @@ public class FirewallService implements IDevProvider{
         return false;
     }
 
-    private String cmdAddQos(String eip, String fip, String inboundBandwidth, String outboundBandwidth, String fireWallId) {
-        if (null == fip || null == eip) {
-            return null;
-        }
-        String rootPipeNmae = getRootPipeName(fip);
-        if (0 >= eipRepository.countByPipId(rootPipeNmae)) {
-            boolean result = cmdAddRootPipe(rootPipeNmae, eip, fip, inboundBandwidth, outboundBandwidth, fireWallId);
-            log.info("Add root-pipe {}, result:{}", rootPipeNmae, result);
-            if (result) {
-                return rootPipeNmae;
-            }
-            return null;
-        }
-        String retString = "Tip: Pipe \"" + eip + "\" is enabled";
-        String strResult = fireWallCommondService.execCustomCommand(fireWallId,
-                "configure\r"
-                        + "qos-engine first\r"
-                        + "root-pipe  " + rootPipeNmae + "\r"
-                        + "pipe  " + eip + "\r"
-                        + "pipe-map \r"
-                        + "dst-ip " + fip + "/32\r"
-                        + "exit\r"
-                        + "pipe-rule forward reserve-bandwidth Mbps 1 max Mbps " + inboundBandwidth + "\r"
-                        + "pipe-rule backward reserve-bandwidth Mbps 1 max Mbps " + outboundBandwidth + "\r"
-                        + "end",
-                retString);
-        if (strResult == null || !strResult.contains(retString)) {
-            log.error("Failed to add cmd qos", strResult);
-            return null;
-        }
-        return rootPipeNmae;
-    }
+//    private String cmdAddQos(String eip, String fip, String inboundBandwidth, String outboundBandwidth, String fireWallId) {
+//        if (null == fip || null == eip) {
+//            return null;
+//        }
+//        String rootPipeNmae = getRootPipeName(fip);
+//        if (0 >= eipRepository.countByPipId(rootPipeNmae)) {
+//            boolean result = cmdAddRootPipe(rootPipeNmae, eip, fip, inboundBandwidth, outboundBandwidth, fireWallId);
+//            log.info("Add root-pipe {}, result:{}", rootPipeNmae, result);
+//            if (result) {
+//                return rootPipeNmae;
+//            }
+//            return null;
+//        }
+//        String retString = "Tip: Pipe \"" + eip + "\" is enabled";
+//        String strResult = fireWallCommondService.execCustomCommand(fireWallId,
+//                "configure\r"
+//                        + "qos-engine first\r"
+//                        + "root-pipe  " + rootPipeNmae + "\r"
+//                        + "pipe  " + eip + "\r"
+//                        + "pipe-map \r"
+//                        + "dst-ip " + fip + "/32\r"
+//                        + "exit\r"
+//                        + "pipe-rule forward reserve-bandwidth Mbps 1 max Mbps " + inboundBandwidth + "\r"
+//                        + "pipe-rule backward reserve-bandwidth Mbps 1 max Mbps " + outboundBandwidth + "\r"
+//                        + "end",
+//                retString);
+//        if (strResult == null || !strResult.contains(retString)) {
+//            log.error("Failed to add cmd qos", strResult);
+//            return null;
+//        }
+//        return rootPipeNmae;
+//    }
 
     boolean cmdUpdateQosBandWidth(String eip, String fip, String bandwidth, String fireWallId) {
 
@@ -719,6 +569,7 @@ public class FirewallService implements IDevProvider{
      * @param fireWallId
      * @return
      */
+    @Override
     public synchronized boolean cmdAddSbwQos(String name, String bandwidth, String fireWallId) throws EipInternalServerException {
         Boolean flag = Boolean.TRUE;
         String inBandWidth = "50";
@@ -743,7 +594,7 @@ public class FirewallService implements IDevProvider{
         }
         return flag;
     }
-
+    @Override
     public synchronized boolean cmdDelSbwQos(String name, String fireWallId) {
 
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,
@@ -759,36 +610,36 @@ public class FirewallService implements IDevProvider{
         return false;
     }
 
-    private String cmdAddIp2SbwPipe(String sbwId, String fip, String fireWallId) {
-
-
-        String retCheck = "unrecognized keyword 1";
-        String pipeMapId = "1";
-        String strResult = fireWallCommondService.execCustomCommand(fireWallId,
-                "configure\r"
-                        + "qos-engine first\r"
-                        + "root-pipe  " + sbwId + "\r"
-                        + "pipe-map " + pipeMapId + "\r"
-                        + "end",
-                retCheck);
-        if (strResult != null && strResult.contains(retCheck)) {
-            pipeMapId = "";
-        }
-
-        String addResult = fireWallCommondService.execCustomCommand(fireWallId,
-                "configure\r"
-                        + "qos-engine first\r"
-                        + "root-pipe  " + sbwId + "\r"
-                        + "pipe-map " + pipeMapId + "\r"
-                        + "dst-ip " + fip + "/32\r"
-                        + "end",
-                null);
-        if (addResult == null) {
-            return sbwId;
-        }
-        log.error("Failed to add cmd qos", strResult);
-        return null;
-    }
+//    private String cmdAddIp2SbwPipe(String sbwId, String fip, String fireWallId) {
+//
+//
+//        String retCheck = "unrecognized keyword 1";
+//        String pipeMapId = "1";
+//        String strResult = fireWallCommondService.execCustomCommand(fireWallId,
+//                "configure\r"
+//                        + "qos-engine first\r"
+//                        + "root-pipe  " + sbwId + "\r"
+//                        + "pipe-map " + pipeMapId + "\r"
+//                        + "end",
+//                retCheck);
+//        if (strResult != null && strResult.contains(retCheck)) {
+//            pipeMapId = "";
+//        }
+//
+//        String addResult = fireWallCommondService.execCustomCommand(fireWallId,
+//                "configure\r"
+//                        + "qos-engine first\r"
+//                        + "root-pipe  " + sbwId + "\r"
+//                        + "pipe-map " + pipeMapId + "\r"
+//                        + "dst-ip " + fip + "/32\r"
+//                        + "end",
+//                null);
+//        if (addResult == null) {
+//            return sbwId;
+//        }
+//        log.error("Failed to add cmd qos", strResult);
+//        return null;
+//    }
     // 异常情况 1.qos不存在  2.ip不存在
     private boolean cmdDelIpInSbwPipe(String rootPipeName, String fip, String fireWallId) {
         log.info("loading to remove fip from sbw qos");

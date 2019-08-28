@@ -43,5 +43,8 @@ public class SbwReturnDetail implements Serializable {
     @JsonProperty("region")
     private String region;
 
+    @JsonProperty("ipType")
+    private String ipType;
 
+    private String description;
 }

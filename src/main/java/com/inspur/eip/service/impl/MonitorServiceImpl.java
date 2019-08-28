@@ -6,7 +6,6 @@ import com.inspur.cloud.cloudmonitormetric.handler.ProducerHandler;
 import com.inspur.eip.entity.fw.Firewall;
 import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.service.EipDaoService;
-import com.inspur.eip.service.FirewallService;
 import com.inspur.eip.service.IDevProvider;
 import com.inspur.eip.service.MonitorService;
 import com.inspur.eip.util.constant.HsConstants;
@@ -45,18 +44,13 @@ public class MonitorServiceImpl implements MonitorService {
 
     @Autowired
     public MonitorServiceImpl(EipDaoService eipDaoService,
-                              FirewallService firewallService,
+                              IDevProvider firewallService,
                               ProducerHandler producerHandler,
-                              FirewallRepository firewallRepository,
-                              @Value("${firewall.type}")String type) {
-        //this.firewallService = firewallService;
+                              FirewallRepository firewallRepository) {
         this.producerHandler = producerHandler;
         this.firewallRepository = firewallRepository;
         this.eipDaoService = eipDaoService;
-        if(type.equals("hillstone"))
-        {
-            this.firewallService= firewallService;
-        }
+        this.firewallService = firewallService;
     }
 
 

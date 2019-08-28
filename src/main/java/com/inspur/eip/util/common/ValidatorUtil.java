@@ -63,6 +63,11 @@ public class ValidatorUtil {
      */
     public static final String LINE_STANDARD_STR = "^[a-zA-Z\\u4e00-\\u9fa5]+[a-zA-Z0-9-_\\u4e00-\\u9fa5]{1,63}+$";
 
+    /**
+     * 名称规则: 长度为1-50个字符，不能以特殊字符及数字开头，只可包含特殊字符中的"_"或"-"
+     */
+    public static final String DESCRIPTION_STANDARD_STR = "^[a-zA-Z\\u4e00-\\u9fa5]+[a-zA-Z0-9-_\\u4e00-\\u9fa5]{1,49}+$";
+
     // (2)正则表达式使用
 
     /**
@@ -172,6 +177,16 @@ public class ValidatorUtil {
      */
     public static boolean isSERVER_STANDARD_STR(String str) {
         return regular(str, SERVER_STANDARD_STR);
+    }
+
+    /**
+     * 判断字段是否匹配中文 字母 数字  - _ 符合返回true
+     *
+     * @param str
+     * @return boolean
+     */
+    public static boolean isDESCRIPTION_STANDARD_STR(String str) {
+        return regular(str, DESCRIPTION_STANDARD_STR);
     }
 
 

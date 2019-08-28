@@ -80,7 +80,7 @@ public class EipServiceImpl implements IEipService {
                             "Can not find sbw"), HttpStatus.FAILED_DEPENDENCY);
                 }
             }
-            EipPool eip = eipDaoService.getOneEipFromPool();
+            EipPool eip = eipDaoService.getOneEipFromPool(eipConfig.getIpType());
             if (null == eip) {
                 msg = "Failed, no eip in eip pool.";
                 log.error(msg);
@@ -346,16 +346,6 @@ public class EipServiceImpl implements IEipService {
         }
     }
 
-
-
-
-
-
-
-
-
-
-
     /**
      * get detail of the eip
      *
@@ -391,6 +381,44 @@ public class EipServiceImpl implements IEipService {
         }
 
     }
+
+    /**
+     * get detail of the eip
+     *
+     * @param groupId the id of the eip instance
+     * @return the json result
+     */
+    public ResponseEntity getEipGroupDetail(String groupId) {
+
+        try {
+            JSONArray eipinfo = new JSONArray();
+            List<Eip> eipEntitys = eipDaoService.getEipListByGroupId(groupId);
+            for(Eip eip: eipEntitys)
+            {
+                if(null != eip){
+                    EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                    BeanUtils.copyProperties(eip, eipReturnDetail);
+                    eipReturnDetail.setResourceset(Resourceset.builder()
+                            .resourceId(eip.getInstanceId())
+                            .resourceType(eip.getInstanceType()).build());
+                    if (StringUtils.isNotBlank(eip.getEipV6Id())) {
+                        EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                        if (eipV6 != null) {
+                            eipReturnDetail.setIpv6(eipV6.getIpv6());
+                        }
+                    }
+                    eipinfo.add(eipReturnDetail);
+                }
+            }
+            JSONObject data = new JSONObject();
+            data.put("data",eipinfo);
+            return new ResponseEntity<>(data,HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Exception in getEipDetail", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     /**
      * get eip by instance id
@@ -788,5 +816,145 @@ public class EipServiceImpl implements IEipService {
     public Eip getEipById(String id) {
         return eipRepository.findByIdAndIsDelete(id,0);
     }
+
+
+    /**
+     * eip bind with port
+     *
+     * @param groupId       id
+     * @param serverId server id
+     * @return result
+     */
+    //@Override
+    public ResponseEntity eipGroupBindWithInstance(String groupId, String type, String serverId, String portId, String addrIp) {
+
+        MethodReturn result = null;
+
+        if (StringUtils.isEmpty(serverId)) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_PARA_SERVERID_ERROR)), HttpStatus.BAD_REQUEST);
+        }
+
+        //Eip eipCheck = eipRepository.findByInstanceIdAndIsDelete(serverId, 0);
+       /* if (eipCheck != null) {
+            log.error("The binding failed,  the instanceid  has already bind  eip,instanceid", serverId);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.EIP_BIND_HAS_BAND,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND)), HttpStatus.BAD_REQUEST);
+        }
+*/
+        switch (type) {
+            case HsConstants.ECS:
+                log.debug("bind a server:{} port:{} with id:{}", serverId, portId, groupId);
+                // 1：ecs
+                if (!StringUtils.isEmpty(portId)) {
+                    result = eipDaoService.associateInstanceWithEipGroup(groupId, serverId, type, portId, null);
+                }
+                break;
+            case HsConstants.CPS:
+            case HsConstants.SLB:
+                if (!StringUtils.isEmpty(addrIp)) {
+                    result = eipDaoService.associateInstanceWithEipGroup(groupId, serverId, type, null, addrIp);
+                }
+                break;
+            default:
+                log.warn("no support type param： " + type);
+                break;
+        }
+
+
+        if (null != result) {
+            if (result.getInnerCode().equals(ReturnStatus.SC_OK)) {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_OK, "success"), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(ReturnMsgUtil.error(result.getInnerCode(), result.getMessage()), HttpStatus.valueOf(result.getHttpCode()));
+            }
+        }
+        String msg = "Can not get bind responds when bind eip with server" + serverId;
+        log.error(msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    //@Override
+    public ResponseEntity eipGroupUnbindWithInstacnce(String groupId, String instanceId) {
+        String code ;
+        String msg ;
+        ActionResponse actionResponse = null;
+        List<Eip> eipEntity = null;
+        String flag = "success";
+        try {
+            if (!StringUtils.isEmpty(groupId)) {
+                eipEntity = eipDaoService.getEipListByGroupId(groupId);
+            } else if (!StringUtils.isEmpty(instanceId)) {
+                eipEntity = eipDaoService.findByInstanceIdAndIsDelete(instanceId);
+            }
+            if (null != eipEntity && !eipEntity.isEmpty()) {
+                for(Eip eip : eipEntity){
+                    String instanceType = eip.getInstanceType();
+                    if (null != instanceType) {
+                        switch (instanceType) {
+                            case HsConstants.ECS:
+                                // 1：ecs
+                                actionResponse = eipDaoService.disassociateInstanceWithEipGroup(eip);
+                                if(actionResponse != null){
+                                    if(!actionResponse.isSuccess()){
+                                        flag="failed";
+                                    }
+                                } else {
+                                    flag="failed";
+                                }
+                                break;
+                            case HsConstants.CPS:
+                            case HsConstants.SLB:
+                                actionResponse = eipDaoService.disassociateInstanceWithEipGroup(eip);
+                                if(actionResponse != null){
+                                    if(actionResponse.isSuccess()){
+                                        flag="success";
+                                    }
+                                } else {
+                                    flag="failed";
+                                }
+                                break;
+                            default:
+                                //default ecs
+                                log.error("no support instance type " + instanceType);
+                                break;
+                        }
+                    } else {
+                        log.error("Failed to get instance type."+eip.getId());
+                    }
+                }
+
+            } else {
+                code = ReturnStatus.SC_NOT_FOUND;
+                msg = "can not find eip id ：" + groupId;
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            log.error("Exception in unBindPort", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage() + "";
+            return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        if(flag.equals("success")){
+            code = ReturnStatus.SC_OK;
+            msg = ("unbind successfully");
+            log.info(code);
+            log.info(msg);
+            return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
+        } else {
+            code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
+            if(null != actionResponse ) {
+                msg = actionResponse.getFault();
+                log.error(msg);
+            }else{
+                msg="no response";
+            }
+            log.error(code);
+        }
+
+        log.error(msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
 }

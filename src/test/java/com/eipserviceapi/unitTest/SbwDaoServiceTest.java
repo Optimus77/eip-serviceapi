@@ -3,19 +3,12 @@ package com.eipserviceapi.unitTest;
 import com.eipserviceapi.TestEipServiceApplication;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.eip.Eip;
-import com.inspur.eip.entity.eip.EipAllocateParam;
-import com.inspur.eip.entity.eip.EipPool;
 import com.inspur.eip.entity.sbw.Sbw;
-import com.inspur.eip.entity.sbw.SbwUpdateParam;
-import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.SbwRepository;
-import com.inspur.eip.service.EipDaoService;
-import com.inspur.eip.service.EipV6DaoService;
-import com.inspur.eip.service.FirewallService;
+import com.inspur.eip.service.IDevProvider;
 import com.inspur.eip.service.SbwDaoService;
-import com.inspur.eip.service.impl.EipV6ServiceImpl;
-import com.inspur.eip.util.constant.HsConstants;
+import com.inspur.eip.util.common.CommonUtil;
 import groovy.util.logging.Slf4j;
 import org.apache.http.HttpStatus;
 import org.junit.After;
@@ -34,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 import static org.junit.Assert.*;
-
 @Slf4j
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = SbwDaoService.class)
@@ -47,20 +39,13 @@ public class SbwDaoServiceTest {
     private SbwDaoService sbwDaoService;
 
     @Autowired
-    private FirewallService firewallService;
+    private IDevProvider firewallService;
 
     @Autowired
     private EipRepository eipRepository;
 
     @Autowired
     private SbwRepository sbwRepository;
-
-    @Autowired
-    EipDaoService eipDaoService;
-    @Autowired
-    EipPoolRepository eipPoolRepository;
-    @Autowired
-    EipV6ServiceImpl eipV6Service;
 
     @Before
     public void setUp() throws Exception {
@@ -422,101 +407,90 @@ public class SbwDaoServiceTest {
     }
 
     @Test
-    public void errorIsDeleteDeleteSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        deleteSbw(sbw.getId());
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        ActionResponse response = sbwDaoService.deleteSbw(sbw.getId(), token);
-        assertEquals(HttpStatus.SC_NOT_FOUND, response.getCode());
+    public void errorIsDeleteDeleteSbw() {
+        String sbwId = "b40e6e95-9df9-4c5e-8d98-1447b9abfa2a";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJkYTU5MDVlNy04NzJiLTQ0OWItYjFkYy03YzRlZmZmZWMxYTUiLCJleHAiOjE1NjE5NTExODEsIm5iZiI6MCwiaWF0IjoxNTYxOTQ1NzgxLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjlkOTY5OTdjLTU2OWEtNDZmNC1iY2FjLTYzMDliODA3NGM5ZCIsImF1dGhfdGltZSI6MTU2MTk0NTc3OSwic2Vzc2lvbl9zdGF0ZSI6ImFlMWUzYzMyLTRkNGItNGM5OS1iNzU0LTMyNzkyZGZkNzEyMSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsImludml0ZWRfcmVnaW9uIjoiW1wiY24tc291dGgtMVwiXSIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.jJmhFY9G52OlURM0_8hOU4a7A-aLryalggjtsf-nLi5Spqg8gKA82zXTk-O7UtnJ9ZIHXQjCHQw7lrwQjv9dody_W6aDXPdD-6cIjb3X3sCer-CZGV2gWZs5KtlA_8VypNeyjJST1mLwSIp4vtALMSPEUZt229E74GL2uIkp6jmVcrwtN4ez81yIusYsrCZsSs8D6CIe_P0_O14E_HDAvy1h_AwNlNwHSd7k3bGqrkz-0NtMJtq6IKTmOtOqFvsHdp20UaRMmL3hAgu5MnxiM2lXxmkXSNgetMbexVlWGrLpumEpZoYYJ4nB6wQJKGOva3utGRwUpoXnMsGiR6Yn9g";
+        ActionResponse response = sbwDaoService.deleteSbw(sbwId, token);
+
+        assertEquals(HttpStatus.SC_NOT_FOUND,response.getCode());
+    }
+    @Test
+    public void deleteSbwBandEip(){
+        String sbwId = "0e40e97a-4b30-492e-8472-df3e2c044c2a";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJkYTU5MDVlNy04NzJiLTQ0OWItYjFkYy03YzRlZmZmZWMxYTUiLCJleHAiOjE1NjE5NTExODEsIm5iZiI6MCwiaWF0IjoxNTYxOTQ1NzgxLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjlkOTY5OTdjLTU2OWEtNDZmNC1iY2FjLTYzMDliODA3NGM5ZCIsImF1dGhfdGltZSI6MTU2MTk0NTc3OSwic2Vzc2lvbl9zdGF0ZSI6ImFlMWUzYzMyLTRkNGItNGM5OS1iNzU0LTMyNzkyZGZkNzEyMSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsImludml0ZWRfcmVnaW9uIjoiW1wiY24tc291dGgtMVwiXSIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.jJmhFY9G52OlURM0_8hOU4a7A-aLryalggjtsf-nLi5Spqg8gKA82zXTk-O7UtnJ9ZIHXQjCHQw7lrwQjv9dody_W6aDXPdD-6cIjb3X3sCer-CZGV2gWZs5KtlA_8VypNeyjJST1mLwSIp4vtALMSPEUZt229E74GL2uIkp6jmVcrwtN4ez81yIusYsrCZsSs8D6CIe_P0_O14E_HDAvy1h_AwNlNwHSd7k3bGqrkz-0NtMJtq6IKTmOtOqFvsHdp20UaRMmL3hAgu5MnxiM2lXxmkXSNgetMbexVlWGrLpumEpZoYYJ4nB6wQJKGOva3utGRwUpoXnMsGiR6Yn9g";
+        ActionResponse response = sbwDaoService.deleteSbw(sbwId, token);
+
+        assertEquals(HttpStatus.SC_FORBIDDEN,response.getCode());
     }
 
     @Test
-    public void deleteSbwBandEip() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(),sbw.getId());
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        ActionResponse response = sbwDaoService.deleteSbw(sbw.getId(), token);
-        removeEipFromSbw(eip.getId(),sbw.getId());
-        deleteSbw(sbw.getId());
-        assertEquals(HttpStatus.SC_FORBIDDEN, response.getCode());
+    public void errorIsDeleteAdminDeleteSbw() {
+        String sbwId = "b40e6e95-9df9-4c5e-8d98-1447b9abfa2a";
+        ActionResponse response = sbwDaoService.adminDeleteSbw(sbwId);
+
+        assertEquals(HttpStatus.SC_NOT_FOUND,response.getCode());
+    }
+    @Test
+    public void deleteSbwAdminBandEip(){
+        String sbwId = "0e40e97a-4b30-492e-8472-df3e2c044c2a";
+        ActionResponse response = sbwDaoService.adminDeleteSbw(sbwId);
+
+        assertEquals(HttpStatus.SC_FORBIDDEN,response.getCode());
     }
 
     @Test
-    public void errorIsDeleteAdminDeleteSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        deleteSbw(sbw.getId());
-        ActionResponse response = sbwDaoService.adminDeleteSbw(sbw.getId());
+    public void errorBillTypeRenewSbw(){
+        String sbwId = "a449f5ba-f1e9-4aa4-bf0e-c03327469b97";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIyMTNiYzI4YS1hMTY1LTQ2MTYtYWUwMy0xNmFlZDNkZmJkYTYiLCJleHAiOjE1NjM0MjE1NjMsIm5iZiI6MCwiaWF0IjoxNTYzNDE2MTYzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImYwZjY1NTRhLWExNGYtNGYyMS04OGQ3LTViNTRhZmJjNzVkYyIsImF1dGhfdGltZSI6MTU2MzQxNDM1Nywic2Vzc2lvbl9zdGF0ZSI6IjE2ZTA3ODY3LWFmZGUtNGNmOS1hMmZiLTgxN2VjNzM5OGRjYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.lat_JDKXefrXZ4cylqaCf5XrLd-nXYz6NXUMtbhyobt33RU5D6mAO1xT8BuKLm4E4fw9e4KY5v2EgUuvWFnvvuyZNJ7lw6ER6P_YpwBgKuf9ol2nnJjkkcpFKOHPePQurMxV1fFxox-4YcgAeCF6qT2QJAKkRQCz1uacabUJ672POO9HXIhAZRcNhctAvg6VRB-cAlElOfT-48ZVbG2WlN1xn6dr2SdV7waVOQzcTh2ZjTXcQRNQzHtY_8vLiyFXOVE_dghBGnh986FlauobvCxh2tJfamig4AFGJm_1FKXtt5d1pTxKq901cxsS5O1D2aPNqWu7vmQ-H8zKIFet6w";
+        ActionResponse actionResponse = sbwDaoService.renewSbwInfo(sbwId, token);
 
-        assertEquals(HttpStatus.SC_NOT_FOUND, response.getCode());
+        assertEquals(HttpStatus.SC_BAD_REQUEST,actionResponse.getCode());
     }
 
     @Test
-    public void deleteSbwAdminBandEip() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(),sbw.getId());
-        ActionResponse response = sbwDaoService.adminDeleteSbw(sbw.getId());
-        removeEipFromSbw(eip.getId(),sbw.getId());
-        deleteSbw(sbw.getId());
-        assertEquals(HttpStatus.SC_FORBIDDEN, response.getCode());
-    }
-
-    @Test
-    public void errorBillTypeRenewSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        ActionResponse actionResponse = sbwDaoService.renewSbwInfo(sbw.getId(), token);
-        deleteSbw(sbw.getId());
-        assertEquals(HttpStatus.SC_BAD_REQUEST, actionResponse.getCode());
-    }
-
-    @Test
-    public void errorBilltypeAddEipIntoSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.MONTHLY, null);
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void errorBilltypeAddEipIntoSbw(){
+        String eipId = "3f054122-ba9f-428a-8fda-6afe36725dc4";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIyMTNiYzI4YS1hMTY1LTQ2MTYtYWUwMy0xNmFlZDNkZmJkYTYiLCJleHAiOjE1NjM0MjE1NjMsIm5iZiI6MCwiaWF0IjoxNTYzNDE2MTYzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImYwZjY1NTRhLWExNGYtNGYyMS04OGQ3LTViNTRhZmJjNzVkYyIsImF1dGhfdGltZSI6MTU2MzQxNDM1Nywic2Vzc2lvbl9zdGF0ZSI6IjE2ZTA3ODY3LWFmZGUtNGNmOS1hMmZiLTgxN2VjNzM5OGRjYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.lat_JDKXefrXZ4cylqaCf5XrLd-nXYz6NXUMtbhyobt33RU5D6mAO1xT8BuKLm4E4fw9e4KY5v2EgUuvWFnvvuyZNJ7lw6ER6P_YpwBgKuf9ol2nnJjkkcpFKOHPePQurMxV1fFxox-4YcgAeCF6qT2QJAKkRQCz1uacabUJ672POO9HXIhAZRcNhctAvg6VRB-cAlElOfT-48ZVbG2WlN1xn6dr2SdV7waVOQzcTh2ZjTXcQRNQzHtY_8vLiyFXOVE_dghBGnh986FlauobvCxh2tJfamig4AFGJm_1FKXtt5d1pTxKq901cxsS5O1D2aPNqWu7vmQ-H8zKIFet6w";
         EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(sbw.getBandWidth());
+        param.setBandwidth(55);
         param.setBillType("monthly");
         param.setChargemode(null);
         param.setDuration("1");
-        param.setSbwId(sbw.getId());
+        param.setSbwId("0e40e97a-4b30-492e-8472-df3e2c044c2a");
         param.setPortId(null);
         param.setPrivateIp(null);
         param.setServerId(null);
         param.setType(null);
-        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eip.getId(), param, token);
-        deleteSbw(sbw.getId());
-        assertEquals(400, actionResponse.getCode());
+
+        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eipId, param, token);
+
+        assertEquals(400,actionResponse.getCode());
     }
 
     @Test
-    public void addEipIntoSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void addEipIntoSbw(){
+        String eipId = "6d1b7c00-6847-4612-ba3b-5e40745f4cfb";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIyMTNiYzI4YS1hMTY1LTQ2MTYtYWUwMy0xNmFlZDNkZmJkYTYiLCJleHAiOjE1NjM0MjE1NjMsIm5iZiI6MCwiaWF0IjoxNTYzNDE2MTYzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImYwZjY1NTRhLWExNGYtNGYyMS04OGQ3LTViNTRhZmJjNzVkYyIsImF1dGhfdGltZSI6MTU2MzQxNDM1Nywic2Vzc2lvbl9zdGF0ZSI6IjE2ZTA3ODY3LWFmZGUtNGNmOS1hMmZiLTgxN2VjNzM5OGRjYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.lat_JDKXefrXZ4cylqaCf5XrLd-nXYz6NXUMtbhyobt33RU5D6mAO1xT8BuKLm4E4fw9e4KY5v2EgUuvWFnvvuyZNJ7lw6ER6P_YpwBgKuf9ol2nnJjkkcpFKOHPePQurMxV1fFxox-4YcgAeCF6qT2QJAKkRQCz1uacabUJ672POO9HXIhAZRcNhctAvg6VRB-cAlElOfT-48ZVbG2WlN1xn6dr2SdV7waVOQzcTh2ZjTXcQRNQzHtY_8vLiyFXOVE_dghBGnh986FlauobvCxh2tJfamig4AFGJm_1FKXtt5d1pTxKq901cxsS5O1D2aPNqWu7vmQ-H8zKIFet6w";
         EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(sbw.getBandWidth());
+        param.setBandwidth(55);
         param.setBillType("hourlySettlement");
         param.setChargemode(null);
         param.setDuration("1");
-        param.setSbwId(sbw.getId());
+        param.setSbwId("0e40e97a-4b30-492e-8472-df3e2c044c2a");
         param.setPortId(null);
         param.setPrivateIp(null);
         param.setServerId(null);
         param.setType(null);
 
-        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eip.getId(), param, token);
+        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eipId, param, token);
 
-        assertEquals(ActionResponse.actionSuccess().getCode(), actionResponse.getCode());
+        assertEquals(ActionResponse.actionSuccess().getCode(),actionResponse.getCode());
     }
 
     @Test
-    public void errorSbwIdIsBlankAddEipIntoSbw() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void errorSbwIdIsBlankAddEipIntoSbw(){
+        String eipId = "6d1b7c00-6847-4612-ba3b-5e40745f4cfb";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIyMTNiYzI4YS1hMTY1LTQ2MTYtYWUwMy0xNmFlZDNkZmJkYTYiLCJleHAiOjE1NjM0MjE1NjMsIm5iZiI6MCwiaWF0IjoxNTYzNDE2MTYzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImYwZjY1NTRhLWExNGYtNGYyMS04OGQ3LTViNTRhZmJjNzVkYyIsImF1dGhfdGltZSI6MTU2MzQxNDM1Nywic2Vzc2lvbl9zdGF0ZSI6IjE2ZTA3ODY3LWFmZGUtNGNmOS1hMmZiLTgxN2VjNzM5OGRjYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.lat_JDKXefrXZ4cylqaCf5XrLd-nXYz6NXUMtbhyobt33RU5D6mAO1xT8BuKLm4E4fw9e4KY5v2EgUuvWFnvvuyZNJ7lw6ER6P_YpwBgKuf9ol2nnJjkkcpFKOHPePQurMxV1fFxox-4YcgAeCF6qT2QJAKkRQCz1uacabUJ672POO9HXIhAZRcNhctAvg6VRB-cAlElOfT-48ZVbG2WlN1xn6dr2SdV7waVOQzcTh2ZjTXcQRNQzHtY_8vLiyFXOVE_dghBGnh986FlauobvCxh2tJfamig4AFGJm_1FKXtt5d1pTxKq901cxsS5O1D2aPNqWu7vmQ-H8zKIFet6w";
         EipUpdateParam param = new EipUpdateParam();
         param.setBandwidth(55);
         param.setBillType("hourlySettlement");
@@ -528,104 +502,105 @@ public class SbwDaoServiceTest {
         param.setServerId(null);
         param.setType(null);
 
-        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eip.getId(), param, token);
-
-        assertEquals(400, actionResponse.getCode());
-    }
-
-    @Test
-    public void errorEipIdAddEipIntoSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        String eipId = "123";
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(sbw.getBandWidth());
-        param.setBillType("hourlySettlement");
-        param.setChargemode(null);
-        param.setDuration("1");
-        param.setSbwId(sbw.getId());
-        param.setPortId(null);
-        param.setPrivateIp(null);
-        param.setServerId(null);
-        param.setType(null);
         ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eipId, param, token);
-        deleteSbw(sbw.getId());
-        assertEquals(404, actionResponse.getCode());
+
+        assertEquals(400,actionResponse.getCode());
     }
 
     @Test
-    public void errorEipBandV6AddEipIntoSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        eipV6Service.atomCreateEipV6(eip.getId(),token);
+    public void errorEipIdAddEipIntoSbw(){
+        String eipId = "3f054122-ba9f-428a-8fda-6afe36725dc4";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIyMTNiYzI4YS1hMTY1LTQ2MTYtYWUwMy0xNmFlZDNkZmJkYTYiLCJleHAiOjE1NjM0MjE1NjMsIm5iZiI6MCwiaWF0IjoxNTYzNDE2MTYzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImYwZjY1NTRhLWExNGYtNGYyMS04OGQ3LTViNTRhZmJjNzVkYyIsImF1dGhfdGltZSI6MTU2MzQxNDM1Nywic2Vzc2lvbl9zdGF0ZSI6IjE2ZTA3ODY3LWFmZGUtNGNmOS1hMmZiLTgxN2VjNzM5OGRjYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.lat_JDKXefrXZ4cylqaCf5XrLd-nXYz6NXUMtbhyobt33RU5D6mAO1xT8BuKLm4E4fw9e4KY5v2EgUuvWFnvvuyZNJ7lw6ER6P_YpwBgKuf9ol2nnJjkkcpFKOHPePQurMxV1fFxox-4YcgAeCF6qT2QJAKkRQCz1uacabUJ672POO9HXIhAZRcNhctAvg6VRB-cAlElOfT-48ZVbG2WlN1xn6dr2SdV7waVOQzcTh2ZjTXcQRNQzHtY_8vLiyFXOVE_dghBGnh986FlauobvCxh2tJfamig4AFGJm_1FKXtt5d1pTxKq901cxsS5O1D2aPNqWu7vmQ-H8zKIFet6w";
         EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(sbw.getBandWidth());
+        param.setBandwidth(55);
         param.setBillType("hourlySettlement");
         param.setChargemode(null);
         param.setDuration("1");
-        param.setSbwId(sbw.getId());
+        param.setSbwId("0e40e97a-4b30-492e-8472-df3e2c044c2a");
         param.setPortId(null);
         param.setPrivateIp(null);
         param.setServerId(null);
         param.setType(null);
-        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eip.getId(), param, token);
-        deleteSbw(sbw.getId());
-        eipV6Service.atomDeleteEipV6(eip.getEipV6Id());
-        assertEquals(404, actionResponse.getCode());
+
+        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eipId, param, token);
+
+        assertEquals(400,actionResponse.getCode());
     }
 
     @Test
-    public void errorEipAlreadyAddEipIntoSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(),sbw.getId());
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void errorEipBandV6AddEipIntoSbw(){
+        String eipId = "2955acc9-d9b1-4375-a892-e8642e73f2e4";
+        String token = "123qwe";
         EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(sbw.getBandWidth());
+        param.setBandwidth(55);
         param.setBillType("hourlySettlement");
         param.setChargemode(null);
         param.setDuration("1");
-        param.setSbwId(sbw.getId());
+        param.setSbwId("896a8637-83d3-4f93-8c4c-095628e7284f");
         param.setPortId(null);
         param.setPrivateIp(null);
         param.setServerId(null);
         param.setType(null);
-        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eip.getId(), param, token);
-        removeEipFromSbw(eip.getId(),sbw.getId());
-        deleteSbw(sbw.getId());
-        assertEquals(400, actionResponse.getCode());
+
+        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eipId, param, token);
+
+        assertEquals(404,actionResponse.getCode());
     }
 
     @Test
-    public void removeEipFromSbwTest() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(),sbw.getId());
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void errorEipAlreadyAddEipIntoSbw(){
+        String eipId = "81f3b43e-5a99-4acd-9a15-09e5aff4019e";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIyMTNiYzI4YS1hMTY1LTQ2MTYtYWUwMy0xNmFlZDNkZmJkYTYiLCJleHAiOjE1NjM0MjE1NjMsIm5iZiI6MCwiaWF0IjoxNTYzNDE2MTYzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImYwZjY1NTRhLWExNGYtNGYyMS04OGQ3LTViNTRhZmJjNzVkYyIsImF1dGhfdGltZSI6MTU2MzQxNDM1Nywic2Vzc2lvbl9zdGF0ZSI6IjE2ZTA3ODY3LWFmZGUtNGNmOS1hMmZiLTgxN2VjNzM5OGRjYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.lat_JDKXefrXZ4cylqaCf5XrLd-nXYz6NXUMtbhyobt33RU5D6mAO1xT8BuKLm4E4fw9e4KY5v2EgUuvWFnvvuyZNJ7lw6ER6P_YpwBgKuf9ol2nnJjkkcpFKOHPePQurMxV1fFxox-4YcgAeCF6qT2QJAKkRQCz1uacabUJ672POO9HXIhAZRcNhctAvg6VRB-cAlElOfT-48ZVbG2WlN1xn6dr2SdV7waVOQzcTh2ZjTXcQRNQzHtY_8vLiyFXOVE_dghBGnh986FlauobvCxh2tJfamig4AFGJm_1FKXtt5d1pTxKq901cxsS5O1D2aPNqWu7vmQ-H8zKIFet6w";
         EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(eip.getOldBandWidth());
+        param.setBandwidth(55);
         param.setBillType("hourlySettlement");
         param.setChargemode(null);
         param.setDuration("1");
-        param.setSbwId(sbw.getId());
+        param.setSbwId("cf5dd08b-c15a-45d5-b8b6-c01f81495a86");
         param.setPortId(null);
         param.setPrivateIp(null);
         param.setServerId(null);
         param.setType(null);
-        ActionResponse actionResponse = sbwDaoService.removeEipFromSbw(eip.getId(), param, token);
-        deleteSbw(sbw.getId());
-        assertEquals(ActionResponse.actionSuccess().getCode(), actionResponse.getCode());
+
+        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eipId, param, token);
+
+        assertEquals(400,actionResponse.getCode());
     }
 
     @Test
-    public void errorSbwIdIsBlankRemoveEipFromSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(),sbw.getId());
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void removeEipFromSbw(){
+        String eipId = "81f3b43e-5a99-4acd-9a15-09e5aff4019e";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIyMTNiYzI4YS1hMTY1LTQ2MTYtYWUwMy0xNmFlZDNkZmJkYTYiLCJleHAiOjE1NjM0MjE1NjMsIm5iZiI6MCwiaWF0IjoxNTYzNDE2MTYzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImYwZjY1NTRhLWExNGYtNGYyMS04OGQ3LTViNTRhZmJjNzVkYyIsImF1dGhfdGltZSI6MTU2MzQxNDM1Nywic2Vzc2lvbl9zdGF0ZSI6IjE2ZTA3ODY3LWFmZGUtNGNmOS1hMmZiLTgxN2VjNzM5OGRjYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.lat_JDKXefrXZ4cylqaCf5XrLd-nXYz6NXUMtbhyobt33RU5D6mAO1xT8BuKLm4E4fw9e4KY5v2EgUuvWFnvvuyZNJ7lw6ER6P_YpwBgKuf9ol2nnJjkkcpFKOHPePQurMxV1fFxox-4YcgAeCF6qT2QJAKkRQCz1uacabUJ672POO9HXIhAZRcNhctAvg6VRB-cAlElOfT-48ZVbG2WlN1xn6dr2SdV7waVOQzcTh2ZjTXcQRNQzHtY_8vLiyFXOVE_dghBGnh986FlauobvCxh2tJfamig4AFGJm_1FKXtt5d1pTxKq901cxsS5O1D2aPNqWu7vmQ-H8zKIFet6w";
         EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(eip.getOldBandWidth());
+        param.setBandwidth(5);
+        param.setBillType("hourlySettlement");
+        param.setChargemode(null);
+        param.setDuration("1");
+        param.setSbwId("0e40e97a-4b30-492e-8472-df3e2c044c2a");
+        param.setPortId(null);
+        param.setPrivateIp(null);
+        param.setServerId(null);
+        param.setType(null);
+
+        ActionResponse actionResponse = sbwDaoService.removeEipFromSbw(eipId,param,token);
+
+        Optional<Eip> optionalEip = eipRepository.findById(eipId);
+        Eip eipEntity = optionalEip.get();
+        Optional<Sbw> sbwOptional = sbwRepository.findById("0e40e97a-4b30-492e-8472-df3e2c044c2a");
+        Sbw sbwEntity = sbwOptional.get();
+        if (actionResponse.getCode() == 200){
+            firewallService.addFipToSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbwEntity.getId());
+        }
+
+        assertEquals(ActionResponse.actionSuccess().getCode(),actionResponse.getCode());
+    }
+
+    @Test
+    public void errorSbwIdIsBlankRemoveEipFromSbw(){
+        String eipId = "81f3b43e-5a99-4acd-9a15-09e5aff4019e";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIyMTNiYzI4YS1hMTY1LTQ2MTYtYWUwMy0xNmFlZDNkZmJkYTYiLCJleHAiOjE1NjM0MjE1NjMsIm5iZiI6MCwiaWF0IjoxNTYzNDE2MTYzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImYwZjY1NTRhLWExNGYtNGYyMS04OGQ3LTViNTRhZmJjNzVkYyIsImF1dGhfdGltZSI6MTU2MzQxNDM1Nywic2Vzc2lvbl9zdGF0ZSI6IjE2ZTA3ODY3LWFmZGUtNGNmOS1hMmZiLTgxN2VjNzM5OGRjYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.lat_JDKXefrXZ4cylqaCf5XrLd-nXYz6NXUMtbhyobt33RU5D6mAO1xT8BuKLm4E4fw9e4KY5v2EgUuvWFnvvuyZNJ7lw6ER6P_YpwBgKuf9ol2nnJjkkcpFKOHPePQurMxV1fFxox-4YcgAeCF6qT2QJAKkRQCz1uacabUJ672POO9HXIhAZRcNhctAvg6VRB-cAlElOfT-48ZVbG2WlN1xn6dr2SdV7waVOQzcTh2ZjTXcQRNQzHtY_8vLiyFXOVE_dghBGnh986FlauobvCxh2tJfamig4AFGJm_1FKXtt5d1pTxKq901cxsS5O1D2aPNqWu7vmQ-H8zKIFet6w";
+        EipUpdateParam param = new EipUpdateParam();
+        param.setBandwidth(55);
         param.setBillType("hourlySettlement");
         param.setChargemode(null);
         param.setDuration("1");
@@ -634,42 +609,38 @@ public class SbwDaoServiceTest {
         param.setPrivateIp(null);
         param.setServerId(null);
         param.setType(null);
-        ActionResponse actionResponse = sbwDaoService.removeEipFromSbw(eip.getId(), param, token);
-        removeEipFromSbw(eip.getId(),sbw.getId());
-        deleteSbw(sbw.getId());
-        assertEquals(400, actionResponse.getCode());
+
+        ActionResponse actionResponse = sbwDaoService.removeEipFromSbw(eipId,param,token);
+
+        assertEquals(400,actionResponse.getCode());
     }
 
     @Test
-    public void errorEipIdNotFoundRemoveEipFromSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(),sbw.getId());
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void errorEipIdNotFoundRemoveEipFromSbw(){
+        String eipId = "123";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIyMTNiYzI4YS1hMTY1LTQ2MTYtYWUwMy0xNmFlZDNkZmJkYTYiLCJleHAiOjE1NjM0MjE1NjMsIm5iZiI6MCwiaWF0IjoxNTYzNDE2MTYzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImYwZjY1NTRhLWExNGYtNGYyMS04OGQ3LTViNTRhZmJjNzVkYyIsImF1dGhfdGltZSI6MTU2MzQxNDM1Nywic2Vzc2lvbl9zdGF0ZSI6IjE2ZTA3ODY3LWFmZGUtNGNmOS1hMmZiLTgxN2VjNzM5OGRjYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.lat_JDKXefrXZ4cylqaCf5XrLd-nXYz6NXUMtbhyobt33RU5D6mAO1xT8BuKLm4E4fw9e4KY5v2EgUuvWFnvvuyZNJ7lw6ER6P_YpwBgKuf9ol2nnJjkkcpFKOHPePQurMxV1fFxox-4YcgAeCF6qT2QJAKkRQCz1uacabUJ672POO9HXIhAZRcNhctAvg6VRB-cAlElOfT-48ZVbG2WlN1xn6dr2SdV7waVOQzcTh2ZjTXcQRNQzHtY_8vLiyFXOVE_dghBGnh986FlauobvCxh2tJfamig4AFGJm_1FKXtt5d1pTxKq901cxsS5O1D2aPNqWu7vmQ-H8zKIFet6w";
         EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(eip.getOldBandWidth());
+        param.setBandwidth(55);
         param.setBillType("hourlySettlement");
         param.setChargemode(null);
         param.setDuration("1");
-        param.setSbwId(sbw.getId());
+        param.setSbwId("0e40e97a-4b30-492e-8472-df3e2c044c2a");
         param.setPortId(null);
         param.setPrivateIp(null);
         param.setServerId(null);
         param.setType(null);
-        ActionResponse actionResponse = sbwDaoService.removeEipFromSbw("123", param, token);
-        removeEipFromSbw(eip.getId(),sbw.getId());
-        deleteSbw(sbw.getId());
-        assertEquals(404, actionResponse.getCode());
+
+        ActionResponse actionResponse = sbwDaoService.removeEipFromSbw(eipId,param,token);
+
+        assertEquals(404,actionResponse.getCode());
     }
 
     @Test
-    public void errorSbwIdNotFoundRemoveEipFromSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(),sbw.getId());
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void errorSbwIdNotFoundRemoveEipFromSbw(){
+        String eipId = "81f3b43e-5a99-4acd-9a15-09e5aff4019e";
+        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIyMTNiYzI4YS1hMTY1LTQ2MTYtYWUwMy0xNmFlZDNkZmJkYTYiLCJleHAiOjE1NjM0MjE1NjMsIm5iZiI6MCwiaWF0IjoxNTYzNDE2MTYzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImYwZjY1NTRhLWExNGYtNGYyMS04OGQ3LTViNTRhZmJjNzVkYyIsImF1dGhfdGltZSI6MTU2MzQxNDM1Nywic2Vzc2lvbl9zdGF0ZSI6IjE2ZTA3ODY3LWFmZGUtNGNmOS1hMmZiLTgxN2VjNzM5OGRjYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.lat_JDKXefrXZ4cylqaCf5XrLd-nXYz6NXUMtbhyobt33RU5D6mAO1xT8BuKLm4E4fw9e4KY5v2EgUuvWFnvvuyZNJ7lw6ER6P_YpwBgKuf9ol2nnJjkkcpFKOHPePQurMxV1fFxox-4YcgAeCF6qT2QJAKkRQCz1uacabUJ672POO9HXIhAZRcNhctAvg6VRB-cAlElOfT-48ZVbG2WlN1xn6dr2SdV7waVOQzcTh2ZjTXcQRNQzHtY_8vLiyFXOVE_dghBGnh986FlauobvCxh2tJfamig4AFGJm_1FKXtt5d1pTxKq901cxsS5O1D2aPNqWu7vmQ-H8zKIFet6w";
         EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(eip.getOldBandWidth());
+        param.setBandwidth(55);
         param.setBillType("hourlySettlement");
         param.setChargemode(null);
         param.setDuration("1");
@@ -678,75 +649,10 @@ public class SbwDaoServiceTest {
         param.setPrivateIp(null);
         param.setServerId(null);
         param.setType(null);
-        ActionResponse actionResponse = sbwDaoService.removeEipFromSbw(eip.getId(), param, token);
-        removeEipFromSbw(eip.getId(),sbw.getId());
-        deleteSbw(sbw.getId());
-        assertEquals(404, actionResponse.getCode());
-    }
 
+        ActionResponse actionResponse = sbwDaoService.removeEipFromSbw(eipId,param,token);
 
-    public Eip creatEip(String billType, String user) throws Exception {
-        EipAllocateParam eipConfig = new EipAllocateParam();
-        eipConfig.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
-        eipConfig.setBandwidth(5);
-        eipConfig.setBillType(billType);
-        eipConfig.setIpType("BGP");
-        eipConfig.setIpv6("no");
-        eipConfig.setRegion("cn-north-3");
-        eipConfig.setSbwId(null);
-        eipConfig.setDuration("1");
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        if (user == "other")
-            token = TokenUtil.getToken("xinjing", "1qaz2wsx3edc");
-        String operater = "unitTest";
-        if (eipPoolRepository.getEipByRandom() == null) {
-            return null;
-        } else {
-            EipPool eip = eipDaoService.getOneEipFromPool();
-            Eip eipEntity = eipDaoService.allocateEip(eipConfig, eip, operater, token);
-            return eipEntity;
-        }
-    }
-
-    public Sbw creatSbw(String billType, String user) throws Exception {
-        SbwUpdateParam param = new SbwUpdateParam();
-        param.setDuration("1");
-        param.setBandwidth(10);
-        param.setBillType(billType);
-        param.setRegion("cn-north-3");
-        param.setSbwName("sbwUnitTest");
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        if (user == "other")
-            token = TokenUtil.getToken("xinjing", "1qaz2wsx3edc");
-        Sbw sbwEntity = sbwDaoService.allocateSbw(param, token);
-        return sbwEntity;
-    }
-
-    public void deleteSbw(String sbwId) throws Exception {
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        Sbw sbw = sbwDaoService.getSbwById(sbwId);
-        if(sbw.getBillType().equals("hourlySettlement"))
-            sbwDaoService.deleteSbw(sbwId, token);
-        else
-            sbwDaoService.adminDeleteSbw(sbwId);
-    }
-
-    public void addEipToSbw(String eipId, String sbwId) throws Exception {
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        EipUpdateParam eipUpdateParam = new EipUpdateParam();
-        Sbw sbw = sbwDaoService.getSbwById(sbwId);
-        eipUpdateParam.setSbwId(sbwId);
-        eipUpdateParam.setBandwidth(sbw.getBandWidth());
-        sbwDaoService.addEipIntoSbw(eipId, eipUpdateParam, token);
-    }
-
-    public void removeEipFromSbw(String eipId, String sbwId) throws Exception {
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        EipUpdateParam eipUpdateParam = new EipUpdateParam();
-        Eip eip = eipDaoService.getEipById(eipId);
-        eipUpdateParam.setSbwId(sbwId);
-        eipUpdateParam.setBandwidth(eip.getOldBandWidth());
-        sbwDaoService.removeEipFromSbw(eipId, eipUpdateParam, token);
+        assertEquals(404,actionResponse.getCode());
     }
 
 }
