@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EipV6ReturnDetail implements Serializable {
 
     @JsonProperty("id")
