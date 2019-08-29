@@ -16,14 +16,14 @@ buildscript {
         classpath group: 'com.inspur.cloud', name: 'cloud-gradle-plugin', version: '3.0.0-SNAPSHOT'
     }
     // if you need to use test by junit4 delete is code
-    gradle.taskGraph.whenReady {
+    /*gradle.taskGraph.whenReady {
         tasks.each { task ->
             if (task.name.contains("Test"))
             {
                 task.enabled = false
             }
         }
-    }
+    }*/
 }
 
 apply plugin: 'java'
