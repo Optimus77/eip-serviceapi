@@ -8,8 +8,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication(scanBasePackages = {"com.inspur"})
 @ServletComponentScan
 @EnableTransactionManagement
-public class TestEipServiceApplication {
+public class EipServiceApplicationTests {
 
-    public static void main(String[] args) { SpringApplication.run(TestEipServiceApplication.class, args);}
+    public static void main(String[] args) { SpringApplication.run(EipServiceApplicationTests.class, args);}
 
 }

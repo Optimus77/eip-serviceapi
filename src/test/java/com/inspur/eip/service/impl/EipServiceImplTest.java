@@ -1,6 +1,6 @@
 package com.inspur.eip.service.impl;
 
-import com.inspur.eip.TestEipServiceApplication;
+import com.inspur.eip.EipServiceApplicationTests;
 import com.inspur.eip.service.TokenUtil;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.eip.EipAllocateParam;
@@ -37,7 +37,7 @@ import static org.junit.Assert.*;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = EipServiceImpl.class)
 @Rollback
-@SpringBootTest(classes = TestEipServiceApplication.class)
+@SpringBootTest(classes = EipServiceApplicationTests.class)
 @Transactional
 public class EipServiceImplTest {
 
