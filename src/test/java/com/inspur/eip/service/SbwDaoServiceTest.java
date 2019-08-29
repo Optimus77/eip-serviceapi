@@ -1,6 +1,6 @@
-package com.eipserviceapi.unitTest;
+package com.inspur.eip.service;
 
-import com.eipserviceapi.TestEipServiceApplication;
+import com.inspur.eip.TestEipServiceApplication;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.eip.EipAllocateParam;
@@ -10,10 +10,6 @@ import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.SbwRepository;
-import com.inspur.eip.service.EipDaoService;
-import com.inspur.eip.service.EipV6DaoService;
-import com.inspur.eip.service.FirewallService;
-import com.inspur.eip.service.SbwDaoService;
 import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.constant.HsConstants;
 import groovy.util.logging.Slf4j;
@@ -30,8 +26,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-
-import java.util.Optional;
 
 import static org.junit.Assert.*;
 

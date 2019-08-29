@@ -1,8 +1,7 @@
-package com.eipserviceapi.unitTest.implTest;
+package com.inspur.eip.service.implTest;
 
-import com.eipserviceapi.TestEipServiceApplication;
-import com.eipserviceapi.unitTest.TokenUtil;
-import com.inspur.eip.entity.*;
+import com.inspur.eip.TestEipServiceApplication;
+import com.inspur.eip.service.TokenUtil;
 import com.inspur.eip.entity.bss.*;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.eip.EipAllocateParam;
@@ -12,9 +11,7 @@ import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.SbwDaoService;
-import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.service.impl.RabbitMqServiceImpl;
-import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import groovy.util.logging.Slf4j;
 import org.junit.After;

@@ -1,25 +1,19 @@
-package com.eipserviceapi.unitTest.implTest;
+package com.inspur.eip.service.implTest;
 
-import com.eipserviceapi.TestEipServiceApplication;
-import com.eipserviceapi.unitTest.TokenUtil;
+import com.inspur.eip.TestEipServiceApplication;
+import com.inspur.eip.service.TokenUtil;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.eip.EipPool;
-import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.service.EipDaoService;
-import com.inspur.eip.service.FirewallService;
-import com.inspur.eip.service.WebControllerService;
 import com.inspur.eip.service.impl.EipServiceImpl;
 //import groovy.util.logging.Slf4j;
 import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import groovy.util.logging.Slf4j;
-import jdk.nashorn.internal.parser.Token;
-import org.apache.http.HttpException;
-import org.apache.kafka.common.protocol.types.Field;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,9 +32,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.ProtocolException;
-import java.net.URL;
 import java.security.Principal;
 import java.util.*;
 

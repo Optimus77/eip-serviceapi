@@ -1,7 +1,7 @@
-package com.eipserviceapi.unitTest.implTest;
+package com.inspur.eip.service.implTest;
 
-import com.eipserviceapi.TestEipServiceApplication;
-import com.eipserviceapi.unitTest.TokenUtil;
+import com.inspur.eip.TestEipServiceApplication;
+import com.inspur.eip.service.TokenUtil;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.eip.EipAllocateParam;
@@ -35,7 +35,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
-import javax.validation.constraints.Null;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
