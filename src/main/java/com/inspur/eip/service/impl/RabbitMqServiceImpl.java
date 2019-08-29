@@ -181,7 +181,6 @@ public class RabbitMqServiceImpl {
                         "createNatWithEip", "create",response.getStatusCodeValue());
                 updateEipOrderResult(orderProduct, eipId, eipOrder.getStatusTime(), groupId, createResult);
             }
-            return eipId;
         } catch (Exception e) {
             log.error(ConstantClassField.EXCEPTION_EIP_CREATE, e);
             if (null != eipId) {
@@ -210,7 +209,7 @@ public class RabbitMqServiceImpl {
         String deleteResult = HsConstants.FAIL;
 
         try {
-            log.info("Recive delete order:{}", JSONObject.toJSONString(eipOrder));
+            log.info("Recive delete eip order:{}", JSONObject.toJSONString(eipOrder));
             if (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
                 List<OrderProduct> orderProducts = eipOrder.getProductList();
                 for (OrderProduct orderProduct : orderProducts) {
@@ -264,7 +263,7 @@ public class RabbitMqServiceImpl {
         String result = HsConstants.FAIL;
         int failedCount=0;
         try {
-            log.info("Recive update order:{}", JSONObject.toJSONString(eipOrder));
+            log.info("Recive update Eip order:{}", JSONObject.toJSONString(eipOrder));
 
             if ((eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS))) {
                 List<OrderProduct> orderProducts = eipOrder.getProductList();
@@ -336,7 +335,7 @@ public class RabbitMqServiceImpl {
         String result = HsConstants.FAIL;
         String insanceStatus = HsConstants.FAIL;
         try {
-            log.info("Recive soft down or delete order:{}", JSONObject.toJSONString(eipOrder));
+            log.info("Recive soft down or delete Eip order:{}", JSONObject.toJSONString(eipOrder));
             List<SoftDownInstance> instanceList = eipOrder.getInstanceList();
             for (SoftDownInstance softDownInstance : instanceList) {
                 String operateType = softDownInstance.getOperateType();
@@ -533,7 +532,7 @@ public class RabbitMqServiceImpl {
         String instanceStatus = HsConstants.STATUS_ERROR;
         ActionResponse response = null;
         try {
-            log.info("Recive soft down or delete order:{}", JSONObject.toJSONString(softDown));
+            log.info("Recive soft down or delete EIP order:{}", JSONObject.toJSONString(softDown));
             List<SoftDownInstance> instanceList = softDown.getInstanceList();
             for (SoftDownInstance instance : instanceList) {
                 String operateType = instance.getOperateType();
