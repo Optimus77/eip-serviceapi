@@ -265,7 +265,89 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    /**
+     * listShareBandWidth the eipv1.1
+     *
+     * @param currentPage the current page
+     * @param limit       element of per page
+     * @return result
+     */
+    public ResponseEntity listEipsByGroup(int currentPage, int limit, String status) {
 
+        try {
+            String projcectId = CommonUtil.getProjectId();
+            log.debug("listEips  of user, userId:{}", projcectId);
+            if (projcectId == null) {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_UNAUTHORIZED.getCode(),
+                        ErrorStatus.ENTITY_UNAUTHORIZED.getMessage()), HttpStatus.BAD_REQUEST);
+            }
+            JSONObject data = new JSONObject();
+            JSONArray eips = new JSONArray();
+            if (currentPage != 0) {
+                Sort sort = new Sort(Sort.Direction.DESC, "group_id");
+                Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
+                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"'";
+                Page<Eip> page =
+                        ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);
+
+                //Page<Eip> page = eipRepository.findByProjectIdAndIsDelete(projcectId, 0, pageable);
+                for (Eip eip : page.getContent()) {
+                    if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
+                        continue;
+                    }
+                    EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                    BeanUtils.copyProperties(eip, eipReturnDetail);
+                    eipReturnDetail.setResourceset(Resourceset.builder()
+                            .resourceId(eip.getInstanceId())
+                            .resourceType(eip.getInstanceType()).build());
+                    if (StringUtils.isNotBlank(eip.getEipV6Id())) {
+                        EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                        if (eipV6 != null) {
+                            eipReturnDetail.setIpv6(eipV6.getIpv6());
+                        }
+                    }
+                    eips.add(eipReturnDetail);
+                }
+                data.put("data", eips);
+//                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
+                data.put(HsConstants.TOTAL_COUNT, page.getTotalElements());
+                data.put(HsConstants.PAGE_NO, currentPage);
+                data.put(HsConstants.PAGE_SIZE, limit);
+            } else {
+
+                List<Eip> eipList = eipDaoService.findByProjectId(projcectId);
+                List<Eip> dataList = ListFilterUtil.filterListData(eipList, Eip.class);
+                for (Eip eip : dataList) {
+                    if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
+                        continue;
+                    }
+                    EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                    BeanUtils.copyProperties(eip, eipReturnDetail);
+                    eipReturnDetail.setResourceset(Resourceset.builder()
+                            .resourceId(eip.getInstanceId())
+                            .resourceType(eip.getInstanceType()).build());
+                    if (StringUtils.isNotBlank(eip.getEipV6Id())) {
+                        EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                        if (eipV6 != null) {
+                            eipReturnDetail.setIpv6(eipV6.getIpv6());
+                        }
+                    }
+                    eips.add(eipReturnDetail);
+                }
+                data.put("data", eips);
+//                data.put(HsConstants.TOTAL_PAGES, 1);
+                data.put(HsConstants.TOTAL_COUNT, eips.size());
+                data.put(HsConstants.PAGE_NO, 1);
+                data.put(HsConstants.PAGE_SIZE, eips.size());
+            }
+            return new ResponseEntity<>(data, HttpStatus.OK);
+        } catch (KeycloakTokenException e) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            log.error("Exception in listEips", e);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     /**
      * listShareBandWidth the eipV1.0
@@ -476,6 +558,45 @@ public class EipServiceImpl implements IEipService {
 
         } catch (Exception e) {
             log.error("Exception in getEipByInstanceId", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity getEipGroupByIpAddress(String eip) {
+        try {
+            Eip eipEntity = eipDaoService.findByEipAddress(eip);
+            if (null != eipEntity) {
+                String groupId = eipEntity.getGroupId();
+                JSONArray eipinfo = new JSONArray();
+                List<Eip> eipEntitys = eipDaoService.getEipListByGroupId(groupId);
+                for(Eip eips: eipEntitys)
+                {
+                    if(null != eip){
+                        EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                        BeanUtils.copyProperties(eips, eipReturnDetail);
+                        eipReturnDetail.setResourceset(Resourceset.builder()
+                                .resourceId(eips.getInstanceId())
+                                .resourceType(eips.getInstanceType()).build());
+                        if (StringUtils.isNotBlank(eips.getEipV6Id())) {
+                            EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eips.getEipV6Id());
+                            if (eipV6 != null) {
+                                eipReturnDetail.setIpv6(eipV6.getIpv6());
+                            }
+                        }
+                        eipinfo.add(eipReturnDetail);
+                    }
+                }
+                JSONObject data = new JSONObject();
+                data.put("data",eipinfo);
+                return new ResponseEntity<>(data,HttpStatus.OK);
+            } else {
+                log.warn("Failed to find eip by eip, eip:{}", eip);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "can not find eip by this eip address:" + eip + ""),
+                        HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            log.error("Exception in getEipByIpAddressV2", e);
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -82,66 +82,11 @@ public class RabbitMqServiceImpl {
      * @param eipOrder order
      * @return return message
      */
-//    public String createEipInfo(ReciveOrder eipOrder) {
-//        ResponseEntity<EipReturnBase> response;
-//        EipReturnBase eipReturn;
-//        String eipId = null;
-//        log.info("Recive create mq:{}", JSONObject.toJSONString(eipOrder));
-//        if (!(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) ){
-//            log.warn("Order must by payed successfully.");
-//            return null;
-//        }
-//        try {
-//            List<EipAllocateParam> eipConfigs = getEipConfigByOrder(eipOrder);
-//            for(EipAllocateParam eipConfig: eipConfigs) {
-//                ReturnMsg checkRet = preCheckParam(eipConfig);
-//                if ( !(checkRet.getCode().equals(ReturnStatus.SC_OK))) {
-//                    log.warn(checkRet.getMessage());
-//                    return null;
-//                }
-//                eipId = null;
-//                response = eipService.atomCreateEip(eipConfig, eipOrder.getToken(), null);
-//                if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
-//                    if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
-//                        if (response.getStatusCodeValue() == 420) {
-//                            webService.returnsIpv6Websocket("false", "createEip", eipOrder.getToken());
-//                        } else {
-//                            webService.returnsIpv6Websocket("false", "createNatWithEip", eipOrder.getToken());
-//                        }
-//                    }
-//                    log.warn("create eip failed, return code:{}", response.getStatusCodeValue());
-//                } else {
-//                    eipReturn = response.getBody();
-//                    if (null != eipReturn) {
-//                        eipId = eipReturn.getId();
-//                    }
-//                    if (eipConfig.getIpv6().equalsIgnoreCase("yes")) {
-//                        webService.returnsIpv6Websocket("Success", "createNatWithEip", eipOrder.getToken());
-//                    } else {
-//                        webService.returnsWebsocket(eipId, eipOrder, "create");
-//                    }
-//                }
-//            }
-//            return eipId;
-//        } catch (Exception e) {
-//            log.error(ConstantClassField.EXCEPTION_EIP_CREATE, e);
-//            if (null != eipId) {
-//                eipDaoService.deleteEip(eipId, eipOrder.getToken());
-//                eipId = null;
-//            }
-//        } finally {
-//            if (null == eipId) {
-//                sendOrderMessageToBss(getEipOrderResult(eipOrder, "", HsConstants.FAIL));
-//            } else {
-//                sendOrderMessageToBss(getEipOrderResult(eipOrder, eipId, HsConstants.SUCCESS));
-//            }
-//        }
-//        return eipId;
-//    }
     public String createEipInfo(ReciveOrder eipOrder) {
         ResponseEntity<EipReturnBase> response;
         EipReturnBase eipReturn;
         String eipId = null;
+        String eipAddress = null;
         String createResult = null;
         log.info("Recive create mq:{}", JSONObject.toJSONString(eipOrder));
         try {
@@ -160,6 +105,7 @@ public class RabbitMqServiceImpl {
                     continue;
                 }
                 eipId = null;
+                eipAddress = null;
                 EipAllocateParam eipConfig = getEipConfigByOrder(orderProduct, eipOrder.getBillType(), groupId);
                 ReturnMsg checkRet = preCheckParam(eipConfig);
                 if ( !(checkRet.getCode().equals(ReturnStatus.SC_OK))) {
@@ -174,12 +120,13 @@ public class RabbitMqServiceImpl {
                     eipReturn = response.getBody();
                     if (null != eipReturn) {
                         eipId = eipReturn.getId();
+                        eipAddress = eipReturn.getEipAddress();
                     }
                     createResult = HsConstants.SUCCESS;
                 }
                 webService.retWebsocket(eipConfig.getIpv6(),eipId,eipOrder,
                         "createNatWithEip", "create",response.getStatusCodeValue());
-                updateEipOrderResult(orderProduct, eipId, eipOrder.getStatusTime(), groupId, createResult);
+                updateEipOrderResult(orderProduct, eipId,eipAddress, eipOrder.getStatusTime(), groupId, createResult);
             }
             return eipId;
         } catch (Exception e) {
@@ -236,7 +183,7 @@ public class RabbitMqServiceImpl {
                         log.warn(ConstantClassField.DELETE_EIP_CONFIG_FAILED, response.getFault() + ReturnStatus.SC_INTERNAL_SERVER_ERROR);
                         deleteResult = HsConstants.FAIL;
                     }
-                    updateEipOrderResult(orderProduct, eipId, eipOrder.getStatusTime(), null,deleteResult);
+                    updateEipOrderResult(orderProduct, eipId, null,eipOrder.getStatusTime(), null,deleteResult);
                 }
                 sendOrderMessageToBss(getEipOrderResult(eipOrder, deleteResult));
                 return response;
@@ -303,7 +250,7 @@ public class RabbitMqServiceImpl {
                     }else {
                         result = HsConstants.SUCCESS;
                     }
-                    updateEipOrderResult(orderProduct,eipId,eipOrder.getStatusTime(), null, result);
+                    updateEipOrderResult(orderProduct,eipId,null,eipOrder.getStatusTime(), null, result);
                 }
                 if (failedCount == 0) {
                     result = HsConstants.SUCCESS;
@@ -747,7 +694,7 @@ public class RabbitMqServiceImpl {
         return console2BssResult;
     }
 
-    private void updateEipOrderResult(OrderProduct orderProduct, String eipId, String createIime,String groupId, String result) {
+    private void updateEipOrderResult(OrderProduct orderProduct, String eipId, String eipAddress, String createIime,String groupId, String result) {
         //must not be delete ,set the reference
         int groupFlag = 0;
 
@@ -760,6 +707,10 @@ public class RabbitMqServiceImpl {
                 if(orderProductItem.getCode().equalsIgnoreCase(HsConstants.GROUP_ID)){
                     orderProductItem.setValue(groupId);
                     groupFlag = 1;
+                }else if(orderProductItem.getCode().equalsIgnoreCase(HsConstants.IP)){
+                    if(null != eipAddress) {
+                        orderProductItem.setValue(eipAddress);
+                    }
                 }
             }
             if(0 == groupFlag) {

@@ -18,12 +18,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -40,17 +42,18 @@ public class SbwDaoService {
     @Autowired
     private EipRepository eipRepository;
 
+//    @Resource(name="firewallService")
     @Autowired
-    private IDevProvider firewallService;
+    private IDevProvider providerService;
 
     @Autowired
     private QosService qosService;
 
 //    @Autowired
-//    SbwDaoService(@Value("${firewall.type}")String type,FirewallService firewallService){
+//    SbwDaoService(@Value("${firewall.type}")String type,FirewallService providerService){
 //        if(type.equals("hillstone"))
 //        {
-//            this.firewallService= firewallService;
+//            this.providerService= providerService;
 //        }
 //    }
 
@@ -72,7 +75,7 @@ public class SbwDaoService {
                 throw new EipBadRequestException(ErrorStatus.VALIADATE_NAME_ERROR.getCode(), ErrorStatus.VALIADATE_NAME_ERROR.getMessage());
             }
             // todo 替换成 radware
-            Boolean qosResult = firewallService.cmdAddSbwQos(sbwId, String.valueOf(sbwConfig.getBandwidth()), firewallId);
+            Boolean qosResult = providerService.cmdAddSbwQos(sbwId, String.valueOf(sbwConfig.getBandwidth()), firewallId);
             // 防火墙qos添加成功
             if (qosResult) {
                 Sbw sbw = Sbw.builder().id(sbwId)
@@ -146,7 +149,7 @@ public class SbwDaoService {
             // 防火墙qos存在，删除防火墙qos
             if (StringUtils.isNotBlank(sbwBean.getPipeId())) {
                 //根据qos名称删除qos,pipeId即是sbwId
-                boolean delQos = firewallService.cmdDelSbwQos(sbwBean.getId(), firewallId);
+                boolean delQos = providerService.cmdDelSbwQos(sbwBean.getId(), firewallId);
                 if (delQos) {
                     sbwBean.setIsDelete(1);
                     sbwBean.setStatus(HsConstants.DELETE);
@@ -196,7 +199,7 @@ public class SbwDaoService {
                 return ActionResponse.actionFailed(ErrorStatus.EIP_IN_SBW_SO_THAT_CAN_NOT_DELETE.getMessage(), HttpStatus.SC_FORBIDDEN);
             }
             if (StringUtils.isNotBlank(sbwBean.getPipeId())) {
-                boolean delQos = firewallService.delQos(sbwBean.getId(), null, null, firewallId);
+                boolean delQos = providerService.delQos(sbwBean.getId(), null, null, firewallId);
                 if (delQos) {
                     sbwBean.setIsDelete(1);
                     sbwBean.setStatus(HsConstants.DELETE);
@@ -425,9 +428,9 @@ public class SbwDaoService {
             sbwRepository.saveAndFlush(sbwEntity);
             return ActionResponse.actionSuccess();
         }
-        boolean updateStatus = true;
+        boolean updateStatus = false;
         //todo radware 暂不支持
-//        firewallService.updateQosBandWidth(firewallId, sbwEntity.getPipeId(), sbwEntity.getId(), String.valueOf(param.getBandwidth()), null, null);
+        updateStatus = providerService.updateQosBandWidth(firewallId, sbwEntity.getPipeId(), sbwEntity.getId(), String.valueOf(param.getBandwidth()), null, null);
         if (updateStatus || CommonUtil.qosDebug) {
             sbwEntity.setBandWidth(param.getBandwidth());
             sbwEntity.setUpdatedTime(CommonUtil.getGmtDate());
@@ -498,11 +501,9 @@ public class SbwDaoService {
             if (eipUpdateParam.getBandwidth() != sbwEntity.getBandWidth()) {
                 return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.SBW_THE_NEW_BANDWIDTH_VALUE_ERROR), HttpStatus.SC_NOT_FOUND);
             }
-            pipeId = HsConstants.UUID_LENGTH;
-            // firewallService.addFipToSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbwEntity.getId());
+            pipeId = providerService.addFipToSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbwEntity.getId());
             if (null != pipeId) {
-                updateStatus = true;
-//                firewallService.delQos(eipEntity.getPipId(), eipEntity.getEipAddress(), eipEntity.getFloatingIp(), eipEntity.getFirewallId());
+                updateStatus = providerService.delQos(eipEntity.getPipId(), eipEntity.getEipAddress(), eipEntity.getFloatingIp(), eipEntity.getFirewallId());
                 if (StringUtils.isBlank(sbwEntity.getPipeId())) {
                     sbwEntity.setPipeId(pipeId);
                 }
@@ -572,11 +573,10 @@ public class SbwDaoService {
                 log.error(ErrorStatus.SC_PARAM_ERROR.getMessage() + "bandwidth:{}", eipUpdateParam.getBandwidth());
                 return ActionResponse.actionFailed(ErrorStatus.SC_PARAM_ERROR.getMessage(), HttpStatus.SC_BAD_REQUEST);
             }
-            newPipId = HsConstants.UUID_LENGTH;
-//            firewallService.addQos(eipEntity.getFloatingIp(), eipEntity.getEipAddress(), String.valueOf(eipUpdateParam.getBandwidth()),
-//                    eipEntity.getFirewallId());
+            newPipId = providerService.addQos(eipEntity.getFloatingIp(), eipEntity.getEipAddress(), String.valueOf(eipUpdateParam.getBandwidth()),
+                    eipEntity.getFirewallId());
             if (null != newPipId) {
-                removeStatus = firewallService.removeFipFromSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbw.getId());
+                removeStatus = providerService.removeFipFromSbwQos(eipEntity.getFirewallId(), eipEntity.getFloatingIp(), sbw.getId());
             } else {
                 removeStatus = false;
             }

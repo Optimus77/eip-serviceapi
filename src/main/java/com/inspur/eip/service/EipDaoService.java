@@ -10,7 +10,6 @@ import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.ExtNetRepository;
-import com.inspur.eip.scheduleTask.FlowAccountScheduledTask;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.common.MethodReturnUtil;
 import com.inspur.eip.util.constant.HsConstants;
@@ -21,6 +20,7 @@ import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -51,7 +52,7 @@ public class EipDaoService {
     private EipRepository eipRepository;
 
     @Autowired
-    private IDevProvider firewallService;
+    private IDevProvider providerService;
 
     @Autowired
     private NeutronService neutronService;
@@ -100,8 +101,8 @@ public class EipDaoService {
 //        if (HsConstants.HOURLYSETTLEMENT.equalsIgnoreCase(eipConfig.getBillType()) &&
 //                HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipConfig.getChargeMode())){
 //            //创建地址簿 和 监控地址簿
-//            if (firewallService.cmdCreateOrDeleteAddressBook(eip.getIp(), eip.getFireWallId(), true)){
-//                firewallService.cmdOperateStatisticsBook(eip.getIp(), eip.getFireWallId(), true);
+//            if (providerService.cmdCreateOrDeleteAddressBook(eip.getIp(), eip.getFireWallId(), true)){
+//                providerService.cmdOperateStatisticsBook(eip.getIp(), eip.getFireWallId(), true);
 //            }
 //        }
 
@@ -180,7 +181,7 @@ public class EipDaoService {
             }
             //删除 监控集和地址簿，需保证关联的监控集已经删掉，否则无法删除地址簿
 //            if(HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
-//                firewallService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(),eipEntity.getFirewallId(),false);
+//                providerService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(),eipEntity.getFirewallId(),false);
 //            }
             eipEntity.setIsDelete(1);
             eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
@@ -227,7 +228,7 @@ public class EipDaoService {
                     || (null != eipEntity.getDnatId())
                     || (null != eipEntity.getSnatId())) {
                 msg = "Failed to delete eip,please unbind eip first." + eipEntity.toString();
-                firewallService.delNatAndQos(eipEntity);
+                providerService.delNatAndQos(eipEntity);
                 log.error(msg);
             }
             if (null != eipEntity.getFloatingIpId() ) {
@@ -250,7 +251,7 @@ public class EipDaoService {
             }
             //删除地址簿，需保证关联的监控集已经删掉
 //            if(HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
-//                firewallService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(),eipEntity.getFirewallId(),false);
+//                providerService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(),eipEntity.getFirewallId(),false);
 //            }
             eipEntity.setIsDelete(1);
             eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
@@ -296,7 +297,7 @@ public class EipDaoService {
 
         eipEntity.setStatus(HsConstants.STOP);
         eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
-        MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
+        MethodReturn fireWallReturn = providerService.delNatAndQos(eipEntity);
         if (fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
             eipRepository.saveAndFlush(eipEntity);
             return ActionResponse.actionSuccess();
@@ -362,14 +363,14 @@ public class EipDaoService {
             } else {
                 eip.setFloatingIp(fip);
             }
-            fireWallReturn = firewallService.addNatAndQos(eip, eip.getFloatingIp(), eip.getEipAddress(),
+            fireWallReturn = providerService.addNatAndQos(eip, eip.getFloatingIp(), eip.getEipAddress(),
                     eip.getBandWidth(), eip.getFirewallId());
             returnMsg = fireWallReturn.getMessage();
             returnStat = fireWallReturn.getInnerCode();
             if (fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
                 boolean bindRet = eipV6DaoService.bindIpv6WithInstance(eip.getEipAddress(), eip.getFloatingIp(), eip.getProjectId());
                 if (!bindRet) {
-                    firewallService.delNatAndQos(eip);
+                    providerService.delNatAndQos(eip);
                     neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(),
                             eip.getFloatingIpId(), serverId, eip.getRegion());
                     eip.setFloatingIp(null);
@@ -379,7 +380,7 @@ public class EipDaoService {
                 }
                 //流量计费类型的eip,从地址簿中删除匹配条件--floating ip
 //                if (HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eip.getChargeMode())){
-//                    firewallService.cmdInsertOrRemoveParamInAddressBook(eip.getEipAddress(),eip.getFloatingIp(),"ip",eip.getFirewallId(),true);
+//                    providerService.cmdInsertOrRemoveParamInAddressBook(eip.getEipAddress(),eip.getFloatingIp(),"ip",eip.getFirewallId(),true);
 //                }
                 eip.setInstanceId(serverId);
                 eip.setInstanceType(instanceType);
@@ -440,7 +441,7 @@ public class EipDaoService {
                 }
             }
 
-            MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
+            MethodReturn fireWallReturn = providerService.delNatAndQos(eipEntity);
             if (fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
                 msg += fireWallReturn.getMessage();
                 eipEntity.setStatus(HsConstants.ERROR);
@@ -452,7 +453,7 @@ public class EipDaoService {
             boolean unbindIpv6Ret = eipV6DaoService.unBindIpv6WithInstance(eipAddress, eipEntity.getProjectId());
             if (!unbindIpv6Ret) {
                 neutronService.associaInstanceWithFloatingIp(eipEntity, eipEntity.getInstanceId(), eipEntity.getPortId());
-                firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
+                providerService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
                         eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
                 msg = "Failed to disassociate  with natPt";
                 log.error(msg);
@@ -467,7 +468,7 @@ public class EipDaoService {
 //                    flowService.releaseReportFlowAccount(i,eipEntity);
 //                }
 //                //删除监控集地址本
-//                boolean statistics = firewallService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false);
+//                boolean statistics = providerService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false);
 //            }
             eipEntity.setInstanceId(null);
             eipEntity.setInstanceType(null);
@@ -514,7 +515,7 @@ public class EipDaoService {
         if (null == eipEntity.getPipId() || eipEntity.getPipId().isEmpty()) {
             updateStatus = true;
         } else {
-            updateStatus = firewallService.updateQosBandWidth(eipEntity.getFirewallId(),
+            updateStatus = providerService.updateQosBandWidth(eipEntity.getFirewallId(),
                     eipEntity.getPipId(), eipEntity.getId(),
                     String.valueOf(param.getBandwidth()),
                     eipEntity.getFloatingIp(), eipEntity.getEipAddress());
@@ -542,7 +543,7 @@ public class EipDaoService {
         }
         Eip eipEntity = optional.get();
         if ((null == eipEntity.getSnatId()) && (null == eipEntity.getDnatId()) && (null != eipEntity.getFloatingIp())) {
-            MethodReturn fireWallReturn = firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
+            MethodReturn fireWallReturn = providerService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
                     eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
             if (fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
                 log.info("renew eip entity add nat and qos,{}.  ", eipEntity);
@@ -573,7 +574,7 @@ public class EipDaoService {
         }
 
         if ((null == eipEntity.getSnatId()) && (null == eipEntity.getDnatId()) && (null != eipEntity.getFloatingIp())) {
-            MethodReturn fireWallReturn = firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
+            MethodReturn fireWallReturn = providerService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
                     eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
             if (fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
                 log.info("renew eip entity add nat and qos,{}.  ", eipEntity);
@@ -795,14 +796,14 @@ public class EipDaoService {
                 } else {
                     eip.setFloatingIp(fip);
                 }
-                fireWallReturn = firewallService.addNatAndQos(eip, eip.getFloatingIp(), eip.getEipAddress(),
+                fireWallReturn = providerService.addNatAndQos(eip, eip.getFloatingIp(), eip.getEipAddress(),
                         eip.getBandWidth(), eip.getFirewallId());
                 returnMsg = fireWallReturn.getMessage();
                 returnStat = fireWallReturn.getInnerCode();
                 if (fireWallReturn.getHttpCode() == HttpStatus.SC_OK) {
                     boolean bindRet = eipV6DaoService.bindIpv6WithInstance(eip.getEipAddress(), eip.getFloatingIp(), eip.getProjectId());
                     if (!bindRet) {
-                        firewallService.delNatAndQos(eip);
+                        providerService.delNatAndQos(eip);
                         neutronService.disassociateAndDeleteFloatingIp(eip.getFloatingIp(),
                                 eip.getFloatingIpId(), serverId, eip.getRegion());
                         eip.setFloatingIp(null);
@@ -812,7 +813,7 @@ public class EipDaoService {
                     }
                     //流量计费类型的eip,从地址簿中删除匹配条件--floating ip
 //                if (HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eip.getChargeMode())){
-//                    firewallService.cmdInsertOrRemoveParamInAddressBook(eip.getEipAddress(),eip.getFloatingIp(),"ip",eip.getFirewallId(),true);
+//                    providerService.cmdInsertOrRemoveParamInAddressBook(eip.getEipAddress(),eip.getFloatingIp(),"ip",eip.getFirewallId(),true);
 //                }
                     eip.setInstanceId(serverId);
                     eip.setInstanceType(instanceType);
@@ -879,7 +880,7 @@ public class EipDaoService {
                 }
             }
 
-            MethodReturn fireWallReturn = firewallService.delNatAndQos(eipEntity);
+            MethodReturn fireWallReturn = providerService.delNatAndQos(eipEntity);
             if (fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
                 msg += fireWallReturn.getMessage();
                 eipEntity.setStatus(HsConstants.ERROR);
@@ -891,7 +892,7 @@ public class EipDaoService {
             boolean unbindIpv6Ret = eipV6DaoService.unBindIpv6WithInstance(eipAddress, eipEntity.getProjectId());
             if (!unbindIpv6Ret) {
                 neutronService.associaInstanceWithFloatingIp(eipEntity, eipEntity.getInstanceId(), eipEntity.getPortId());
-                firewallService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
+                providerService.addNatAndQos(eipEntity, eipEntity.getFloatingIp(),
                         eipEntity.getEipAddress(), eipEntity.getBandWidth(), eipEntity.getFirewallId());
                 msg = "Failed to disassociate  with natPt";
                 log.error(msg);
@@ -906,7 +907,7 @@ public class EipDaoService {
 //                    flowService.releaseReportFlowAccount(i,eipEntity);
 //                }
 //                //删除监控集地址本
-//                boolean statistics = firewallService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false);
+//                boolean statistics = providerService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false);
 //            }
             eipEntity.setInstanceId(null);
             eipEntity.setInstanceType(null);
