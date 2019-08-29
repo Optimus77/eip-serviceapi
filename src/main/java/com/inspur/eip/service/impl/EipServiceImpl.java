@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,6 +59,9 @@ public class EipServiceImpl implements IEipService {
     @PersistenceContext
     private EntityManager entityManager;
 
+    @Value("${regionCode}")
+    private String regionCode;
+
 
 
     /**
@@ -71,6 +75,10 @@ public class EipServiceImpl implements IEipService {
         String code;
         String msg;
         try {
+            if(!eipConfig.getRegion().equals(regionCode)){
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,
+                        " Please pass in the correct region"), HttpStatus.BAD_REQUEST);
+            }
             String sbwId = eipConfig.getSbwId();
             if (StringUtils.isNotBlank(sbwId)) {
                 Sbw sbwEntity = sbwDaoService.getSbwById(sbwId);
