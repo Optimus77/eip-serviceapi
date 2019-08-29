@@ -470,7 +470,7 @@ public class CommonUtil {
         if(projectIdInToken != null){
             log.debug("project_id:{}", projectIdInToken);
         }
-        if(projectIdInToken.equals(projectId)){
+        if(projectId.equals(projectIdInToken)){
             return true;
         }
 

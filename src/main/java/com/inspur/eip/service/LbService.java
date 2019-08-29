@@ -193,12 +193,9 @@ public class LbService implements IDevProvider {
             returnStat = ReturnStatus.SC_FIREWALL_SERVER_ERROR;
             returnMsg = e.getMessage();
         } finally {
-            if (dnatRuleId != null) {
                 this.delDnatFromEquiment(eip);
-            }
-            if (snatRuleId != null) {
                 this.delSnatFromEquiment(eip);
-            }
+
         }
         return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
     }
