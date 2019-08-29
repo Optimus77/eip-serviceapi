@@ -582,25 +582,6 @@ public class EipServiceImplTest {
         assertEquals(HttpStatus.NOT_FOUND,responseEntity.getStatusCode());
     }
 
-    @Test
-    public void getEipByInstanceId() {
-        String instanceId = "e61994c5-bba0-4831-b847-022d5d01b697";
-        ResponseEntity responseEntity = eipServiceImpl.getEipByInstanceId(instanceId);
-        assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
-    }
-
-    @Test
-    public void getEipByInstanceIdNull(){
-        ResponseEntity responseEntity = eipServiceImpl.getEipByInstanceId(null);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
-    }
-
-    @Test
-    public void getEipByInstanceIdWithoutEip(){
-        String instanceIdWithoutEip = "aa022b17-7ce0-46da-9448-c8a439b10e27";
-        ResponseEntity responseEntity = eipServiceImpl.getEipByInstanceId(instanceIdWithoutEip);
-        assertEquals(HttpStatus.NOT_FOUND,responseEntity.getStatusCode());
-    }
 
     @Test
     public void getEipByIpAddress() {
@@ -675,29 +656,22 @@ public class EipServiceImplTest {
     @Test
     public void eipUnbindWithInstacnce() {
         String eipId = "bc57d6ae-73b3-4c89-a029-171fa02f0e98";
-        String instanceId = "e61994c5-bba0-4831-b847-022d5d01b697";
-        ResponseEntity responseEntity = eipServiceImpl.eipUnbindWithInstacnce(eipId,instanceId);
+        ResponseEntity responseEntity = eipServiceImpl.eipUnbindWithInstacnce(eipId);
         assertEquals(HttpStatus.OK,responseEntity.getStatusCode());
     }
 
-    @Test
-    public void eipUnbindWithInstacnceNull(){
-        ResponseEntity responseEntity = eipServiceImpl.eipUnbindWithInstacnce(null,"123");
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
-    }
 
     @Test
     public void eipUnbindWithInstacnceEipUnBind(){
         String eipId = "3af556cb-beb1-4cc4-9357-3aaa209a358b";
-        String instanceId = "e61994c5-bba0-4831-b847-022d5d01b697";
-        ResponseEntity responseEntity = eipServiceImpl.eipUnbindWithInstacnce(eipId,instanceId);
+        ResponseEntity responseEntity = eipServiceImpl.eipUnbindWithInstacnce(eipId);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
     }
 
     @Test
     public void eipUnbindWithInstacnceOfOtherUser(){
         String eipIdOfOtherUser = "f90cd84c-d1cf-45dc-aa39-ff896b490cf4";
-        ResponseEntity responseEntity = eipServiceImpl.eipUnbindWithInstacnce(eipIdOfOtherUser,null);
+        ResponseEntity responseEntity = eipServiceImpl.eipUnbindWithInstacnce(eipIdOfOtherUser);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,responseEntity.getStatusCode());
     }
 

@@ -49,20 +49,15 @@ public interface IEipService {
     /**
      *  unbind
      * @param eipId eipid
-     * @param instanceId  instanceId
      * @return ret
      */
-    ResponseEntity eipUnbindWithInstacnce(String eipId, String instanceId);
+    ResponseEntity eipUnbindWithInstacnce(String eipId);
 
 
     /**
      * get eip by floating ip
      */
     ResponseEntity getEipByInstanceIdV2(String instanceId);
-
-
-    ResponseEntity getEipByInstanceId(String instanceId);
-
 
 
     ResponseEntity getEipByIpAddressV2(String eip);

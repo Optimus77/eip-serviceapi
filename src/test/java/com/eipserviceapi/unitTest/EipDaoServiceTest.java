@@ -613,14 +613,6 @@ public class EipDaoServiceTest {
         assertEquals(eip, eipEntity);
     }
 
-    @Test
-    public void findByInstanceId() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        eip.setInstanceId("20d00e01-afa5-4e8c-a272-77a27b4773f2");
-        eipRepository.saveAndFlush(eip);
-        Eip eipEntity = eipDaoService.findByInstanceId("20d00e01-afa5-4e8c-a272-77a27b4773f2");
-        assertEquals(eip, eipEntity);
-    }
 
     @Test
     public void getEipById() throws Exception {
@@ -676,14 +668,6 @@ public class EipDaoServiceTest {
     public void getDuplicateEipFromPool() {
     }
 
-    @Test
-    public void get() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        eip.setInstanceId("20d00e01-afa5-4e8c-a272-77a27b4773f2");
-        eipRepository.saveAndFlush(eip);
-        Eip eipEntity = eipDaoService.get("20d00e01-afa5-4e8c-a272-77a27b4773f2");
-        assertEquals(eip, eipEntity);
-    }
 
     @Test
     public void statisEipCountBySbw() {

@@ -521,58 +521,14 @@ public class RabbitMqServiceImpl {
         }
         return response;
     }
-    // Json str parse or packing
-//    /**
-//     * extract create eip config from BSS MQ
-//     *
-//     * @param eipOrder order
-//     * @return eip param
-//     */
-//    private List<EipAllocateParam> getEipConfigByOrder(ReciveOrder eipOrder) {
-//        List<EipAllocateParam> eipAllocateParams = new ArrayList<>();
-//        List<OrderProduct> orderProducts = eipOrder.getProductList();
-//        String uuid;
-//
-//        for (OrderProduct orderProduct : orderProducts) {
-//            if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
-//                continue;
-//            }
-//            EipAllocateParam eipAllocateParam = new EipAllocateParam();
-//            eipAllocateParam.setBillType(eipOrder.getBillType());
-//            eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
-//
-//            eipAllocateParam.setRegion(orderProduct.getRegion());
-//            List<OrderProductItem> orderProductItems = orderProduct.getItemList();
-//
-//            for (OrderProductItem orderProductItem : orderProductItems) {
-//                if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
-//                    eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
-//                } else if (orderProductItem.getCode().equals(HsConstants.PROVIDER)) {
-//                    eipAllocateParam.setIpType(orderProductItem.getValue());
-//                }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER) && orderProductItem.getValue().equals("1")){
-//                    //  流量计费
-//                    eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_TRAFFIC);
-//                } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
-//                        orderProductItem.getValue().equals(HsConstants.YES)) {
-//                    eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
-//                } else if (orderProductItem.getCode().equals(HsConstants.WITH_IPV6) &&
-//                        orderProductItem.getValue().equals(HsConstants.YES)) {
-//                    eipAllocateParam.setIpv6("yes");
-//                } else if (orderProductItem.getCode().equals(HsConstants.SBW_ID)) {
-//                    eipAllocateParam.setSbwId(orderProductItem.getValue());
-//                }
-//            }
-//            eipAllocateParams.add(eipAllocateParam);
-//        }
-//        if(eipAllocateParams.size() > 1){
-//            uuid = UUID.randomUUID().toString();
-//            for(EipAllocateParam param1: eipAllocateParams){
-//                param1.setGroupId(uuid);
-//            }
-//        }
-//        log.info("Get eip param from order:{}", JSONObject.toJSONString(eipAllocateParams));
-//        return eipAllocateParams;
-//    }
+
+    /**
+     * extract create eip config from BSS MQ
+     * @param orderProduct  prd
+     * @param billType  bill
+     * @param groupId  group id
+     * @return  ret
+     */
     private EipAllocateParam getEipConfigByOrder(OrderProduct orderProduct, String billType, String groupId) {
 
         EipAllocateParam eipAllocateParam = new EipAllocateParam();
@@ -606,40 +562,6 @@ public class RabbitMqServiceImpl {
         return eipAllocateParam;
     }
 
-//    private List<EipUpdateParam> getUpdateParmByOrder(ReciveOrder eipOrder) {
-//        List<EipUpdateParam> eipUpdateParams = new ArrayList<>();
-//
-//        List<OrderProduct> orderProducts = eipOrder.getProductList();
-//        for (OrderProduct orderProduct : orderProducts) {
-//            if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
-//                continue;
-//            }
-//            EipUpdateParam eipUpdateParam = new EipUpdateParam();
-//            eipUpdateParam.setBillType(eipOrder.getBillType());
-//            eipUpdateParam.setDuration(eipOrder.getDuration());
-//            // 默认为带宽计费
-//            eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_BANDWIDTH);
-//
-//            List<OrderProductItem> orderProductItems = orderProduct.getItemList();
-//
-//            for (OrderProductItem orderProductItem : orderProductItems) {
-//                if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
-//                    eipUpdateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
-//                } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
-//                        orderProductItem.getValue().equalsIgnoreCase(HsConstants.YES)) {
-//                    eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
-//                } else if (orderProductItem.getCode().equals(HsConstants.SBW_ID)) {
-//                    eipUpdateParam.setSbwId(orderProductItem.getValue());
-//                }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER) && orderProductItem.getValue().equals("1")){
-//                    //  流量计费
-//                    eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_TRAFFIC);
-//                }
-//            }
-//            eipUpdateParams.add(eipUpdateParam);
-//        }
-//        log.debug("Get eip param from bss MQ:{}", eipUpdateParams.toString());
-//        return eipUpdateParams;
-//    }
     private EipUpdateParam getUpdateParmByOrder(OrderProduct orderProduct, String billType, String duration) {
 
         EipUpdateParam eipUpdateParam = new EipUpdateParam();

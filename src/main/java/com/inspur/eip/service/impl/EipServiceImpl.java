@@ -512,15 +512,15 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity getEipByInstanceIdV2(String instanceId) {
 
         try {
-            Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
-
-            if (null != eipEntity) {
+           // Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
+            List<Eip> eipList = eipRepository.findByInstanceIdAndIsDelete(instanceId, 0);
+            if (!eipList.isEmpty()) {
                 EipReturnDetail eipReturnDetail = new EipReturnDetail();
 
-                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                BeanUtils.copyProperties(eipList.get(0), eipReturnDetail);
                 eipReturnDetail.setResourceset(Resourceset.builder()
-                        .resourceId(eipEntity.getInstanceId())
-                        .resourceType(eipEntity.getInstanceType()).build());
+                        .resourceId(eipList.get(0).getInstanceId())
+                        .resourceType(eipList.get(0).getInstanceType()).build());
                 return new ResponseEntity<>(eipReturnDetail, HttpStatus.OK);
             } else {
                 log.debug("Failed to find eip by instance id, instanceId:{}", instanceId);
@@ -534,33 +534,33 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    /* V1 Controller use  will be deleted*/
-    @Override
-    public ResponseEntity getEipByInstanceId(String instanceId) {
-
-        try {
-            Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
-
-            if (null != eipEntity) {
-                EipReturnDetail eipReturnDetail = new EipReturnDetail();
-
-                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
-                eipReturnDetail.setResourceset(Resourceset.builder()
-                        .resourceId(eipEntity.getInstanceId())
-                        .resourceType(eipEntity.getInstanceType()).build());
-                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
-            } else {
-                log.debug("Failed to find eip by instance id, instanceId:{}", instanceId);
-                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
-                        "can not find instance by this id:" + instanceId + ""),
-                        HttpStatus.NOT_FOUND);
-            }
-
-        } catch (Exception e) {
-            log.error("Exception in getEipByInstanceId", e);
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+//    /* V1 Controller use  will be deleted*/
+//    @Override
+//    public ResponseEntity getEipByInstanceId(String instanceId) {
+//
+//        try {
+//            Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
+//
+//            if (null != eipEntity) {
+//                EipReturnDetail eipReturnDetail = new EipReturnDetail();
+//
+//                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+//                eipReturnDetail.setResourceset(Resourceset.builder()
+//                        .resourceId(eipEntity.getInstanceId())
+//                        .resourceType(eipEntity.getInstanceType()).build());
+//                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+//            } else {
+//                log.debug("Failed to find eip by instance id, instanceId:{}", instanceId);
+//                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+//                        "can not find instance by this id:" + instanceId + ""),
+//                        HttpStatus.NOT_FOUND);
+//            }
+//
+//        } catch (Exception e) {
+//            log.error("Exception in getEipByInstanceId", e);
+//            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
     public ResponseEntity getEipGroupByIpAddress(String eip) {
         try {
@@ -679,8 +679,8 @@ public class EipServiceImpl implements IEipService {
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_PARA_SERVERID_ERROR)), HttpStatus.BAD_REQUEST);
         }
 
-        Eip eipCheck = eipRepository.findByInstanceIdAndIsDelete(serverId, 0);
-        if (eipCheck != null) {
+        List<Eip> eipChecks = eipRepository.findByInstanceIdAndIsDelete(serverId, 0);
+        if (!eipChecks.isEmpty()) {
             log.error("The binding failed,  the instanceid  has already bind  eip,instanceid", serverId);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.EIP_BIND_HAS_BAND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND)), HttpStatus.BAD_REQUEST);
@@ -719,7 +719,7 @@ public class EipServiceImpl implements IEipService {
     }
 
     @Override
-    public ResponseEntity eipUnbindWithInstacnce(String eipId, String instanceId) {
+    public ResponseEntity eipUnbindWithInstacnce(String eipId) {
         String code = ReturnStatus.SC_PARAM_ERROR;
         String msg = "param error";
         ActionResponse actionResponse = null;
@@ -727,8 +727,8 @@ public class EipServiceImpl implements IEipService {
         try {
             if (!StringUtils.isEmpty(eipId)) {
                 eipEntity = eipDaoService.getEipById(eipId);
-            } else if (!StringUtils.isEmpty(instanceId)) {
-                eipEntity = eipRepository.findByInstanceIdAndIsDelete(instanceId, 0);
+//            } else if (!StringUtils.isEmpty(instanceId)) {
+//                eipEntity = eipRepository.findByInstanceIdAndIsDelete(instanceId, 0);
             }
             if (null != eipEntity) {
                 String instanceType = eipEntity.getInstanceType();
@@ -1000,22 +1000,22 @@ public class EipServiceImpl implements IEipService {
         String code ;
         String msg ;
         ActionResponse actionResponse = null;
-        List<Eip> eipEntity = null;
+        List<Eip> eipEntitys = null;
         String flag = "success";
         try {
             if (!StringUtils.isEmpty(groupId)) {
-                eipEntity = eipDaoService.getEipListByGroupId(groupId);
+                eipEntitys = eipDaoService.getEipListByGroupId(groupId);
             } else if (!StringUtils.isEmpty(instanceId)) {
-                eipEntity = eipDaoService.findByInstanceIdAndIsDelete(instanceId);
+                eipEntitys = eipDaoService.findByInstanceIdAndIsDelete(instanceId);
             }
-            if (null != eipEntity && !eipEntity.isEmpty()) {
-                for(Eip eip : eipEntity){
+            if (null != eipEntitys && !eipEntitys.isEmpty()) {
+                for(Eip eip : eipEntitys){
                     String instanceType = eip.getInstanceType();
                     if (null != instanceType) {
                         switch (instanceType) {
                             case HsConstants.ECS:
                                 // 1：ecs
-                                actionResponse = eipDaoService.disassociateInstanceWithEipGroup(eip);
+                                actionResponse = eipDaoService.disassociateInstanceWithEip(eip);
                                 if(actionResponse != null){
                                     if(!actionResponse.isSuccess()){
                                         flag="failed";
@@ -1026,7 +1026,7 @@ public class EipServiceImpl implements IEipService {
                                 break;
                             case HsConstants.CPS:
                             case HsConstants.SLB:
-                                actionResponse = eipDaoService.disassociateInstanceWithEipGroup(eip);
+                                actionResponse = eipDaoService.disassociateInstanceWithEip(eip);
                                 if(actionResponse != null){
                                     if(actionResponse.isSuccess()){
                                         flag="success";
