@@ -12,9 +12,7 @@ import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import groovy.util.logging.Slf4j;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -44,6 +42,7 @@ import static org.junit.Assert.*;
 public class EipServiceImplTest {
 
 
+
     @Autowired
     EipServiceImpl eipServiceImpl;
 
@@ -59,9 +58,14 @@ public class EipServiceImplTest {
     @Autowired
     EipRepository eipRepository;
 
+    Eip eip;
+
+
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
+
+        eip = creatEip(HsConstants.HOURLYSETTLEMENT,null);
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest() {
 
 
@@ -74,6 +78,7 @@ public class EipServiceImplTest {
                 }
                 return null;
             }
+
 
             @Override
             public Object getAttribute(String name) {
@@ -420,7 +425,10 @@ public class EipServiceImplTest {
 
     @After
     public void tearDown() throws Exception {
+        eipServiceImpl.atomDeleteEip(eip.getId());
     }
+
+
 
     @Test
     public void atomCreateEip() {
@@ -491,7 +499,7 @@ public class EipServiceImplTest {
 
     @Test
     public void atomDeleteEip() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        //Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
 
         if (null != eip) {
             ResponseEntity responseEntity = eipServiceImpl.atomDeleteEip(eip.getId());
@@ -516,6 +524,7 @@ public class EipServiceImplTest {
         Eip eip = creatEip(HsConstants.MONTHLY, null);
         //String eipId = "e72da25a-f1e6-4603-8432-d0de7edf3d87";
         ResponseEntity responseEntity = eipServiceImpl.atomDeleteEip(eip.getId());
+        eipDaoService.adminDeleteEip(eip.getId());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
@@ -524,25 +533,18 @@ public class EipServiceImplTest {
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, "other");
         //String eipId = "9659c812-d006-49a2-98b8-168f95bfae12";
         ResponseEntity responseEntity = eipServiceImpl.atomDeleteEip(eip.getId());
+        eipDaoService.adminDeleteEip(eip.getId());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
     @Test
     public void bindEipDelete() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        eip.setPrivateIpAddress("1.2.3.4");
-        eip.setFloatingIp("1.2.3.4");
-        eip.setFloatingIpId("3338a9df-3df0-400c-8fe7-7563d9c1e749");
-        eip.setPipId("10.110.26.0");
-        eip.setDnatId("1.2.3.4");
-        eip.setSnatId("1.2.3.4");
-        eip.setInstanceId("20d00e01-afa5-4e8c-a272-77a27b4773f2");
-        eip.setInstanceType("1");
-        eip.setPortId("928fe9a9-0df7-4147-bb15-0c455d7b06d5");
+        //Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         eip.setStatus(HsConstants.ACTIVE);
-        eip.setUpdatedTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eip);
         ResponseEntity responseEntity = eipServiceImpl.atomDeleteEip(eip.getId());
+        eip.setStatus(HsConstants.DOWN);
+        eipRepository.saveAndFlush(eip);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
