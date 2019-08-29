@@ -1,4 +1,4 @@
-package com.inspur.eip.service.implTest;
+package com.inspur.eip.service.impl;
 
 import com.inspur.eip.TestEipServiceApplication;
 import com.inspur.eip.service.TokenUtil;
@@ -15,7 +15,6 @@ import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.EipV6DaoService;
 import com.inspur.eip.service.SbwDaoService;
-import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.constant.HsConstants;
 import groovy.util.logging.Slf4j;
 import org.junit.After;
