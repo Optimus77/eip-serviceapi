@@ -42,7 +42,8 @@ public class SbwDaoService {
     @Autowired
     private EipRepository eipRepository;
 
-    @Resource(name="firewallService")
+//    @Resource(name="firewallService")
+    @Autowired
     private IDevProvider providerService;
 
     @Autowired

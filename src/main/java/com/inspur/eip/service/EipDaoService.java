@@ -51,7 +51,7 @@ public class EipDaoService {
     @Autowired
     private EipRepository eipRepository;
 
-    @Resource(name="firewallService")
+    @Autowired
     private IDevProvider providerService;
 
     @Autowired

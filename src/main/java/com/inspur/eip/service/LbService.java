@@ -27,7 +27,7 @@ import java.net.InetAddress;
 import java.util.Optional;
 
 @Slf4j
-@Service("lbService")
+@Service
 @ConditionalOnProperty(value = "firewall.type", havingValue = "radware")
 public class LbService implements IDevProvider {
     @Value("${firewall.ip}")
