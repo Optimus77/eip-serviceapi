@@ -653,9 +653,22 @@ public class EipDaoService {
 
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    /*@Transactional(isolation = Isolation.SERIALIZABLE)
     public synchronized EipPool getOneEipFromPool() {
         EipPool eipAddress = eipPoolRepository.getEipByRandom();
+        if (null != eipAddress) {
+            eipPoolRepository.deleteById(eipAddress.getId());
+            eipPoolRepository.flush();
+        }
+        return eipAddress;
+    }*/
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public synchronized EipPool getOneEipFromPool(String type) {
+        if(type == null){
+            type="BGP";
+        }
+        EipPool eipAddress = eipPoolRepository.getEipByRandom(type);
         if (null != eipAddress) {
             eipPoolRepository.deleteById(eipAddress.getId());
             eipPoolRepository.flush();

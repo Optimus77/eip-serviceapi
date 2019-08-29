@@ -1,28 +1,18 @@
-package com.eipserviceapi.unitTest.implTest;
+package com.inspur.eip.service.impl;
 
-import com.eipserviceapi.TestEipServiceApplication;
-import com.eipserviceapi.unitTest.TokenUtil;
+import com.inspur.eip.EipServiceApplicationTests;
+import com.inspur.eip.service.TokenUtil;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.eip.EipPool;
-import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.service.EipDaoService;
-import com.inspur.eip.service.FirewallService;
-import com.inspur.eip.service.WebControllerService;
-import com.inspur.eip.service.impl.EipServiceImpl;
 //import groovy.util.logging.Slf4j;
-import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import groovy.util.logging.Slf4j;
-import jdk.nashorn.internal.parser.Token;
-import org.apache.http.HttpException;
-import org.apache.kafka.common.protocol.types.Field;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,9 +28,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.ProtocolException;
-import java.net.URL;
 import java.security.Principal;
 import java.util.*;
 
@@ -50,9 +37,10 @@ import static org.junit.Assert.*;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = EipServiceImpl.class)
 @Rollback
-@SpringBootTest(classes = TestEipServiceApplication.class)
+@SpringBootTest(classes = EipServiceApplicationTests.class)
 @Transactional
 public class EipServiceImplTest {
+
 
 
     @Autowired
@@ -70,9 +58,14 @@ public class EipServiceImplTest {
     @Autowired
     EipRepository eipRepository;
 
+    Eip eip;
+
+
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
+
+        eip = creatEip(HsConstants.HOURLYSETTLEMENT,null);
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest() {
 
 
@@ -85,6 +78,7 @@ public class EipServiceImplTest {
                 }
                 return null;
             }
+
 
             @Override
             public Object getAttribute(String name) {
@@ -431,7 +425,10 @@ public class EipServiceImplTest {
 
     @After
     public void tearDown() throws Exception {
+        eipServiceImpl.atomDeleteEip(eip.getId());
     }
+
+
 
     @Test
     public void atomCreateEip() {
@@ -449,7 +446,7 @@ public class EipServiceImplTest {
         //token of xinjing
         //String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJlNWZiMmEyZC03ZWViLTQ1YzEtOGUyMi0wZDdhYmQxN2MyODQiLCJleHAiOjE1NjEzNDI0NDAsIm5iZiI6MCwiaWF0IjoxNTYxMzM3MDQwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImM2ODQ2ZmNkLTcyMmEtNGMyMi04MTQ4LWY1YWE5ODdhZWU5OSIsImF1dGhfdGltZSI6MTU2MTMzNzAzOSwic2Vzc2lvbl9zdGF0ZSI6ImIyZDFmZDFjLTgyN2QtNDhiOS04ZWI5LWIwOWVjMGI4MWFjYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsImludml0ZWRfcmVnaW9uIjoiW1wiY24tc291dGgtMVwiXSIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.KNuL_ucWbqN4S8QuoRQvQdKWaUy2wB38X8HmNESsGmVgbFmFoSf-wSftJPWK5QzGBu6WfBbj9_LqQDYv2h10bvsZFVupwvQTuQyo_16Cjhx7fQrFbUXxyFd7THME2QnbifhwwX7ka7ieNy8wh5h_Q_7fNZzup6uQ8dhEz3zfS6GR6H3gtsiofieUtMYccD_u3PdsnZ0AUecOxMyLG2fFLjYCjYdfICwU3AKne1IxLozIcrN9vSXd0qZl3ktnqqItPaaWpwvliAtwXN6ixpg8gJ-A2253zg2SQaGXDmMpOCTMycMhLMgOW6Tmok3zyHMlfjhqKDf4Pc14_JR_PhGWjA";
         String operater = "unitTest";
-        if (eipPoolRepository.getEipByRandom() == null) {
+        if (eipPoolRepository.getEipByRandom("BGP") == null) {
             ResponseEntity responseEntity = eipServiceImpl.atomCreateEip(eipConfig, token, operater);
             assertEquals(HttpStatus.FAILED_DEPENDENCY, responseEntity.getStatusCode());
         } else {
@@ -472,8 +469,8 @@ public class EipServiceImplTest {
         eipConfig.setDuration("1");
         String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIwNWJlYjNhMS0yMGQ3LTRiN2EtYjNiYi03ZDgxNjUzMzAxYWUiLCJleHAiOjE1NjE2MDQ1MTcsIm5iZiI6MCwiaWF0IjoxNTYxNTk5MTE3LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImNjZjc3YTJjLWU4MDMtNDdjMi04OGNiLTdjZDYyYzNhOWIwMCIsImF1dGhfdGltZSI6MTU2MTU5OTExMCwic2Vzc2lvbl9zdGF0ZSI6IjhkYWI4ZTAxLWJhNDYtNGY3My1iY2MyLWM5ZDg2M2I3ZjZkYyIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.mVHzxGdKCmL9ZF1Xa9JCJkTTXSfg7UDTPPVy9oBGuwkzw492Uo3sMmcVnx26l5fO0k__vIxkR5TfuCtgvAJPvp1Mw6rmp2yN45ZUMUQ513uckoPeXUMNzE7f9-GnkZ2qZ2APCYO_JNevWiPHqgoQBEllONDtof4YbTbEkPpeGSL2_g_66CK2sdrG2C8tYSpj2Yayab0q99IM1BwclkgJXxrUVtZTlt3sIdtoJwgi45HujNTfpMmB71JVCHTjsuPqiifYNmAk-SEkdsn22zBTyTApArreRq6QH_mvHIkgB6FjQvjlvpzZH9BzchZh876HY8PrUBlb5UmTeLALfzlh4Q";
         String operater = "unitTest";
-        while (eipPoolRepository.getEipByRandom() != null) {
-            eipDaoService.getOneEipFromPool();
+        while (eipPoolRepository.getEipByRandom("BGP") != null) {
+            eipDaoService.getOneEipFromPool("BGP");
         }
         ResponseEntity responseEntity = eipServiceImpl.atomCreateEip(eipConfig, token, operater);
         assertEquals(HttpStatus.FAILED_DEPENDENCY, responseEntity.getStatusCode());
@@ -502,7 +499,7 @@ public class EipServiceImplTest {
 
     @Test
     public void atomDeleteEip() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        //Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
 
         if (null != eip) {
             ResponseEntity responseEntity = eipServiceImpl.atomDeleteEip(eip.getId());
@@ -527,6 +524,7 @@ public class EipServiceImplTest {
         Eip eip = creatEip(HsConstants.MONTHLY, null);
         //String eipId = "e72da25a-f1e6-4603-8432-d0de7edf3d87";
         ResponseEntity responseEntity = eipServiceImpl.atomDeleteEip(eip.getId());
+        eipDaoService.adminDeleteEip(eip.getId());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
@@ -535,25 +533,18 @@ public class EipServiceImplTest {
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, "other");
         //String eipId = "9659c812-d006-49a2-98b8-168f95bfae12";
         ResponseEntity responseEntity = eipServiceImpl.atomDeleteEip(eip.getId());
+        eipDaoService.adminDeleteEip(eip.getId());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
     @Test
     public void bindEipDelete() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        eip.setPrivateIpAddress("1.2.3.4");
-        eip.setFloatingIp("1.2.3.4");
-        eip.setFloatingIpId("3338a9df-3df0-400c-8fe7-7563d9c1e749");
-        eip.setPipId("10.110.26.0");
-        eip.setDnatId("1.2.3.4");
-        eip.setSnatId("1.2.3.4");
-        eip.setInstanceId("20d00e01-afa5-4e8c-a272-77a27b4773f2");
-        eip.setInstanceType("1");
-        eip.setPortId("928fe9a9-0df7-4147-bb15-0c455d7b06d5");
+        //Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         eip.setStatus(HsConstants.ACTIVE);
-        eip.setUpdatedTime(CommonUtil.getGmtDate());
         eipRepository.saveAndFlush(eip);
         ResponseEntity responseEntity = eipServiceImpl.atomDeleteEip(eip.getId());
+        eip.setStatus(HsConstants.DOWN);
+        eipRepository.saveAndFlush(eip);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
@@ -865,10 +856,10 @@ public class EipServiceImplTest {
         if (user == "other")
             token = TokenUtil.getToken("xinjing", "1qaz2wsx3edc");
         String operater = "unitTest";
-        if (eipPoolRepository.getEipByRandom() == null) {
+        if (eipPoolRepository.getEipByRandom("BGP") == null) {
             return null;
         } else {
-            EipPool eip = eipDaoService.getOneEipFromPool();
+            EipPool eip = eipDaoService.getOneEipFromPool("BGP");
             Eip eipEntity = eipDaoService.allocateEip(eipConfig, eip, operater, token);
             return eipEntity;
         }
