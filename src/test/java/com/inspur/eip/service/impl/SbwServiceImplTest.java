@@ -1,6 +1,7 @@
-package com.eipserviceapi.unitTest;
+package com.inspur.eip.service.impl;
 
-import com.eipserviceapi.TestEipServiceApplication;
+import com.inspur.eip.TestEipServiceApplication;
+import com.inspur.eip.service.TokenUtil;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.eip.EipAllocateParam;
@@ -8,16 +9,12 @@ import com.inspur.eip.entity.eip.EipPool;
 import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.entity.sbw.SbwUpdateParam;
 import com.inspur.eip.repository.EipPoolRepository;
+import com.inspur.eip.repository.EipPoolV6Repository;
 import com.inspur.eip.repository.EipRepository;
-import com.inspur.eip.repository.SbwRepository;
 import com.inspur.eip.service.EipDaoService;
-import com.inspur.eip.service.EipV6DaoService;
-import com.inspur.eip.service.FirewallService;
 import com.inspur.eip.service.SbwDaoService;
-import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.constant.HsConstants;
 import groovy.util.logging.Slf4j;
-import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,51 +22,58 @@ import org.junit.runner.RunWith;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
-
-import java.util.Optional;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.Principal;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
 @Slf4j
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = SbwDaoService.class)
+@ContextConfiguration(classes = SbwServiceImpl.class)
 @Rollback
 @SpringBootTest(classes = TestEipServiceApplication.class)
 @Transactional
-public class SbwDaoServiceTest {
+public class SbwServiceImplTest {
 
     @Autowired
-    private SbwDaoService sbwDaoService;
-
+    SbwServiceImpl sbwService;
     @Autowired
-    private FirewallService firewallService;
-
+    SbwDaoService sbwDaoService;
     @Autowired
-    private EipRepository eipRepository;
-
-    @Autowired
-    private SbwRepository sbwRepository;
-
+    EipPoolV6Repository eipPoolV6Repository;
     @Autowired
     EipDaoService eipDaoService;
     @Autowired
     EipPoolRepository eipPoolRepository;
     @Autowired
-    EipV6ServiceImpl eipV6Service;
+    EipRepository eipRepository;
 
     @Before
     public void setUp() throws Exception {
-        /*RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest(){
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest() {
 
             @Override
             public String getHeader(String name) {
-                //todo 测试之前摘取token
-                return "bearer " + "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJkYTU5MDVlNy04NzJiLTQ0OWItYjFkYy03YzRlZmZmZWMxYTUiLCJleHAiOjE1NjE5NTExODEsIm5iZiI6MCwiaWF0IjoxNTYxOTQ1NzgxLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjlkOTY5OTdjLTU2OWEtNDZmNC1iY2FjLTYzMDliODA3NGM5ZCIsImF1dGhfdGltZSI6MTU2MTk0NTc3OSwic2Vzc2lvbl9zdGF0ZSI6ImFlMWUzYzMyLTRkNGItNGM5OS1iNzU0LTMyNzkyZGZkNzEyMSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsImludml0ZWRfcmVnaW9uIjoiW1wiY24tc291dGgtMVwiXSIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.jJmhFY9G52OlURM0_8hOU4a7A-aLryalggjtsf-nLi5Spqg8gKA82zXTk-O7UtnJ9ZIHXQjCHQw7lrwQjv9dody_W6aDXPdD-6cIjb3X3sCer-CZGV2gWZs5KtlA_8VypNeyjJST1mLwSIp4vtALMSPEUZt229E74GL2uIkp6jmVcrwtN4ez81yIusYsrCZsSs8D6CIe_P0_O14E_HDAvy1h_AwNlNwHSd7k3bGqrkz-0NtMJtq6IKTmOtOqFvsHdp20UaRMmL3hAgu5MnxiM2lXxmkXSNgetMbexVlWGrLpumEpZoYYJ4nB6wQJKGOva3utGRwUpoXnMsGiR6Yn9g";
+                try {
+                    return "bearer " + TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
             }
 
             @Override
@@ -273,7 +277,6 @@ public class SbwDaoServiceTest {
             }
 
 
-
             @Override
             public Enumeration<String> getHeaders(String name) {
                 return null;
@@ -414,7 +417,6 @@ public class SbwDaoServiceTest {
                 return null;
             }
         }));
-        */
     }
 
     @After
@@ -422,266 +424,260 @@ public class SbwDaoServiceTest {
     }
 
     @Test
-    public void errorIsDeleteDeleteSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        deleteSbw(sbw.getId());
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        ActionResponse response = sbwDaoService.deleteSbw(sbw.getId(), token);
-        assertEquals(HttpStatus.SC_NOT_FOUND, response.getCode());
-    }
-
-    @Test
-    public void deleteSbwBandEip() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(),sbw.getId());
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        ActionResponse response = sbwDaoService.deleteSbw(sbw.getId(), token);
-        removeEipFromSbw(eip.getId(),sbw.getId());
-        deleteSbw(sbw.getId());
-        assertEquals(HttpStatus.SC_FORBIDDEN, response.getCode());
-    }
-
-    @Test
-    public void errorIsDeleteAdminDeleteSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        deleteSbw(sbw.getId());
-        ActionResponse response = sbwDaoService.adminDeleteSbw(sbw.getId());
-
-        assertEquals(HttpStatus.SC_NOT_FOUND, response.getCode());
-    }
-
-    @Test
-    public void deleteSbwAdminBandEip() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(),sbw.getId());
-        ActionResponse response = sbwDaoService.adminDeleteSbw(sbw.getId());
-        removeEipFromSbw(eip.getId(),sbw.getId());
-        deleteSbw(sbw.getId());
-        assertEquals(HttpStatus.SC_FORBIDDEN, response.getCode());
-    }
-
-    @Test
-    public void errorBillTypeRenewSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        ActionResponse actionResponse = sbwDaoService.renewSbwInfo(sbw.getId(), token);
-        deleteSbw(sbw.getId());
-        assertEquals(HttpStatus.SC_BAD_REQUEST, actionResponse.getCode());
-    }
-
-    @Test
-    public void errorBilltypeAddEipIntoSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.MONTHLY, null);
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(sbw.getBandWidth());
-        param.setBillType("monthly");
-        param.setChargemode(null);
+    public void atomCreateSbw() throws Exception {
+        SbwUpdateParam param = new SbwUpdateParam();
         param.setDuration("1");
-        param.setSbwId(sbw.getId());
-        param.setPortId(null);
-        param.setPrivateIp(null);
-        param.setServerId(null);
-        param.setType(null);
-        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eip.getId(), param, token);
-        deleteSbw(sbw.getId());
-        assertEquals(400, actionResponse.getCode());
-    }
-
-    @Test
-    public void addEipIntoSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(sbw.getBandWidth());
+        param.setBandwidth(100);
         param.setBillType("hourlySettlement");
-        param.setChargemode(null);
-        param.setDuration("1");
-        param.setSbwId(sbw.getId());
-        param.setPortId(null);
-        param.setPrivateIp(null);
-        param.setServerId(null);
-        param.setType(null);
+        param.setRegion("cn-north-3");
+        param.setSbwName("atomUnitTestNoOtherBuilder");
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        ResponseEntity responseEntity = sbwService.atomCreateSbw(param, token);
+        List<Sbw> list = sbwDaoService.findByProjectId("9d0b67cd-20cb-40b4-8dc4-b0415ca25d72");
+        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).getSbwName().equals("atomUnitTestNoOtherBuilder")) {
+                deleteSbw(sbw.getId());
+                sbw = list.get(i);
+                break;
+            }
+        }
+        deleteSbw(sbw.getId());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 
-        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eip.getId(), param, token);
-
-        assertEquals(ActionResponse.actionSuccess().getCode(), actionResponse.getCode());
     }
 
     @Test
-    public void errorSbwIdIsBlankAddEipIntoSbw() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(55);
-        param.setBillType("hourlySettlement");
-        param.setChargemode(null);
-        param.setDuration("1");
-        param.setSbwId(null);
-        param.setPortId(null);
-        param.setPrivateIp(null);
-        param.setServerId(null);
-        param.setType(null);
+    public void listByIdAndIsDeleteShareBandWidth() throws Exception {
+        Integer pageIndex = 20;
+        Integer pageSize = 100;
+        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        ResponseEntity responseEntity = sbwService.listShareBandWidth(pageIndex, pageSize, sbw.getId());
+        deleteSbw(sbw.getId());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
 
-        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eip.getId(), param, token);
+    @Test
+    public void listByIsDeleteAndSbwName() throws Exception {
+        Integer pageIndex = 20;
+        Integer pageSize = 100;
+        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        ResponseEntity responseEntity = sbwService.listShareBandWidth(pageIndex, pageSize, sbw.getSbwName());
+        deleteSbw(sbw.getId());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void listByIsDelete() {
+        Integer pageIndex = 20;
+        Integer pageSize = 100;
+        String searchValue = null;
+        ResponseEntity responseEntity = sbwService.listShareBandWidth(pageIndex, pageSize, searchValue);
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void listByProjectId() {
+        Integer pageIndex = 0;
+        Integer pageSize = 100;
+        String searchValue = null;
+        ResponseEntity responseEntity = sbwService.listShareBandWidth(pageIndex, pageSize, searchValue);
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void deleteSbwInfo() throws Exception {
+        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        ActionResponse response = sbwService.deleteSbwInfo(sbw.getId(), token);
+
+        assertEquals(200, response.getCode());
+    }
+
+    @Test
+    public void errorDeletesbwIdIsBlank() throws Exception {
+        String sbwId = null;
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        ActionResponse response = sbwService.deleteSbwInfo(sbwId, token);
+
+        assertEquals(400, response.getCode());
+    }
+
+    @Test
+    public void bssSoftDeleteSbw() throws Exception {
+        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        ActionResponse actionResponse = sbwService.bssSoftDeleteSbw(sbw.getId());
+
+        assertEquals(200, actionResponse.getCode());
+    }
+
+    @Test
+    public void errorBssSoftDeleteSbw() {
+        String sbwId = null;
+        ActionResponse actionResponse = sbwService.bssSoftDeleteSbw(sbwId);
 
         assertEquals(400, actionResponse.getCode());
     }
 
     @Test
-    public void errorEipIdAddEipIntoSbw() throws Exception {
+    public void getSbwDetail() throws Exception {
         Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        String eipId = "123";
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(sbw.getBandWidth());
-        param.setBillType("hourlySettlement");
-        param.setChargemode(null);
-        param.setDuration("1");
-        param.setSbwId(sbw.getId());
-        param.setPortId(null);
-        param.setPrivateIp(null);
-        param.setServerId(null);
-        param.setType(null);
-        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eipId, param, token);
+        ResponseEntity sbwDetail = sbwService.getSbwDetail(sbw.getId());
         deleteSbw(sbw.getId());
-        assertEquals(404, actionResponse.getCode());
+        assertEquals(HttpStatus.OK, sbwDetail.getStatusCode());
     }
 
     @Test
-    public void errorEipBandV6AddEipIntoSbw() throws Exception {
+    public void updateSbwConfig() throws Exception {
         Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        eipV6Service.atomCreateEipV6(eip.getId(),token);
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(sbw.getBandWidth());
+        SbwUpdateParam param = new SbwUpdateParam();
+        param.setSbwName("unitTestCheckout");
+        param.setRegion("cn-north-3");
         param.setBillType("hourlySettlement");
-        param.setChargemode(null);
+        param.setBandwidth(202);
         param.setDuration("1");
-        param.setSbwId(sbw.getId());
-        param.setPortId(null);
-        param.setPrivateIp(null);
-        param.setServerId(null);
-        param.setType(null);
-        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eip.getId(), param, token);
+        ActionResponse response = sbwService.updateSbwConfig(sbw.getId(), param, token);
         deleteSbw(sbw.getId());
-        eipV6Service.atomDeleteEipV6(eip.getEipV6Id());
-        assertEquals(404, actionResponse.getCode());
+        assertEquals(200, response.getCode());
     }
 
     @Test
-    public void errorEipAlreadyAddEipIntoSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(),sbw.getId());
+    public void errorUpdateSbwConfig() throws Exception {
+        String sbwId = null;
+        SbwUpdateParam param = new SbwUpdateParam();
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(sbw.getBandWidth());
-        param.setBillType("hourlySettlement");
-        param.setChargemode(null);
-        param.setDuration("1");
-        param.setSbwId(sbw.getId());
-        param.setPortId(null);
-        param.setPrivateIp(null);
-        param.setServerId(null);
-        param.setType(null);
-        ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eip.getId(), param, token);
-        removeEipFromSbw(eip.getId(),sbw.getId());
-        deleteSbw(sbw.getId());
-        assertEquals(400, actionResponse.getCode());
+        ActionResponse response = sbwService.updateSbwConfig(sbwId, param, token);
+
+        assertEquals(500, response.getCode());
     }
 
     @Test
-    public void removeEipFromSbwTest() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(),sbw.getId());
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(eip.getOldBandWidth());
-        param.setBillType("hourlySettlement");
-        param.setChargemode(null);
-        param.setDuration("1");
-        param.setSbwId(sbw.getId());
-        param.setPortId(null);
-        param.setPrivateIp(null);
-        param.setServerId(null);
-        param.setType(null);
-        ActionResponse actionResponse = sbwDaoService.removeEipFromSbw(eip.getId(), param, token);
-        deleteSbw(sbw.getId());
-        assertEquals(ActionResponse.actionSuccess().getCode(), actionResponse.getCode());
+    public void countSbwNumsByProjectId() {
+        ResponseEntity sbwCount = sbwService.countSbwNumsByProjectId();
+
+        assertEquals(HttpStatus.OK, sbwCount.getStatusCode());
     }
 
     @Test
-    public void errorSbwIdIsBlankRemoveEipFromSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(),sbw.getId());
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(eip.getOldBandWidth());
-        param.setBillType("hourlySettlement");
-        param.setChargemode(null);
-        param.setDuration("1");
-        param.setSbwId(null);
-        param.setPortId(null);
-        param.setPrivateIp(null);
-        param.setServerId(null);
-        param.setType(null);
-        ActionResponse actionResponse = sbwDaoService.removeEipFromSbw(eip.getId(), param, token);
-        removeEipFromSbw(eip.getId(),sbw.getId());
-        deleteSbw(sbw.getId());
-        assertEquals(400, actionResponse.getCode());
+    public void countSbwNumsByStatus() {
+        String status = "ACTIVE";
+        ResponseEntity responseEntity = sbwService.countSbwNumsByStatus(status);
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     @Test
-    public void errorEipIdNotFoundRemoveEipFromSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(),sbw.getId());
+    public void restartSbwService() throws Exception {
+        Sbw sbw = creatSbw(HsConstants.MONTHLY, null);
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(eip.getOldBandWidth());
-        param.setBillType("hourlySettlement");
-        param.setChargemode(null);
+        SbwUpdateParam param = new SbwUpdateParam();
         param.setDuration("1");
-        param.setSbwId(sbw.getId());
-        param.setPortId(null);
-        param.setPrivateIp(null);
-        param.setServerId(null);
-        param.setType(null);
-        ActionResponse actionResponse = sbwDaoService.removeEipFromSbw("123", param, token);
-        removeEipFromSbw(eip.getId(),sbw.getId());
+        param.setRegion("cn-north-3");
+        ActionResponse response = sbwService.restartSbwService(sbw.getId(), param, token);
         deleteSbw(sbw.getId());
-        assertEquals(404, actionResponse.getCode());
+        assertEquals(200, response.getCode());
     }
 
     @Test
-    public void errorSbwIdNotFoundRemoveEipFromSbw() throws Exception {
+    public void errorRestartSbwService() throws Exception {
+        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        SbwUpdateParam param = new SbwUpdateParam();
+        ActionResponse response = sbwService.restartSbwService(sbw.getId(), param, token);
+        deleteSbw(sbw.getId());
+        assertEquals(400, response.getCode());
+    }
+
+    @Test
+    public void stopSbwService() throws Exception {
+        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        SbwUpdateParam param = new SbwUpdateParam();
+        param.setDuration("0");
+        ActionResponse response = sbwService.stopSbwService(sbw.getId(), param);
+        deleteSbw(sbw.getId());
+        assertEquals(200, response.getCode());
+    }
+
+    @Test
+    public void errorStopSbwService() throws Exception {
+        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        SbwUpdateParam param = new SbwUpdateParam();
+        param.setDuration(null);
+        ActionResponse response = sbwService.stopSbwService(sbw.getId(), param);
+        deleteSbw(sbw.getId());
+        assertEquals(400, response.getCode());
+    }
+
+    @Test
+    public void sbwListEip() throws Exception {
         Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(),sbw.getId());
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(eip.getOldBandWidth());
-        param.setBillType("hourlySettlement");
-        param.setChargemode(null);
-        param.setDuration("1");
-        param.setSbwId("123");
-        param.setPortId(null);
-        param.setPrivateIp(null);
-        param.setServerId(null);
-        param.setType(null);
-        ActionResponse actionResponse = sbwDaoService.removeEipFromSbw(eip.getId(), param, token);
-        removeEipFromSbw(eip.getId(),sbw.getId());
+        addEipToSbw(eip.getId(), sbw.getId());
+        Integer currentPage = 20;
+        Integer limit = 50;
+        ResponseEntity responseEntity = sbwService.sbwListEip(sbw.getId(), currentPage, limit);
+        removeEipFromSbw(eip.getId(), sbw.getId());
         deleteSbw(sbw.getId());
-        assertEquals(404, actionResponse.getCode());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+
+    }
+
+    @Test
+    public void sbwListEipWithSbwIsNull() {
+        String sbwId = "123";
+        Integer currentPage = 0;
+        Integer limit = 50;
+        ResponseEntity responseEntity = sbwService.sbwListEip(sbwId, currentPage, limit);
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void sbwListEipWithNOCurrentPage() throws Exception {
+        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        Integer currentPage = 0;
+        Integer limit = 50;
+        ResponseEntity responseEntity = sbwService.sbwListEip(sbw.getId(), currentPage, limit);
+        deleteSbw(sbw.getId());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void renameSbw() throws Exception {
+        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        SbwUpdateParam param = new SbwUpdateParam();
+        param.setSbwName("rename");
+        ResponseEntity responseEntity = sbwService.renameSbw(sbw.getId(), param);
+        deleteSbw(sbw.getId());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void errorrRenameSbw() {
+        String sbwId = null;
+        SbwUpdateParam param = new SbwUpdateParam();
+        param.setSbwName(null);
+        ResponseEntity responseEntity = sbwService.renameSbw(sbwId, param);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+    }
+
+
+    @Test
+    public void getOtherEips() throws Exception {
+        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        ResponseEntity otherEips = sbwService.getOtherEips(sbw.getId());
+        deleteSbw(sbw.getId());
+        assertEquals(HttpStatus.OK, otherEips.getStatusCode());
+    }
+
+    @Test
+    public void getOtherEipsSbwIsNull(){
+        String sbwId = "123";
+        ResponseEntity otherEips = sbwService.getOtherEips(sbwId);
+        assertEquals(HttpStatus.BAD_REQUEST, otherEips.getStatusCode());
     }
 
 
@@ -699,10 +695,10 @@ public class SbwDaoServiceTest {
         if (user == "other")
             token = TokenUtil.getToken("xinjing", "1qaz2wsx3edc");
         String operater = "unitTest";
-        if (eipPoolRepository.getEipByRandom() == null) {
+        if (eipPoolRepository.getEipByRandom("BGP") == null) {
             return null;
         } else {
-            EipPool eip = eipDaoService.getOneEipFromPool();
+            EipPool eip = eipDaoService.getOneEipFromPool("BGP");
             Eip eipEntity = eipDaoService.allocateEip(eipConfig, eip, operater, token);
             return eipEntity;
         }
@@ -748,6 +744,4 @@ public class SbwDaoServiceTest {
         eipUpdateParam.setBandwidth(eip.getOldBandWidth());
         sbwDaoService.removeEipFromSbw(eipId, eipUpdateParam, token);
     }
-
 }
-

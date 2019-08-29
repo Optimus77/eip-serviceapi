@@ -1,15 +1,12 @@
-package com.eipserviceapi.unitTest;
+package com.inspur.eip.service;
 
-import com.eipserviceapi.TestEipServiceApplication;
+import com.inspur.eip.TestEipServiceApplication;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.eip.EipPool;
-import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
-import com.inspur.eip.service.EipDaoService;
-import com.inspur.eip.service.NeutronService;
 import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.constant.HsConstants;
 import groovy.util.logging.Slf4j;
@@ -664,7 +661,7 @@ public class EipDaoServiceTest {
 
     @Test
     public void getOneEipFromPool() {
-        EipPool eipPool = eipDaoService.getOneEipFromPool();
+        EipPool eipPool = eipDaoService.getOneEipFromPool("BGP");
         assertThat(eipPool, instanceOf(EipPool.class));
     }
 
@@ -704,10 +701,10 @@ public class EipDaoServiceTest {
         if (user == "other")
             token = TokenUtil.getToken("xinjing","1qaz2wsx3edc");
         String operater = "unitTest";
-        if (eipPoolRepository.getEipByRandom() == null) {
+        if (eipPoolRepository.getEipByRandom("BGP") == null) {
             return null;
         } else {
-            EipPool eip = eipDaoService.getOneEipFromPool();
+            EipPool eip = eipDaoService.getOneEipFromPool("BGP");
             Eip eipEntity = eipDaoService.allocateEip(eipConfig, eip, operater, token);
             return eipEntity;
         }

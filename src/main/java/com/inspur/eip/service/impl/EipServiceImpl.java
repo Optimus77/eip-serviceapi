@@ -88,7 +88,7 @@ public class EipServiceImpl implements IEipService {
                             "Can not find sbw"), HttpStatus.FAILED_DEPENDENCY);
                 }
             }
-            EipPool eip = eipDaoService.getOneEipFromPool();
+            EipPool eip = eipDaoService.getOneEipFromPool(eipConfig.getIpType());
             if (null == eip) {
                 msg = "Failed, no eip in eip pool.";
                 log.error(msg);

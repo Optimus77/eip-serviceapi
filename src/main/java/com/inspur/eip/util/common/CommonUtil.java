@@ -487,7 +487,7 @@ public class CommonUtil {
             log.info("admin account, realmAccess:{}", realmAccess);
             return true;
         }else{
-            log.error("Not admin account.{}", jsonObject.toString());
+            log.info("Not admin account.{}", jsonObject.toString());
             return false;
         }
     }
