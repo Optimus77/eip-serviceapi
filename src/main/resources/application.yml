@@ -189,14 +189,8 @@ firewall:
   port: 443
   user: iojHL/UrEMTtZ3Ec3YtV1/0NdjZmNE14
   password: dNe9QCSE9S8AgSEshlpAXsklH8yW0vlE
-#  radware equipment
-#firewall:
-#  type: radware
-#  id: 03b3de91-ec19-465b-ab5d-bbbe2c9a9afc
-#  ip: 10.110.29.206
-#  port: 443
-#  user: j0sUiT770r/4q8u6x7AkTw==
-#  password: j0sUiT770r/4q8u6x7AkTw==
+#  硬件设备插网线的端口
+  interface: 6
 
 #Flpnetwork configuration
 fipNetworkId: f4790efe-5df0-4f04-991b-a3c105e63b71
