@@ -459,7 +459,7 @@ public class CommonUtil {
 
     }
 
-    public static boolean verifyToken(String token, String projectId){
+    public static boolean verifyToken(String token, String projectIdInDb){
         String projectIdInToken = null;
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
         if(jsonObject.has("project_id")){
@@ -467,13 +467,11 @@ public class CommonUtil {
         } else {
             projectIdInToken = (String) jsonObject.get("sub");
         }
-        if(projectIdInToken != null){
+        if(projectIdInToken != null && projectIdInDb.equals(projectIdInToken)){
             log.debug("project_id:{}", projectIdInToken);
-        }
-        if(projectIdInToken.equals(projectId)){
             return true;
         }
-
+        log.error("request projectId:{} ,DB projectId:{}",projectIdInToken, projectIdInDb);
         return false;
 
     }

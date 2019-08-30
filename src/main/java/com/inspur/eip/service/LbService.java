@@ -157,14 +157,14 @@ public class LbService implements IDevProvider {
     public MethodReturn addNatAndQos(Eip eip, String fipAddress, String eipAddress, int bandWidth, String firewallId) {
         String returnStat;
         String returnMsg;
-        String dnatRuleId = null;
-        String snatRuleId = null;
         String pipId = null;
+        String dnatId = null;
+        String snatId = null;
         try {
-            String dnatId = this.addDnatInEquipment(eip);
+             dnatId = this.addDnatInEquipment(eip);
             if (dnatId != null) {
                 eip.setDnatId(dnatId);
-                String snatId = this.addSnatInEquipment(eip);
+                 snatId = this.addSnatInEquipment(eip);
                 if (snatId != null) {
                     eip.setSnatId(snatId);
                     log.info("add nat and  successfully. snat:{}, dnat:{}", eip.getSnatId(), eip.getDnatId());
@@ -193,10 +193,10 @@ public class LbService implements IDevProvider {
             returnStat = ReturnStatus.SC_FIREWALL_SERVER_ERROR;
             returnMsg = e.getMessage();
         } finally {
-            if (dnatRuleId != null) {
+            if (dnatId != null) {
                 this.delDnatFromEquiment(eip);
             }
-            if (snatRuleId != null) {
+            if (snatId != null) {
                 this.delSnatFromEquiment(eip);
             }
         }
