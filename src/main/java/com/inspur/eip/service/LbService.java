@@ -38,6 +38,8 @@ public class LbService implements IDevProvider {
     private  String firewallUser;
     @Value("${firewall.password}")
     private  String firewallPasswd;
+    @Value("${firewall.interface}")
+    private  String firewallInterface;
 
     private static  String secretKey = "EbfYkitulv73I2p0mXI50JMXoaxZTKJ7";
 
@@ -53,7 +55,6 @@ public class LbService implements IDevProvider {
 
     @Autowired
     private SbwRepository sbwRepository;
-
 
     @Override
     public String addQos(String innerip, String name, String bandwidth, String fireWallId) {
@@ -98,8 +99,8 @@ public class LbService implements IDevProvider {
     public String addDnatInEquipment(Eip eip) {
 //      radware创建dnat
         RadwareService service = new RadwareService();
-        AddNat addNat = service.addDnat(eip.getFloatingIp(), 0, eip.getEipAddress(), 0, 0, 0, 0, baseObject);
-        return addNat.isStatus() == true ? String.valueOf(addNat.getNatFilterIndex()) : null;
+        AddNat addNat = service.addDnat(eip.getFloatingIp(), eip.getIpType(), eip.getEipAddress(), baseObject);
+        return addNat.isStatus() == true ? addNat.getVirtualServerIndex() : null;
     }
 
     /**
@@ -111,7 +112,7 @@ public class LbService implements IDevProvider {
     public String addSnatInEquipment(Eip eip) {
 //      radware 创建snat
         RadwareService service = new RadwareService();
-        AddNat addNat = service.addSnat(eip.getIpType(), 0, eip.getFloatingIp(), null, 0, baseObject);
+        AddNat addNat = service.addSnat(eip.getIpType(), 0, eip.getFloatingIp(), null, Integer.parseInt(firewallInterface), baseObject);
         return addNat.isStatus() == true ? String.valueOf(addNat.getNatFilterIndex()) : null;
     }
 
@@ -123,10 +124,10 @@ public class LbService implements IDevProvider {
      */
     public boolean delSnatFromEquiment(Eip eip) {
         RadwareService service = new RadwareService();
-        DelNat delNat = new DelNat();
-        delNat.setNatFilterIndex(Integer.parseInt(eip.getSnatId()));
+        DelNat delSnat = new DelNat();
+        delSnat.setNatFilterIndex(Integer.parseInt(eip.getSnatId()));
 //        delNat.
-        DelNat result = service.delSnat(delNat, baseObject);
+        DelNat result = service.delSnat(delSnat, baseObject);
         return result.isStatus();
     }
 
@@ -138,10 +139,7 @@ public class LbService implements IDevProvider {
      */
     public boolean delDnatFromEquiment(Eip eip) {
         RadwareService service = new RadwareService();
-        DelNat delNat = new DelNat();
-        delNat.setNatFilterIndex(Integer.parseInt(eip.getDnatId()));
-        DelNat result = service.delDnat(delNat, baseObject);
-        return result.isStatus();
+        return service.delDnat(eip.getDnatId(), baseObject);
     }
 
     /**
