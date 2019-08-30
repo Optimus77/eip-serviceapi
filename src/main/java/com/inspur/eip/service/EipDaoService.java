@@ -553,12 +553,19 @@ public class EipDaoService {
                 eipEntity.setDuration(addTime);
                 eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
                 eipRepository.saveAndFlush(eipEntity);
+                return ActionResponse.actionSuccess();
             } else {
                 log.error("renew eip error {}", fireWallReturn.getMessage());
                 return ActionResponse.actionFailed("firewall error when renew eip", HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
+        }else {
+            log.info("renew eip entity status.  ", eipEntity);
+            eipEntity.setStatus(HsConstants.DOWN);
+            eipEntity.setDuration(addTime);
+            eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
+            eipRepository.saveAndFlush(eipEntity);
+            return ActionResponse.actionSuccess();
         }
-        return ActionResponse.actionSuccess();
     }
 
 
