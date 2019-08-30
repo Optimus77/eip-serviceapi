@@ -1,15 +1,10 @@
-package com.eipserviceapi.unitTest;
+package com.inspur.eip.service;
 
-import com.eipserviceapi.TestEipServiceApplication;
-import com.inspur.eip.entity.EipUpdateParam;
+import com.inspur.eip.EipServiceApplicationTests;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.eip.EipPool;
-import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipPoolRepository;
-import com.inspur.eip.repository.EipRepository;
-import com.inspur.eip.service.EipDaoService;
-import com.inspur.eip.service.NeutronService;
 import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.util.constant.HsConstants;
 import groovy.util.logging.Slf4j;
@@ -17,7 +12,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.MockitoAnnotations;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,47 +21,39 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
-import java.util.*;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Locale;
+import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-
 @Slf4j
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = EipDaoService.class)
+@ContextConfiguration(classes = EipV6DaoService.class)
 @Rollback
-@SpringBootTest(classes = TestEipServiceApplication.class)
+@SpringBootTest(classes = EipServiceApplicationTests.class)
 @Transactional
-
-public class EipDaoServiceTest {
+public class EipV6DaoServiceTest {
 
     @Autowired
-    EipRepository eipRepository;
-
+    EipV6DaoService eipV6DaoService;
     @Autowired
     EipPoolRepository eipPoolRepository;
-
-    @Autowired
-    NeutronService neutronService;
-
     @Autowired
     EipDaoService eipDaoService;
-
     @Autowired
     EipV6ServiceImpl eipV6Service;
 
-
     @Before
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest() {
-
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest(){
 
             @Override
             public String getHeader(String name) {
@@ -280,6 +266,7 @@ public class EipDaoServiceTest {
             }
 
 
+
             @Override
             public Enumeration<String> getHeaders(String name) {
                 return null;
@@ -427,252 +414,56 @@ public class EipDaoServiceTest {
     }
 
     @Test
-    public void allocateEip() {
+    public void allocateEipV6() {
     }
 
     @Test
-    public void deleteEip() {
+    public void getOneEipFromPoolV6() {
     }
 
+    @Test
+    public void findEipV6ByUserId() {
+    }
 
     @Test
-    public void adminDeleteEip() throws Exception {
+    public void findByEipV6IdAndIsDelete() {
+    }
+
+    @Test
+    public void deleteEipV6() {
+    }
+
+    @Test
+    public void adminDeleteEipV6() throws Exception {
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        ActionResponse actionResponse = eipDaoService.adminDeleteEip(eip.getId());
-        assertEquals(200, actionResponse.getCode());
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        eipV6Service.atomCreateEipV6(eip.getId(),token);
+        ActionResponse actionResponse = eipV6DaoService.adminDeleteEipV6(eip.getEipV6Id());
+        assertEquals(200,actionResponse.getCode());
     }
 
     @Test
-    public void adminDeleteEipNull() {
-        String eipId = "123";
-        ActionResponse actionResponse = eipDaoService.adminDeleteEip(eipId);
-        assertEquals(200, actionResponse.getCode());
+    public void adminDeleteEipV6NotFound(){
+        String eipV6Id = "";
+        ActionResponse actionResponse = eipV6DaoService.adminDeleteEipV6(eipV6Id);
+        assertEquals(404,actionResponse.getCode());
     }
 
     @Test
-    public void adminDeleteEipAlreadyDelete() {
-        String eipId = "453a3f69-da30-470a-af3b-fe57ebea9326";
-        ActionResponse actionResponse = eipDaoService.adminDeleteEip(eipId);
-        assertEquals(200, actionResponse.getCode());
+    public void bindIpv6WithInstance() {
     }
 
     @Test
-    public void adminDeleteEipInBind() {
-        /*String eipId = "18c95fef-11ff-4e6e-8a1e-7a00949f9410";
-        ActionResponse actionResponse = eipDaoService.adminDeleteEip(eipId);
-        assertEquals(200, actionResponse.getCode());*/
+    public void unBindIpv6WithInstance() {
     }
 
     @Test
-    public void adminDeleteEipWithIpV6() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        eipV6Service.atomCreateEipV6(eip.getId(),TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
-        ActionResponse actionResponse = eipDaoService.adminDeleteEip(eip.getId());
-        assertEquals(200, actionResponse.getCode());
+    public void getEipV6ById() {
     }
 
     @Test
-    public void softDownEip() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        ActionResponse actionResponse = eipDaoService.softDownEip(eip.getId());
-        assertEquals(200, actionResponse.getCode());
+    public void updateIp() {
     }
-
-    @Test
-    public void softDownEipNotFound() {
-        String eipId = "123";
-        ActionResponse actionResponse = eipDaoService.softDownEip(eipId);
-        assertEquals(404, actionResponse.getCode());
-    }
-
-    @Test
-    public void associateInstanceWithEip() {
-    }
-
-    @Test
-    public void disassociateInstanceWithEip() {
-    }
-
-    @Test
-    public void updateEipEntity() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(123);
-        param.setBillType(HsConstants.HOURLYSETTLEMENT);
-        ActionResponse actionResponse = eipDaoService.updateEipEntity(eip.getId(), param, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
-        assertEquals(200, actionResponse.getCode());
-    }
-
-    @Test
-    public void updateEipEntityNotFound() throws Exception {
-
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(123);
-        param.setBillType(HsConstants.HOURLYSETTLEMENT);
-        ActionResponse actionResponse = eipDaoService.updateEipEntity("123", param, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
-        assertEquals(404, actionResponse.getCode());
-    }
-
-    @Test
-    public void updateEipEntityWithIpV6() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        eipV6Service.atomCreateEipV6(eip.getId(),TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(123);
-        param.setBillType(HsConstants.HOURLYSETTLEMENT);
-        ActionResponse actionResponse = eipDaoService.updateEipEntity(eip.getId(), param, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
-        eipV6Service.atomDeleteEipV6(eip.getEipV6Id());
-        assertEquals(404, actionResponse.getCode());
-    }
-
-    @Test
-    public void updateEipEntityOfOtherUser() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, "other");
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(123);
-        param.setBillType(HsConstants.HOURLYSETTLEMENT);
-        ActionResponse actionResponse = eipDaoService.updateEipEntity(eip.getId(), param, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
-        assertEquals(403, actionResponse.getCode());
-    }
-
-    @Test
-    public void updateEipEntityMonthly() throws Exception {
-        Eip eip = creatEip(HsConstants.MONTHLY, null);
-        EipUpdateParam param = new EipUpdateParam();
-        param.setBandwidth(0);
-        param.setBillType(HsConstants.MONTHLY);
-        ActionResponse actionResponse = eipDaoService.updateEipEntity(eip.getId(), param, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
-        assertEquals(400, actionResponse.getCode());
-    }
-
-    @Test
-    public void reNewEipEntity() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        String addTime = "1";
-        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eip.getId(), addTime);
-        assertEquals(200, actionResponse.getCode());
-    }
-
-    @Test
-    public void reNewEipEntityInBind() {
-        /*String eipId = "bc57d6ae-73b3-4c89-a029-171fa02f0e98";
-        String addTime = "1";
-        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
-        assertEquals(200, actionResponse.getCode());*/
-    }
-
-    @Test
-    public void reNewEipEntityNotFound() {
-        String eipId = "123";
-        String addTime = "1";
-        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime);
-        assertEquals(404, actionResponse.getCode());
-    }
-
-    @Test
-    public void reNewEipEntity1() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        String addTime = "1";
-        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eip.getId(), addTime, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
-        assertEquals(200, actionResponse.getCode());
-    }
-
-    @Test
-    public void reNewEipEntity1InBind() {
-        /*Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        String addTime = "1";
-        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
-        assertEquals(200, actionResponse.getCode());*/
-    }
-
-    @Test
-    public void reNewEipEntity1NotFound() throws Exception {
-        String eipId = "123";
-        String addTime = "1";
-        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eipId, addTime, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
-        assertEquals(404, actionResponse.getCode());
-    }
-
-    @Test
-    public void reNewEipEntity1OfOtherUser() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, "other");
-        String addTime = "1";
-        ActionResponse actionResponse = eipDaoService.reNewEipEntity(eip.getId(), addTime, TokenUtil.getToken("lishenghao","1qaz2wsx3edc"));
-        assertEquals(403, actionResponse.getCode());
-    }
-
-    @Test
-    public void findByProjectId() {
-    }
-
-    @Test
-    public void findByEipAddress() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eipEntity = eipDaoService.findByEipAddress(eip.getEipAddress());
-        assertEquals(eip, eipEntity);
-    }
-
-
-    @Test
-    public void getEipById() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eipEntity = eipDaoService.getEipById(eip.getId());
-        assertEquals(eip, eipEntity);
-    }
-
-    @Test
-    public void getInstanceNum() {
-        String userId = "9d0b67cd-20cb-40b4-8dc4-b0415ca25d72";
-        long instanceNum = eipDaoService.getInstanceNum(userId);
-        assertThat(instanceNum, instanceOf(long.class));
-    }
-
-    @Test
-    public void getFreeEipCount() {
-        int freeEipCount = eipDaoService.getFreeEipCount();
-        assertThat(freeEipCount, instanceOf(int.class));
-
-    }
-
-    @Test
-    public void getUsingEipCount() {
-        int usingEipCount = eipDaoService.getUsingEipCount();
-        assertThat(usingEipCount, instanceOf(int.class));
-    }
-
-    @Test
-    public void getTotalBandWidth() {
-        int totalBandWidth = eipDaoService.getTotalBandWidth();
-        assertThat(totalBandWidth, instanceOf(int.class));
-
-    }
-
-    @Test
-    public void getUsingEipCountByStatus() {
-        int getUsingEipCountByStatus = eipDaoService.getUsingEipCountByStatus("DOWN");
-        assertThat(getUsingEipCountByStatus, instanceOf(int.class));
-    }
-
-    @Test
-    public void getOneEipFromPool() {
-        EipPool eipPool = eipDaoService.getOneEipFromPool("1");
-        assertThat(eipPool, instanceOf(EipPool.class));
-    }
-
-    @Test
-    public void getDuplicateEip() {
-    }
-
-    @Test
-    public void getDuplicateEipFromPool() {
-    }
-
-
-    @Test
-    public void statisEipCountBySbw() {
-    }
-
 
     public Eip creatEip(String billType, String user) throws Exception {
         EipAllocateParam eipConfig = new EipAllocateParam();
@@ -684,17 +475,16 @@ public class EipDaoServiceTest {
         eipConfig.setRegion("cn-north-3");
         eipConfig.setSbwId(null);
         eipConfig.setDuration("1");
-        String token = TokenUtil.getToken("lishenghao","1qaz2wsx3edc");
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
         if (user == "other")
-            token = TokenUtil.getToken("xinjing","1qaz2wsx3edc");
+            token = TokenUtil.getToken("xinjing", "1qaz2wsx3edc");
         String operater = "unitTest";
-        if (eipPoolRepository.getEipByRandom("1") == null) {
+        if (eipPoolRepository.getEipByRandom("BGP") == null) {
             return null;
         } else {
-            EipPool eip = eipDaoService.getOneEipFromPool("1");
+            EipPool eip = eipDaoService.getOneEipFromPool("BGP");
             Eip eipEntity = eipDaoService.allocateEip(eipConfig, eip, operater, token);
             return eipEntity;
         }
     }
-
 }
