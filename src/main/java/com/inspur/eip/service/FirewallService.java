@@ -9,7 +9,6 @@ import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.exception.EipBadRequestException;
 import com.inspur.eip.exception.EipInternalServerException;
 import com.inspur.eip.repository.EipRepository;
-import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.repository.SbwRepository;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.common.MethodReturnUtil;
@@ -33,9 +32,6 @@ import java.util.Optional;
 @Service
 @ConditionalOnProperty(value = "firewall.type",havingValue = "hillstone")
 public class FirewallService implements IDevProvider{
-
-    @Autowired
-    private FirewallRepository firewallRepository;
 
     @Autowired
     private QosService qosService;
