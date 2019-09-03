@@ -475,6 +475,9 @@ public class EipServiceImpl implements IEipService {
         try {
             JSONArray eipinfo = new JSONArray();
             List<Eip> eipEntitys = eipDaoService.getEipListByGroupId(groupId);
+            if(eipEntitys.size() == 0) {
+                return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
+            }
             for(Eip eip: eipEntitys)
             {
                 if(null != eip){
@@ -567,6 +570,12 @@ public class EipServiceImpl implements IEipService {
             Eip eipEntity = eipDaoService.findByEipAddress(eip);
             if (null != eipEntity) {
                 String groupId = eipEntity.getGroupId();
+                if(groupId == null) {
+                    log.warn("Failed to find group by eip, eip:{}", eip);
+                    return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                            "can not find group by this eip address:" + eip + ""),
+                            HttpStatus.NOT_FOUND);
+                }
                 JSONArray eipinfo = new JSONArray();
                 List<Eip> eipEntitys = eipDaoService.getEipListByGroupId(groupId);
                 for(Eip eips: eipEntitys)
