@@ -320,5 +320,20 @@ public class LbService implements IDevProvider {
         return null;
     }
 
+    @Override
+    public boolean cmdCreateOrDeleteAddressBook(String entryName, String fireWallId, boolean control) {
+        return true;
+    }
+
+    @Override
+    public boolean cmdOperateStatisticsBook(String entryName, String firewallId, boolean control) {
+        return true;
+    }
+
+    @Override
+    public boolean cmdInsertOrRemoveParamInAddressBook(String entryName, String param, String addressType, String fireWallId, boolean control) {
+        return true;
+    }
+
 
 }

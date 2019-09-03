@@ -44,7 +44,7 @@ public class FlowService {
     private String exchange;
 
     // 发送订单消息的routingKey
-    @Value("${bss.queues.order.binding.returnRoutingKey}")
+    @Value("${bss.queues.order.binding.returnFlowRoutingKey}")
     private String orderKey;
 
 

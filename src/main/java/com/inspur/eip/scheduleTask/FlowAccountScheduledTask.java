@@ -22,7 +22,7 @@ import java.util.Map;
  **/
 @Component
 @Slf4j
-//@EnableScheduling
+@EnableScheduling
 public class FlowAccountScheduledTask {
 
     @Autowired
@@ -35,7 +35,7 @@ public class FlowAccountScheduledTask {
 //    每分钟统计
 //    @Scheduled(cron = "0 0/1 * * * * ")
     //    每小时统计
-//    @Scheduled(cron = "0 0 0/1 * * *")
+    @Scheduled(cron = "0 0 0/1 * * *")
     public void oneHourReportFlowAccount(){
         try {
             List<Eip> trafficEips = eipDaoService.findFlowAccountEipList("Traffic");
@@ -48,7 +48,7 @@ public class FlowAccountScheduledTask {
                         Long down = map.get(HillStoneConfigConsts.DOWN_TYPE);
                         Long sum = map.get(HillStoneConfigConsts.SUM_TYPE);
                         FlowAccount2Bss flowBean = flowService.getFlowAccount2BssBean(eip, up, down, sum);
-
+                        //给 Bss发送报文
                         flowService.sendOrderMessageToBss(flowBean);
                     }
                 }
