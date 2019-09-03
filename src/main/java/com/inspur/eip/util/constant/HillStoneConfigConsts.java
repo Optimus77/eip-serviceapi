@@ -10,10 +10,6 @@ public class HillStoneConfigConsts {
     public static final String EXIT_ENTER = "exit\r";
     public static final String ENTER_END = "\rend";
     public static final String END = "end";
-    public static final String D_TYPE_ADDRESS_ENTER = "/32\r";
-    public static final String C_TYPE_ADDRESS_ENTER = "/24\r";
-    public static final String B_TYPE_ADDRESS_ENTER = "/16\r";
-    public static final String A_TYPE_ADDRESS_ENTER = "/8\r";
     public static final String QOS_ENGINE_FIRST_ENTER = "qos-engine first\r";
     public static final String QOS_ENGINE_SECOND_ENTER = "qos-engine second\r";
 

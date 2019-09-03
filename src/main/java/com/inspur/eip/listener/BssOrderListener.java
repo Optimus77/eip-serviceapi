@@ -1,9 +1,11 @@
 package com.inspur.eip.listener;
 
+import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.inspur.eip.entity.bss.Console2BssResult;
 import com.inspur.eip.entity.bss.ReciveOrder;
 import com.inspur.eip.exception.EipBadRequestException;
 import com.inspur.eip.exception.EipInternalServerException;
@@ -11,20 +13,18 @@ import com.inspur.eip.service.impl.RabbitMqServiceImpl;
 import com.inspur.eip.util.constant.ConstantClassField;
 import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HsConstants;
-import com.inspur.eip.util.http.HttpsClientUtil;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
+import org.openstack4j.model.common.ActionResponse;
 import org.springframework.amqp.core.ExchangeTypes;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.*;
+import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -75,6 +75,8 @@ public class BssOrderListener {
     @Autowired
     private RabbitMqServiceImpl rabbitMqService;
 
+    //@Autowired
+//    private RabbitMessagingTemplate rabbitTemplate;
     // 必须配置一个handler为默认handler，避免消息在未配置Content-Type头时无法被处理
     @RabbitHandler(isDefault = true)
     public void process(@Payload Message message, Channel channel) throws  IOException {
@@ -83,37 +85,38 @@ public class BssOrderListener {
         objectMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
         //允许使用单引号
         objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+        ActionResponse response = null;
         // 可以通过message.getBody()获取消息的字节码，并通过ObjectMapper转换成对象
 //        log.info(objectMapper.readValue(message.getBody(), Object.class).toString());
+        ReciveOrder reciveOrder = null;
         try {
-            ReciveOrder reciveOrder = objectMapper.readValue(message.getBody(), ReciveOrder.class);
+            reciveOrder = objectMapper.readValue(message.getBody(), ReciveOrder.class);
             Optional<ReciveOrder> optional = Optional.ofNullable(reciveOrder);
             if (optional.isPresent()){
                 String orderType = reciveOrder.getOrderType();
                 String orderRoute = reciveOrder.getOrderRoute();
 
-
                 switch (orderType){
                     case HsConstants.NEW_ORDERTYPE:
                         if (HsConstants.EIP.equalsIgnoreCase(orderRoute) || HsConstants.IPTS.equalsIgnoreCase(orderRoute)){
-                            rabbitMqService.createEipInfo(reciveOrder);
+                            response = rabbitMqService.createEipInfo(reciveOrder);
                         }else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)){
-                            rabbitMqService.createSbwInfo(reciveOrder);
+                            response = rabbitMqService.createSbwInfo(reciveOrder);
                         }
                         break;
                     case HsConstants.CHANGECONFIGURE_ORDERTYPE:
                     case HsConstants.RENEW_ORDERTYPE:
                         if (HsConstants.EIP.equalsIgnoreCase(orderRoute)){
-                            rabbitMqService.updateEipInfoConfig(reciveOrder);
+                            response = rabbitMqService.updateEipInfoConfig(reciveOrder);
                         }else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)){
-                            rabbitMqService.updateSbwInfoConfig(reciveOrder);
+                            response = rabbitMqService.updateSbwInfoConfig(reciveOrder);
                         }
                         break;
                     case HsConstants.UNSUBSCRIBE_ORDERTYPE:
                         if (HsConstants.EIP.equalsIgnoreCase(orderRoute)|| HsConstants.IPTS.equalsIgnoreCase(orderRoute)){
-                            rabbitMqService.deleteEipConfig(reciveOrder);
+                            response = rabbitMqService.deleteEipConfig(reciveOrder);
                         }else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)){
-                            rabbitMqService.deleteSbwConfig(reciveOrder);
+                            response = rabbitMqService.deleteSbwConfig(reciveOrder);
                         }
                         break;
                     default:
@@ -130,6 +133,12 @@ public class BssOrderListener {
         } catch (Exception e) {
             log.error(ConstantClassField.PARSE_JSON_IO_ERROR, message);
             throw new EipInternalServerException(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage());
+        }finally {
+            if(null != response && response.isSuccess()){
+                rabbitMqService.sendOrderMessageToBss(reciveOrder, HsConstants.SUCCESS);
+            }else {
+                rabbitMqService.sendOrderMessageToBss(reciveOrder, HsConstants.FAIL);
+            }
         }
         // 若配置spring.rabbitmq.listener.simple.default-requeue-rejected=false，当消息处理异常，消息会被转发至死信队列，避免消息阻塞。
         // throw new RuntimeException("123");

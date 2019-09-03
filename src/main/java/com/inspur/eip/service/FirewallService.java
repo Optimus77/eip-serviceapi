@@ -9,7 +9,6 @@ import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.exception.EipBadRequestException;
 import com.inspur.eip.exception.EipInternalServerException;
 import com.inspur.eip.repository.EipRepository;
-import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.repository.SbwRepository;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.common.MethodReturnUtil;
@@ -33,9 +32,6 @@ import java.util.Optional;
 @Service
 @ConditionalOnProperty(value = "firewall.type",havingValue = "hillstone")
 public class FirewallService implements IDevProvider{
-
-    @Autowired
-    private FirewallRepository firewallRepository;
 
     @Autowired
     private QosService qosService;
@@ -421,42 +417,6 @@ public class FirewallService implements IDevProvider{
     }
 
 
-//    private String cmdAddDnat(String fip, String eip, String fireWallId) {
-//
-//        String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
-//                "configure\r"
-//                        + "ip vrouter trust-vr\r"
-//                        + "dnatrule top from  Any to " + eip + " service Any trans-to " + fip + "\r"
-//                        + "end",
-//                "rule ID=");
-//        if (strDnatPtId == null) {
-//            log.error("Failed to add dnat", strDnatPtId);
-//            return null;
-//        }
-//        if (strDnatPtId.contains("=")) {
-//            return strDnatPtId.split("=")[1].trim();
-//        } else {
-//            log.error("cmd add dnat error, return:{}", strDnatPtId);
-//            return null;
-//        }
-//    }
-//
-//    private String cmdAddSnat(String fip, String eip, String fireWallId) {
-//
-//        String strDnatPtId = fireWallCommondService.execCustomCommand(fireWallId,
-//                "configure\r"
-//                        + "ip vrouter trust-vr\r"
-//                        + "snatrule top from " + fip + " to Any service Any trans-to " + eip + " mode static\r"
-//                        + "end",
-//                "rule ID=");
-//        if (strDnatPtId == null) {
-//            log.error("Failed to add snat", strDnatPtId);
-//            return null;
-//        }
-//        return strDnatPtId.split("=")[1].trim();
-//    }
-
-
     public Boolean cmdDelQos(String rootPipeName, String eip, String fireWallId) {
         String ret = fireWallCommondService.execCustomCommand(fireWallId,
                 "configure\r"
@@ -477,38 +437,6 @@ public class FirewallService implements IDevProvider{
         return false;
     }
 
-//    private String cmdAddQos(String eip, String fip, String inboundBandwidth, String outboundBandwidth, String fireWallId) {
-//        if (null == fip || null == eip) {
-//            return null;
-//        }
-//        String rootPipeNmae = getRootPipeName(fip);
-//        if (0 >= eipRepository.countByPipId(rootPipeNmae)) {
-//            boolean result = cmdAddRootPipe(rootPipeNmae, eip, fip, inboundBandwidth, outboundBandwidth, fireWallId);
-//            log.info("Add root-pipe {}, result:{}", rootPipeNmae, result);
-//            if (result) {
-//                return rootPipeNmae;
-//            }
-//            return null;
-//        }
-//        String retString = "Tip: Pipe \"" + eip + "\" is enabled";
-//        String strResult = fireWallCommondService.execCustomCommand(fireWallId,
-//                "configure\r"
-//                        + "qos-engine first\r"
-//                        + "root-pipe  " + rootPipeNmae + "\r"
-//                        + "pipe  " + eip + "\r"
-//                        + "pipe-map \r"
-//                        + "dst-ip " + fip + "/32\r"
-//                        + "exit\r"
-//                        + "pipe-rule forward reserve-bandwidth Mbps 1 max Mbps " + inboundBandwidth + "\r"
-//                        + "pipe-rule backward reserve-bandwidth Mbps 1 max Mbps " + outboundBandwidth + "\r"
-//                        + "end",
-//                retString);
-//        if (strResult == null || !strResult.contains(retString)) {
-//            log.error("Failed to add cmd qos", strResult);
-//            return null;
-//        }
-//        return rootPipeNmae;
-//    }
 
     boolean cmdUpdateQosBandWidth(String eip, String fip, String bandwidth, String fireWallId) {
 
@@ -610,37 +538,7 @@ public class FirewallService implements IDevProvider{
         return false;
     }
 
-//    private String cmdAddIp2SbwPipe(String sbwId, String fip, String fireWallId) {
-//
-//
-//        String retCheck = "unrecognized keyword 1";
-//        String pipeMapId = "1";
-//        String strResult = fireWallCommondService.execCustomCommand(fireWallId,
-//                "configure\r"
-//                        + "qos-engine first\r"
-//                        + "root-pipe  " + sbwId + "\r"
-//                        + "pipe-map " + pipeMapId + "\r"
-//                        + "end",
-//                retCheck);
-//        if (strResult != null && strResult.contains(retCheck)) {
-//            pipeMapId = "";
-//        }
-//
-//        String addResult = fireWallCommondService.execCustomCommand(fireWallId,
-//                "configure\r"
-//                        + "qos-engine first\r"
-//                        + "root-pipe  " + sbwId + "\r"
-//                        + "pipe-map " + pipeMapId + "\r"
-//                        + "dst-ip " + fip + "/32\r"
-//                        + "end",
-//                null);
-//        if (addResult == null) {
-//            return sbwId;
-//        }
-//        log.error("Failed to add cmd qos", strResult);
-//        return null;
-//    }
-    // 异常情况 1.qos不存在  2.ip不存在
+
     private boolean cmdDelIpInSbwPipe(String rootPipeName, String fip, String fireWallId) {
         log.info("loading to remove fip from sbw qos");
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,

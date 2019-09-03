@@ -49,33 +49,7 @@ public class EipControllerV2 {
     private SbwServiceImpl sbwService;
 
     private String authScret = "kitlv7i2";
-
-//    @PostMapping(value = "/eips")
-//    @CrossOrigin(origins = "*",maxAge = 3000)
-//    public ResponseEntity atomAllocateEip(@Valid @RequestBody EipAllocateParamWrapper eipConfig, BindingResult result) {
-//        log.info("Allocate a eip:{}.", eipConfig.getEipAllocateParam().toString());
-//        if (result.hasErrors()) {
-//            StringBuffer msgBuffer = new StringBuffer();
-//            List<FieldError> fieldErrors = result.getFieldErrors();
-//            for (FieldError fieldError : fieldErrors) {
-//                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
-//            }
-//            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msgBuffer.toString()),
-//                    HttpStatus.BAD_REQUEST);
-//        }
-//        return eipService.atomCreateEip(eipConfig.getEipAllocateParam(), CommonUtil.getKeycloackToken());
-//    }
-//
-//
-//    @DeleteMapping(value = "/eips/{eip_id}")
-//    @CrossOrigin(origins = "*",maxAge = 3000)
-//    public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
-//                                        @PathVariable("eip_id") String id) {
-//        //Check the parameters
-//        log.info("Atom delete the Eip:{} ",id);
-//        return eipService.atomDeleteEip(id);
-//
-//    }
+    
 
     @PermissionContext(
             service="eip",
@@ -258,24 +232,6 @@ public class EipControllerV2 {
     }
 
 
-
-//    @PostMapping(value = "/eips/{eip_id}/renew")
-//    @CrossOrigin(origins = "*",maxAge = 3000)
-//    public ResponseEntity renewEip(@PathVariable("eip_id") String id,
-//                                   @RequestBody EipUpdateParam param ) {
-//        log.info("Renew a eip:{}, order:{}.", id, param.toString());
-//        return eipService.renewEip(id, param);
-//    }
-//
-//    @PostMapping(value = "/action/delete", consumes = MediaType.APPLICATION_JSON_VALUE)
-//    @CrossOrigin(origins = "*",maxAge = 3000)
-//    @ApiOperation(value = "deleiplist")
-//    public ResponseEntity deleteEipList(@RequestBody EipDelParam param) {
-//        //Check the parameters
-//
-//        log.info("Delete the Eips:{}.", param.getEipids().toString());
-//        return eipService.deleteEipList(param.getEipids());
-//    }
 
     @PermissionContext(whitelist=true)
     @GetMapping(value = "/health-status")
