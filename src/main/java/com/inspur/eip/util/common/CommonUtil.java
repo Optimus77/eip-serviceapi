@@ -97,20 +97,6 @@ public class CommonUtil {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         return new Date();
     }
-
-    /**
-     * 计算当前时间与上一个整点时间的分钟差
-     * @return
-     */
-    public static int countMinuteFromPoint() {
-        Date currentTime = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String dateString = formatter.format(currentTime);
-        String min;
-        min = dateString.substring(14, 16);
-        return Integer.parseInt(min);
-    }
-
     /**
      * get the Keycloak authorization token  from httpHeader;
      *

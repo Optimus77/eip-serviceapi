@@ -10,9 +10,8 @@ import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.ExtNetRepository;
-import com.inspur.eip.scheduleTask.FlowAccountScheduledTask;
-import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.common.DateUtils4Jdk8;
 import com.inspur.eip.util.common.MethodReturnUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
@@ -22,9 +21,7 @@ import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -485,7 +482,7 @@ public class EipDaoService {
             //从地址簿中删除匹配条件--floating ip
             if (HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
                 //解绑前向bss发送流量统计数据
-                int i = CommonUtil.countMinuteFromPoint();
+                int i = DateUtils4Jdk8.countMinuteFromPoint();
                 //如果是整点，则以定时任务为准
                 if (i !=0){
                     flowService.releaseReportFlowAccount(i,eipEntity);

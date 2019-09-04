@@ -47,7 +47,7 @@ public class FlowAccountScheduledTask {
                         Long up = map.get(HillStoneConfigConsts.UP_TYPE);
                         Long down = map.get(HillStoneConfigConsts.DOWN_TYPE);
                         Long sum = map.get(HillStoneConfigConsts.SUM_TYPE);
-                        FlowAccount2Bss flowBean = flowService.getFlowAccount2BssBean(eip, up, down, sum);
+                        FlowAccount2Bss flowBean = flowService.getFlowAccount2BssBean(eip, up, down,true);
                         //给 Bss发送报文
                         flowService.sendOrderMessageToBss(flowBean);
                     }

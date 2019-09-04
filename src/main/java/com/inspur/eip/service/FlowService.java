@@ -3,11 +3,10 @@ package com.inspur.eip.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.bss.FlowAccount2Bss;
 import com.inspur.eip.entity.bss.FlowAccountProductList;
-import com.inspur.eip.entity.bss.OrderProduct;
 import com.inspur.eip.entity.bss.OrderProductItem;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.exception.EipBadRequestException;
-import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.common.DateUtils4Jdk8;
 import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HillStoneConfigConsts;
 import com.inspur.eip.util.constant.HsConstants;
@@ -106,7 +105,7 @@ public class FlowService {
                 Long up = map.get(HillStoneConfigConsts.UP_TYPE);
                 Long down = map.get(HillStoneConfigConsts.DOWN_TYPE);
                 Long sum = map.get(HillStoneConfigConsts.SUM_TYPE);
-                FlowAccount2Bss flowBean = getFlowAccount2BssBean(eip, up, down, sum);
+                FlowAccount2Bss flowBean = getFlowAccount2BssBean(eip, up, down, false);
 
                 this.sendOrderMessageToBss(flowBean);
             }
@@ -121,15 +120,21 @@ public class FlowService {
      * @param eip
      * @param up
      * @param down
-     * @param sum
+     * @param isOclock 是否整点
      * @return
      */
-    public FlowAccount2Bss getFlowAccount2BssBean(Eip eip, Long up, Long down, Long sum) {
+    public synchronized FlowAccount2Bss getFlowAccount2BssBean(Eip eip, Long up, Long down,boolean isOclock) {
 
         FlowAccount2Bss flowBean = new FlowAccount2Bss();
         flowBean.setSubpackage("false");
         flowBean.setPackageNo("1");
-        flowBean.setBillCycle("1");
+        flowBean.setPackageCount("1");
+        String timeStamp = DateUtils4Jdk8.getDefaultUnsignedDateHourPattern();
+        //不是整点则将当前整点
+        if(!isOclock){
+            timeStamp = DateUtils4Jdk8.getDefaultUnsignedDateHourPattern(1L);
+        }
+        flowBean.setBillCycle(timeStamp);
         flowBean.setSettleCycle("H");
         flowBean.setCount("1");
         flowBean.setIndex("1");
