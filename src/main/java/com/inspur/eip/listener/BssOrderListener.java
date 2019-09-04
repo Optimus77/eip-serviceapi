@@ -9,6 +9,7 @@ import com.inspur.eip.entity.bss.Console2BssResult;
 import com.inspur.eip.entity.bss.ReciveOrder;
 import com.inspur.eip.exception.EipBadRequestException;
 import com.inspur.eip.exception.EipInternalServerException;
+import com.inspur.eip.service.IamService;
 import com.inspur.eip.service.impl.RabbitMqServiceImpl;
 import com.inspur.eip.util.constant.ConstantClassField;
 import com.inspur.eip.util.constant.ErrorStatus;
@@ -75,6 +76,9 @@ public class BssOrderListener {
     @Autowired
     private RabbitMqServiceImpl rabbitMqService;
 
+    @Autowired
+    private IamService iamService;
+
     //@Autowired
 //    private RabbitMessagingTemplate rabbitTemplate;
     // 必须配置一个handler为默认handler，避免消息在未配置Content-Type头时无法被处理
@@ -95,33 +99,35 @@ public class BssOrderListener {
             if (optional.isPresent()){
                 String orderType = reciveOrder.getOrderType();
                 String orderRoute = reciveOrder.getOrderRoute();
-
-                switch (orderType){
-                    case HsConstants.NEW_ORDERTYPE:
-                        if (HsConstants.EIP.equalsIgnoreCase(orderRoute) || HsConstants.IPTS.equalsIgnoreCase(orderRoute)){
-                            response = rabbitMqService.createEipInfo(reciveOrder);
-                        }else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)){
-                            response = rabbitMqService.createSbwInfo(reciveOrder);
-                        }
-                        break;
-                    case HsConstants.CHANGECONFIGURE_ORDERTYPE:
-                    case HsConstants.RENEW_ORDERTYPE:
-                        if (HsConstants.EIP.equalsIgnoreCase(orderRoute)){
-                            response = rabbitMqService.updateEipInfoConfig(reciveOrder);
-                        }else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)){
-                            response = rabbitMqService.updateSbwInfoConfig(reciveOrder);
-                        }
-                        break;
-                    case HsConstants.UNSUBSCRIBE_ORDERTYPE:
-                        if (HsConstants.EIP.equalsIgnoreCase(orderRoute)|| HsConstants.IPTS.equalsIgnoreCase(orderRoute)){
-                            response = rabbitMqService.deleteEipConfig(reciveOrder);
-                        }else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)){
-                            response = rabbitMqService.deleteSbwConfig(reciveOrder);
-                        }
-                        break;
-                    default:
-                        log.error(ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getMessage(),orderType);
-                        throw new EipBadRequestException(ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getCode(),ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getMessage());
+                ActionResponse actionResponse = iamService.isIamAuthority(reciveOrder);
+                if(actionResponse.isSuccess()){
+                    switch (orderType){
+                        case HsConstants.NEW_ORDERTYPE:
+                            if (HsConstants.EIP.equalsIgnoreCase(orderRoute) || HsConstants.IPTS.equalsIgnoreCase(orderRoute)){
+                                response = rabbitMqService.createEipInfo(reciveOrder);
+                            }else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)){
+                                response = rabbitMqService.createSbwInfo(reciveOrder);
+                            }
+                            break;
+                        case HsConstants.CHANGECONFIGURE_ORDERTYPE:
+                        case HsConstants.RENEW_ORDERTYPE:
+                            if (HsConstants.EIP.equalsIgnoreCase(orderRoute)){
+                                response = rabbitMqService.updateEipInfoConfig(reciveOrder);
+                            }else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)){
+                                response = rabbitMqService.updateSbwInfoConfig(reciveOrder);
+                            }
+                            break;
+                        case HsConstants.UNSUBSCRIBE_ORDERTYPE:
+                            if (HsConstants.EIP.equalsIgnoreCase(orderRoute)|| HsConstants.IPTS.equalsIgnoreCase(orderRoute)){
+                                response = rabbitMqService.deleteEipConfig(reciveOrder);
+                            }else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)){
+                                response = rabbitMqService.deleteSbwConfig(reciveOrder);
+                            }
+                            break;
+                        default:
+                            log.error(ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getMessage(),orderType);
+                            throw new EipBadRequestException(ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getCode(),ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getMessage());
+                    }
                 }
             }else {
                 log.warn(ConstantClassField.PARSE_JSON_PARAM_ERROR);
