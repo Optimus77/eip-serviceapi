@@ -421,7 +421,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
         return eipV6DaoService.findByEipV6IdAndIsDelete(id,0);
     }
 
-    EipV6 findEipV6ByEipV6Id(String eipV6Id){
+    public EipV6 findEipV6ByEipV6Id(String eipV6Id){
         return eipV6DaoService.findByEipV6IdAndIsDelete(eipV6Id,0);
     }
 

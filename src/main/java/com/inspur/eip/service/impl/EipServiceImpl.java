@@ -59,7 +59,6 @@ public class EipServiceImpl implements IEipService {
     private EntityManager entityManager;
 
 
-
     /**
      * create a eip
      *
