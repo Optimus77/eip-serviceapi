@@ -10,6 +10,7 @@ import com.inspur.eip.entity.bss.ReciveOrder;
 import com.inspur.eip.exception.EipBadRequestException;
 import com.inspur.eip.exception.EipInternalServerException;
 import com.inspur.eip.service.IamService;
+import com.inspur.eip.service.WebControllerService;
 import com.inspur.eip.service.impl.RabbitMqServiceImpl;
 import com.inspur.eip.util.constant.ConstantClassField;
 import com.inspur.eip.util.constant.ErrorStatus;
@@ -79,6 +80,8 @@ public class BssOrderListener {
     @Autowired
     private IamService iamService;
 
+    @Autowired
+    private WebControllerService webControllerService;
     //@Autowired
 //    private RabbitMessagingTemplate rabbitTemplate;
     // 必须配置一个handler为默认handler，避免消息在未配置Content-Type头时无法被处理
@@ -141,8 +144,10 @@ public class BssOrderListener {
             throw new EipInternalServerException(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage());
         }finally {
             if(null != response && response.isSuccess()){
+                webControllerService.returnsWebsocketV2(reciveOrder,HsConstants.SUCCESS);
                 rabbitMqService.sendOrderMessageToBss(reciveOrder, HsConstants.SUCCESS);
             }else {
+                webControllerService.returnsWebsocketV2(reciveOrder,HsConstants.FAIL);
                 rabbitMqService.sendOrderMessageToBss(reciveOrder, HsConstants.FAIL);
             }
         }

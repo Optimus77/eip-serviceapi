@@ -86,7 +86,7 @@ public class RabbitMqServiceImpl {
         EipReturnBase eipReturn;
         String eipId = null;
         String eipAddress = null;
-        String createResult = null;
+        String createResult = HsConstants.FAIL;
         ActionResponse ret = null;
         log.info("Recive create mq:{}", JSONObject.toJSONString(eipOrder));
         try {
@@ -114,7 +114,6 @@ public class RabbitMqServiceImpl {
                 }
                 response = eipService.atomCreateEip(eipConfig, eipOrder.getToken(), null);
                 if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
-                    createResult = HsConstants.FAIL;
                     ret = ActionResponse.actionFailed("create eip success", HttpStatus.SC_INTERNAL_SERVER_ERROR);
                     log.warn("create eip failed, return code:{}", response.getStatusCodeValue());
                 } else {
@@ -126,8 +125,7 @@ public class RabbitMqServiceImpl {
                     createResult = HsConstants.SUCCESS;
                     ret = ActionResponse.actionSuccess();
                 }
-                webService.retWebsocket(eipConfig.getIpv6(),eipId,eipOrder,
-                        "createNatWithEip", "create",response.getStatusCodeValue());
+                webService.retWebsocket(eipConfig.getIpv6(),eipOrder, "createNatWithEip",response.getStatusCodeValue());
                 updateOrderResult(orderProduct, eipId,eipAddress, eipOrder.getStatusTime(), groupId, createResult);
             }
         } catch (Exception e) {
@@ -177,13 +175,13 @@ public class RabbitMqServiceImpl {
                     if (null != eipOrder.getConsoleCustomization() && eipOrder.getConsoleCustomization().containsKey("operateType") &&
                             eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")) {
                         webService.returnsIpv6Websocket("Success", "deleteNatWithEip", eipOrder.getToken());
-                    } else {
-                        webService.returnsWebsocket(eipId, eipOrder, "delete");
                     }
+//                    else {
+                       // webService.returnsWebsocket(eipId, eipOrder, "delete");
+//                    }
                     deleteResult = HsConstants.UNSUBSCRIBE;
                 } else {
                     log.warn(ConstantClassField.DELETE_EIP_CONFIG_FAILED, response.getFault() + ReturnStatus.SC_INTERNAL_SERVER_ERROR);
-                    deleteResult = HsConstants.FAIL;
                 }
                 updateOrderResult(orderProduct, eipId, null,eipOrder.getStatusTime(), null,deleteResult);
             }
@@ -245,30 +243,18 @@ public class RabbitMqServiceImpl {
                 }
                 if (response == null || !response.isSuccess()) {
                     failedCount += 1;
-                    result = HsConstants.FAIL;
                 }else {
                     result = HsConstants.SUCCESS;
                 }
                 updateOrderResult(orderProduct,eipId,null,eipOrder.getStatusTime(), null, result);
             }
             if (failedCount == 0) {
-                result = HsConstants.SUCCESS;
-                webService.returnsWebsocket(eipId, eipOrder, "update");
-//                    sendOrderMessageToBss(eipOrder, result);
                 return response;
-            }else {
-                result = HsConstants.FAIL;
             }
         } else {
             log.error(ConstantClassField.ORDER_STATUS_NOT_CORRECT + eipOrder.getOrderStatus());
         }
-//        } catch (Exception e) {
-//            log.error(ConstantClassField.EXCEPTION_EIP_UPDATE, e);
-////            sendOrderMessageToBss(eipOrder, HsConstants.FAIL);
-//        }
         log.warn(ConstantClassField.UPDATE_EIP_CONFIG_FAILED, response);
-        webService.returnsWebsocket(eipId, eipOrder, "update");
-//        sendOrderMessageToBss(eipOrder, result);
         return response;
     }
 
@@ -369,7 +355,7 @@ public class RabbitMqServiceImpl {
                             }
                             result = HsConstants.STATUS_ACTIVE;
                             ret = ActionResponse.actionSuccess();
-                            webService.returnSbwWebsocket(sbwId, reciveOrder, "create");
+                            //webService.returnSbwWebsocket(sbwId, reciveOrder, "create");
                         }
                     } else {
                         log.warn(checkRet.getMessage());
@@ -427,7 +413,7 @@ public class RabbitMqServiceImpl {
             log.warn(ConstantClassField.ORDER_STATUS_NOT_CORRECT);
         }
 
-        webService.returnSbwWebsocket(sbwId, reciveOrder, "delete");
+//        webService.returnSbwWebsocket(sbwId, reciveOrder, "delete");
 //        sendOrderMessageToBss(reciveOrder,  result);
 //        log.warn(ConstantClassField.DELETE_SBW_CONFIG_FAILED);
         return response;
@@ -473,7 +459,7 @@ public class RabbitMqServiceImpl {
             }
         }
 
-        webService.returnSbwWebsocket(sbwId, recive, "update");
+//        webService.returnSbwWebsocket(sbwId, recive, "update");
 //        sendOrderMessageToBss(recive, retStr);
         log.warn(ConstantClassField.SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT, response);
         return response;

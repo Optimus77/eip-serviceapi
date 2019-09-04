@@ -2,6 +2,7 @@ package com.inspur.eip.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.*;
+import com.inspur.eip.entity.bss.OrderProductItem;
 import com.inspur.eip.entity.bss.ReciveOrder;
 import com.inspur.eip.entity.eip.EipReturnBase;
 import com.inspur.eip.util.*;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -32,7 +34,7 @@ public class WebControllerService {
     @Value("${webSocket}")
     private String pushMq;
 
-    public void retWebsocket(String isIpv6,String eipId, ReciveOrder eipOrder, String ipv6Type, String ipv4Type,int retCode){
+    public void retWebsocket(String isIpv6, ReciveOrder eipOrder, String ipv6Type,int retCode){
         String result;
         if(retCode != HttpStatus.SC_OK){
             result = "false";
@@ -44,37 +46,9 @@ public class WebControllerService {
                 ipv6Type = "createEip";
             }
             returnsIpv6Websocket(result, ipv6Type, eipOrder.getToken());
-        }else {
-            returnsWebsocket(eipId, eipOrder,ipv4Type);
         }
     }
-    /**
-     *  websocket return
-     * @param eipId  id
-     * @param eipOrder  order
-     * @param type type
-     */
-    public void returnsWebsocket(String eipId, ReciveOrder eipOrder, String type){
-            try {
-                WebSocketEntity wbEntity = new WebSocketEntity();
-                wbEntity.setUserName(CommonUtil.getUsername(eipOrder.getToken()));
-                wbEntity.setHandlerName("operateEipHandler");
-                wbEntity.setInstanceId(eipId);
-                wbEntity.setInstanceStatus("active");
-                wbEntity.setOperateType(type);
-                wbEntity.setMessageType("success");
-                wbEntity.setMessage("Flexible public network IP updated successfully");
-                String url=pushMq;
-                String orderStr=JSONObject.toJSONString(wbEntity);
-                log.info("websocket send return: {} {}", url, orderStr);
-                Map<String, String> header = this.getHeader(eipOrder.getToken());
-                ReturnResult response = HttpsClientUtil.doPostJson(url,header,orderStr);
-                log.debug("websocket respons:{}", response.getMessage());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
 
-    }
     public void returnsIpv6Websocket(String result, String type, String token){
         try {
             WebSocketEntity wbEntity = new WebSocketEntity();
@@ -142,4 +116,85 @@ public class WebControllerService {
                 e.printStackTrace();
             }
         }
+
+    /**
+     *  websocket return
+     * @param eipId  id
+     * @param eipOrder  order
+     * @param type type
+     */
+    public void returnsWebsocket(String eipId, ReciveOrder eipOrder, String type){
+        try {
+            WebSocketEntity wbEntity = new WebSocketEntity();
+            wbEntity.setUserName(CommonUtil.getUsername(eipOrder.getToken()));
+            wbEntity.setHandlerName("operateEipHandler");
+            wbEntity.setInstanceId(eipId);
+            wbEntity.setInstanceStatus("active");
+            wbEntity.setOperateType(type);
+            wbEntity.setMessageType("success");
+            wbEntity.setMessage("Flexible public network IP updated successfully");
+            String url=pushMq;
+            String orderStr=JSONObject.toJSONString(wbEntity);
+            log.info("websocket send return: {} {}", url, orderStr);
+            Map<String, String> header = this.getHeader(eipOrder.getToken());
+            ReturnResult response = HttpsClientUtil.doPostJson(url,header,orderStr);
+            log.debug("websocket respons:{}", response.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+    public void returnsWebsocketV2(ReciveOrder order, String result){
+        try {
+            String type = order.getOrderType();
+            if(type.equalsIgnoreCase(HsConstants.NEW_ORDERTYPE)){
+                type = "create";
+            }else if(type.equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)){
+                type = "update";
+            }else if(type.equalsIgnoreCase(HsConstants.UNSUBSCRIBE_ORDERTYPE)){
+                type= "delete";
+            }else{
+                return;
+            }
+            String name = order.getOrderRoute();
+            String msg ;
+            if(name.equalsIgnoreCase(HsConstants.EIP)){
+                name = "operateEipHandler";
+                msg = "Flexible public network IP updated successfully";
+            }else{
+                name = "operateSbwHandler";
+                msg = "Config update successfully";
+            }
+            String instanceId = "";
+            if(result.equalsIgnoreCase(HsConstants.SUCCESS)) {
+                if (order.getConsoleCustomization().containsKey("groupId")) {
+                    List<OrderProductItem> productItems = order.getProductList().get(0).getItemList();
+                    for (OrderProductItem item : productItems) {
+                        if (item.getCode().equalsIgnoreCase("groupId")) {
+                            instanceId = item.getValue();
+                        }
+                    }
+                } else {
+                    instanceId = order.getProductList().get(0).getInstanceId();
+                }
+            }
+            WebSocketEntity wbEntity = new WebSocketEntity();
+            wbEntity.setUserName(CommonUtil.getUsername(order.getToken()));
+            wbEntity.setHandlerName(name);
+            wbEntity.setInstanceId(instanceId);
+            wbEntity.setInstanceStatus("active");
+            wbEntity.setOperateType(type);
+            wbEntity.setMessageType(result);
+            wbEntity.setMessage(msg);
+            String url=pushMq;
+            String orderStr=JSONObject.toJSONString(wbEntity);
+            log.info("websocket send return: {} {}", url, orderStr);
+            Map<String, String> header = this.getHeader(order.getToken());
+            ReturnResult response = HttpsClientUtil.doPostJson(url,header,orderStr);
+            log.debug("websocket respons:{}", response.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 }
