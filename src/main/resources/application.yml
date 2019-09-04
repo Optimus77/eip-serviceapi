@@ -106,11 +106,11 @@ spring:
 
 # IAM
 iam:
-  #url: http://service.inspurtest.com/auth
+#  url: http://service.inspurtest.com/auth
 #  测试/staging/生产 配置
   url: http://iam-apiserver.iam.svc.cluster.local:9101/auth
   ladon:
-    #url: http://10.110.25.71:48156/auth
+#    url: http://10.110.25.71:48156/auth
 #  测试/staging/生产 配置
     url: http://iam-auth-ladon.iam.svc.cluster.local:8090/auth
 
@@ -203,6 +203,9 @@ regionCode: cn-north-3
 scheduleTime: 0 0/5 * * * ?
 minEipNum: 0
 
+bssUrl:
+  quota: http://10.221.2.6.xip.io:9080/quota/user/quota
+  product: http://10.221.2.6:9080/product/detail
+  submit: http://10.221.2.6:9080/order/submitpay
+
 iamUrl: http://service.inspurtest.com/auth/v1/has-permissions
-
-
