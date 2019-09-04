@@ -6,5 +6,4 @@ import lombok.Data;
 public class ContextIam {
     private String accountId;
 
-    private String creator;
 }

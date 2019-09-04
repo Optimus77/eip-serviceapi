@@ -14,4 +14,5 @@ public class IamParam {
     private String instanceId;
     private String resourceAccountId;
     private ContextIam context;
+    private String resourceCreator;
 }
