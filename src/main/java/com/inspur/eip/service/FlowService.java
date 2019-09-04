@@ -127,7 +127,7 @@ public class FlowService {
     public FlowAccount2Bss getFlowAccount2BssBean(Eip eip, Long up, Long down, Long sum) {
 
         FlowAccount2Bss flowBean = new FlowAccount2Bss();
-        flowBean.setSubpackage("flase");
+        flowBean.setSubpackage("false");
         flowBean.setPackageNo("1");
         flowBean.setBillCycle("1");
         flowBean.setSettleCycle("H");
@@ -150,7 +150,7 @@ public class FlowService {
         bandwidth.setValue(String.valueOf(eip.getBandWidth()));
         //暂时只传上行流量
         OrderProductItem upItem = new OrderProductItem();
-        upItem.setCode(HillStoneConfigConsts.UP_TYPE);
+        upItem.setCode(HsConstants.TRANSFER);
         upItem.setValue(String.valueOf(up));
 
         OrderProductItem provider = new OrderProductItem();
