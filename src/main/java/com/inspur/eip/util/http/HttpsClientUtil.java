@@ -52,101 +52,6 @@ public class HttpsClientUtil {
 
 	static boolean ignoreSSL = Boolean.TRUE;
 
-
-	public static ReturnResult doGet(String url, Map<String, String> header) throws EipException {
-
-		// 创建Httpclient对象
-		CloseableHttpClient httpclient = getHttpsClient();
-
-		CloseableHttpResponse response = null;
-		try {
-			// 创建uri
-			URIBuilder builder = new URIBuilder(url);
-
-			URI uri = builder.build();
-
-			// 创建http GET请求
-			HttpGet httpGet = new HttpGet(uri);
-			if(header == null){
-				header = getHeader();
-			}
-			Iterator<Map.Entry<String, String>> it = header.entrySet().iterator();
-			while (it.hasNext()) {
-				Map.Entry<String, String> entry = it.next();
-				httpGet.setHeader(entry.getKey(), entry.getValue());
-			}
-			// 执行请求
-			response = httpclient.execute(httpGet);
-            String resultString = EntityUtils.toString(response.getEntity(), "utf-8");
-            log.info("return:{}", resultString);
-            return ReturnResult.actionResult(resultString, response.getStatusLine().getStatusCode());
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (response != null) {
-					response.close();
-				}
-				httpclient.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		throw new EipException("Post request throw https error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-	}
-
-	public static ReturnResult doGet(String url) throws EipException {
-
-		return doGet(url, null);
-	}
-
-	public static ReturnResult doPost(String url, Map<String, String> param) throws  EipException{
-
-		// 创建Httpclient对象
-		CloseableHttpClient httpClient = getHttpsClient();
-		CloseableHttpResponse response = null;
-		try {
-			// 创建Http Post请求
-			HttpPost httpPost = new HttpPost(url);
-			// 创建参数列表
-			if (param != null) {
-				List<NameValuePair> paramList = new ArrayList<>();
-				for (String key : param.keySet()) {
-					paramList.add(new BasicNameValuePair(key, param.get(key)));
-				}
-				// 模拟表单
-				UrlEncodedFormEntity entity = new UrlEncodedFormEntity(paramList);
-				httpPost.setEntity(entity);
-			}
-			// 执行http请求
-			response = httpClient.execute(httpPost);
-			log.info("response status code: " + response.getStatusLine().getStatusCode());
-            String resultString = EntityUtils.toString(response.getEntity(), "utf-8");
-            log.info("return:{}", resultString);
-            return ReturnResult.actionResult(resultString, response.getStatusLine().getStatusCode());
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (response != null) {
-					response.close();
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-
-			}
-		}
-		throw new EipException("Post request throw https error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-	}
-	   
-
-	public static ReturnResult doPost(String url) throws EipException{
-
-		return doPost(url, null);
-	}
-
-
 	    
 	public static ReturnResult doPostJson(String url, Map<String, String> header, String json) throws EipException {
 
@@ -190,7 +95,7 @@ public class HttpsClientUtil {
 		throw new EipException("Post request throw https error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
 	}
 
-	private static Map<String,String> getHeader(){
+	public static Map<String,String> getHeader(){
 		Map<String,String> header=new HashMap<String,String>();
 		header.put("requestId", UUID.randomUUID().toString());
 		header.put(HsConstants.AUTHORIZATION, CommonUtil.getKeycloackToken());
@@ -276,44 +181,6 @@ public class HttpsClientUtil {
         return sc;
     }
 
-    public static RestTemplate buildRestTemplate() {
-
-        RestTemplate restTemplate = null;
-        if (ignoreSSL) {
-            HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-            factory.setConnectionRequestTimeout(300000);
-            factory.setConnectTimeout(300000);
-            factory.setReadTimeout(300000);
-            // https
-            SSLContextBuilder builder = new SSLContextBuilder();
-            try {
-                builder.loadTrustMaterial(null, (X509Certificate[] x509Certificates, String s) -> true);
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (KeyStoreException e) {
-                e.printStackTrace();
-            }
-            SSLConnectionSocketFactory socketFactory = null;
-            try {
-                socketFactory = new SSLConnectionSocketFactory(createIgnoreVerifySSL());
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (KeyManagementException e) {
-                e.printStackTrace();
-            }
-            Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-                    .register("http", new PlainConnectionSocketFactory())
-                    .register("https", socketFactory).build();
-            PoolingHttpClientConnectionManager phccm = new PoolingHttpClientConnectionManager(registry);
-            phccm.setMaxTotal(200);
-            CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(socketFactory).setConnectionManager(phccm).setConnectionManagerShared(true).build();
-            factory.setHttpClient(httpClient);
-            restTemplate = new RestTemplate(factory);
-        } else {
-            restTemplate = new RestTemplate();
-        }
-        return restTemplate;
-    }
 
 
 }

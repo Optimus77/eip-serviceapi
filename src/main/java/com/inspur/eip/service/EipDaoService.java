@@ -9,9 +9,6 @@ import com.inspur.eip.entity.MethodReturn;
 import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
-import com.inspur.eip.repository.ExtNetRepository;
-import com.inspur.eip.scheduleTask.FlowAccountScheduledTask;
-import com.inspur.eip.util.ReturnMsgUtil;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.common.MethodReturnUtil;
 import com.inspur.eip.util.constant.HsConstants;
@@ -46,9 +43,6 @@ public class EipDaoService {
 
     @Autowired
     private EipPoolRepository eipPoolRepository;
-
-    @Autowired
-    private ExtNetRepository extNetRepository;
 
     @Autowired
     private EipRepository eipRepository;
@@ -363,7 +357,7 @@ public class EipDaoService {
                 eip.setFloatingIp(floatingIP.getFloatingIpAddress());
                 eip.setFloatingIpId(floatingIP.getId());
             } else {
-                eip.setFloatingIp(fip);
+                eip.setPrivateIpAddress(fip);
             }
             fireWallReturn = providerService.addNatAndQos(eip, eip.getFloatingIp(), eip.getEipAddress(),
                     eip.getBandWidth(), eip.getFirewallId());
@@ -698,18 +692,6 @@ public class EipDaoService {
             eipPoolRepository.flush();
         }
         return eipAddress;
-    }
-
-
-    private String getExtNetId(String region) {
-        List<ExtNet> extNets = extNetRepository.findByRegion(region);
-        String extNetId = null;
-        for (ExtNet extNet : extNets) {
-            if (null != extNet.getNetId()) {
-                extNetId = extNet.getNetId();
-            }
-        }
-        return extNetId;
     }
 
 

@@ -1,32 +1,35 @@
-package com.inspur.eip.entity.eip;
+package com.inspur.eip.entity.openapi;
 
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eip.entity.bss.OrderProduct;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-
+import lombok.NoArgsConstructor;
 import java.util.List;
 
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
-public class EipRenewOrder {
-
+public class Order {
     private String userId;
     private String token;
     private String orderRoute;
     private String setCount;
     private String consoleOrderFlowId;
-    private List   flowIdList;
     private String billType;
     private String duration;
-    private String durationUnit = "M";
-    private String orderWhat = "formal";
-    private String orderSource = "console";
-    private String orderType = "new";
+    private String durationUnit;
+    private String orderWhat;
+    private String orderSource;
+    private String orderType;
     private String serviceStartTime;
     private String serviceEndTime;
     private String rewardActivity;
+    private String isAutoRenew;
     private JSONObject consoleCustomization;
     private String totalMoney;
-    private List<OrderProduct> originalProductList;
-    private List<OrderProduct> productList;
-
+    private String isAutoDeducted;
+    private List<Product> originalProductList;
+    private List<Product> productList;
 }
