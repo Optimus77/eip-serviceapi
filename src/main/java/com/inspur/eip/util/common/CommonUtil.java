@@ -91,7 +91,15 @@ public class CommonUtil {
         }
         return firewallConfigMap.get(id);
     }
-
+    public static List<Firewall> getAllFireWall() {
+        Collection<Firewall> firewalls = firewallConfigMap.values();
+        Iterator it =  firewalls.iterator();
+        List<Firewall> firewallList = new ArrayList<>();
+        for(;it.hasNext();){
+            firewallList.add((Firewall)it.next());
+        }
+        return  firewallList;
+    }
     //    Greenwich mean time
     public static Date getGmtDate() {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
