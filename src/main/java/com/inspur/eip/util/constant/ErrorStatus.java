@@ -156,7 +156,31 @@ public enum ErrorStatus {
     /**
      * 未被承认的 输入
      */
-    FIREWALL_UNRECOGNIZED_COMMAND("106.994500", "unrecognized command ,please check the param-");
+    FIREWALL_UNRECOGNIZED_COMMAND("106.994500", "unrecognized command ,please check the param-"),
+
+//    ----------------------------------------Openapi error message------------------------------------
+
+    EIP_EXCEED_QUOTA("106.001001", "弹性IP数量已超过配额。"),
+    EIP_BANDWIDTH_EMPTY("106.001002", "弹性IP带宽为空。"),
+    EIP_BANDWIDTH_ERROR("106.001003", "弹性IP带宽超出范围。"),
+    EIP_ID_EMPTY("106.001004", "弹性IP ID为空。"),
+    INVALID_BILL_TYPE("106.001005", "弹性IP计费方式错误"),
+    BSS_CRM_QUOTA_ERROR("106.001006", "查询用户配额失败。"),
+    EIP_NOT_FOUND("106.001007", "弹性IP信息为空"),
+
+    SBW_BANDWIDTH_EMPTY("106.001007", "共享带宽，带宽值为空。"),
+    SBW_EXCEED_QUOTA("106.001008", "共享带宽数量已超过配额。"),
+    SBW_INVALID_BILL_TYPE("106.001009", "共享带宽计费方式错误"),
+    SBW_NAME_EMPTY("106.001010","共享带宽名称为空"),
+    SBW_ID_EMPTY("106.001011", "共享带宽 ID为空。"),
+    CHARGEMODE_WRONG("106.001012","弹性IP计费类型错误"),
+    EIP_CAHRGEMODE_WRONG("106.001013","弹性IP收费模式错误"),
+    SBW_BANDWIDTH_ERROR("106.001014","共享带宽带宽值错误"),
+    SBW_NOT_FOUND("106.001015", "共享带宽信息为空"),
+    SBW_DURATION_WROMG("106.001016", "共享带宽续费月份错误"),
+    EIP_ALREADY_ADD_SBW("106.001017","弹性IP已经加入共享带宽"),
+    EIP_NOT_ADD_SBW("106.001018","弹性IP未加入任何共享带宽");
+
 
     private final String code;
 

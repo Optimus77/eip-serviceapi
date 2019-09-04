@@ -357,7 +357,7 @@ public class EipDaoService {
                 eip.setFloatingIp(floatingIP.getFloatingIpAddress());
                 eip.setFloatingIpId(floatingIP.getId());
             } else {
-                eip.setFloatingIp(fip);
+                eip.setPrivateIpAddress(fip);
             }
             fireWallReturn = providerService.addNatAndQos(eip, eip.getFloatingIp(), eip.getEipAddress(),
                     eip.getBandWidth(), eip.getFirewallId());

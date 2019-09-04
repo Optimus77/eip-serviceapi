@@ -95,7 +95,7 @@ public class HttpsClientUtil {
 		throw new EipException("Post request throw https error.", HttpStatus.SC_INTERNAL_SERVER_ERROR);
 	}
 
-	private static Map<String,String> getHeader(){
+	public static Map<String,String> getHeader(){
 		Map<String,String> header=new HashMap<String,String>();
 		header.put("requestId", UUID.randomUUID().toString());
 		header.put(HsConstants.AUTHORIZATION, CommonUtil.getKeycloackToken());
