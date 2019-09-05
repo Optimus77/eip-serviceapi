@@ -103,10 +103,10 @@ public class EipDaoService {
             if (providerService.cmdCreateOrDeleteAddressBook(eip.getIp(), eip.getFireWallId(), true)){
                 boolean statisticsBook = providerService.cmdOperateStatisticsBook(eip.getIp(), eip.getFireWallId(), true);
                 if (!statisticsBook){
-                    log.error("The statistics address book was not created successfully eip:{}",eip.getIp());
+                    log.error("The statistics book created failed eip:{}",eip.getIp());
                 }
             }else {
-                log.error("The address book was not created successfully: eip:{}",eip.getIp());
+                log.error("The address book was failed eip:{}",eip.getIp());
             }
         }
 
@@ -187,10 +187,10 @@ public class EipDaoService {
             if(HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
                 if( providerService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false)){
                     if(!providerService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false)){
-                        log.error("The address book was not delete successfully eip:{}",eipEntity.getEipAddress());
+                        log.error("The address book user delete failed eip:{}",eipEntity.getEipAddress());
                     }
                 }else {
-                    log.error("The statistics address book was not delete successfully eip:{}",eipEntity.getEipAddress());
+                    log.error("The statistics book user delete failed eip:{}",eipEntity.getEipAddress());
                 }
             }
             eipEntity.setIsDelete(1);
@@ -263,10 +263,10 @@ public class EipDaoService {
             if(HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
                 if( providerService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false)){
                     if(!providerService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false)){
-                        log.error("The address book was not delete successfully eip:{}",eipEntity.getEipAddress());
+                        log.error("The address book admin delete failed eip:{}",eipEntity.getEipAddress());
                     }
                 }else {
-                    log.error("The statistics address book was not delete successfully eip:{}",eipEntity.getEipAddress());
+                    log.error("The statistics book admin deleted failed eip:{}",eipEntity.getEipAddress());
                 }
             }
             eipEntity.setIsDelete(1);
@@ -396,11 +396,12 @@ public class EipDaoService {
                 }
                 //流量计费类型的eip,从地址簿中删除匹配条件--floating ip
                 if (HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eip.getChargeMode())){
-                    providerService.cmdInsertOrRemoveParamInAddressBook(eip.getEipAddress(),
+                    boolean insertResult = providerService.cmdInsertOrRemoveParamInAddressBook(eip.getEipAddress(),
                             eip.getFloatingIp(),
                             HsConstants.IP.toLowerCase(),
                             eip.getFirewallId(),
                             true);
+                    log.info("insert ip to address book result:{}",insertResult);
                 }
                 eip.setInstanceId(serverId);
                 eip.setInstanceType(instanceType);
@@ -488,11 +489,12 @@ public class EipDaoService {
                     flowService.releaseReportFlowAccount(i,eipEntity);
                 }
                 //从地址簿中移出fip
-                providerService.cmdInsertOrRemoveParamInAddressBook(eipEntity.getEipAddress(),
+                boolean removeResult = providerService.cmdInsertOrRemoveParamInAddressBook(eipEntity.getEipAddress(),
                         eipEntity.getFloatingIp(),
                         HsConstants.IP.toLowerCase(),
                         eipEntity.getFirewallId(),
                         false);
+                log.info("remove ip from address book result:{}",removeResult);
             }
             eipEntity.setInstanceId(null);
             eipEntity.setInstanceType(null);

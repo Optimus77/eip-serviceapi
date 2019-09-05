@@ -39,7 +39,7 @@ public class FlowAccountScheduledTask {
     public void oneHourReportFlowAccount(){
         try {
             List<Eip> trafficEips = eipDaoService.findFlowAccountEipList("Traffic");
-            log.info("start to report flow eip to bss:{}",trafficEips);
+            log.debug("Traffic eip List:{}",trafficEips);
             if (trafficEips!=null && trafficEips.size()>0){
                 for (Eip eip : trafficEips) {
                     Map<String, Long> map = flowService.staticsFlowByPeriod(60, eip.getEipAddress(),  "lasthour", eip.getFirewallId());

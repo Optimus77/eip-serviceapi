@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -156,7 +157,7 @@ public class FlowService {
         //暂时只传上行流量
         OrderProductItem upItem = new OrderProductItem();
         upItem.setCode(HsConstants.TRANSFER);
-        upItem.setValue(String.valueOf(up));
+        upItem.setValue(getByteTransToGB(up));
 
         OrderProductItem provider = new OrderProductItem();
         provider.setCode(HsConstants.PROVIDER);
@@ -193,4 +194,63 @@ public class FlowService {
         rabbitTemplate.convertAndSend(exchange, orderKey, obj);
     }
 
+    /**
+     * 流量单位转换 带单位，精度一位小数
+     * @param size
+     * @return
+     */
+    public static String getNetFileSizeDescription(long size) {
+        StringBuffer bytes = new StringBuffer();
+        DecimalFormat format = new DecimalFormat("###.0");
+        if (size >= 1024 * 1024 * 1024) {
+            double i = (size / (1024.0 * 1024.0 * 1024.0));
+            bytes.append(format.format(i)).append("GB");
+        }
+        else if (size >= 1024 * 1024) {
+            double i = (size / (1024.0 * 1024.0));
+            bytes.append(format.format(i)).append("MB");
+        }
+        else if (size >= 1024) {
+            double i = (size / (1024.0));
+            bytes.append(format.format(i)).append("KB");
+        }
+        else if (size < 1024) {
+            if (size <= 0) {
+                bytes.append("0B");
+            }
+            else {
+                bytes.append((int) size).append("B");
+            }
+        }
+        return bytes.toString();
+    }
+
+    /**
+     * 字节大小转换为GB
+     * @param size
+     * @return
+     */
+    public static String getByteTransToGB(long size){
+        StringBuffer bytes = new StringBuffer();
+        // 精度
+        DecimalFormat format = new DecimalFormat("0.000000000");
+        if (size < 1024) {
+            if (size <= 0) {
+                bytes.append("0.000000000");
+            } else {
+                bytes.append(format.format(size));
+            }
+        }else {
+            double i = (size / (1024.0 * 1024.0 * 1024.0 *8.0));
+            bytes.append(format.format(i));
+        }
+        return bytes.toString();
+    }
+
+    public static void main(String[] args) {
+        String description = getNetFileSizeDescription(704722555418L);
+        System.out.println(description);
+        String gb = getByteTransToGB(704722555418L);
+        System.out.println(gb);
+    }
 }
