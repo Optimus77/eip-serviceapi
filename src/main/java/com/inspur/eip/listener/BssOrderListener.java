@@ -102,6 +102,10 @@ public class BssOrderListener {
             if (optional.isPresent()){
                 String orderType = reciveOrder.getOrderType();
                 String orderRoute = reciveOrder.getOrderRoute();
+                if (!reciveOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)){
+                    log.error(ConstantClassField.ORDER_STATUS_NOT_CORRECT + reciveOrder.getOrderStatus());
+                    return;
+                }
                 ActionResponse actionResponse = iamService.isIamAuthority(reciveOrder);
                 if(actionResponse.isSuccess()){
                     switch (orderType){
