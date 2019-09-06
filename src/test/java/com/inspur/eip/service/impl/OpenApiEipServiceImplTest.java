@@ -409,31 +409,61 @@ public class OpenApiEipServiceImplTest {
     public void openapiCreateEip() throws Exception {
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
         OpenCreateEip openCreateEip = new OpenCreateEip();
-        openCreateEip.setDuration("1");
-        openCreateEip.setBillType("monthly");
+        //openCreateEip.setDuration("1");
+        openCreateEip.setBillType("hourlySettlement");
         openCreateEip.setBandwidth("5");
+
         ResponseEntity responseEntity = openApiEipService.OpenapiCreateEip(openCreateEip, token);
+
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 
     }
 
     @Test
-    public void openapiCreateEipAddSbw() {
+    public void openapiCreateEipAddSbw() throws Exception {
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        OpenCreateEip openCreateEip = new OpenCreateEip();
+        openCreateEip.setBandwidth("6");
+        openCreateEip.setSbwId("");
+        ResponseEntity responseEntity = openApiEipService.OpenapiCreateEipAddSbw(openCreateEip,token);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     @Test
-    public void openapiDeleteEip() {
+    public void openapiDeleteEip() throws Exception {
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        OpenCreateEip openCreateEip = new OpenCreateEip();
+        openCreateEip.setEipId("");
+        ResponseEntity responseEntity = openApiEipService.OpenapiDeleteEip(openCreateEip, token);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     @Test
-    public void openapiRenewEip() {
+    public void openapiRenewEip() throws Exception {
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        OpenCreateEip openCreateEip = new OpenCreateEip();
+        openCreateEip.setEipId("");
+        openCreateEip.setDuration("2");
+        ResponseEntity responseEntity = openApiEipService.OpenapiRenewEip(openCreateEip,token);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     @Test
-    public void openapiEipupdateBandwidth() {
+    public void openapiEipupdateBandwidth() throws Exception {
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        OpenCreateEip openCreateEip = new OpenCreateEip();
+        openCreateEip.setBandwidth("6");
+        openCreateEip.setEipId("");
+        ResponseEntity responseEntity = openApiEipService.OpenapiEipupdateBandwidth(openCreateEip,token);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     @Test
-    public void openapicreateIptsBandEip() {
+    public void openapicreateIptsBandEip() throws Exception {
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        OpenCreateEip openCreateEip = new OpenCreateEip();
+        openCreateEip.setBandwidth("6");
+        ResponseEntity responseEntity = openApiEipService.OpenapicreateIptsBandEip(openCreateEip,token);
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 }

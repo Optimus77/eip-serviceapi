@@ -213,9 +213,12 @@ public class SbwServiceImpl implements ISbwService {
     @Override
     public ResponseEntity countSbwNumsByProjectId() {
         try {
-            String projectid = CommonUtil.getProjectId();
-            long num = sbwRepository.countByProjectIdAndIsDelete(projectid, 0);
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, HsConstants.SUCCESS, num), HttpStatus.OK);
+            String projectId = CommonUtil.getProjectId();
+            List<Sbw> sbwList = sbwDaoService.findByProjectId(projectId);
+            List<Sbw> dataList = ListFilterUtil.filterListData(sbwList, Sbw.class);
+            int size = dataList.size();
+            //long num = sbwRepository.countByProjectIdAndIsDelete(projectid, 0);
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, HsConstants.SUCCESS, size), HttpStatus.OK);
         } catch (KeycloakTokenException e) {
             log.error("KeycloakTokenException in count sbw nums:{}", e.getMessage());
         }
