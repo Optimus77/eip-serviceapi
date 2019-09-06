@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.*;
 
 @Slf4j
@@ -67,7 +69,10 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
             paramMap.put("productLineCode", EipConstant.PRODUCTLINE_CODE);
             paramMap.put("productTypeCode", EipConstant.PRODUCTTYPE_CODE);
             paramMap.put("billType", openCreateEip.getBillType());
-            ResponseEntity responseEntity = HttpClientUtil.doGet(bssQuotaUrl, paramMap, HttpsClientUtil.getHeader());
+            ResponseEntity responseEntity = null;
+
+            responseEntity = HttpClientUtil.doGet(bssQuotaUrl, paramMap, HttpsClientUtil.getHeader());
+
             JSONObject responseBodyJson = JSONObject.parseObject(responseEntity.getBody().toString());
             if ("0".equals(responseBodyJson.getString("code"))) {
                 if ((Integer.parseInt(responseBodyJson.getJSONObject("result").getJSONArray("data").getJSONObject(0).getJSONArray("typeList").getJSONObject(0).getString("totalAmount"))-Integer.parseInt(responseBodyJson.getJSONObject("result").getJSONArray("data").getJSONObject(0).getJSONArray("typeList").getJSONObject(0).getString("usedAmount"))) <= 0) {
@@ -77,7 +82,11 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
                 throw new EipInternalServerException(ErrorStatus.BSS_CRM_QUOTA_ERROR.getCode(), ErrorStatus.BSS_CRM_QUOTA_ERROR.getMessage());
             }
         } catch (KeycloakTokenException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
 
         List<Item> items = new ArrayList<>();
@@ -128,14 +137,14 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
                     .consoleCustomization(consoleJson)
                     .productList(products)
                     .build();
-            return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+                return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
         } catch (KeycloakTokenException e) {
-            log.info("Openapi Create EIP Erroe");
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         return null;
     }
-
 
     @Override
     public ResponseEntity OpenapiDeleteSbw(OpenCreateEip openCreateEip, String token) {
@@ -181,10 +190,12 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
                     .isAutoDeducted(EipConstant.STATUC_FALSE)
                     .productList(products)
                     .build();
-            return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+
+                return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
         } catch (KeycloakTokenException e) {
-            log.info("Openapi Delete SBW Erroe");
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         return null;
     }
@@ -248,10 +259,11 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
                     .consoleCustomization(null)
                     .productList(products)
                     .build();
-            return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+                return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
         } catch (KeycloakTokenException e) {
-            log.info("Openapi OpenapiCreateEipAddSbw Erroe");
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         return null;
     }
@@ -315,10 +327,12 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
                     .consoleCustomization(null)
                     .productList(products)
                     .build();
-            return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+
+                return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
         } catch (KeycloakTokenException e) {
-            log.info("Openapi OpenapiCreateEipAddSbw Erroe");
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         return null;
     }
@@ -375,10 +389,11 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
                     .isAutoRenew(EipConstant.STATUC_TRUE)
                     .productList(productList)
                     .build();
-            return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+                return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
         } catch (KeycloakTokenException e) {
-            log.info("Openapi Renew SBW Erroe");
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         return null;
     }
@@ -442,7 +457,11 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
                         .orderType(EipConstant.ORDER_TYPE_CHANGE_CONFIG)
                         .productList(productList)
                         .build();
-                return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+                try {
+                        return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+                } catch (IOException | URISyntaxException e) {
+                    log.error("Query quota exception", e);
+                }
             } catch (KeycloakTokenException e) {
                 log.info("Openapi update EIP Bindwidth");
                 e.printStackTrace();
@@ -464,7 +483,12 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
         paramMap.put("productLineCode", EipConstant.PRODUCTLINE_CODE);
         paramMap.put("productTypeCode", EipConstant.PRODUCTTYPE_CODE);
         paramMap.put("region", regionCode);
-        ResponseEntity responseEntity = HttpClientUtil.doGet(bssProductUrl, paramMap, HttpsClientUtil.getHeader());
+        ResponseEntity responseEntity = null;
+        try {
+            responseEntity = HttpClientUtil.doGet(bssProductUrl, paramMap, HttpsClientUtil.getHeader());
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
+        }
         System.out.println(responseEntity.toString());
         if (200 == responseEntity.getStatusCodeValue()) {
             resultString = responseEntity.getBody().toString();
@@ -530,7 +554,12 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
         paramMap.put("productLineCode", EipConstant.PRODUCT_LINE_CODE);
         paramMap.put("productTypeCode", EipConstant.PRODUCT_TYPE_CODE);
         paramMap.put("region", regionCode);
-        ResponseEntity responseEntity = HttpClientUtil.doGet(bssProductUrl, paramMap, HttpsClientUtil.getHeader());
+        ResponseEntity responseEntity = null;
+        try {
+            responseEntity = HttpClientUtil.doGet(bssProductUrl, paramMap, HttpsClientUtil.getHeader());
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
+        }
         System.out.println(responseEntity.toString());
         if (200 == responseEntity.getStatusCodeValue()) {
             resultString = responseEntity.getBody().toString();

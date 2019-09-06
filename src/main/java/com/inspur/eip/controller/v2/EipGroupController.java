@@ -84,7 +84,7 @@ public class EipGroupController {
                                   @RequestParam(required = false )String status,
                                   @RequestParam(required = false )String bandwidth,
                                   @Size(min=36, max=36, message = "Must be uuid.") @RequestParam(required = false )String sbwId) {
-        log.debug("EipController listEip, currentPage:{}, limit:{}", pageNo, pageSize);
+        log.debug("EipGroupController listEip, currentPage:{}, limit:{}", pageNo, pageSize);
 
         if(StringUtils.isBlank(pageNo) ||StringUtils.isBlank(pageSize)){
             pageNo="0";
