@@ -479,7 +479,7 @@ public class RabbitMqServiceImpl {
         String instanceStatus = HsConstants.STATUS_ERROR;
         ActionResponse response = null;
         try {
-            log.info("Recive soft down or delete EIP order:{}", JSONObject.toJSONString(softDown));
+            log.info("Recive soft down or delete SBW order:{}", JSONObject.toJSONString(softDown));
             List<SoftDownInstance> instanceList = softDown.getInstanceList();
             for (SoftDownInstance instance : instanceList) {
                 String operateType = instance.getOperateType();

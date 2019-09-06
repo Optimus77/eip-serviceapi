@@ -91,13 +91,14 @@ public class DateUtils4Jdk8 {
         return getCurDateTime(DEFAULT_UNSIGNED_DATE_HOUR_PATTERN, hour);
     }
     /**
-     * 根据时间格式返回对应的String类型的时间
+     * 根据时间格式返回对应的String类型的时间: 上
      *
      * @param format
      * @return
      */
     public static String getCurDateTime(String format) {
-        LocalDateTime now = LocalDateTime.now();
+        ZoneId zoneId = ZoneId.of("Asia/Shanghai");
+        LocalDateTime now = LocalDateTime.now(zoneId);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(format);
         String dataTime = now.format(dateTimeFormatter);
         return dataTime;
@@ -110,7 +111,8 @@ public class DateUtils4Jdk8 {
      * @return
      */
     public static String getCurDateTime(String format, Long hour) {
-        LocalDateTime now = LocalDateTime.now();
+        ZoneId zoneId = ZoneId.of("Asia/Shanghai");
+        LocalDateTime now = LocalDateTime.now(zoneId);
         if (hour!=0){
             now = now.plusHours(1L);
         }

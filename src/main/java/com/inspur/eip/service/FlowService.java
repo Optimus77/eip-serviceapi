@@ -235,11 +235,7 @@ public class FlowService {
         // 精度
         DecimalFormat format = new DecimalFormat("0.000000000");
         if (size < 1024) {
-            if (size <= 0) {
                 bytes.append("0.000000000");
-            } else {
-                bytes.append(format.format(size));
-            }
         }else {
             double i = (size / (1024.0 * 1024.0 * 1024.0 *8.0));
             bytes.append(format.format(i));
