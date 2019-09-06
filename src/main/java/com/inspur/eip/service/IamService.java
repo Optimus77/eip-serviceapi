@@ -64,9 +64,9 @@ public class IamService {
                 } else {
                     iamParam.setService(HsConstants.LOWERCASE_SBW);
                 }
-                iamParam.setInstanceId(null);
-                iamParam.setResourceAccountId(CommonUtil.getProjectId(token));
-                iamParam.setResourceCreator(CommonUtil.getProjectId(token));
+/*                iamParam.setInstanceId(null);
+                iamParam.setResourceAccountId(null);
+                iamParam.setResourceCreator(null);*/
                 String rts = rts(token, iamParam);
                 if(rts.equals(HsConstants.FALSE)){
                     return ActionResponse.actionFailed("unauthorized", HttpStatus.SC_FORBIDDEN);
@@ -154,7 +154,7 @@ public class IamService {
     }
 
     public String rts(String token,IamParam iamParam) throws Exception {
-        String url = "http://service.inspurtest.com/auth/v1/has-permissions";
+        //String url = "http://service.inspurtest.com/auth/v1/has-permissions";
         iamParam.setResourceType("instance");
         ContextIam contextIam = new ContextIam();
         contextIam.setAccountId(CommonUtil.getProjectId(token));
@@ -168,7 +168,7 @@ public class IamService {
         List<IamParam> list = new ArrayList();
         list.add(iamParam);
         String orderStr = JSONObject.toJSONString(list);
-        ReturnResult returnResult = HttpUtil.post(url, header, orderStr);
+        ReturnResult returnResult = HttpUtil.post(iamUrl, header, orderStr);
         String message= returnResult.getMessage().replace("[","");
         message = message.replace("]","");
         return message;
