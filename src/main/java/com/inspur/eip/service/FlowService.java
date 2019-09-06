@@ -237,7 +237,7 @@ public class FlowService {
         if (size < 1024) {
                 bytes.append("0.000000000");
         }else {
-            double i = (size / (1024.0 * 1024.0 * 1024.0 *8.0));
+            double i = (size / (1024.0 * 1024.0 * 1024.0));
             bytes.append(format.format(i));
         }
         return bytes.toString();
