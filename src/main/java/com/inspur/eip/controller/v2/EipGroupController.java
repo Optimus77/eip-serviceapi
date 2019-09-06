@@ -1,22 +1,38 @@
 package com.inspur.eip.controller.v2;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.config.VersionConstant;
 import com.inspur.eip.entity.EipUpdateParam;
 import com.inspur.eip.entity.EipUpdateParamWrapper;
+import com.inspur.eip.entity.eip.Eip;
+import com.inspur.eip.entity.eip.EipGroup;
+import com.inspur.eip.entity.eip.Resourceset;
+import com.inspur.eip.entity.ipv6.EipV6;
+import com.inspur.eip.exception.KeycloakTokenException;
+import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.impl.EipServiceImpl;
+import com.inspur.eip.service.impl.EipV6ServiceImpl;
 import com.inspur.eip.service.impl.SbwServiceImpl;
 import com.inspur.eip.util.ReturnMsgUtil;
+import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.iam.adapter.annotation.PermissionContext;
+import com.inspur.iam.adapter.util.ListFilterUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +41,12 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 
@@ -43,6 +63,14 @@ public class EipGroupController {
     @Autowired
     private SbwServiceImpl sbwService;
 
+    @Autowired
+    private EipDaoService eipDaoService;
+
+    @Autowired
+    private EipV6ServiceImpl eipV6Service;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @PermissionContext(
             service="eip",
@@ -190,5 +218,133 @@ public class EipGroupController {
     }
 
 
+
+    @PermissionContext(
+            service="eip",
+            action="ListEip",
+            resourceType="instance")
+    @GetMapping(value = "/groups2/{pageNo}/{pageSize}")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    @ApiOperation(value="listeip",notes="list")
+    public ResponseEntity listEipGroupsv2(int currentPage, int limit, String status) {
+
+        try {
+            String projcectId = CommonUtil.getProjectId();
+            log.debug("listEips  of user, userId:{}", projcectId);
+            if (projcectId == null) {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_UNAUTHORIZED.getCode(),
+                        ErrorStatus.ENTITY_UNAUTHORIZED.getMessage()), HttpStatus.BAD_REQUEST);
+            }
+            JSONObject data = new JSONObject();
+
+            if (currentPage != 0) {
+                Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
+                Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
+                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"' order by group_id";
+                Page<Eip> page =
+                        ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);
+                List<String> groupids = new ArrayList<String>();
+                for (Eip eip : page.getContent()) {
+                    if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
+                        continue;
+                    }
+                    if (!groupids.contains(eip.getGroupId())) {
+                        groupids.add(eip.getGroupId());
+                    }
+                }
+                JSONArray datas = new JSONArray();
+                for (String groupid : groupids) {
+                    JSONArray eips = new JSONArray();
+                    JSONObject groupInfo = new JSONObject(new LinkedHashMap());
+                    groupInfo.put("groupId",groupid);
+                    for (Eip eip : page.getContent()) {
+                        //groupInfo.put("oldBandwidth",eip.getOldBandWidth());
+                        groupInfo.put("ipType",eip.getIpType());
+                        groupInfo.put("region",eip.getRegion());
+                        groupInfo.put("billType",eip.getBillType());
+                        groupInfo.put("chargMode",eip.getChargeMode());
+                        if((eip.getGroupId()== null && groupid == null)||
+                                eip.getGroupId()!=null&&groupid!=null&&((eip.getGroupId()).equals(groupid))) {
+                            EipGroup eipGroup = new EipGroup();
+                            BeanUtils.copyProperties(eip,eipGroup);
+                            eipGroup.setResourceset(Resourceset.builder()
+                                    .resourceId(eip.getInstanceId())
+                                    .resourceType(eip.getInstanceType()).build());
+                            if (StringUtils.isNotBlank(eip.getEipV6Id())) {
+                                EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                                if (eipV6 != null) {
+                                    eipGroup.setIpv6(eipV6.getIpv6());
+                                }
+                            }
+                            eips.add(eipGroup);
+                        }
+                    }
+                    groupInfo.put("eips",eips);
+                    datas.add(groupInfo);
+                }
+
+                data.put("data",datas);
+//                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
+                data.put(HsConstants.TOTAL_COUNT, page.getTotalElements());
+                data.put(HsConstants.PAGE_NO, currentPage);
+                data.put(HsConstants.PAGE_SIZE, limit);
+            } else {
+
+                List<Eip> eipList = eipDaoService.findByProjectId(projcectId);
+                List<Eip> dataList = ListFilterUtil.filterListData(eipList, Eip.class);
+                List<String> groupids = new ArrayList<String>();
+                for (Eip eip : dataList) {
+                    if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
+                        continue;
+                    }
+                    if (!groupids.contains(eip.getGroupId())) {
+                        groupids.add(eip.getGroupId());
+                    }
+                }
+                JSONArray datas = new JSONArray();
+                for (String groupid : groupids) {
+                    JSONArray eips = new JSONArray();
+                    JSONObject groupInfo = new JSONObject(new LinkedHashMap());
+                    groupInfo.put("groupId",groupid);
+                    for (Eip eip : dataList) {
+                        //groupInfo.put("oldBandwidth",eip.getOldBandWidth());
+                        groupInfo.put("ipType",eip.getIpType());
+                        groupInfo.put("region",eip.getRegion());
+                        groupInfo.put("billType",eip.getBillType());
+                        groupInfo.put("chargMode",eip.getChargeMode());
+                        if((eip.getGroupId()== null && groupid == null)||
+                                eip.getGroupId()!=null&&groupid!=null&&((eip.getGroupId()).equals(groupid))) {
+                            EipGroup eipGroup = new EipGroup();
+                            BeanUtils.copyProperties(eip,eipGroup);
+                            eipGroup.setResourceset(Resourceset.builder()
+                                    .resourceId(eip.getInstanceId())
+                                    .resourceType(eip.getInstanceType()).build());
+                            if (StringUtils.isNotBlank(eip.getEipV6Id())) {
+                                EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                                if (eipV6 != null) {
+                                    eipGroup.setIpv6(eipV6.getIpv6());
+                                }
+                            }
+                            eips.add(eipGroup);
+                        }
+                    }
+                    groupInfo.put("eips",eips);
+                    datas.add(groupInfo);
+                }
+                data.put("data",datas);
+//                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
+                data.put(HsConstants.TOTAL_COUNT, dataList.size());
+                data.put(HsConstants.PAGE_NO, 1);
+                data.put(HsConstants.PAGE_SIZE, limit);
+
+            }
+            return new ResponseEntity<>(data, HttpStatus.OK);
+        } catch (KeycloakTokenException e) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            log.error("Exception in listEips", e);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }
