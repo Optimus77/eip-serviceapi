@@ -523,7 +523,7 @@ public class EipServiceImplTest {
     public void eipMonthlyDelete() throws Exception {
         Eip eip = creatEip(HsConstants.MONTHLY, null);
         //String eipId = "e72da25a-f1e6-4603-8432-d0de7edf3d87";
-        ResponseEntity responseEntity = eipServiceImpl.atomDeleteEip(eip.getId(),"ecs");
+        ResponseEntity responseEntity = eipServiceImpl.atomDeleteEip(eip.getId(),null);
         eipDaoService.adminDeleteEip(eip.getId());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
