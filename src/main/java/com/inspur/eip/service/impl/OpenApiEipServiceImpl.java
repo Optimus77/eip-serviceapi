@@ -509,10 +509,15 @@ public class OpenApiEipServiceImpl implements OpenApiService {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+        if (null != responseEntity){
         System.out.println(responseEntity.toString());
         if (200 == responseEntity.getStatusCodeValue()) {
             resultString = responseEntity.getBody().toString();
         } else {
+            return null;
+        }
+        }else {
+            log.error("Query quota exception");
             return null;
         }
         JSONObject result = null;
