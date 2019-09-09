@@ -530,6 +530,18 @@ public class SbwServiceImplTest {
     }
 
     @Test
+    public void getSbwDetailSbwIdIsNull() throws Exception {
+        ResponseEntity sbwDetail = sbwService.getSbwDetail(null);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, sbwDetail.getStatusCode());
+    }
+
+    @Test
+    public void getSbwDetailSbwIsNull() throws Exception {
+        ResponseEntity sbwDetail = sbwService.getSbwDetail("123");
+        assertEquals(HttpStatus.NOT_FOUND, sbwDetail.getStatusCode());
+    }
+
+    @Test
     public void updateSbwConfig() throws Exception {
         Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
@@ -565,9 +577,15 @@ public class SbwServiceImplTest {
     public void countSbwNumsByStatus() {
         String status = "ACTIVE";
         ResponseEntity responseEntity = sbwService.countSbwNumsByStatus(status);
-
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
+
+    /*@Test
+    public void countSbwNumsByStatusError() {
+        String status = "ERROR";
+        ResponseEntity responseEntity = sbwService.countSbwNumsByStatus(status);
+        assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode());
+    }*/
 
     @Test
     public void restartSbwService() throws Exception {

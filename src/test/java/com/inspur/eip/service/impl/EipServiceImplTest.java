@@ -34,6 +34,7 @@ import java.security.Principal;
 import java.util.*;
 
 import static org.junit.Assert.*;
+
 @Slf4j
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = EipServiceImpl.class)
@@ -57,6 +58,8 @@ public class EipServiceImplTest {
     @Autowired
     EipRepository eipRepository;
 
+    @Autowired
+    EipV6ServiceImpl eipV6ServiceImpl;
 
     @Before
     public void setUp() {
@@ -445,8 +448,9 @@ public class EipServiceImplTest {
         }
 
     }
+
     @Test
-    public void atomCreateEipWithNoEip(){
+    public void atomCreateEipWithNoEip() {
         EipAllocateParam eipConfig = new EipAllocateParam();
         eipConfig.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
         eipConfig.setBandwidth(100);
@@ -458,8 +462,7 @@ public class EipServiceImplTest {
         eipConfig.setDuration("1");
         String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIwNWJlYjNhMS0yMGQ3LTRiN2EtYjNiYi03ZDgxNjUzMzAxYWUiLCJleHAiOjE1NjE2MDQ1MTcsIm5iZiI6MCwiaWF0IjoxNTYxNTk5MTE3LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImNjZjc3YTJjLWU4MDMtNDdjMi04OGNiLTdjZDYyYzNhOWIwMCIsImF1dGhfdGltZSI6MTU2MTU5OTExMCwic2Vzc2lvbl9zdGF0ZSI6IjhkYWI4ZTAxLWJhNDYtNGY3My1iY2MyLWM5ZDg2M2I3ZjZkYyIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwic3ZjIjoiW1wiSERJTlNJR0hUXCJdIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.mVHzxGdKCmL9ZF1Xa9JCJkTTXSfg7UDTPPVy9oBGuwkzw492Uo3sMmcVnx26l5fO0k__vIxkR5TfuCtgvAJPvp1Mw6rmp2yN45ZUMUQ513uckoPeXUMNzE7f9-GnkZ2qZ2APCYO_JNevWiPHqgoQBEllONDtof4YbTbEkPpeGSL2_g_66CK2sdrG2C8tYSpj2Yayab0q99IM1BwclkgJXxrUVtZTlt3sIdtoJwgi45HujNTfpMmB71JVCHTjsuPqiifYNmAk-SEkdsn22zBTyTApArreRq6QH_mvHIkgB6FjQvjlvpzZH9BzchZh876HY8PrUBlb5UmTeLALfzlh4Q";
         String operater = "unitTest";
-        while(eipPoolRepository.getEipByRandom("BGP") != null)
-        {
+        while (eipPoolRepository.getEipByRandom("BGP") != null) {
             eipDaoService.getOneEipFromPool("BGP");
         }
         ResponseEntity responseEntity = eipServiceImpl.atomCreateEip(eipConfig, token, operater);
@@ -569,7 +572,7 @@ public class EipServiceImplTest {
     }
 
     @Test
-    public void listEipsCurrentPageIsOne() {
+    public void listEipsCurrentPageIsNotZero() {
         ResponseEntity responseEntity = eipServiceImpl.listEips(1, 1, "DOWN");
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
@@ -577,6 +580,42 @@ public class EipServiceImplTest {
     @Test
     public void listEipsLimitIsZero() {
         ResponseEntity responseEntity = eipServiceImpl.listEips(2, 0, "DOWN");
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void listEipsByGroup() {
+        ResponseEntity responseEntity = eipServiceImpl.listEipsByGroup(0, 1, "DOWN");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void listEipsByGroupCurrentPageIsNotZero() {
+        ResponseEntity responseEntity = eipServiceImpl.listEipsByGroup(1, 1, "DOWN");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void listEipsByGroupLimitIstZero() {
+        ResponseEntity responseEntity = eipServiceImpl.listEipsByGroup(1, 0, "DOWN");
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void listEipsV() {
+        ResponseEntity responseEntity = eipServiceImpl.listEipsV(0, 1, "DOWN");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void listEipsVCurrentPageIsNotZero() {
+        ResponseEntity responseEntity = eipServiceImpl.listEipsV(1, 1, "DOWN");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void listEipsVLimitIsZero() {
+        ResponseEntity responseEntity = eipServiceImpl.listEipsV(2, 0, "DOWN");
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
@@ -600,6 +639,36 @@ public class EipServiceImplTest {
     public void getEipDetailNotFound() {
         String eipIdNotFound = "";
         ResponseEntity responseEntity = eipServiceImpl.getEipDetail(eipIdNotFound);
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void getEipGroupDetail() throws Exception {
+        Eip eip1 = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        Eip eip2 = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        eip1.setGroupId("1qaz2wsx-3edc-4rfv-5tgb-6yhn7ujm8ik9");
+        eipRepository.saveAndFlush(eip1);
+        eip2.setGroupId("1qaz2wsx-3edc-4rfv-5tgb-6yhn7ujm8ik9");
+        eipRepository.saveAndFlush(eip2);
+        ResponseEntity responseEntity = eipServiceImpl.getEipGroupDetail("1qaz2wsx-3edc-4rfv-5tgb-6yhn7ujm8ik9");
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void getEipGroupDetailWithIpV6() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        eip.setGroupId("1qaz2wsx-3edc-4rfv-5tgb-6yhn7ujm8ik9");
+        eipRepository.saveAndFlush(eip);
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
+        ResponseEntity responseEntity = eipServiceImpl.getEipGroupDetail("1qaz2wsx-3edc-4rfv-5tgb-6yhn7ujm8ik9");
+        eipV6ServiceImpl.atomDeleteEipV6(eip.getEipV6Id());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void getEipGroupDetailNull() throws Exception {
+        ResponseEntity responseEntity = eipServiceImpl.getEipGroupDetail("1qaz2wsx-3edc-4rfv-5tgb-6yhn7ujm8ik9");
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
     }
 
@@ -632,6 +701,52 @@ public class EipServiceImplTest {
     public void getEipByInstanceIdWithoutEip() {
         String instanceIdWithoutEip = "aa022b17-7ce0-46da-9448-c8a439b10e27";
         ResponseEntity responseEntity = eipServiceImpl.getEipByInstanceIdV2(instanceIdWithoutEip);
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void getEipGroupByIpAddress() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        eip.setGroupId("1qaz2wsx-3edc-4rfv-5tgb-6yhn7ujm8ik9");
+        eipRepository.saveAndFlush(eip);
+        ResponseEntity responseEntity = eipServiceImpl.getEipGroupByIpAddress(eip.getEipAddress());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void getEipGroupByIpAddressGroupIdIsNull() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        ResponseEntity responseEntity = eipServiceImpl.getEipGroupByIpAddress(eip.getEipAddress());
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+    }
+    @Test
+    public void getEipGroupByIpAddressWithIpV6() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        eip.setGroupId("1qaz2wsx-3edc-4rfv-5tgb-6yhn7ujm8ik9");
+        eipRepository.saveAndFlush(eip);
+        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+        eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
+        ResponseEntity responseEntity = eipServiceImpl.getEipGroupByIpAddress(eip.getEipAddress());
+        eipV6ServiceImpl.atomDeleteEipV6(eip.getEipV6Id());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void getEipGroupByIpAddressEipIsNull() throws Exception {
+        ResponseEntity responseEntity = eipServiceImpl.getEipGroupByIpAddress(null);
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void getEipByIpAddressV2() throws Exception {
+        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        ResponseEntity responseEntity = eipServiceImpl.getEipByIpAddressV2(eip.getEipAddress());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
+    public void getEipByIpAddressV2EipIsNull() throws Exception {
+        ResponseEntity responseEntity = eipServiceImpl.getEipByIpAddressV2(null);
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
     }
 
@@ -816,6 +931,7 @@ public class EipServiceImplTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 
     }
+
 
     @Test
     public void getEipDetailsByIpAddress() throws Exception {

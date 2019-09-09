@@ -131,7 +131,10 @@ public class SbwControllerV2 {
      *
      * @return response
      */
-    @PermissionContext(loginAccess=true)
+    @PermissionContext(
+            service="sbw",
+            action="ListSbw",
+            resourceType="instance")
     @ICPControllerLog
     @GetMapping(value = "/sbws/instance-num")
     @CrossOrigin(origins = "*", maxAge = 3000)

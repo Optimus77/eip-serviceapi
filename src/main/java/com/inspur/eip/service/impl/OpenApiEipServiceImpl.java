@@ -22,6 +22,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.*;
 
 @Slf4j
@@ -48,7 +50,7 @@ public class OpenApiEipServiceImpl implements OpenApiService {
     private EipRepository eipRepository;
 
     @Override
-    public ResponseEntity OpenapiCreateEip(OpenCreateEip openCreateEip, String token) {
+    public ResponseEntity OpenapiCreateEip(OpenCreateEip openCreateEip, String token)  {
 
         //检验请求参数
         if (EipConstant.BILLTYPE_MONTHLY.equals(openCreateEip.getBillType())) {
@@ -65,7 +67,9 @@ public class OpenApiEipServiceImpl implements OpenApiService {
             paramMap.put("productLineCode", EipConstant.PRODUCT_LINE_CODE);
             paramMap.put("productTypeCode", EipConstant.PRODUCT_TYPE_CODE);
             paramMap.put("billType", openCreateEip.getBillType());
+
             ResponseEntity responseEntity = HttpClientUtil.doGet(bssQuotaUrl, paramMap, HttpsClientUtil.getHeader());
+
             JSONObject responseBodyJson = JSONObject.parseObject(responseEntity.getBody().toString());
             if ("0".equals(responseBodyJson.getString("code"))) {
                 if ((Integer.parseInt(responseBodyJson.getJSONObject("result").getJSONArray("data").getJSONObject(0).getJSONArray("typeList").getJSONObject(0).getString("totalAmount")) - Integer.parseInt(responseBodyJson.getJSONObject("result").getJSONArray("data").getJSONObject(0).getJSONArray("typeList").getJSONObject(0).getString("usedAmount"))) <= 0) {
@@ -75,7 +79,11 @@ public class OpenApiEipServiceImpl implements OpenApiService {
                 throw new EipInternalServerException(ErrorStatus.BSS_CRM_QUOTA_ERROR.getCode(), ErrorStatus.BSS_CRM_QUOTA_ERROR.getMessage());
             }
         } catch (KeycloakTokenException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
 
         List<Item> items = new ArrayList<>();
@@ -112,16 +120,17 @@ public class OpenApiEipServiceImpl implements OpenApiService {
                     .productList(products)
                     .build();
             return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
         } catch (KeycloakTokenException e) {
-            log.info("Openapi Create EIP Erroe");
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         return null;
     }
 
 
     @Override
-    public ResponseEntity OpenapiCreateEipAddSbw(OpenCreateEip openCreateEip, String token) {
+    public ResponseEntity OpenapiCreateEipAddSbw(OpenCreateEip openCreateEip, String token)  {
 
         //检验请求参数
         if (StringUtils.isBlank(openCreateEip.getSbwId())) {
@@ -139,7 +148,9 @@ public class OpenApiEipServiceImpl implements OpenApiService {
             paramMap.put("userId", CommonUtil.getUserId(token));
             paramMap.put("region", regionCode);
             paramMap.put("productLineCode", EipConstant.PRODUCT_LINE_CODE);
+
             ResponseEntity responseEntity = HttpClientUtil.doGet(bssQuotaUrl, paramMap, HttpsClientUtil.getHeader());
+
             JSONObject responseBodyJson = JSONObject.parseObject(responseEntity.getBody().toString());
             if ("0".equals(responseBodyJson.getString("code"))) {
                 if (Integer.parseInt(responseBodyJson.getJSONObject("result").getJSONArray("quotaList").getJSONObject(0).getString("leftNumber")) == 0) {
@@ -149,7 +160,11 @@ public class OpenApiEipServiceImpl implements OpenApiService {
                 throw new EipInternalServerException(ErrorStatus.BSS_CRM_QUOTA_ERROR.getCode(), ErrorStatus.BSS_CRM_QUOTA_ERROR.getMessage());
             }
         } catch (KeycloakTokenException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
 
         List<Item> items = new ArrayList<>();
@@ -159,7 +174,7 @@ public class OpenApiEipServiceImpl implements OpenApiService {
                 buildCreateEipAddSbwItemList(items, itemArraryList, i, bandwidth, openCreateEip.getSbwId());
             }
         }
-//      创建EipAddSbw订单报文
+//      创建Eip AddSbw订单报文
         Product product = Product.builder()
                 .region(regionCode)
                 .productLineCode(EipConstant.PRODUCT_LINE_CODE)
@@ -186,16 +201,17 @@ public class OpenApiEipServiceImpl implements OpenApiService {
                     .productList(products)
                     .build();
             return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
         } catch (KeycloakTokenException e) {
-            log.info("Openapi OpenapiCreateEipAddSbw Erroe");
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         return null;
     }
 
 
     @Override
-    public ResponseEntity OpenapiDeleteEip(OpenCreateEip openCreateEip, String token) {
+    public ResponseEntity OpenapiDeleteEip(OpenCreateEip openCreateEip, String token)  {
 
         //检验请求参数
         if (StringUtils.isBlank(openCreateEip.getEipId())) {
@@ -238,15 +254,16 @@ public class OpenApiEipServiceImpl implements OpenApiService {
                     .productList(products)
                     .build();
             return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
         } catch (KeycloakTokenException e) {
-            log.info("Openapi Delete EIP Erroe");
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         return null;
     }
 
     @Override
-    public ResponseEntity OpenapiRenewEip(OpenCreateEip openCreateEip, String token) {
+    public ResponseEntity OpenapiRenewEip(OpenCreateEip openCreateEip, String token){
 
         if (StringUtils.isBlank(openCreateEip.getEipId())) {
             throw new EipInternalServerException(ErrorStatus.EIP_ID_EMPTY.getCode(), ErrorStatus.EIP_ID_EMPTY.getMessage());
@@ -290,9 +307,10 @@ public class OpenApiEipServiceImpl implements OpenApiService {
                     .productList(productList)
                     .build();
             return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
         } catch (KeycloakTokenException e) {
-            log.info("Openapi Renew EIP Erroe");
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         return null;
     }
@@ -353,10 +371,11 @@ public class OpenApiEipServiceImpl implements OpenApiService {
                         .orderType(EipConstant.ORDER_TYPE_CHANGE_CONFIG)
                         .productList(productList)
                         .build();
-                return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+                    return HttpClientUtil.doPost(bssSubmitUrl, JSONObject.toJSONString(order), HttpsClientUtil.getHeader());
+            } catch (IOException | URISyntaxException e) {
+                log.error("Query quota exception", e);
             } catch (KeycloakTokenException e) {
-                log.info("Openapi update EIP Bindwidth");
-                e.printStackTrace();
+                log.error(e.getMessage(), e);
             }
         }
         return null;
@@ -384,7 +403,9 @@ public class OpenApiEipServiceImpl implements OpenApiService {
             paramMap.put("productLineCode", EipConstant.PRODUCT_LINE_CODE);
             paramMap.put("productTypeCode", EipConstant.PRODUCT_TYPE_CODE);
             paramMap.put("billType", openCreateEip.getBillType());
+
             ResponseEntity responseEntity = HttpClientUtil.doGet(bssQuotaUrl, paramMap, HttpsClientUtil.getHeader());
+
             JSONObject responseBodyJson = JSONObject.parseObject(responseEntity.getBody().toString());
             if ("0".equals(responseBodyJson.getString("code"))) {
                 if ((Integer.parseInt(responseBodyJson.getJSONObject("result").getJSONArray("data").getJSONObject(0).getJSONArray("typeList").getJSONObject(0).getString("totalAmount")) - Integer.parseInt(responseBodyJson.getJSONObject("result").getJSONArray("data").getJSONObject(0).getJSONArray("typeList").getJSONObject(0).getString("usedAmount"))) <= 0) {
@@ -394,9 +415,12 @@ public class OpenApiEipServiceImpl implements OpenApiService {
                 throw new EipInternalServerException(ErrorStatus.BSS_CRM_QUOTA_ERROR.getCode(), ErrorStatus.BSS_CRM_QUOTA_ERROR.getMessage());
             }
         } catch (KeycloakTokenException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
-
 
         List<Item> items = new ArrayList<>();
         JSONArray itemArraryList = getUserProductItems(token);
@@ -435,6 +459,8 @@ public class OpenApiEipServiceImpl implements OpenApiService {
         } catch (KeycloakTokenException e) {
             log.info("Openapi createIptsBindEip Erroe");
             e.printStackTrace();
+        } catch (IOException | URISyntaxException e) {
+            log.error("Query quota exception", e);
         }
         return null;
     }
@@ -475,11 +501,23 @@ public class OpenApiEipServiceImpl implements OpenApiService {
         paramMap.put("productLineCode", EipConstant.PRODUCT_LINE_CODE);
         paramMap.put("productTypeCode", EipConstant.PRODUCT_TYPE_CODE);
         paramMap.put("region", regionCode);
-        ResponseEntity responseEntity = HttpClientUtil.doGet(bssProductUrl, paramMap, HttpsClientUtil.getHeader());
+        ResponseEntity responseEntity = null;
+        try {
+            responseEntity = HttpClientUtil.doGet(bssProductUrl, paramMap, HttpsClientUtil.getHeader());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        if (null != responseEntity){
         System.out.println(responseEntity.toString());
         if (200 == responseEntity.getStatusCodeValue()) {
             resultString = responseEntity.getBody().toString();
         } else {
+            return null;
+        }
+        }else {
+            log.error("Query quota exception");
             return null;
         }
         JSONObject result = null;
