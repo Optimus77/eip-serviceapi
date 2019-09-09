@@ -9,7 +9,6 @@ import com.inspur.eip.entity.sbw.Sbw;
 import com.inspur.eip.exception.EipBadRequestException;
 import com.inspur.eip.exception.EipInternalServerException;
 import com.inspur.eip.repository.EipRepository;
-import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.repository.SbwRepository;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.common.JaspytUtils;
@@ -47,9 +46,6 @@ public class FirewallService {
 
     @Value("${firewall.password}")
     private String firewallPasswd;
-
-    @Autowired
-    private FirewallRepository firewallRepository;
 
     @Autowired
     private QosService qosService;
