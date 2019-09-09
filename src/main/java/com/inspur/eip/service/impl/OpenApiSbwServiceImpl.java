@@ -463,7 +463,7 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
                     log.error("Query quota exception", e);
                 }
             } catch (KeycloakTokenException e) {
-                log.info("Openapi update EIP Bindwidth");
+                log.info("Openapi update SBW Bindwidth");
                 e.printStackTrace();
             }
         }
@@ -489,10 +489,15 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
         } catch (IOException | URISyntaxException e) {
             log.error("Query quota exception", e);
         }
-        System.out.println(responseEntity.toString());
+        System.out.println(JSONObject.toJSONString(responseEntity));
+        if (null != responseEntity){
         if (200 == responseEntity.getStatusCodeValue()) {
-            resultString = responseEntity.getBody().toString();
-        } else {
+                resultString = responseEntity.getBody().toString();
+            } else {
+                return null;
+            }
+        }else {
+            log.error("Query quota exception");
             return null;
         }
         JSONObject result = null;
@@ -560,10 +565,15 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
         } catch (IOException | URISyntaxException e) {
             log.error("Query quota exception", e);
         }
-        System.out.println(responseEntity.toString());
+        System.out.println(JSONObject.toJSONString(responseEntity));
+        if(null !=responseEntity){
         if (200 == responseEntity.getStatusCodeValue()) {
             resultString = responseEntity.getBody().toString();
         } else {
+            return null;
+        }
+        }else {
+            log.error("Query quota exception");
             return null;
         }
         JSONObject result = null;
