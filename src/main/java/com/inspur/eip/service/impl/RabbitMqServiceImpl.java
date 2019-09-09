@@ -194,7 +194,6 @@ public class RabbitMqServiceImpl {
         String eipId = null;
         ActionResponse response = null;
         String result = HsConstants.FAIL;
-        int failedCount = 0;
 
         log.info("Recive update Eip order:{}", JSONObject.toJSONString(eipOrder));
 
@@ -231,7 +230,6 @@ public class RabbitMqServiceImpl {
             }
             if (response == null || !response.isSuccess()) {
                 log.warn(ConstantClassField.UPDATE_EIP_CONFIG_FAILED, response);
-                failedCount += 1;
             }else {
                 result = HsConstants.SUCCESS;
             }
@@ -318,7 +316,6 @@ public class RabbitMqServiceImpl {
         String result = HsConstants.STATUS_ERROR;
         try {
             log.info("Recive create sbw order:{}", JSONObject.toJSONString(reciveOrder));
-            //订单状态，必须支付成功
 
             for (OrderProduct orderProduct : reciveOrder.getProductList()) {
                 if (!orderProduct.getProductLineCode().equalsIgnoreCase(HsConstants.SBW)) {
@@ -350,13 +347,7 @@ public class RabbitMqServiceImpl {
             }
             ret = ActionResponse.actionFailed("create sbw failed ", HttpStatus.SC_EXPECTATION_FAILED);
             log.error(ConstantClassField.EXCEPTION_SBW_CREATE, e);
-        }// finally {
-//            if (null == sbwId) {
-//                sendOrderMessageToBss(reciveOrder,  HsConstants.STATUS_ERROR);
-//            } else {
-//                sendOrderMessageToBss(reciveOrder,HsConstants.STATUS_ACTIVE);
-//            }
-//        }
+        }
         return ret;
     }
 
@@ -438,7 +429,7 @@ public class RabbitMqServiceImpl {
 
 //        webService.returnSbwWebsocket(sbwId, recive, "update");
 //        sendOrderMessageToBss(recive, retStr);
-        log.warn(ConstantClassField.SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT, response);
+//        log.warn(ConstantClassField.SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT, response);
         return response;
     }
 
@@ -489,9 +480,7 @@ public class RabbitMqServiceImpl {
         }
         sendChangeMessageToBss(softDown);
         log.info(ConstantClassField.SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT, response);
-//        } catch (Exception e) {
-//            log.error(ConstantClassField.EXCEPTION_SBW_SOFTDOWN_OR_DELETE, e);
-//        }
+
         return response;
     }
 
