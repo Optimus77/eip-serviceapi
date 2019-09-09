@@ -92,7 +92,7 @@ public class RabbitMqServiceImpl {
         try {
             List<OrderProduct> orderProducts = eipOrder.getProductList();
             String groupId = null;
-            if(eipOrder.getConsoleCustomization().containsKey("groupId")){
+            if( null != eipOrder.getConsoleCustomization() && eipOrder.getConsoleCustomization().containsKey("groupId")){
                 groupId = CommonUtil.getUUID();
             }
 
