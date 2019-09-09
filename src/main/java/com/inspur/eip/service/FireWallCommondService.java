@@ -7,6 +7,7 @@ import ch.ethz.ssh2.StreamGobbler;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.fw.Firewall;
 import com.inspur.eip.exception.EipInternalServerException;
+import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.ErrorStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -77,7 +78,7 @@ public class FireWallCommondService {
 
         try {
             if (!bConnect) {
-                Firewall firewall = firewallService.getFireWallById(fireWallId);
+                Firewall firewall = CommonUtil.getFireWallById(fireWallId);
 //                initConnection("10.110.29.206", "test", "test");
                 initConnection(firewall.getIp(), firewall.getUser(), firewall.getPasswd());
                 log.info("firewall connection reinit.");
@@ -130,7 +131,7 @@ public class FireWallCommondService {
         try {
             JSONObject json = new JSONObject();
             if (!bConnect) {
-                Firewall firewall = firewallService.getFireWallById(fireWallId);
+                Firewall firewall = CommonUtil.getFireWallById(fireWallId);
 //                initConnection("10.110.29.206", "test", "test");
                 initConnection(firewall.getIp(), firewall.getUser(), firewall.getPasswd());
                 log.info("firewall connection reinit.");

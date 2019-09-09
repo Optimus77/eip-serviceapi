@@ -127,7 +127,7 @@ public class RabbitMqServiceImpl {
         } catch (Exception e) {
             log.error(ConstantClassField.EXCEPTION_EIP_CREATE, e);
             if (null != eipId) {
-                eipDaoService.deleteEip(eipId, eipOrder.getToken());
+                eipDaoService.deleteEip(eipId,"eip", eipOrder.getToken());
                 ret = ActionResponse.actionFailed("create eip success", HttpStatus.SC_EXPECTATION_FAILED);
 //                eipId = null;
             }
@@ -163,7 +163,7 @@ public class RabbitMqServiceImpl {
                 response = eipDaoService.adminDeleteEip(eipId);
             }else {
                 //软删除实例，用户主动发起，必须带token
-                response = eipDaoService.deleteEip(eipId, eipOrder.getToken());
+                response = eipDaoService.deleteEip(eipId, null,eipOrder.getToken());
             }
             if (response.isSuccess()) {
                 if (null != eipOrder.getConsoleCustomization() && eipOrder.getConsoleCustomization().containsKey("operateType") &&

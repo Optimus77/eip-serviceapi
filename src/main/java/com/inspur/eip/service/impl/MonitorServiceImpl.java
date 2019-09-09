@@ -4,10 +4,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.inspur.cloud.cloudmonitormetric.entity.MetricEntity;
 import com.inspur.cloud.cloudmonitormetric.handler.ProducerHandler;
 import com.inspur.eip.entity.fw.Firewall;
-import com.inspur.eip.repository.FirewallRepository;
 import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.FirewallService;
 import com.inspur.eip.service.MonitorService;
+import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.HsConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,17 +39,14 @@ public class MonitorServiceImpl implements MonitorService {
 
     private final FirewallService firewallService;
     private final ProducerHandler producerHandler;
-    private final FirewallRepository firewallRepository;
     private final EipDaoService eipDaoService;
 
     @Autowired
     public MonitorServiceImpl(EipDaoService eipDaoService,
                               FirewallService firewallService,
-                              ProducerHandler producerHandler,
-                              FirewallRepository firewallRepository) {
+                              ProducerHandler producerHandler) {
         this.firewallService = firewallService;
         this.producerHandler = producerHandler;
-        this.firewallRepository = firewallRepository;
         this.eipDaoService = eipDaoService;
     }
 
@@ -103,7 +100,7 @@ public class MonitorServiceImpl implements MonitorService {
         }
 
         List<MetricEntity> eipMonitorMetric = Collections.synchronizedList(new ArrayList<>());
-        List<Firewall> fireWallBeans = firewallRepository.findAll();
+        List<Firewall> fireWallBeans = CommonUtil.getAllFireWall();
         fireWallBeans.parallelStream().forEach(firewall -> {
             String firewallSta="ACTIVE";
             firewallMetricValue = 0;
