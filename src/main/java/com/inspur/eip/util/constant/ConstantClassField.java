@@ -84,6 +84,11 @@ public final class ConstantClassField {
     public static final String FIREWALL_DNAT_UPDATE_ERROR = "Firewall dnat update error";
 
 
+    /**
+     * Fire wall
+     */
+
+    public static final String IAM_AUTHENTICATION_ERROR = "Iam authentication failed";
 
 
 
