@@ -9,7 +9,6 @@ import com.inspur.eip.entity.MethodReturn;
 import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
-import com.inspur.eip.repository.ExtNetRepository;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.common.MethodReturnUtil;
 import com.inspur.eip.util.constant.HsConstants;
@@ -41,12 +40,8 @@ public class EipDaoService {
     @Value("${fipNetworkId}")
     private String flpnetworkId;
 
-
     @Autowired
     private EipPoolRepository eipPoolRepository;
-
-    @Autowired
-    private ExtNetRepository extNetRepository;
 
     @Autowired
     private EipRepository eipRepository;
@@ -125,7 +120,7 @@ public class EipDaoService {
 
 
     @Transactional
-    public ActionResponse deleteEip(String eipid, String token) {
+    public ActionResponse deleteEip(String eipid, String userModel, String token) {
         String msg;
         Optional<Eip> optional = eipRepository.findById(eipid);
         if (optional.isPresent()) {
@@ -140,7 +135,7 @@ public class EipDaoService {
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
-            if (eipEntity.getBillType().equals(HsConstants.MONTHLY)) {
+            if (eipEntity.getBillType().equals(HsConstants.MONTHLY) && null == userModel) {
                 msg = "Failed to delete ,monthly eip can not delete by user." + eipEntity.toString();
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
@@ -676,17 +671,6 @@ public class EipDaoService {
         return eipAddress;
     }
 
-
-    private String getExtNetId(String region) {
-        List<ExtNet> extNets = extNetRepository.findByRegion(region);
-        String extNetId = null;
-        for (ExtNet extNet : extNets) {
-            if (null != extNet.getNetId()) {
-                extNetId = extNet.getNetId();
-            }
-        }
-        return extNetId;
-    }
 
 
     public Map<String, Object> getDuplicateEip() {
