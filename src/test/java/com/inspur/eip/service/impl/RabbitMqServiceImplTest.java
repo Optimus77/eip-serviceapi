@@ -473,8 +473,8 @@ public class RabbitMqServiceImplTest {
                 .productList(orderProducts)
                 .build();
 
-        String eipInfo = rabbitMqService.createEipInfo(reciveOrder);
-        assertEquals("00992ae8-d631-4c6a-9e2d-3c6965a52e04".length(),eipInfo.length());
+        ActionResponse eipInfo = rabbitMqService.createEipInfo(reciveOrder);
+        assertEquals(200,eipInfo.getCode());
     }
 
     @Test
@@ -756,7 +756,7 @@ public class RabbitMqServiceImplTest {
                 .productList(orderProducts)
                 .build();
 
-        ResponseEntity sbwInfo = rabbitMqService.createSbwInfo(reciveOrder);
+        ActionResponse sbwInfo = rabbitMqService.createSbwInfo(reciveOrder);
         List<Sbw> list = sbwDaoService.findByProjectId("9d0b67cd-20cb-40b4-8dc4-b0415ca25d72");
         Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         for (int i = 0; i < list.size(); i++) {
@@ -767,7 +767,7 @@ public class RabbitMqServiceImplTest {
             }
         }
         deleteSbw(sbw.getId());
-        assertEquals(HttpStatus.OK,sbwInfo.getStatusCode());
+        assertEquals(200,sbwInfo.getCode());
     }
 
     @Test
