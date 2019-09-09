@@ -120,7 +120,7 @@ public class EipDaoService {
 
 
     @Transactional
-    public ActionResponse deleteEip(String eipid, String token) {
+    public ActionResponse deleteEip(String eipid, String userModel, String token) {
         String msg;
         Optional<Eip> optional = eipRepository.findById(eipid);
         if (optional.isPresent()) {
@@ -135,7 +135,7 @@ public class EipDaoService {
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
-            if (eipEntity.getBillType().equals(HsConstants.MONTHLY)) {
+            if (eipEntity.getBillType().equals(HsConstants.MONTHLY) && null == userModel) {
                 msg = "Failed to delete ,monthly eip can not delete by user." + eipEntity.toString();
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
