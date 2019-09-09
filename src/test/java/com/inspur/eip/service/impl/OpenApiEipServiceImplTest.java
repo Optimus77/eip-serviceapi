@@ -1,14 +1,19 @@
 package com.inspur.eip.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.EipServiceApplicationTests;
 import com.inspur.eip.entity.openapi.OpenCreateEip;
 import com.inspur.eip.service.TokenUtil;
 import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.http.HttpClientUtil;
+import com.inspur.eip.util.http.HttpsClientUtil;
 import groovy.util.logging.Slf4j;
+import org.apache.http.HttpResponse;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
@@ -43,6 +48,8 @@ public class OpenApiEipServiceImplTest {
 
     @Autowired
     private OpenApiEipServiceImpl openApiEipService;
+
+    private ResponseEntity responseEntity;
 
     @Before
     public void setUp() {
@@ -411,10 +418,8 @@ public class OpenApiEipServiceImplTest {
         OpenCreateEip openCreateEip = new OpenCreateEip();
         //openCreateEip.setDuration("1");
         openCreateEip.setBillType("hourlySettlement");
-        openCreateEip.setBandwidth("5");
-
-        ResponseEntity responseEntity = openApiEipService.OpenapiCreateEip(openCreateEip, token);
-
+        openCreateEip.setBandwidth("7");
+        responseEntity = openApiEipService.OpenapiCreateEip(openCreateEip, token);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 
     }
