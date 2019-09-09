@@ -492,5 +492,16 @@ public class CommonUtil {
         }
     }
 
+    public static boolean isParentOrChildAccount(String token) throws KeycloakTokenException {
+        if(null == token){
+            throw new KeycloakTokenException(CodeInfo.getCodeMessage(CodeInfo.KEYCLOAK_NULL));
+        }
+        org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
+        if(jsonObject.has("project_id")){
+            return false;
+        } else {
+            return true;
+        }
+    }
 
 }
