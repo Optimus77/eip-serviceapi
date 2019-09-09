@@ -53,6 +53,7 @@ public class HsConstants {
 	//SBW
 	public static final String SBW_NAME= "sbwName";
 	public static final String SBW_ID= "sbwId";
+	public static final String GROUP_ID= "groupId";
 
 	//product route
 	public static final String EIP = "EIP";
