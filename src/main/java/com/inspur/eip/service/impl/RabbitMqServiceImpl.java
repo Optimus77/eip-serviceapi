@@ -339,7 +339,7 @@ public class RabbitMqServiceImpl {
                 } else {
                     log.warn(checkRet.getMessage());
                 }
-                updateOrderResult(orderProduct, sbwId, null, orderProduct.getStatusTime(), null, result);
+                updateOrderResult(orderProduct, sbwId, null, reciveOrder.getStatusTime(), null, result);
             }
         } catch (Exception e) {
             if (sbwId != null) {
