@@ -523,11 +523,10 @@ public class EipServiceImplTest {
     public void eipMonthlyDelete() throws Exception {
         Eip eip = creatEip(HsConstants.MONTHLY, null);
         //String eipId = "e72da25a-f1e6-4603-8432-d0de7edf3d87";
-        ResponseEntity responseEntity = eipServiceImpl.atomDeleteEip(eip.getId(),null);
+        ResponseEntity responseEntity = eipServiceImpl.atomDeleteEip(eip.getId(), null);
         eipDaoService.adminDeleteEip(eip.getId());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
-
     @Test
     public void otherUserDelete() throws Exception {
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, "other");
@@ -548,23 +547,6 @@ public class EipServiceImplTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
-    @Test
-    public void deleteEipList() throws Exception {
-        Eip eip1 = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        Eip eip2 = creatEip(HsConstants.HOURLYSETTLEMENT, null);
-        List<String> eipIds = Arrays.asList(eip1.getId(), eip2.getId());
-        ResponseEntity responseEntity = eipServiceImpl.deleteEipList(eipIds);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-    }
-
-    @Test
-    public void deleteEipListNull() {
-        String eipId1 = "";
-        String eipId2 = "";
-        List<String> eipIds = Arrays.asList(eipId1, eipId2);
-        ResponseEntity responseEntity = eipServiceImpl.deleteEipList(eipIds);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-    }
 
     @Test
     public void listEips() {
