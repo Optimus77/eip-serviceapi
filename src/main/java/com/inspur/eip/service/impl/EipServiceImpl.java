@@ -642,14 +642,16 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity getEipCount() {
         try {
             String projectId = CommonUtil.getProjectId();
-            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, "get instance_num_success", eipDaoService.getInstanceNum(projectId)), HttpStatus.OK);
+            List<Eip> eipList = eipDaoService.findByProjectId(projectId);
+            List<Eip> dataList = ListFilterUtil.filterListData(eipList, Eip.class);
+            int size = dataList.size();
+            return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_OK, "get instance_num_success", size), HttpStatus.OK);
         } catch (KeycloakTokenException e) {
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_FORBIDDEN, e.getMessage(), null), HttpStatus.UNAUTHORIZED);
         } catch (Exception e) {
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 
     public ResponseEntity getEipStatistics() {
         JSONObject data=new JSONObject();
