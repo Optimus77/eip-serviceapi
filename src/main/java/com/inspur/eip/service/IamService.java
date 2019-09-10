@@ -59,6 +59,7 @@ public class IamService {
                 log.error("Failed to get action");
                 return ActionResponse.actionFailed("action can not be blank", HttpStatus.SC_BAD_REQUEST);
             }
+            log.info("action:{}, orderType:{}, id:{} ",action,reciveOrder.getOrderRoute(),id);
             iamParam.setRegion(region);
             iamParam.setAction(action);
             if (action.equals(HsConstants.CREATE_EIP) || action.equals(HsConstants.CREATE_SBW)) {
@@ -99,7 +100,7 @@ public class IamService {
         if (orderRoute.equals(HsConstants.EIP)) {
             if (orderType.equals(HsConstants.NEW_ORDERTYPE)) {
                 action = HsConstants.CREATE_EIP;
-            } else if (orderType.equals(HsConstants.UNSUBSCRIBE_ORDERTYPE)) {
+            } else if (orderType.equals(HsConstants.UNSUBSCRIBE)) {
                 action = HsConstants.DELETE_EIP;
             } else {
                 action = HsConstants.UPDATE_EIP;
@@ -107,7 +108,7 @@ public class IamService {
         } else {
             if (orderType.equals(HsConstants.NEW_ORDERTYPE)) {
                 action = HsConstants.CREATE_SBW;
-            } else if (orderType.equals(HsConstants.UNSUBSCRIBE_ORDERTYPE)) {
+            } else if (orderType.equals(HsConstants.UNSUBSCRIBE)) {
                 action = HsConstants.DELETE_SBE;
             } else {
                 action = HsConstants.UPDATE_SBW;
