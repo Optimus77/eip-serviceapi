@@ -70,10 +70,11 @@ public class EipControllerAtom {
     @DeleteMapping(value = "/eips/{eip_id}")
     @CrossOrigin(origins = "*",maxAge = 3000)
     public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
-                                        @PathVariable("eip_id") String eipId) {
+                                        @PathVariable("eip_id") String eipId,
+                                        @RequestParam(required = false )String userModel) {
         //Check the parameters
-        log.info("Atom delete the Eip:{} ",eipId);
-        return eipService.atomDeleteEip(eipId);
+        log.info("Atom delete the Eip:{} from {}",eipId, userModel);
+        return eipService.atomDeleteEip(eipId, "ECS");
 
     }
 

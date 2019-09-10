@@ -198,4 +198,5 @@ regionCode: cn-north-3
 scheduleTime: 0 0/5 * * * ?
 minEipNum: 0
 
+iamUrl: http://service.inspurtest.com/auth/v1/has-permissions
 

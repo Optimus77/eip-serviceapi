@@ -53,11 +53,14 @@ public class HsConstants {
 	//SBW
 	public static final String SBW_NAME= "sbwName";
 	public static final String SBW_ID= "sbwId";
+	public static final String GROUP_ID= "groupId";
 
 	//product route
 	public static final String EIP = "EIP";
 	public static final String SBW = "SBW";
 	public static final String IPTS = "IPTS";
+	public static final String LOWERCASE_EIP = "eip";
+	public static final String LOWERCASE_SBW = "sbw";
 
 
 	public static final String STATUS_ACTIVE = "ACTIVE";
@@ -116,6 +119,14 @@ public class HsConstants {
 	public static final String LIST_EIP_PAGE_SQL_MAIN_PREFIX ="select * from eip where is_delete = 0 and ";
 	public static final String LIST_EIP_PAGE_SQL_EQUAL="='";
 	public static final String LIST_EIP_PAGE_SQL_AND="' and ";
+	public static final String CREATE_EIP="CreateEip";
+	public static final String UPDATE_EIP="UpdateEip";
+	public static final String DELETE_EIP="DeleteEip";
+	public static final String CREATE_SBW="CreateSbw";
+	public static final String UPDATE_SBW="UpdateSbw";
+	public static final String DELETE_SBE="DeleteSbw";
+	public static final String CHILD_ENTITY="ChildEntity";
+	public static final String OTHER_ENTITY="otherEntity";
 
 
 }
