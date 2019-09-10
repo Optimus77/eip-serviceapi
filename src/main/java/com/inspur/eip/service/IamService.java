@@ -62,6 +62,7 @@ public class IamService {
             log.info("action:{}, orderType:{}, id:{} ",action,reciveOrder.getOrderRoute(),id);
             iamParam.setRegion(region);
             iamParam.setAction(action);
+            iamParam.setInstanceId(id);
             if (action.equals(HsConstants.CREATE_EIP) || action.equals(HsConstants.CREATE_SBW)) {
                 if(action.equals(HsConstants.CREATE_EIP)){
                     iamParam.setService(HsConstants.LOWERCASE_EIP);
@@ -170,6 +171,7 @@ public class IamService {
         List<IamParam> list = new ArrayList();
         list.add(iamParam);
         String orderStr = JSONObject.toJSONString(list);
+        log.info("Iam authentication parameters :{}",orderStr);
         ReturnResult returnResult = HttpUtil.post(iamUrl, header, orderStr);
         String message= returnResult.getMessage().replace("[","");
         message = message.replace("]","");
