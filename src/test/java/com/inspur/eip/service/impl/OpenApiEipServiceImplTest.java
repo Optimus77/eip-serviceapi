@@ -1,474 +1,364 @@
 package com.inspur.eip.service.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eip.EipServiceApplicationTests;
+import com.inspur.eip.entity.eip.Eip;
+import com.inspur.eip.entity.openapi.Item;
 import com.inspur.eip.entity.openapi.OpenCreateEip;
-import com.inspur.eip.service.TokenUtil;
+import com.inspur.eip.entity.sbw.Sbw;
+import com.inspur.eip.exception.KeycloakTokenException;
+import com.inspur.eip.repository.EipRepository;
+import com.inspur.eip.repository.SbwRepository;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.http.HttpClientUtil;
 import com.inspur.eip.util.http.HttpsClientUtil;
-import groovy.util.logging.Slf4j;
-import org.apache.http.HttpResponse;
-import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-
-import javax.servlet.*;
-import javax.servlet.http.*;
-
-import java.io.BufferedReader;
+import org.springframework.test.util.ReflectionTestUtils;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.Principal;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Locale;
-import java.util.Map;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URISyntaxException;
+import java.util.*;
+import static org.mockito.ArgumentMatchers.eq;
 
-import static org.junit.Assert.*;
-@Slf4j
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = OpenApiEipServiceImpl.class)
-@Rollback
-@SpringBootTest(classes = EipServiceApplicationTests.class)
-@Transactional
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({HttpsClientUtil.class,CommonUtil.class,HttpClientUtil.class,OpenApiEipServiceImpl.class})
 public class OpenApiEipServiceImplTest {
 
-    @Autowired
-    private OpenApiEipServiceImpl openApiEipService;
+    @InjectMocks
+    OpenApiEipServiceImpl openApiEipService;
 
-    private ResponseEntity responseEntity;
+    @Mock
+    private SbwRepository sbwRepository;
+
+    @Mock
+    private EipRepository eipRepository;
 
     @Before
-    public void setUp() {
-        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new HttpServletRequest() {
-            @Override
-            public String getHeader(String name) {
-                try {
-                    return "bearer " + TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
+    public void setUp() throws KeycloakTokenException {
+        ReflectionTestUtils.setField(openApiEipService, "regionCode", "regionCode");
+        ReflectionTestUtils.setField(openApiEipService, "bssQuotaUrl", "bssQuotaUrl");
+        ReflectionTestUtils.setField(openApiEipService, "bssSubmitUrl", "regionCode");
+        ReflectionTestUtils.setField(openApiEipService, "regionCode", "regionCode");
+        PowerMockito.mockStatic(HttpsClientUtil.class,CommonUtil.class,HttpClientUtil.class);
+        PowerMockito.when(CommonUtil.getUserId(Mockito.anyString())).thenReturn("23");
 
-            @Override
-            public Object getAttribute(String name) {
-                return null;
-            }
-
-            @Override
-            public Enumeration<String> getAttributeNames() {
-                return null;
-            }
-
-            @Override
-            public String getCharacterEncoding() {
-                return null;
-            }
-
-            @Override
-            public void setCharacterEncoding(String env) throws UnsupportedEncodingException {
-
-            }
-
-            @Override
-            public int getContentLength() {
-                return 0;
-            }
-
-            @Override
-            public long getContentLengthLong() {
-                return 0;
-            }
-
-            @Override
-            public String getContentType() {
-                return null;
-            }
-
-            @Override
-            public ServletInputStream getInputStream() throws IOException {
-                return null;
-            }
-
-            @Override
-            public String getParameter(String name) {
-                return null;
-            }
-
-            @Override
-            public Enumeration<String> getParameterNames() {
-                return null;
-            }
-
-            @Override
-            public String[] getParameterValues(String name) {
-                return new String[0];
-            }
-
-            @Override
-            public Map<String, String[]> getParameterMap() {
-                return null;
-            }
-
-            @Override
-            public String getProtocol() {
-                return null;
-            }
-
-            @Override
-            public String getScheme() {
-                return null;
-            }
-
-            @Override
-            public String getServerName() {
-                return null;
-            }
-
-            @Override
-            public int getServerPort() {
-                return 0;
-            }
-
-            @Override
-            public BufferedReader getReader() throws IOException {
-                return null;
-            }
-
-            @Override
-            public String getRemoteAddr() {
-                return null;
-            }
-
-            @Override
-            public String getRemoteHost() {
-                return null;
-            }
-
-            @Override
-            public void setAttribute(String name, Object o) {
-
-            }
-
-            @Override
-            public void removeAttribute(String name) {
-
-            }
-
-            @Override
-            public Locale getLocale() {
-                return null;
-            }
-
-            @Override
-            public Enumeration<Locale> getLocales() {
-                return null;
-            }
-
-            @Override
-            public boolean isSecure() {
-                return false;
-            }
-
-            @Override
-            public RequestDispatcher getRequestDispatcher(String path) {
-                return null;
-            }
-
-            @Override
-            public String getRealPath(String path) {
-                return null;
-            }
-
-            @Override
-            public int getRemotePort() {
-                return 0;
-            }
-
-            @Override
-            public String getLocalName() {
-                return null;
-            }
-
-            @Override
-            public String getLocalAddr() {
-                return null;
-            }
-
-            @Override
-            public int getLocalPort() {
-                return 0;
-            }
-
-            @Override
-            public ServletContext getServletContext() {
-                return null;
-            }
-
-            @Override
-            public AsyncContext startAsync() throws IllegalStateException {
-                return null;
-            }
-
-            @Override
-            public AsyncContext startAsync(ServletRequest servletRequest, ServletResponse servletResponse) throws IllegalStateException {
-                return null;
-            }
-
-            @Override
-            public boolean isAsyncStarted() {
-                return false;
-            }
-
-            @Override
-            public boolean isAsyncSupported() {
-                return false;
-            }
-
-            @Override
-            public AsyncContext getAsyncContext() {
-                return null;
-            }
-
-            @Override
-            public DispatcherType getDispatcherType() {
-                return null;
-            }
-
-            @Override
-            public String getAuthType() {
-                return null;
-            }
-
-            @Override
-            public Cookie[] getCookies() {
-                return new Cookie[0];
-            }
-
-            @Override
-            public long getDateHeader(String name) {
-                return 0;
-            }
-
-
-            @Override
-            public Enumeration<String> getHeaders(String name) {
-                return null;
-            }
-
-            @Override
-            public Enumeration<String> getHeaderNames() {
-                return null;
-            }
-
-            @Override
-            public int getIntHeader(String name) {
-                return 0;
-            }
-
-            @Override
-            public String getMethod() {
-                return null;
-            }
-
-            @Override
-            public String getPathInfo() {
-                return null;
-            }
-
-            @Override
-            public String getPathTranslated() {
-                return null;
-            }
-
-            @Override
-            public String getContextPath() {
-                return null;
-            }
-
-            @Override
-            public String getQueryString() {
-                return null;
-            }
-
-            @Override
-            public String getRemoteUser() {
-                return null;
-            }
-
-            @Override
-            public boolean isUserInRole(String role) {
-                return false;
-            }
-
-            @Override
-            public Principal getUserPrincipal() {
-                return null;
-            }
-
-            @Override
-            public String getRequestedSessionId() {
-                return null;
-            }
-
-            @Override
-            public String getRequestURI() {
-                return null;
-            }
-
-            @Override
-            public StringBuffer getRequestURL() {
-                return null;
-            }
-
-            @Override
-            public String getServletPath() {
-                return null;
-            }
-
-            @Override
-            public HttpSession getSession(boolean create) {
-                return null;
-            }
-
-            @Override
-            public HttpSession getSession() {
-                return null;
-            }
-
-            @Override
-            public String changeSessionId() {
-                return null;
-            }
-
-            @Override
-            public boolean isRequestedSessionIdValid() {
-                return false;
-            }
-
-            @Override
-            public boolean isRequestedSessionIdFromCookie() {
-                return false;
-            }
-
-            @Override
-            public boolean isRequestedSessionIdFromURL() {
-                return false;
-            }
-
-            @Override
-            public boolean isRequestedSessionIdFromUrl() {
-                return false;
-            }
-
-            @Override
-            public boolean authenticate(HttpServletResponse response) throws IOException, ServletException {
-                return false;
-            }
-
-            @Override
-            public void login(String username, String password) throws ServletException {
-
-            }
-
-            @Override
-            public void logout() throws ServletException {
-
-            }
-
-            @Override
-            public Collection<Part> getParts() throws IOException, ServletException {
-                return null;
-            }
-
-            @Override
-            public Part getPart(String name) throws IOException, ServletException {
-                return null;
-            }
-
-            @Override
-            public <T extends HttpUpgradeHandler> T upgrade(Class<T> httpUpgradeHandlerClass) throws IOException, ServletException {
-                return null;
-            }
-        }));
-    }
-
-
-    @After
-    public void tearDown() throws Exception {
     }
 
     @Test
-    public void openapiCreateEip() throws Exception {
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void openapiCreateEip() throws IOException, URISyntaxException {
         OpenCreateEip openCreateEip = new OpenCreateEip();
-        //openCreateEip.setDuration("1");
-        openCreateEip.setBillType("hourlySettlement");
-        openCreateEip.setBandwidth("7");
-        responseEntity = openApiEipService.OpenapiCreateEip(openCreateEip, token);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        openCreateEip.setBillType ("monthly");
+        openCreateEip.setDuration("notnull");
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\"}]}}",HttpStatus.OK);
+        PowerMockito.when(HttpClientUtil.doGet(Mockito.anyString(),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doGet(eq(null),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(),Mockito.anyString(),Mockito.anyMap())).thenReturn(responseEntity);
+        ResponseEntity result = openApiEipService.OpenapiCreateEip(openCreateEip,"23");
+        Assert.assertEquals(result.getStatusCode().value(),200);
 
     }
 
     @Test
     public void openapiCreateEipAddSbw() throws Exception {
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
         OpenCreateEip openCreateEip = new OpenCreateEip();
-        openCreateEip.setBandwidth("6");
-        openCreateEip.setSbwId("");
-        ResponseEntity responseEntity = openApiEipService.OpenapiCreateEipAddSbw(openCreateEip,token);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        openCreateEip.setSbwId("sbw");
+        OpenApiEipServiceImpl spy = PowerMockito.spy(openApiEipService);
+        PowerMockito.doReturn("12").when(spy,"getSbwBandwidth",Mockito.any());
+        PowerMockito.mockStatic(HttpsClientUtil.class);
+        Map<String, String> map = new HashMap<>();
+        map.put("name", "alien");
+        PowerMockito.when(HttpsClientUtil.getHeader()).thenReturn(map);
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\"}]}}",HttpStatus.OK);
+        PowerMockito.when(HttpClientUtil.doGet(Mockito.anyString(),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doGet(eq(null),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(),Mockito.anyString(),Mockito.anyMap())).thenReturn(responseEntity);
+        ResponseEntity result = spy.OpenapiCreateEipAddSbw(openCreateEip, "token");
+        Assert.assertEquals(result.getStatusCode().value(),200);
     }
 
     @Test
-    public void openapiDeleteEip() throws Exception {
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void openapiDeleteEip() throws IOException, URISyntaxException {
         OpenCreateEip openCreateEip = new OpenCreateEip();
-        openCreateEip.setEipId("");
-        ResponseEntity responseEntity = openApiEipService.OpenapiDeleteEip(openCreateEip, token);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        openCreateEip.setSbwId("sbw");
+        openCreateEip.setEipId("eipId");
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\"}]}}",HttpStatus.OK);
+        PowerMockito.when(HttpClientUtil.doGet(eq(null),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(),Mockito.anyString(),Mockito.anyMap())).thenReturn(responseEntity);
+        ResponseEntity result = openApiEipService.OpenapiDeleteEip(openCreateEip,"token");
+        Assert.assertEquals(result.getStatusCode().value(),200);
     }
 
     @Test
     public void openapiRenewEip() throws Exception {
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
         OpenCreateEip openCreateEip = new OpenCreateEip();
-        openCreateEip.setEipId("");
-        openCreateEip.setDuration("2");
-        ResponseEntity responseEntity = openApiEipService.OpenapiRenewEip(openCreateEip,token);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        openCreateEip.setEipId("eipId");
+        openCreateEip.setDuration("duration");
+        OpenApiEipServiceImpl spy = PowerMockito.spy(openApiEipService);
+        JSONArray jsonArray = Mockito.mock(JSONArray.class);
+        List <String> list = new ArrayList<>();
+        list.add("123");
+        jsonArray.add(list);
+        PowerMockito.doReturn(jsonArray).when(spy,"getUserProductItems",Mockito.anyString());
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\"}]}}",HttpStatus.OK);
+        PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(),Mockito.anyString(),Mockito.anyMap())).thenReturn(responseEntity);
+        ResponseEntity result = spy.OpenapiRenewEip(openCreateEip,"token");
+        Assert.assertEquals(result.getStatusCode().value(),200);
     }
 
     @Test
-    public void openapiEipupdateBandwidth() throws Exception {
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void openapiEipupdateBandwidth() throws IOException, URISyntaxException {
         OpenCreateEip openCreateEip = new OpenCreateEip();
-        openCreateEip.setBandwidth("6");
-        openCreateEip.setEipId("");
-        ResponseEntity responseEntity = openApiEipService.OpenapiEipupdateBandwidth(openCreateEip,token);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        openCreateEip.setEipId("eipId");
+        openCreateEip.setBandwidth("11");
+        openCreateEip.setBillType ("monthly");
+        Eip eip = new Eip();
+        eip.setBandWidth(9);
+        eip.setBillType("monthly");
+        Optional<Eip> optional = Optional.of(eip);
+        Mockito.doReturn(optional).when(eipRepository).findById(Mockito.anyString());
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\"}]}}",HttpStatus.OK);
+        PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(),Mockito.anyString(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doGet(eq(null),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        ResponseEntity result = openApiEipService.OpenapiEipupdateBandwidth(openCreateEip,"token");
+        Assert.assertEquals(result.getStatusCode().value(),200);
     }
 
     @Test
-    public void openapicreateIptsBandEip() throws Exception {
-        String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
+    public void openapicreateIptsBandEip() throws IOException, URISyntaxException {
         OpenCreateEip openCreateEip = new OpenCreateEip();
-        openCreateEip.setBandwidth("6");
-        ResponseEntity responseEntity = openApiEipService.OpenapicreateIptsBandEip(openCreateEip,token);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        openCreateEip.setBillType ("monthly");
+        openCreateEip.setDuration("notnull");
+        openCreateEip.setBandwidth("bandwidth");
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\"}]}}",HttpStatus.OK);
+        PowerMockito.when(HttpClientUtil.doGet(eq(null),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(),Mockito.anyString(),Mockito.anyMap())).thenReturn(responseEntity);
+        ResponseEntity result = openApiEipService.OpenapicreateIptsBandEip(openCreateEip,"token");
+        Assert.assertEquals(result.getStatusCode().value(),200);
+    }
+
+    @Test
+    public void getEipBandwidth() throws InvocationTargetException, IllegalAccessException {
+        OpenCreateEip openCreateEip = new OpenCreateEip();
+        openCreateEip.setEipId ("eipId");
+        Eip eip = new Eip();
+        eip.setBandWidth(123);
+        Optional<Eip> optional = Optional.of(eip);
+        Mockito.doReturn(optional).when(eipRepository).findById(Mockito.anyString());
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"getEipBandwidth",OpenCreateEip.class);
+        String result =(String) method.invoke(openApiEipService,openCreateEip);
+    }
+
+    @Test
+    public void getSbwBandwidth() throws InvocationTargetException, IllegalAccessException {
+        OpenCreateEip openCreateEip = new OpenCreateEip();
+        openCreateEip.setSbwId ("sbwId");
+        Sbw sbw = Sbw.builder().bandWidth(12).build();
+        Optional<Sbw> optional = Optional.of(sbw);
+        Mockito.doReturn(optional).when(sbwRepository).findById(Mockito.anyString());
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"getSbwBandwidth",OpenCreateEip.class);
+        String result =(String) method.invoke(openApiEipService,openCreateEip);
+    }
+
+    @Test
+    public void buildItemListCase1() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        List<Object> list2 = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","bandwidth");
+        list2.add(jsonObject);
+        JSONArray jsonArray = new JSONArray(list2);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildItemList",List.class,JSONArray.class,int.class,String.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName","sbwId");
+    }
+    @Test
+    public void buildItemListCase2() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        List<Object> list2 = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","transfer");
+        list2.add(jsonObject);
+        JSONArray jsonArray = new JSONArray(list2);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildItemList",List.class,JSONArray.class,int.class,String.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName","sbwId");
+    }
+    @Test
+    public void buildItemListCase3() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        List<Object> list2 = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","IP");
+        list2.add(jsonObject);
+        JSONArray jsonArray = new JSONArray(list2);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildItemList",List.class,JSONArray.class,int.class,String.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName","sbwId");
+    }
+    @Test
+    public void buildItemListCase4() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        List<Object> list2 = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","provider");
+        list2.add(jsonObject);
+        JSONArray jsonArray = new JSONArray(list2);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildItemList",List.class,JSONArray.class,int.class,String.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName","sbwId");
+    }
+    @Test
+    public void buildItemListCase5() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        List<Object> list2 = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","is_SBW");
+        list2.add(jsonObject);
+        JSONArray jsonArray = new JSONArray(list2);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildItemList",List.class,JSONArray.class,int.class,String.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName","sbwId");
+    }
+    @Test
+    public void buildItemListCase6() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        List<Object> list2 = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","sbwName");
+        list2.add(jsonObject);
+        JSONArray jsonArray = new JSONArray(list2);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildItemList",List.class,JSONArray.class,int.class,String.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName","sbwId");
+    }
+    @Test
+    public void buildItemListCase7() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        List<Object> list2 = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","sbwId");
+        list2.add(jsonObject);
+        JSONArray jsonArray = new JSONArray(list2);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildItemList",List.class,JSONArray.class,int.class,String.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName","sbwId");
+    }
+
+    @Test
+    public void buildIptsBindEipCase1() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","bandwidth");
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.add(jsonObject);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildIptsBindEip",List.class,JSONArray.class,int.class,String.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName","sbwId");
+    }
+    @Test
+    public void buildIptsBindEipCase2() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","transfer");
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.add(jsonObject);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildIptsBindEip",List.class,JSONArray.class,int.class,String.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName","sbwId");
+    }
+    @Test
+    public void buildIptsBindEipCase3() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","IP");
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.add(jsonObject);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildIptsBindEip",List.class,JSONArray.class,int.class,String.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName","sbwId");
+    }
+    @Test
+    public void buildIptsBindEipCase4() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","provider");
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.add(jsonObject);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildIptsBindEip",List.class,JSONArray.class,int.class,String.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName","sbwId");
+    }
+    @Test
+    public void buildIptsBindEipCase5() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","withIpv6");
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.add(jsonObject);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildIptsBindEip",List.class,JSONArray.class,int.class,String.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName","sbwId");
+    }
+
+    @Test
+    public void buildCreateEipAddSbwItemList() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","bandwidth");
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.add(jsonObject);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildCreateEipAddSbwItemList",List.class,JSONArray.class,int.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName");
+    }
+    @Test
+    public void buildCreateEipAddSbwItemListCase2() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","transfer");
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.add(jsonObject);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildCreateEipAddSbwItemList",List.class,JSONArray.class,int.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName");
+    }
+    @Test
+    public void buildCreateEipAddSbwItemListCase3() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","IP");
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.add(jsonObject);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildCreateEipAddSbwItemList",List.class,JSONArray.class,int.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName");
+    }
+    @Test
+    public void buildCreateEipAddSbwItemListCase4() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","provider");
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.add(jsonObject);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildCreateEipAddSbwItemList",List.class,JSONArray.class,int.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName");
+    }
+    @Test
+    public void buildCreateEipAddSbwItemListCase5() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","is_SBW");
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.add(jsonObject);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildCreateEipAddSbwItemList",List.class,JSONArray.class,int.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName");
+    }
+    @Test
+    public void buildCreateEipAddSbwItemListCase6() throws InvocationTargetException, IllegalAccessException {
+        List<Item> list = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("code","sbwId");
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.add(jsonObject);
+        Method method = PowerMockito.method(OpenApiEipServiceImpl.class,"buildCreateEipAddSbwItemList",List.class,JSONArray.class,int.class,String.class,String.class);
+        method.invoke(openApiEipService,list,jsonArray,0,"bandwidth","sbwName");
     }
 }

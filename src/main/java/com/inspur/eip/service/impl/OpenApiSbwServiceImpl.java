@@ -756,14 +756,4 @@ public class OpenApiSbwServiceImpl implements OpenApiSbwService {
         return null;
     }
 
-    private String getBillType(OpenCreateEip openCreateEip) {
-        Optional<Sbw> optional = sbwRepository.findById(openCreateEip.getSbwId());
-        if (optional.isPresent()) {
-            Sbw sbwEntity = optional.get();
-            String billType = sbwEntity.getBillType();
-            return billType;
-        }
-        return null;
-    }
-
 }
