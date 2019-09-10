@@ -569,6 +569,8 @@ public class SbwServiceImplTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
+
+    //删不掉qos
     @Test
     public void restartSbwService() throws Exception {
         Sbw sbw = creatSbw(HsConstants.MONTHLY, null);
@@ -613,8 +615,10 @@ public class SbwServiceImplTest {
 
     @Test
     public void sbwListEip() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        Sbw sbw = null;
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        if(null != eip)
+            sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         addEipToSbw(eip.getId(), sbw.getId());
         Integer currentPage = 20;
         Integer limit = 50;
