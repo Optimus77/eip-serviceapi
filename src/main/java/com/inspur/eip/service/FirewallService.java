@@ -173,6 +173,8 @@ public class FirewallService implements IDevProvider{
         if (StringUtils.isNotEmpty(pipid)) {
             if (null != eip && null != fip && pipid.equals(getRootPipeName(fip))) {
                 return cmdDelQos(pipid, eip, devId);
+            }else if("054576b5-a3eb-426e-acf7-6e713f7a88f0".length() == pipid.length()){
+                return cmdDelSbwQos( pipid, devId);
             }
             Firewall fwBean = CommonUtil.getFireWallById(devId);
             if (null != fwBean) {
