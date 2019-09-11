@@ -121,7 +121,11 @@ public class BssOrderListener {
                     }
                     return;
                 }
-                if(!actionResponse.isSuccess()){
+                if (true){
+
+                    throw new EipInternalServerException(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage());
+                }
+                /*if(!actionResponse.isSuccess()){
                     List<OrderProduct> orderProducts = reciveOrder.getProductList();
                     for (OrderProduct orderProduct : orderProducts) {
                         orderProduct.setStatusTime(reciveOrder.getStatusTime());
@@ -129,7 +133,7 @@ public class BssOrderListener {
                     }
                     log.error(actionResponse.getFault());
                     throw new EipInternalServerException(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage());
-                }
+                }*/
                 switch (orderType) {
                     case HsConstants.NEW_ORDERTYPE:
                         if (HsConstants.EIP.equalsIgnoreCase(orderRoute) || HsConstants.IPTS.equalsIgnoreCase(orderRoute)) {

@@ -128,6 +128,9 @@ public class IamService {
             if(eip.getUserId() != null && (!CommonUtil.getUserId(reciveOrder.getToken()).equals(eip.getUserId()))){
                 iamParam.setResourceCreator(eip.getUserId());
                 iamParam.setResourceAccountId(eip.getProjectId());
+            } else {
+                iamParam.setResourceCreator(eip.getProjectId());
+                iamParam.setResourceAccountId(eip.getProjectId());
             }
             iamParam.setService(HsConstants.LOWERCASE_EIP);
             return HsConstants.OTHER_ENTITY;
@@ -166,7 +169,7 @@ public class IamService {
         List<IamParam> list = new ArrayList();
         list.add(iamParam);
         String orderStr = JSONObject.toJSONString(list);
-        log.info("Iam authentication parameters :{}",orderStr);
+        log.info("--------------Iam authentication parameters :{}",orderStr);
         ReturnResult returnResult = HttpUtil.post(iamUrl, header, orderStr);
         String message= returnResult.getMessage().replace("[","");
         message = message.replace("]","");
