@@ -695,34 +695,6 @@ public class EipDaoService {
     }
 
 
-    public Map<String, Object> getDuplicateEip() {
-
-        String sql = "select eip_address, count(*) as num from eip group by eip_address having num>1";
-
-
-        Map<String, Object> map = jdbcTemplate.queryForMap(sql);
-
-        log.info("{}", map);
-
-        return map;
-
-    }
-
-    public Map<String, Object> getDuplicateEipFromPool() {
-
-        String sql = "select ip, count(*) as num from eip_pool group by ip having num>1";
-
-        Map<String, Object> map = jdbcTemplate.queryForMap(sql);
-
-        log.info("{}, result:{}", sql, map);
-
-        return map;
-
-    }
-
-    public int statisEipCountBySbw(String sbwId, int isDelete) {
-        return (int) eipRepository.countBySbwIdAndIsDelete(sbwId, 0);
-    }
 
     @Transactional
     public List<Eip> findFlowAccountEipList(String chargeMode){
