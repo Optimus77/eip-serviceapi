@@ -21,15 +21,12 @@ import org.junit.runner.RunWith;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.BufferedReader;
@@ -38,7 +35,6 @@ import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 import static org.junit.Assert.*;
 @Slf4j
 @RunWith(SpringRunner.class)
@@ -761,15 +757,12 @@ public class RabbitMqServiceImplTest {
 
         ActionResponse sbwInfo = rabbitMqService.createSbwInfo(reciveOrder);
         List<Sbw> list = sbwDaoService.findByProjectId("9d0b67cd-20cb-40b4-8dc4-b0415ca25d72");
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).getSbwName().equals("atomUnitTestNoOtherBuilder")) {
-                deleteSbw(sbw.getId());
-                sbw = list.get(i);
+                deleteSbw(list.get(i).getId());
                 break;
             }
         }
-        deleteSbw(sbw.getId());
         assertEquals(200,sbwInfo.getCode());
     }
 

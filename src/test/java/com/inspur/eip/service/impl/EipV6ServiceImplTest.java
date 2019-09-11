@@ -31,7 +31,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.BufferedReader;
@@ -39,7 +38,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.*;
-
 import static org.junit.Assert.*;
 
 @Slf4j
