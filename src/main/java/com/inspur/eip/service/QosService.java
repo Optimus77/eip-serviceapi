@@ -55,6 +55,11 @@ public class QosService {
         boolean flag = false;
         try {
             String retr = HsHttpClient.hsHttpDelete(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos", json);
+            if("".equals(retr)){
+                res.put(HsConstants.SUCCESS, HsConstants.FALSE);
+                res.put("msg", "fire wall config error");
+                return res;
+            }
             JSONObject jo = new JSONObject(retr);
             Iterator<String> keys = jo.keys();
             while (keys.hasNext()){

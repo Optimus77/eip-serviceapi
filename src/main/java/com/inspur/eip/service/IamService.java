@@ -55,12 +55,9 @@ public class IamService {
             }
 
             String action = getAction(reciveOrder.getOrderType(), reciveOrder.getOrderRoute());
-            if (StringUtils.isBlank(action)) {
-                log.error("Failed to get action");
-                return ActionResponse.actionFailed("action can not be blank", HttpStatus.SC_BAD_REQUEST);
-            }
             iamParam.setRegion(region);
             iamParam.setAction(action);
+            iamParam.setInstanceId(id);
             if (action.equals(HsConstants.CREATE_EIP) || action.equals(HsConstants.CREATE_SBW)) {
                 if(action.equals(HsConstants.CREATE_EIP)){
                     iamParam.setService(HsConstants.LOWERCASE_EIP);
@@ -99,7 +96,7 @@ public class IamService {
         if (orderRoute.equals(HsConstants.EIP)) {
             if (orderType.equals(HsConstants.NEW_ORDERTYPE)) {
                 action = HsConstants.CREATE_EIP;
-            } else if (orderType.equals(HsConstants.UNSUBSCRIBE_ORDERTYPE)) {
+            } else if (orderType.equals(HsConstants.UNSUBSCRIBE)) {
                 action = HsConstants.DELETE_EIP;
             } else {
                 action = HsConstants.UPDATE_EIP;
@@ -107,7 +104,7 @@ public class IamService {
         } else {
             if (orderType.equals(HsConstants.NEW_ORDERTYPE)) {
                 action = HsConstants.CREATE_SBW;
-            } else if (orderType.equals(HsConstants.UNSUBSCRIBE_ORDERTYPE)) {
+            } else if (orderType.equals(HsConstants.UNSUBSCRIBE)) {
                 action = HsConstants.DELETE_SBE;
             } else {
                 action = HsConstants.UPDATE_SBW;
@@ -124,11 +121,11 @@ public class IamService {
             if (eip == null) {
                 return HsConstants.NOTFOUND;
             }
-            if (eip.getUserId() != null && (CommonUtil.getUserId().equals(eip.getUserId()))){
+            if (eip.getUserId() != null && (CommonUtil.getUserId(reciveOrder.getToken()).equals(eip.getUserId()))){
                 log.info(HsConstants.CHILD_ENTITY);
                 return HsConstants.CHILD_ENTITY;
             }
-            if(eip.getUserId() != null && (!CommonUtil.getUserId().equals(eip.getUserId()))){
+            if(eip.getUserId() != null && (!CommonUtil.getUserId(reciveOrder.getToken()).equals(eip.getUserId()))){
                 iamParam.setResourceCreator(eip.getUserId());
                 iamParam.setResourceAccountId(eip.getProjectId());
             }
@@ -139,11 +136,11 @@ public class IamService {
             if (sbw == null) {
                 return HsConstants.NOTFOUND;
             }
-            if (sbw.getUserId() != null && (CommonUtil.getUserId().equals(sbw.getUserId()))){
+            if (sbw.getUserId() != null && (CommonUtil.getUserId(reciveOrder.getToken()).equals(sbw.getUserId()))){
                 log.info(HsConstants.CHILD_ENTITY);
                 return HsConstants.CHILD_ENTITY;
             }
-            if(sbw.getUserId() != null && (!CommonUtil.getUserId().equals(sbw.getUserId()))){
+            if(sbw.getUserId() != null && (!CommonUtil.getUserId(reciveOrder.getToken()).equals(sbw.getUserId()))){
                 iamParam.setResourceCreator(sbw.getUserId());
                 iamParam.setResourceAccountId(sbw.getProjectId());
             } else {
@@ -169,29 +166,11 @@ public class IamService {
         List<IamParam> list = new ArrayList();
         list.add(iamParam);
         String orderStr = JSONObject.toJSONString(list);
+        log.info("Iam authentication parameters :{}",orderStr);
         ReturnResult returnResult = HttpUtil.post(iamUrl, header, orderStr);
         String message= returnResult.getMessage().replace("[","");
         message = message.replace("]","");
         return message;
-    }
-
-
-    public static void main(String[] args) throws Exception {
-/*        ReciveOrder reciveOrder=new ReciveOrder();
-        OrderProduct orderProduct=new OrderProduct();
-        List<OrderProduct> ProductList= new ArrayList<>();
-        reciveOrder.setToken("eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiI2Yjk5OGM2ZS0wZmVmLTRlODEtOGM3ZS01MTk1Y2I1OWNmMzUiLCJleHAiOjE1Njc1OTUyOTIsIm5iZiI6MCwiaWF0IjoxNTY3NTU5MzAwLCJpc3MiOiJodHRwczovL2F1dGguaW5zcHVydGVzdC5jb20vYXV0aC9yZWFsbXMvcGljcCIsImF1ZCI6ImNsaWVudC14dWV3ZWk4MSIsInN1YiI6IjYzMDhhNTg4LWVmYTYtNGY4Ni04YmYyLWI3YjY4ZGZkOGVjNiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6IjlmY2Y0NzEwLTc3ZDgtNDYxZi04YmE2LWQxYTdjYTRmNGY2NCIsImF1dGhfdGltZSI6MTU2NzU1OTI5Miwic2Vzc2lvbl9zdGF0ZSI6IjIzODczMjYzLWZlM2QtNDFiYS1iMjBhLWE3MzQ2NGRlNWMwMSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiIsIkFDQ09VTlRfVVNFUiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImNsaWVudC14dWV3ZWk4MSI6eyJyb2xlcyI6WyJ1c2VyIl19fSwic2NvcGUiOiJvcGVuaWQiLCJwaG9uZSI6IiIsInByb2plY3RfaWQiOiJjNGRjODFjNi1kYTg2LTQyN2UtYjlmOS02MGU0OTUwNjJhNzAiLCJjYW5NYW5hZ2VQd2QiOiIwIiwicHJvamVjdCI6Inh1ZXdlaTgxIiwiZ3JvdXBzIjpbIi9ncm91cC14dWV3ZWk4MSJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4dWV3ZWk4MS5saXV5cyJ9.HXN22-H9Gq6qgAtQmtgswhIE8bpMs5z1bbiEP9j8bAvLAIts_jA26ZBWlpmfFJKfkoWw1-mxOK-uh9mn9hDd2pMx9z32n2reUlIJIcHM5yxE0DhveF1SIUv3haZKZPPyjm-k_gSS0mXwFza8rxP3K_uJw2lXQmGYikuSDkBiugGyXIctK6d6cdZv1-_--NMdxz9rcQ-FnbclHZEpCW9w52adHxq2b-pTC-a3wAPEqpd_VtlBMjwDiZR4kqPi4PlHzmhZtV_RhOZkHcqMeQ_CRWHP4ATOXo8KrbIy8kbLHvZlaQ3AkyrDDn3NBuC8w_9GeRz70eIgqB40G0op8Vf0uQ");
-        reciveOrder.setOrderType("changeConfigure");
-        reciveOrder.setOrderRoute("EIP");
-
-        orderProduct.setInstanceId("00825ebd-021c-478e-b942-0158f2785ebb");
-        orderProduct.setRegion("cn-north-3");
-        ProductList.add(orderProduct);
-        reciveOrder.setProductList(ProductList);
-        ActionResponse iamAuthority = isIamAuthority(reciveOrder);
-        System.out.println(iamAuthority.toString());*/
-
-
     }
 
 }
