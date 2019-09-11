@@ -16,8 +16,6 @@ import com.inspur.eip.util.constant.HillStoneConfigConsts;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.http.HsHttpClient;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -55,11 +53,6 @@ public class QosService {
         boolean flag = false;
         try {
             String retr = HsHttpClient.hsHttpDelete(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos", json);
-            if("".equals(retr)){
-                res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-                res.put("msg", "fire wall config error");
-                return res;
-            }
             JSONObject jo = new JSONObject(retr);
             Iterator<String> keys = jo.keys();
             while (keys.hasNext()){
