@@ -347,6 +347,7 @@ public class FirewallService {
             return false;
         }
         if (cmdDelIpInSbwPipe(sbwId, floatIp, firewallId)) {
+            log.info("success cmd to del ip from sbw qos");
             return true;
         }
         Firewall fwBean = CommonUtil.getFireWallById(firewallId);

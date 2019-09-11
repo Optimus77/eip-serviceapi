@@ -689,8 +689,7 @@ public class HsHttpClient {
 				e.printStackTrace();
 			}
 		}
-
-		return "";
+		return new JSONObject().toString();
 
 	}
 

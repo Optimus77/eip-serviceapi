@@ -126,14 +126,7 @@ public class QosService {
                     }
                 }
                 for (String id : map.keySet()) {
-                    Boolean result = deleteIpFromPipe(pipeId, id);
-                    if (result){
-                        log.info("Rest remove floating ip success :{}", result);
-                        return true;
-                    }else {
-                        log.warn("Rest remove floating ip success :{}", result);
-                        return false;
-                    }
+                    return deleteIpFromPipe(pipeId, id);
                 }
             }
         } catch (Exception e) {
@@ -146,15 +139,19 @@ public class QosService {
      * @param sequence ip序号
      * @return ret
      */
-    private Boolean deleteIpFromPipe(String pipeId, String sequence) {
+    public Boolean deleteIpFromPipe(String pipeId, String sequence) {
         String param = "[{\"target\":\"root.rule\",\"node\":{\"name\":\"first\",\"root\":{\"id\":\"" + pipeId + "\",\"rule\":[{\"id\":\"" + sequence + "\"}]}}}]";
         try {
             String retr = HsHttpClient.hsHttpDelete(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", param);
             JSONObject jo = new JSONObject(retr);
-            log.info("hsHttpDelete  result{}", retr);
-            boolean success = jo.getBoolean(HsConstants.SUCCESS);
-            if (success) {
-                return true;
+            if (jo.has(HsConstants.SUCCESS)){
+                if (jo.getBoolean(HsConstants.SUCCESS)){
+                    log.info("rest delete ip result{}", retr);
+                    return true;
+                }else if (jo.has(HsConstants.EXCEPTION) && jo.getJSONObject(HsConstants.EXCEPTION).getString("message").contains("condition does not exists")){
+                    log.info("rest delete ip warn, id condition dose not exists :{}",sequence);
+                    return true;
+                }
             }
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -252,5 +249,10 @@ public class QosService {
         this.fwPwd = fwPwd;
     }
 
+    public static void main(String[] args) {
+         QosService qosService = new QosService("10.110.29.206","443","hillstone","hillstone");
+        Boolean aBoolean = qosService.removeIpFromPipe("192.168.11.34", "5b664f1a-ba29-4026-9422-5b7480907dbe");
+        System.out.println(aBoolean);
+    }
 
 }
