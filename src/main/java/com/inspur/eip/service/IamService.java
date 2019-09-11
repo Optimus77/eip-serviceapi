@@ -55,11 +55,6 @@ public class IamService {
             }
 
             String action = getAction(reciveOrder.getOrderType(), reciveOrder.getOrderRoute());
-            if (StringUtils.isBlank(action)) {
-                log.error("Failed to get action");
-                return ActionResponse.actionFailed("action can not be blank", HttpStatus.SC_BAD_REQUEST);
-            }
-            log.info("action:{}, orderType:{}, id:{} ",action,reciveOrder.getOrderRoute(),id);
             iamParam.setRegion(region);
             iamParam.setAction(action);
             iamParam.setInstanceId(id);
