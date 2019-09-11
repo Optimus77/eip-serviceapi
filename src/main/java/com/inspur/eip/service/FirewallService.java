@@ -172,16 +172,13 @@ public class FirewallService {
         if (StringUtils.isNotEmpty(pipid)) {
             if (null != eip && null != fip && pipid.equals(getRootPipeName(fip))) {
                 return cmdDelQos(pipid, eip, devId);
-            }else if("054576b5-a3eb-426e-acf7-6e713f7a88f0".length() == pipid.length()){
+            }else if(HsConstants.UUID_LENGTH.length() == pipid.length()){
                 return cmdDelSbwQos( pipid, devId);
             }
             Firewall fwBean = CommonUtil.getFireWallById(devId);
             if (null != fwBean) {
                 QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
-                HashMap<String, String> map = qs.delQosPipe(pipid);
-                if (Boolean.valueOf(map.get(HsConstants.SUCCESS))) {
-                    return true;
-                }
+                return qs.delQosPipe(pipid);
             } else {
                 log.info("Failed to get fireWall by id when del qos,dev:{}, pipId:{}", devId, pipid);
             }

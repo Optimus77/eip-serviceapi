@@ -18,6 +18,7 @@ import com.inspur.eip.util.http.HsHttpClient;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.extern.slf4j.Slf4j;
@@ -48,30 +49,27 @@ public class QosService {
         this.fwPwd = fwPwd;
     }
 
-    HashMap<String, String> delQosPipe(String pipeId) {
-        HashMap<String, String> res = new HashMap();
-        String json = "[{\"target\":\"root\",\"node\":{\"name\":\"first\",\"root\":{\"id\":\"" + pipeId + "\"}}}]";
 
+    boolean delQosPipe(String pipeId) {
+        String json = "[{\"target\":\"root\",\"node\":{\"name\":\"first\",\"root\":{\"id\":\"" + pipeId + "\"}}}]";
+        boolean flag = false;
         try {
             String retr = HsHttpClient.hsHttpDelete(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos", json);
             JSONObject jo = new JSONObject(retr);
-            boolean success = jo.getBoolean(HsConstants.SUCCESS);
-            if (success) {
-                res.put(HsConstants.SUCCESS, "true");
-            } else if ("Error: The root pipe dose not exist".equals(jo.getJSONObject(HsConstants.EXCEPTION).getString("message"))) {
-                res.put(HsConstants.SUCCESS, "true");
-                res.put("msg", "pip not found.");
-            } else {
-                res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-                res.put("msg", jo.getString(HsConstants.EXCEPTION));
+            Iterator<String> keys = jo.keys();
+            while (keys.hasNext()){
+                String successKey = keys.next();
+                if (HsConstants.SUCCESS.equalsIgnoreCase(successKey) && jo.getBoolean(successKey)){
+                    flag =true;
+                }else if (HsConstants.EXCEPTION.equalsIgnoreCase(successKey) && jo.getJSONObject(successKey).getString("message").contains("not exist")) {
+                    // {"success":false, "result":[], "exception":{"code":"", "message":"Error: The root pipe dose not exist", "stack":""}}
+                    flag =true;
+                }
             }
-            return res;
         } catch (Exception var7) {
             log.error(var7.getMessage());
-            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-            res.put("msg", var7.getMessage());
-            return res;
         }
+        return flag;
     }
 
     /*根据管道名称获取管道id*/
