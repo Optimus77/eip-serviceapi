@@ -174,7 +174,7 @@ public class OpenApiEipServiceImpl implements OpenApiService {
                 buildCreateEipAddSbwItemList(items, itemArraryList, i, bandwidth, openCreateEip.getSbwId());
             }
         }
-//      创建EipAddSbw订单报文
+//      创建Eip AddSbw订单报文
         Product product = Product.builder()
                 .region(regionCode)
                 .productLineCode(EipConstant.PRODUCT_LINE_CODE)

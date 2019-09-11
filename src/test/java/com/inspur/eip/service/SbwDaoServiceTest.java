@@ -426,8 +426,10 @@ public class SbwDaoServiceTest {
 
     @Test
     public void deleteSbwBandEip() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        Sbw sbw = null;
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        if(null != eip)
+            sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         addEipToSbw(eip.getId(),sbw.getId());
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
         ActionResponse response = sbwDaoService.deleteSbw(sbw.getId(), token);
@@ -447,8 +449,10 @@ public class SbwDaoServiceTest {
 
     @Test
     public void deleteSbwAdminBandEip() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        Sbw sbw = null;
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        if(null != eip)
+            sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         addEipToSbw(eip.getId(),sbw.getId());
         ActionResponse response = sbwDaoService.adminDeleteSbw(sbw.getId());
         removeEipFromSbw(eip.getId(),sbw.getId());
@@ -468,8 +472,10 @@ public class SbwDaoServiceTest {
 
     @Test
     public void errorBilltypeAddEipIntoSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        Sbw sbw = null;
         Eip eip = creatEip(HsConstants.MONTHLY, null);
+        if(null != eip)
+            sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
         EipUpdateParam param = new EipUpdateParam();
         param.setBandwidth(sbw.getBandWidth());
@@ -488,8 +494,10 @@ public class SbwDaoServiceTest {
 
     @Test
     public void addEipIntoSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        Sbw sbw = null;
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        if(null != eip)
+            sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
         EipUpdateParam param = new EipUpdateParam();
         param.setBandwidth(sbw.getBandWidth());
@@ -504,6 +512,8 @@ public class SbwDaoServiceTest {
 
         ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eip.getId(), param, token);
 
+        removeEipFromSbw(eip.getId(),sbw.getId());
+        deleteSbw(sbw.getId());
         assertEquals(ActionResponse.actionSuccess().getCode(), actionResponse.getCode());
     }
 
@@ -549,8 +559,10 @@ public class SbwDaoServiceTest {
 
     @Test
     public void errorEipBandV6AddEipIntoSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        Sbw sbw = null;
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        if(null != eip)
+            sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
         eipV6Service.atomCreateEipV6(eip.getId(),token);
         EipUpdateParam param = new EipUpdateParam();
@@ -571,8 +583,10 @@ public class SbwDaoServiceTest {
 
     @Test
     public void errorEipAlreadyAddEipIntoSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        Sbw sbw = null;
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        if(null != eip)
+            sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         addEipToSbw(eip.getId(),sbw.getId());
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
         EipUpdateParam param = new EipUpdateParam();
@@ -593,8 +607,10 @@ public class SbwDaoServiceTest {
 
     @Test
     public void removeEipFromSbwTest() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        Sbw sbw = null;
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        if(null != eip)
+            sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         addEipToSbw(eip.getId(),sbw.getId());
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
         EipUpdateParam param = new EipUpdateParam();
@@ -614,8 +630,10 @@ public class SbwDaoServiceTest {
 
     @Test
     public void errorSbwIdIsBlankRemoveEipFromSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        Sbw sbw = null;
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        if(null != eip)
+            sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         addEipToSbw(eip.getId(),sbw.getId());
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
         EipUpdateParam param = new EipUpdateParam();
@@ -636,8 +654,10 @@ public class SbwDaoServiceTest {
 
     @Test
     public void errorEipIdNotFoundRemoveEipFromSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        Sbw sbw = null;
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        if(null != eip)
+            sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         addEipToSbw(eip.getId(),sbw.getId());
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
         EipUpdateParam param = new EipUpdateParam();
@@ -658,8 +678,10 @@ public class SbwDaoServiceTest {
 
     @Test
     public void errorSbwIdNotFoundRemoveEipFromSbw() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        Sbw sbw = null;
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        if(null != eip)
+            sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         addEipToSbw(eip.getId(),sbw.getId());
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
         EipUpdateParam param = new EipUpdateParam();

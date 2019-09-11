@@ -2,7 +2,6 @@ package com.inspur.eip.service;
 
 import com.inspur.eip.EipServiceApplicationTests;
 import com.inspur.eip.entity.EipUpdateParam;
-import com.inspur.eip.entity.MethodReturn;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.eip.EipPool;
@@ -18,12 +17,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.openstack4j.model.common.ActionResponse;
-import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
@@ -59,12 +56,6 @@ public class EipDaoServiceTest {
     @Autowired
     EipPoolRepository eipPoolRepository;
 
-    @Mock
-    NeutronService neutronService;
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @InjectMocks
     @Autowired
     EipDaoService eipDaoService;
 
