@@ -128,7 +128,7 @@ public class EipGroupController {
     @CrossOrigin(origins = "*",maxAge = 3000)
     @ApiOperation(value="getEipGroupByConditions",notes="get")
     public ResponseEntity getEipByIPAddress(@RequestParam(required = false) String resourceId,
-                                                   @RequestParam(required = false) String eipAddress)  {
+                                            @RequestParam(required = false) String eipAddress)  {
 
         if((null != resourceId) && (null != eipAddress) ){
             return new ResponseEntity<>("To be wrong.", HttpStatus.FORBIDDEN);
@@ -259,17 +259,18 @@ public class EipGroupController {
                     groupInfo.put("groupId",groupid);
                     for (Eip eip : page.getContent()) {
                         //groupInfo.put("oldBandwidth",eip.getOldBandWidth());
-                        groupInfo.put("ipType",eip.getIpType());
                         groupInfo.put("region",eip.getRegion());
                         groupInfo.put("billType",eip.getBillType());
                         groupInfo.put("chargMode",eip.getChargeMode());
+                        groupInfo.put("privateIpAddress",eip.getPrivateIpAddress());
+                        Resourceset res = Resourceset.builder()
+                                .resourceId(eip.getInstanceId())
+                                .resourceType(eip.getInstanceType()).build();
+                        groupInfo.put("resourceset",res);
                         if((eip.getGroupId()== null && groupid == null)||
                                 eip.getGroupId()!=null&&groupid!=null&&((eip.getGroupId()).equals(groupid))) {
                             EipGroup eipGroup = new EipGroup();
                             BeanUtils.copyProperties(eip,eipGroup);
-                            eipGroup.setResourceset(Resourceset.builder()
-                                    .resourceId(eip.getInstanceId())
-                                    .resourceType(eip.getInstanceType()).build());
                             if (StringUtils.isNotBlank(eip.getEipV6Id())) {
                                 EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
                                 if (eipV6 != null) {
@@ -308,17 +309,18 @@ public class EipGroupController {
                     groupInfo.put("groupId",groupid);
                     for (Eip eip : dataList) {
                         //groupInfo.put("oldBandwidth",eip.getOldBandWidth());
-                        groupInfo.put("ipType",eip.getIpType());
                         groupInfo.put("region",eip.getRegion());
                         groupInfo.put("billType",eip.getBillType());
                         groupInfo.put("chargMode",eip.getChargeMode());
+                        groupInfo.put("privateIpAddress",eip.getPrivateIpAddress());
+                        Resourceset res = Resourceset.builder()
+                                .resourceId(eip.getInstanceId())
+                                .resourceType(eip.getInstanceType()).build();
+                        groupInfo.put("resourceset",res);
                         if((eip.getGroupId()== null && groupid == null)||
                                 eip.getGroupId()!=null&&groupid!=null&&((eip.getGroupId()).equals(groupid))) {
                             EipGroup eipGroup = new EipGroup();
                             BeanUtils.copyProperties(eip,eipGroup);
-                            eipGroup.setResourceset(Resourceset.builder()
-                                    .resourceId(eip.getInstanceId())
-                                    .resourceType(eip.getInstanceType()).build());
                             if (StringUtils.isNotBlank(eip.getEipV6Id())) {
                                 EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
                                 if (eipV6 != null) {

@@ -30,11 +30,8 @@ public class EipGroup implements Serializable {
     @JsonProperty("sbwId")
     private String sbwId;
 
-    @JsonProperty("privateIpAddress")
-    private String privateIpAddress;
-
-    @JsonProperty("resourceSet")
-    private Resourceset resourceset;
+    @JsonProperty("ipType")
+    private String ipType;
 
     @JsonProperty("status")
     private String status;
