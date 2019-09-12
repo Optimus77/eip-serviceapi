@@ -24,6 +24,7 @@ import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.Port;
+import org.openstack4j.model.network.options.PortListOptions;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -31,7 +32,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-@PrepareForTest({CommonUtil.class,NeutronService.class})
+@PrepareForTest({CommonUtil.class,NeutronService.class, PortListOptions.class})
 @RunWith(PowerMockRunner.class)
 public class NeutronServiceTest {
     @InjectMocks
@@ -76,18 +77,20 @@ public class NeutronServiceTest {
             List<NetFloatingIP> list= new ArrayList<>();
             Mockito.doReturn(list).when(netFloatingIPService).list(Mockito.anyMap());
             Mockito.doReturn(null).when(portService).get(Mockito.anyString());
-            neutronService.createFloatingIp("11","22","33");
-
+            NetFloatingIP netFloatingIP = Mockito.mock(NetFloatingIP.class);
+            Mockito.doReturn(netFloatingIP).when(netFloatingIPService).create(Mockito.any());
+            NetFloatingIP netFloatingIP1 = neutronService.createFloatingIp("11","22","33");
         }catch (Exception e){
             e.printStackTrace();
         }
-
     }
 
     @Test
     public void deleteFloatingIp(){
+
+        ActionResponse actionResponse = ActionResponse.actionSuccess() ;
+        Mockito.doReturn(actionResponse).when(netFloatingIPService).delete(Mockito.anyString());
         Boolean result = neutronService.deleteFloatingIp("11","22","33","44");
-        Assert.assertEquals(false,result);
     }
 
     @Test
@@ -153,9 +156,73 @@ public class NeutronServiceTest {
         Assert.assertEquals(200,result.getCode());
     }
 
-//    @Test
-//    public void disassociateInstanceWithFloatingIp() throws KeycloakTokenException {
-//        Mockito.doReturn(true).when(slbService).isFipInUse(Mockito.anyString());
-//        ActionResponse actionResponse = neutronService.disassociateInstanceWithFloatingIp("11","22","cn-north3");
-//    }
+    @Test
+    public void disassociateInstanceWithFloatingIp() throws KeycloakTokenException {
+        Server server = Mockito.mock(Server.class);
+        Mockito.doReturn(server).when(serverService).get(Mockito.anyString());
+        ActionResponse actionResponse = ActionResponse.actionSuccess();
+        Mockito.doReturn(actionResponse).when(computeFloatingIPService).removeFloatingIP((Server) Mockito.any(),Mockito.anyString());
+        ActionResponse result = neutronService.disassociateInstanceWithFloatingIp("11","22","cn-north3");
+        Assert.assertEquals(200,result.getCode());
+    }
+    @Test
+    public void disassociateAndDeleteFloatingIp() throws KeycloakTokenException {
+        Server server = Mockito.mock(Server.class);
+        Mockito.doReturn(server).when(serverService).get(Mockito.anyString());
+        ActionResponse actionResponse = ActionResponse.actionSuccess();
+        Mockito.doReturn(actionResponse).when(computeFloatingIPService).removeFloatingIP((Server) Mockito.any(),Mockito.anyString());
+
+        Mockito.doReturn(actionResponse).when(netFloatingIPService).delete(Mockito.anyString());
+        ActionResponse result = neutronService.disassociateAndDeleteFloatingIp("11","22","33","cn3");
+        Assert.assertEquals(200,result.getCode());
+    }
+
+    @Test
+    public void listServer() throws KeycloakTokenException {
+        List<? extends Server> list = neutronService.listServer("11");
+    }
+
+    @Test
+    public void associaPortWithFloatingIp() throws KeycloakTokenException {
+        NetFloatingIP netFloatingIP = neutronService.associaPortWithFloatingIp("11","22","33");
+    }
+
+    @Test
+    public void getFloatingIpAddrByPortId() throws KeycloakTokenException {
+        NetFloatingIP netFloatingIP = neutronService.getFloatingIpAddrByPortId("11","22");
+    }
+
+    @Test
+    public void getserverIpByServerId() throws KeycloakTokenException {
+        Eip eip = new Eip();
+        eip.setRegion("CN-NORTH3");
+//        eip.setFloatingIp("34");
+        Server server = Mockito.mock(Server.class);
+        Addresses addresses = Mockito.mock(Addresses.class);
+        Mockito.doReturn(addresses).when(server).getAddresses();
+        Map<String,List> map= new HashMap<>();
+        List<Address> list = new ArrayList<>();
+        Address address = Mockito.mock(Address.class);
+        list.add(address);
+        map.put("123",list);
+        Mockito.doReturn("fixed").when(address).getType();
+        Mockito.doReturn("1987").when(address).getAddr();
+        Mockito.doReturn(map).when(addresses).getAddresses();
+        Mockito.doReturn(server).when(serverService).get(Mockito.anyString());
+        String result = neutronService.getserverIpByServerId(eip,"11");
+    }
+
+    @Test
+    public void getPortIdByServerId() throws Exception {
+        PowerMockito.mockStatic(PortListOptions.class);
+        PortListOptions portListOptions = Mockito.mock(PortListOptions.class);
+        PowerMockito.when(PortListOptions.class,"create").thenReturn(portListOptions);
+        List<Port> list2 = new ArrayList<>();
+        Port port = Mockito.mock(Port.class);
+        Mockito.doReturn("11").when(port).getId();
+        list2.add(port);
+        Mockito.doReturn(portListOptions).when(portListOptions).deviceId(Mockito.anyString());
+        Mockito.doReturn(list2).when(portService).list(Mockito.any());
+        List<String> ports = neutronService.getPortIdByServerId("11",osClientV3);
+    }
 }

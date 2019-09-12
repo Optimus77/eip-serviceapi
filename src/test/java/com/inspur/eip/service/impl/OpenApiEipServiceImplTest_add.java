@@ -2,7 +2,7 @@ package com.inspur.eip.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.inspur.eip.PowerMockBaseTest;
+import com.inspur.eip.EipServiceApplicationTests;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.entity.openapi.Item;
 import com.inspur.eip.entity.openapi.OpenCreateEip;
@@ -40,7 +40,7 @@ import static org.mockito.ArgumentMatchers.eq;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({HttpsClientUtil.class,CommonUtil.class,HttpClientUtil.class,OpenApiEipServiceImpl.class})
-public class OpenApiEipServiceImplTest_add {
+public class OpenApiEipServiceImplTest_add  {
 
     @InjectMocks
     OpenApiEipServiceImpl openApiEipService;

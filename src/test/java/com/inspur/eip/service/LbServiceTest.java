@@ -1,11 +1,11 @@
 package com.inspur.eip.service;
-
 import com.inspur.eip.EipServiceApplicationTests;
 import com.inspur.eip.entity.MethodReturn;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.plugin.hillstone.RadwareService;
+import com.inspur.plugin.hillstone.RadwareService2Del;
+import com.inspur.plugin.hillstone.RadwareService4query;
 import com.inspur.plugin.module.entity.AddNat;
-import com.inspur.plugin.module.entity.CreateReturn;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,12 +21,10 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import static org.mockito.ArgumentMatchers.eq;
 
-
-@PrepareForTest({RadwareService.class})
+@PrepareForTest({RadwareService.class, RadwareService4query.class, RadwareService2Del.class})
 @RunWith(PowerMockRunner.class)
-public class LbServiceTest  {
+public class LbServiceTest {
 
     @InjectMocks
     private LbService lbService;
@@ -40,6 +38,8 @@ public class LbServiceTest  {
         ReflectionTestUtils.setField(lbService,"firewallUser","113");
         ReflectionTestUtils.setField(lbService,"firewallPasswd","114");
         ReflectionTestUtils.setField(lbService,"firewallInterface","115");
+        PowerMockito.mockStatic(RadwareService2Del.class);
+        PowerMockito.mockStatic(RadwareService4query.class);
 
     }
 
@@ -92,14 +92,19 @@ public class LbServiceTest  {
     public void delSnatFromEquiment(){
         Eip eip = new Eip();
         eip.setSnatId("12");
+        PowerMockito.when(RadwareService2Del.delFilter(Mockito.anyInt(),Mockito.any())).thenReturn(false);
         Boolean result = lbService.delSnatFromEquiment(eip);
         Assert.assertEquals(false,result);
     }
 
     @Test
-    public void delDnatFromEquiment(){
+    public void delDnatFromEquiment() throws Exception {
         Eip eip = new Eip();
         eip.setDnatId("dnatId");
+        PowerMockito.when(RadwareService4query.queryServerByGroupIndex(Mockito.eq(""),Mockito.any())).thenReturn("123");
+        PowerMockito.when(RadwareService2Del.delVirtualServer(Mockito.anyString(),Mockito.any())).thenReturn(true);
+        PowerMockito.when(RadwareService2Del.delGroup(Mockito.eq(null),Mockito.any())).thenReturn(true);
+        PowerMockito.when(RadwareService2Del.delServer(Mockito.eq(null),Mockito.any())).thenReturn(false);
         Boolean result = lbService.delDnatFromEquiment(eip);
         Assert.assertEquals(false,result);
     }
@@ -122,6 +127,10 @@ public class LbServiceTest  {
         eip.setId("11");
         eip.setDnatId("22");
         eip.setSnatId("33");
+        PowerMockito.when(RadwareService4query.queryServerByGroupIndex(Mockito.eq(""),Mockito.any())).thenReturn("123");
+        PowerMockito.when(RadwareService2Del.delVirtualServer(Mockito.anyString(),Mockito.any())).thenReturn(true);
+        PowerMockito.when(RadwareService2Del.delGroup(Mockito.eq(null),Mockito.any())).thenReturn(true);
+        PowerMockito.when(RadwareService2Del.delServer(Mockito.eq(null),Mockito.any())).thenReturn(false);
         MethodReturn methodReturn = lbService.delNatAndQos(eip);
         Assert.assertEquals(500,methodReturn.getHttpCode());
     }
