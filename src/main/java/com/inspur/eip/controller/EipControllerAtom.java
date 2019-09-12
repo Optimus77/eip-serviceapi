@@ -61,6 +61,23 @@ public class EipControllerAtom {
         return eipService.atomCreateEip(eipConfig.getEipAllocateParam(),CommonUtil.getKeycloackToken(), "ECS");
     }
 
+    /**
+     * Atome delete eip
+     * @param eipId
+     * @return
+     */
+
+    @PermissionContext(whitelist=true)
+    @DeleteMapping(value = "/eips/{eip_id}")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
+                                        @PathVariable("eip_id") String eipId) {
+        //Check the parameters
+        log.info("Atom delete the Eip:{} ",eipId);
+        return eipService.atomDeleteEip(eipId);
+
+    }
+
     @PermissionContext(whitelist=true)
     @PostMapping(value = "/groups")
     @CrossOrigin(origins = "*",maxAge = 3000)
@@ -94,23 +111,6 @@ public class EipControllerAtom {
         return eipService.atomDeleteEipGroup(groupId);
 
     }
-    /**
-     * Atome delete eip
-     * @param eipId
-     * @return
-     */
-
-    @PermissionContext(whitelist=true)
-    @DeleteMapping(value = "/eips/{eip_id}")
-    @CrossOrigin(origins = "*",maxAge = 3000)
-    public ResponseEntity atomDeleteEip(@Size(min=36, max=36, message = "Must be uuid.")
-                                        @PathVariable("eip_id") String eipId) {
-        //Check the parameters
-        log.info("Atom delete the Eip:{} ",eipId);
-        return eipService.atomDeleteEip(eipId);
-
-    }
-
 
 
 
