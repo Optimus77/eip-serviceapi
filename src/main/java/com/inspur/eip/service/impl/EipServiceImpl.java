@@ -114,6 +114,58 @@ public class EipServiceImpl implements IEipService {
     }
 
     /**
+     * create a eip group
+     *
+     * @param eipconfig          config
+     * @return                   json info of eip group
+     */
+    public ResponseEntity atomCreateEipGroup(List<EipAllocateParam> eipconfig,String token,String operater) throws KeycloakTokenException {
+        JSONArray data = new JSONArray();
+        String groupid = CommonUtil.getUUID();
+        for(EipAllocateParam eipAllocateParam:eipconfig) {
+            String code;
+            String msg;
+            String sbwId = eipAllocateParam.getSbwId();
+            if (StringUtils.isNotBlank(sbwId)) {
+                Sbw sbwEntity = sbwDaoService.getSbwById(sbwId);
+                if (null == sbwEntity || (!sbwEntity.getProjectId().equalsIgnoreCase(CommonUtil.getProjectId(token)))) {
+                    log.warn(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
+                    return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_RESOURCE_NOTENOUGH,
+                            "Can not find sbw"), HttpStatus.FAILED_DEPENDENCY);
+                }
+            }
+            eipAllocateParam.setGroupId(groupid);
+            EipPool eip = eipDaoService.getOneEipFromPool(eipAllocateParam.getIpType());
+            if (null == eip) {
+                msg = "Failed, no eip in eip pool.";
+                log.error(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_RESOURCE_NOTENOUGH, msg),
+                        HttpStatus.FAILED_DEPENDENCY);
+            }
+            Eip eipMo = eipDaoService.allocateEip(eipAllocateParam, eip, operater, token);
+            if (null != eipMo) {
+                EipReturnBase eipInfo = new EipReturnBase();
+                //eipMo.setGroupId(groupid);
+                BeanUtils.copyProperties(eipMo, eipInfo);
+                log.info("Atom create a eip success:{}", eipMo);
+                if (eipAllocateParam.getIpv6().equalsIgnoreCase("yes")) {
+                    ResponseEntity responseEntity = eipV6Service.atomCreateEipV6(eipMo.getId(), token);
+                    if(responseEntity.getStatusCodeValue() != org.apache.http.HttpStatus.SC_OK){
+                        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_IPV6_CREATE_FALSE, "ipv6 create false"), HttpStatus.METHOD_FAILURE);
+                    }
+                }
+                //eipInfo.setGroupId(groupid);
+                data.add(eipInfo);
+            } else {
+                code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
+                msg = "Failed to create floating ip in external network:" + eipAllocateParam.getRegion();
+                log.error(msg);
+            }
+        }
+        return new ResponseEntity<>(data, HttpStatus.OK);
+    }
+
+    /**
      * delete eip
      *
      * @param eipId eipid
@@ -139,6 +191,15 @@ public class EipServiceImpl implements IEipService {
             msg = e.getMessage() + "";
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    public ResponseEntity atomDeleteEipGroup(String groupId) {
+        List<Eip> eipEntitys = eipDaoService.getEipListByGroupId(groupId);
+        for(Eip eip:eipEntitys) {
+            atomDeleteEip(eip.getId());
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
     }
 
     /**
