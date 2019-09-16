@@ -211,7 +211,7 @@ public class EipServiceImpl implements IEipService {
             if (currentPage != 0) {
                 Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
-                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"'";
+                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"' order by created_time DESC";
                 Page<Eip> page =
                         ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);
 
