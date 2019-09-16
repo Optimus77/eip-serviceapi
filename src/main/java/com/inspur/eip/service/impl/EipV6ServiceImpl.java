@@ -116,7 +116,7 @@ public class EipV6ServiceImpl implements IEipV6Service {
             if(pageNo!=0){
                 Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable =PageRequest.of(pageNo-1,pageSize,sort);
-                String querySql="select * from eipv6 where is_delete='0' and project_id= '"+projectId+"' order by created_time DESC";
+                String querySql="select * from eipv6 where is_delete='0' and project_id= '"+projectId+"'"+ HsConstants.ORDER_BY_CREATED_TIME_DESC;
                 Page<EipV6> page =
                         ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, EipV6.class);
 

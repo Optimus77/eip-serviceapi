@@ -18,7 +18,7 @@ import java.util.Optional;
 public interface EipRepository extends JpaRepository<Eip,String> {
 
     @Override
-    @Lock(LockModeType.OPTIMISTIC)
+    @Lock(LockModeType.PESSIMISTIC_READ)
     Optional<Eip> findById(String id);
 
     Eip findByIdAndIsDelete(String id, int isDelete);

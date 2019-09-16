@@ -18,7 +18,7 @@ import java.util.Optional;
 public interface SbwRepository extends JpaRepository<Sbw, String> {
 
     @Override
-    @Lock(LockModeType.OPTIMISTIC)
+    @Lock(LockModeType.PESSIMISTIC_READ)
     Optional<Sbw> findById(String id);
 
     List<Sbw> findByProjectIdAndIsDelete(String projectId, int isDelete);
