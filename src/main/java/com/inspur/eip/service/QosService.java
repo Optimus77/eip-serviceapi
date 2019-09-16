@@ -47,8 +47,16 @@ public class QosService {
         this.fwPwd = fwPwd;
     }
 
-
+    /**
+     * 根据管道id/或者Sbw管道的name删除管道
+     * @param pipeId
+     * @return
+     */
     boolean delQosPipe(String pipeId) {
+        // 根据管道名称获取管道Id
+        if (HsConstants.PIPE_ID_LENGTH.length() != pipeId.length()){
+            pipeId = this.getQosPipeIdByName(pipeId);
+        }
         String json = "[{\"target\":\"root\",\"node\":{\"name\":\"first\",\"root\":{\"id\":\"" + pipeId + "\"}}}]";
         boolean flag = false;
         try {
@@ -61,6 +69,7 @@ public class QosService {
                     flag =true;
                 }else if (HsConstants.EXCEPTION.equalsIgnoreCase(successKey) && jo.getJSONObject(successKey).getString("message").contains("not exist")) {
                     // {"success":false, "result":[], "exception":{"code":"", "message":"Error: The root pipe dose not exist", "stack":""}}
+                    log.warn("Error: The root pipe dose not exist,pipeId:{}",pipeId);
                     flag =true;
                 }
             }
@@ -71,7 +80,7 @@ public class QosService {
     }
 
     /*根据管道名称获取管道id*/
-    String getQosPipeId(String pipeName) throws EipInternalServerException {
+    String getQosPipeIdByName(String pipeName) throws EipInternalServerException {
         try {
             String id = "";
             String params = "/rest/iQos?query=%7B%22conditions%22%3A%5B%7B%22f%22%3A%22name%22%2C%22v%22%3A%22first%22%7D%5D%7D&target=root&node=root&id=%7B%22node%22%3A%22root%22%7D";
@@ -96,19 +105,19 @@ public class QosService {
      * remove
      *
      * @param floatIp 入参不能为空
-     * @param sbwId 管道名称
+     * @param pipeName 管道名称:UUID/floating ipAddress
      * @return ret
      */
-    Boolean removeIpFromPipe(String floatIp, String sbwId) {
+    Boolean removeIpFromPipe(String floatIp, String pipeName) {
         String IP32 = IpUtil.ipToLong(floatIp);
         if (StringUtils.isBlank(IP32)) {
             return false;
         }
         Gson gson = new Gson();
         try {
-            String pipeId = getQosPipeId(sbwId);
+            String pipeId = getQosPipeIdByName(pipeName);
             if (StringUtils.isBlank(pipeId)){
-                log.error("can not find pipeId by qosName, sbwId:{}",sbwId);
+                log.error("can not find pipeId by qosName, sbwId:{}",pipeName);
                 return false;
             }
             //query qos pipeId(eg:1563535650434929525) by pipeId
@@ -126,7 +135,9 @@ public class QosService {
                     }
                 }
                 for (String id : map.keySet()) {
-                    return deleteIpFromPipe(pipeId, id);
+                    if (StringUtils.isBlank(id))
+                        continue;
+                    return deleteConditionFromPipe(pipeId, id);
                 }
             }
         } catch (Exception e) {
@@ -139,7 +150,7 @@ public class QosService {
      * @param sequence ip序号
      * @return ret
      */
-    public Boolean deleteIpFromPipe(String pipeId, String sequence) {
+    public Boolean deleteConditionFromPipe(String pipeId, String sequence) {
         String param = "[{\"target\":\"root.rule\",\"node\":{\"name\":\"first\",\"root\":{\"id\":\"" + pipeId + "\",\"rule\":[{\"id\":\"" + sequence + "\"}]}}}]";
         try {
             String retr = HsHttpClient.hsHttpDelete(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", param);

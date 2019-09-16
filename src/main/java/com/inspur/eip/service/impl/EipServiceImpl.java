@@ -209,9 +209,9 @@ public class EipServiceImpl implements IEipService {
             JSONObject data = new JSONObject();
             JSONArray eips = new JSONArray();
             if (currentPage != 0) {
-                Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
-                Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
-                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"'";
+                //Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
+                Pageable pageable = PageRequest.of(currentPage - 1, limit);
+                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"'" + HsConstants.ORDER_BY_CREATED_TIME_DESC;
                 Page<Eip> page =
                         ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);
 

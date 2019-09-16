@@ -176,7 +176,8 @@ public class FirewallService {
                 return cmdDelSbwQos( pipid, devId);
             }
             Firewall fwBean = CommonUtil.getFireWallById(devId);
-            if (null != fwBean) {
+            // 只能根据管道名称 eg：9dea38f8-f59c-4847-ba43-f0ef61a6986c 或者管道Id eg: 1563205723075033629 删除，不能删EIP的根管道eg:10.110.26.0
+            if (null != fwBean && (HsConstants.PIPE_ID_LENGTH.length() == pipid.length() || HsConstants.UUID_LENGTH.length() == pipid.length())) {
                 QosService qs = new QosService(fwBean.getIp(), fwBean.getPort(), fwBean.getUser(), fwBean.getPasswd());
                 return qs.delQosPipe(pipid);
             } else {

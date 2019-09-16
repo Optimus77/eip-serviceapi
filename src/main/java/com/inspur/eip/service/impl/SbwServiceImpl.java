@@ -23,7 +23,6 @@ import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.iam.adapter.util.ListFilterUtil;
-import com.inspur.icp.common.util.annotation.ICPServiceLog;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.model.common.ActionResponse;
@@ -44,6 +43,9 @@ import java.util.List;
 @Slf4j
 @Service
 public class SbwServiceImpl implements ISbwService {
+
+    public static final String SELECT_FROM_SBW_BY_ISDELETE_PROJECTID = "select * from sbw where is_delete='0' and project_id= '";
+
     @Autowired
     private SbwRepository sbwRepository;
 
@@ -94,23 +96,21 @@ public class SbwServiceImpl implements ISbwService {
             Page<Sbw> page;
             String querySql;
             if (pageIndex != 0) {
-                Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
-                Pageable pageable = PageRequest.of(pageIndex - 1, pageSize, sort);
+                //Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
+                Pageable pageable = PageRequest.of(pageIndex - 1, pageSize);
                 if (StringUtils.isNotBlank(searchValue)) {
-                    if (searchValue.matches(matche)) {
-                        querySql="select * from sbw where is_delete='0' and project_id= '"+projectId+"'"+" and id='"+searchValue+"'";
-                        page = ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Sbw.class);
+                    if (searchValue.matches(matche)) {      //ID精确查询
+                        querySql=SELECT_FROM_SBW_BY_ISDELETE_PROJECTID+projectId+"'"+" and id='"+searchValue+"'"+ HsConstants.ORDER_BY_CREATED_TIME_DESC;
                         //page = sbwDaoService.findByIdAndIsDelete(searchValue, projectId, 0, pageable);
-                    } else {
-                        querySql="select * from sbw where is_delete='0' and project_id= '"+projectId+"'"+" and sbw_name='"+searchValue+"'";
-                        page = ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Sbw.class);
+                    } else {        //根据名称模糊查询
+                        querySql=SELECT_FROM_SBW_BY_ISDELETE_PROJECTID+projectId+"'"+" and sbw_name like'%"+searchValue+"%'"+ HsConstants.ORDER_BY_CREATED_TIME_DESC;
                         //page = sbwDaoService.findByIsDeleteAndSbwName(projectId, 0, searchValue, pageable);
                     }
                 } else {
-                    querySql="select * from sbw where is_delete='0' and project_id= '"+projectId+"'";
-                     page = ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Sbw.class);
+                    querySql=SELECT_FROM_SBW_BY_ISDELETE_PROJECTID+projectId+"'" + HsConstants.ORDER_BY_CREATED_TIME_DESC;
                     //page = sbwDaoService.findByIsDelete(projectid, 0, pageable);
                 }
+                page = ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Sbw.class);
                 for (Sbw sbw : page.getContent()) {
                     SbwReturnDetail sbwReturnDetail = new SbwReturnDetail();
                     BeanUtils.copyProperties(sbw, sbwReturnDetail);
