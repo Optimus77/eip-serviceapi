@@ -52,4 +52,6 @@ public class EipV6 {
 
     private String userName;
 
+    private String availabilityZone;
+
 }
