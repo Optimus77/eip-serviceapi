@@ -196,8 +196,21 @@ public class EipServiceImpl implements IEipService {
 
     public ResponseEntity atomDeleteEipGroup(String groupId) {
         List<Eip> eipEntitys = eipDaoService.getEipListByGroupId(groupId);
+        String msg = null;
+        String code = null;
         for(Eip eip:eipEntitys) {
-            atomDeleteEip(eip.getId());
+            ActionResponse actionResponse = eipDaoService.deleteEip(eip.getId(), CommonUtil.getKeycloackToken());
+            if (actionResponse.isSuccess()) {
+                log.info("Atom delete eip successfully, id:{}", eip.getId());
+            } else {
+                msg = actionResponse.getFault();
+                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+                log.info("Atom delete eip failed,{}", msg);
+                break;
+            }
+        }
+        if(code!=null) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(code,"delete eip group failed."), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
     }
