@@ -136,7 +136,7 @@ public class FlowService {
             timeStamp = DateUtils4Jdk8.getDefaultUnsignedDateHourPattern(1L);
         }
         flowBean.setBillCycle(timeStamp);
-        flowBean.setSettleCycle("H");
+        flowBean.setSettleCycle("HOUR");
         flowBean.setCount("1");
         flowBean.setIndex("1");
         flowBean.setUserId(eip.getUserId());
