@@ -355,33 +355,55 @@ public class EipServiceImpl implements IEipService {
                         ErrorStatus.ENTITY_UNAUTHORIZED.getMessage()), HttpStatus.BAD_REQUEST);
             }
             JSONObject data = new JSONObject();
-            JSONArray eips = new JSONArray();
+
             if (currentPage != 0) {
-                Sort sort = new Sort(Sort.Direction.DESC, "group_id");
+                Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
                 Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
-                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"'";
+                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"' order by group_id";
                 Page<Eip> page =
                         ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);
-
-                //Page<Eip> page = eipRepository.findByProjectIdAndIsDelete(projcectId, 0, pageable);
+                List<String> groupids = new ArrayList<String>();
                 for (Eip eip : page.getContent()) {
                     if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
                         continue;
                     }
-                    EipReturnDetail eipReturnDetail = new EipReturnDetail();
-                    BeanUtils.copyProperties(eip, eipReturnDetail);
-                    eipReturnDetail.setResourceset(Resourceset.builder()
-                            .resourceId(eip.getInstanceId())
-                            .resourceType(eip.getInstanceType()).build());
-                    if (StringUtils.isNotBlank(eip.getEipV6Id())) {
-                        EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
-                        if (eipV6 != null) {
-                            eipReturnDetail.setIpv6(eipV6.getIpv6());
+                    if (!groupids.contains(eip.getGroupId())) {
+                        groupids.add(eip.getGroupId());
+                    }
+                }
+                JSONArray datas = new JSONArray();
+                for (String groupid : groupids) {
+                    JSONArray eips = new JSONArray();
+                    JSONObject groupInfo = new JSONObject(new LinkedHashMap());
+                    groupInfo.put("groupId",groupid);
+                    for (Eip eip : page.getContent()) {
+                        //groupInfo.put("oldBandwidth",eip.getOldBandWidth());
+                        groupInfo.put("region",eip.getRegion());
+                        groupInfo.put("billType",eip.getBillType());
+                        groupInfo.put("chargMode",eip.getChargeMode());
+                        groupInfo.put("privateIpAddress",eip.getPrivateIpAddress());
+                        Resourceset res = Resourceset.builder()
+                                .resourceId(eip.getInstanceId())
+                                .resourceType(eip.getInstanceType()).build();
+                        groupInfo.put("resourceset",res);
+                        if((eip.getGroupId()== null && groupid == null)||
+                                eip.getGroupId()!=null&&groupid!=null&&((eip.getGroupId()).equals(groupid))) {
+                            EipGroup eipGroup = new EipGroup();
+                            BeanUtils.copyProperties(eip,eipGroup);
+                            if (StringUtils.isNotBlank(eip.getEipV6Id())) {
+                                EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                                if (eipV6 != null) {
+                                    eipGroup.setIpv6(eipV6.getIpv6());
+                                }
+                            }
+                            eips.add(eipGroup);
                         }
                     }
-                    eips.add(eipReturnDetail);
+                    groupInfo.put("eips",eips);
+                    datas.add(groupInfo);
                 }
-                data.put("data", eips);
+
+                data.put("data",datas);
 //                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
                 data.put(HsConstants.TOTAL_COUNT, page.getTotalElements());
                 data.put(HsConstants.PAGE_NO, currentPage);
@@ -390,28 +412,52 @@ public class EipServiceImpl implements IEipService {
 
                 List<Eip> eipList = eipDaoService.findByProjectId(projcectId);
                 List<Eip> dataList = ListFilterUtil.filterListData(eipList, Eip.class);
+                List<String> groupids = new ArrayList<String>();
                 for (Eip eip : dataList) {
                     if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
                         continue;
                     }
-                    EipReturnDetail eipReturnDetail = new EipReturnDetail();
-                    BeanUtils.copyProperties(eip, eipReturnDetail);
-                    eipReturnDetail.setResourceset(Resourceset.builder()
-                            .resourceId(eip.getInstanceId())
-                            .resourceType(eip.getInstanceType()).build());
-                    if (StringUtils.isNotBlank(eip.getEipV6Id())) {
-                        EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
-                        if (eipV6 != null) {
-                            eipReturnDetail.setIpv6(eipV6.getIpv6());
+                    if (!groupids.contains(eip.getGroupId())) {
+                        groupids.add(eip.getGroupId());
+                    }
+                }
+                JSONArray datas = new JSONArray();
+                for (String groupid : groupids) {
+                    JSONArray eips = new JSONArray();
+                    JSONObject groupInfo = new JSONObject(new LinkedHashMap());
+                    groupInfo.put("groupId",groupid);
+                    for (Eip eip : dataList) {
+                        //groupInfo.put("oldBandwidth",eip.getOldBandWidth());
+                        groupInfo.put("region",eip.getRegion());
+                        groupInfo.put("billType",eip.getBillType());
+                        groupInfo.put("chargMode",eip.getChargeMode());
+                        groupInfo.put("privateIpAddress",eip.getPrivateIpAddress());
+                        Resourceset res = Resourceset.builder()
+                                .resourceId(eip.getInstanceId())
+                                .resourceType(eip.getInstanceType()).build();
+                        groupInfo.put("resourceset",res);
+                        if((eip.getGroupId()== null && groupid == null)||
+                                eip.getGroupId()!=null&&groupid!=null&&((eip.getGroupId()).equals(groupid))) {
+                            EipGroup eipGroup = new EipGroup();
+                            BeanUtils.copyProperties(eip,eipGroup);
+                            if (StringUtils.isNotBlank(eip.getEipV6Id())) {
+                                EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                                if (eipV6 != null) {
+                                    eipGroup.setIpv6(eipV6.getIpv6());
+                                }
+                            }
+                            eips.add(eipGroup);
                         }
                     }
-                    eips.add(eipReturnDetail);
+                    groupInfo.put("eips",eips);
+                    datas.add(groupInfo);
                 }
-                data.put("data", eips);
-//                data.put(HsConstants.TOTAL_PAGES, 1);
-                data.put(HsConstants.TOTAL_COUNT, eips.size());
+                data.put("data",datas);
+//                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
+                data.put(HsConstants.TOTAL_COUNT, dataList.size());
                 data.put(HsConstants.PAGE_NO, 1);
-                data.put(HsConstants.PAGE_SIZE, eips.size());
+                data.put(HsConstants.PAGE_SIZE, limit);
+
             }
             return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (KeycloakTokenException e) {
