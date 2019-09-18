@@ -19,13 +19,13 @@ public class HsHttpClientTest {
         ReflectionTestUtils.setField(HsHttpClient.class,"cookieMap",cookieMap);
     }
 
-    @Test
+    /*@Test
     public void ConvertStreamToString() throws FileNotFoundException {
         InputStream inputStream2 = null;
         File file   = new File("D:\\PublicCloud\\eip-serviceapi\\src\\main\\java\\com\\inspur\\eip\\util\\MonitorScheduledTask.java");
         inputStream2 = new FileInputStream(file);
         String result = HsHttpClient.ConvertStreamToString(inputStream2);
-    }
+    }*/
 
     @Test
     public void hsHttpGet() throws Exception {
