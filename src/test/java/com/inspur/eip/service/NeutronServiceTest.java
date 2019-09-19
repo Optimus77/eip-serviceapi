@@ -32,7 +32,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-@PrepareForTest({CommonUtil.class,NeutronService.class, PortListOptions.class})
+@PrepareForTest({CommonUtil.class, PortListOptions.class})
 @RunWith(PowerMockRunner.class)
 public class NeutronServiceTest {
     @InjectMocks

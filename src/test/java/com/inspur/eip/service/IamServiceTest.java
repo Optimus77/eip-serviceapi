@@ -34,7 +34,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.*;
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({IamService.class, CommonUtil.class, HttpUtil.class})
+@PrepareForTest({ CommonUtil.class, HttpUtil.class})
 public class IamServiceTest {
 
     @InjectMocks

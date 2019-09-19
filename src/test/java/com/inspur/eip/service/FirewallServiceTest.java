@@ -9,6 +9,7 @@ import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.repository.SbwRepository;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.common.MethodReturnUtil;
+import org.apache.kafka.common.protocol.types.Field;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +32,7 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 
-@PrepareForTest({FirewallService.class,CommonUtil.class})
+@PrepareForTest({CommonUtil.class})
 @RunWith(PowerMockRunner.class)
 public class FirewallServiceTest {
     @InjectMocks
@@ -55,51 +56,34 @@ public class FirewallServiceTest {
 
     }
 
-    @Test
-    public void addDnat() throws Exception {
-//        FirewallService spy = PowerMockito.spy(firewallService);
-//        PowerMockito.when(spy,"addDnat",anyString(),anyString(),anyString());
-        Mockito.when(fireWallCommondService.execCustomCommand(anyString(),anyString(),anyString())).thenReturn("123");
-        Method method = PowerMockito.method(FirewallService.class,"addDnat",String.class,String.class,String.class);
-        method.invoke(firewallService,"11","22","33");
-    }
 
-    @Test
-    public void addSnat() throws InvocationTargetException, IllegalAccessException {
-        Method method = PowerMockito.method(FirewallService.class,"addSnat",String.class,String.class,String.class);
-        method.invoke(firewallService,"12","34","56");
-    }
+
+
 
     @Test
     public void addQosCase1() throws Exception {
-        FirewallService spy = PowerMockito.spy(firewallService);
-        PowerMockito.doReturn("66").when(spy,"getRootPipeName",Mockito.anyString());
         long x = 0L;
         Mockito.doReturn(x).when(eipRepository).countByPipId(Mockito.anyString());
-        PowerMockito.doReturn(true).when(spy,"cmdAddRootPipe",anyString(),anyString(),anyString(),anyString(),anyString(),anyString());
-        spy.addQos("11","22","55","44");
+        Mockito.doReturn("112").when(fireWallCommondService).execCustomCommand(Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
+        String result = firewallService.addQos("11.12.13.14","22","55","44");
     }
     @Test
     public void addQosCase2() throws Exception {
-        FirewallService spy = PowerMockito.spy(firewallService);
-        PowerMockito.doReturn("66").when(spy,"getRootPipeName",Mockito.anyString());
-        long x = 2L;
+        long x = 55L;
         Mockito.doReturn(x).when(eipRepository).countByPipId(Mockito.anyString());
-//        PowerMockito.doReturn(true).when(spy,"cmdAddRootPipe",anyString(),anyString(),anyString(),anyString(),anyString(),anyString());
-        spy.addQos("11","22","55","44");
+        Mockito.doReturn("112").when(fireWallCommondService).execCustomCommand(Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
+        String result = firewallService.addQos("11.12.13.14","22","55","44");
     }
 
     @Test
     public void updateQosBandWidthCase1() throws Exception {
-        FirewallService spy = PowerMockito.spy(firewallService);
-        PowerMockito.doReturn("22").when(spy,"getRootPipeName",Mockito.anyString());
-        spy.updateQosBandWidth("11","22","33","44","55","66");
+        Mockito.doReturn("112").when(fireWallCommondService).execCustomCommand(Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
+        Boolean result = firewallService.updateQosBandWidth("11","55.56.57.0","33","44","55.56.57.58","66");
     }
     @Test
     public void updateQosBandWidthCase2() throws Exception {
-        FirewallService spy = PowerMockito.spy(firewallService);
-        PowerMockito.doReturn("22").when(spy,"getRootPipeName",Mockito.anyString());
-        spy.updateQosBandWidth("11","9dea38f8-f59c-4847-ba43-f0ef61a6986c","33","44","55","66");
+        Mockito.doReturn("112").when(fireWallCommondService).execCustomCommand(Mockito.anyString(),Mockito.anyString(),Mockito.eq(null));
+        Boolean result = firewallService.updateQosBandWidth("11","9dea38f8-f59c-4847-ba43-f0ef61a6986c","33","44","55.56.57.58","66");
     }
 
     @Test
@@ -116,79 +100,69 @@ public class FirewallServiceTest {
 
     @Test
     public void delQosCase1() throws Exception {
-        FirewallService spy = PowerMockito.spy(firewallService);
-        PowerMockito.doReturn("11").when(spy,"getRootPipeName",Mockito.anyString());
-        spy.delQos("11","22","33","44");
+        Firewall firewall = new Firewall();
+        PowerMockito.when(CommonUtil.class,"getFireWallById",anyString()).thenReturn(firewall);
+        Boolean result = firewallService.delQos("55.56.57.0","22","55.56.57.10","44");
     }
     @Test
     public void delQosCase2() throws Exception {
         Firewall firewall = new Firewall();
-        QosService qs = Mockito.mock(QosService.class);
-        PowerMockito.whenNew(QosService.class).withAnyArguments().thenReturn(qs);
-        Map<String,String> map = new HashMap<>();
-        map.put("success","true");
-        Mockito.doReturn(map).when(qs).delQosPipe(Mockito.anyString());
         PowerMockito.when(CommonUtil.class,"getFireWallById",anyString()).thenReturn(firewall);
-        FirewallService spy = PowerMockito.spy(firewallService);
-        PowerMockito.doReturn("22").when(spy,"getRootPipeName",Mockito.anyString());
-        spy.delQos("11","22","33","44");
+        Boolean result = firewallService.delQos("054576b5-a3eb-426e-acf7-6e713f7a88f0","22","55.56.57.10","44");
     }
     @Test
     public void delQosCase3() throws Exception {
-        PowerMockito.when(CommonUtil.class,"getFireWallById",anyString()).thenReturn(null);
-        FirewallService spy = PowerMockito.spy(firewallService);
-        PowerMockito.doReturn("8").when(spy,"getRootPipeName",Mockito.anyString());
-        spy.delQos("11","22","33","44");
+        Firewall firewall = new Firewall();
+        firewall.setIp("11");
+        firewall.setPort("22");
+        firewall.setUser("adm");
+        firewall.setPasswd("mmmm");
+        PowerMockito.when(CommonUtil.class,"getFireWallById",anyString()).thenReturn(firewall);
+        Boolean result = firewallService.delQos("054576b5-713f7a88f0","22","55.56.57.10","44");
     }
+
 
     @Test
     public void addNatAndQosCase1() throws Exception {
-        FirewallService spy = PowerMockito.spy(firewallService);
-        PowerMockito.doReturn("dnatRuleId").when(spy,"addDnat",Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
-        PowerMockito.doReturn("snatRuleId").when(spy,"addSnat",Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
+        Mockito.doReturn("112=1134=22").when(fireWallCommondService).execCustomCommand(Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
+        Mockito.doReturn("112").when(fireWallCommondService).execCustomCommand(Mockito.anyString(),Mockito.anyString(),Mockito.eq(null));
         Eip eip = new Eip();
-        eip.setSbwId("sbwid");
+        eip.setSbwId("054576b5-a3eb-426e-acf7-6e713f7a88f0");
         eip.setChargeMode("SharedBandwidth");
         eip.setFirewallId("firewallid");
         Sbw sbw = Sbw.builder().id("id").build();
         Optional<Sbw> optional = Optional.of(sbw);
         Mockito.doReturn(optional).when(sbwRepository).findById(Mockito.anyString());
-        Mockito.doReturn("pipid").when(spy).addFipToSbwQos(Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
-        spy.addNatAndQos(eip,"12","23",34,"45");
+        MethodReturn result = firewallService.addNatAndQos(eip,"12","23",34,"45");
     }
     @Test
     public void addNatAndQosCase2() throws Exception {
-        FirewallService spy = PowerMockito.spy(firewallService);
-        PowerMockito.doReturn("dnatRuleId").when(spy,"addDnat",Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
-        PowerMockito.doReturn("snatRuleId").when(spy,"addSnat",Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
+        Mockito.doReturn(null).when(fireWallCommondService).execCustomCommand(Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
+//        Mockito.doReturn("112").when(fireWallCommondService).execCustomCommand(Mockito.anyString(),Mockito.anyString(),Mockito.eq(null));
         Eip eip = new Eip();
-        eip.setSbwId("sbwid");
+        eip.setSbwId("054576b5-a3eb-426e-acf7-6e713f7a88f0");
         eip.setChargeMode("SharedBandwidth");
         eip.setFirewallId("firewallid");
         Sbw sbw = Sbw.builder().id("id").build();
         Optional<Sbw> optional = Optional.of(sbw);
-        Mockito.doReturn(optional).when(sbwRepository).findById(Mockito.anyString());
-        Mockito.doReturn(null).when(spy).addFipToSbwQos(Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
-        MethodReturn methodReturn= spy.addNatAndQos(eip,"12","23",34,"45");
-        Assert.assertEquals(methodReturn.getHttpCode(),500);
+//        Mockito.doReturn(optional).when(sbwRepository).findById(Mockito.anyString());
+        MethodReturn result = firewallService.addNatAndQos(eip,"12","23",34,"45");
     }
     @Test
     public void addNatAndQosCase3() throws Exception {
-        FirewallService spy = PowerMockito.spy(firewallService);
-        PowerMockito.doReturn("dnatRuleId").when(spy,"addDnat",Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
-        PowerMockito.doReturn(null).when(spy,"addSnat",Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
+        Mockito.doReturn("112=1134=22").when(fireWallCommondService).execCustomCommand(Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
+        Mockito.doReturn(null).when(fireWallCommondService).execCustomCommand(Mockito.anyString(),Mockito.anyString(),Mockito.eq(null));
         Eip eip = new Eip();
-        MethodReturn methodReturn= spy.addNatAndQos(eip,"12","23",34,"45");
-        Assert.assertEquals(methodReturn.getHttpCode(),500);
+        eip.setSbwId("054576b5-a3eb-426e-acf7-6e713f7a88f0");
+        eip.setChargeMode("SharedBandwidth");
+        eip.setFirewallId("firewallid");
+        Sbw sbw = Sbw.builder().id("054576b5-a3eb-426e-acf7-6e713f7a88f0").build();
+        Optional<Sbw> optional = Optional.of(sbw);
+        Mockito.doReturn(optional).when(sbwRepository).findById(Mockito.anyString());
+        MethodReturn result = firewallService.addNatAndQos(eip,"12","23",34,"45");
     }
-    @Test
-    public void addNatAndQosCase4() throws Exception {
-        FirewallService spy = PowerMockito.spy(firewallService);
-        PowerMockito.doReturn(null).when(spy,"addDnat",Mockito.anyString(),Mockito.anyString(),Mockito.anyString());
-        Eip eip = new Eip();
-        MethodReturn methodReturn= spy.addNatAndQos(eip,"12","23",34,"45");
-        Assert.assertEquals(methodReturn.getHttpCode(),500);
-    }
+
+
     @Test
     public void delNatAndQosCase1() throws Exception {
         Eip eipEntity = new Eip();
@@ -198,10 +172,7 @@ public class FirewallServiceTest {
         eipEntity.setFloatingIp("floatIp");
         eipEntity.setChargeMode("SharedBandwidth");
         eipEntity.setSbwId("sbwId");
-        FirewallService spy = PowerMockito.spy(firewallService);
-        PowerMockito.doReturn(true).when(spy,"delDnat",Mockito.anyString(),Mockito.anyString());
-        PowerMockito.doReturn(true).when(spy,"delSnat",Mockito.anyString(),Mockito.anyString());
-        spy.delNatAndQos(eipEntity);
+        MethodReturn result = firewallService.delNatAndQos(eipEntity);
     }
     @Test
     public void delNatAndQosCase2() throws Exception {
@@ -210,15 +181,12 @@ public class FirewallServiceTest {
         eipEntity.setFirewallId("firewallid");
         eipEntity.setSnatId("snatId");
         eipEntity.setFloatingIp("floatIp");
-        eipEntity.setChargeMode("Shared");
+        eipEntity.setChargeMode("year");
         eipEntity.setSbwId("sbwId");
-        eipEntity.setPipId("pipid");
-        eipEntity.setEipAddress("eipaddress");
-        FirewallService spy = PowerMockito.spy(firewallService);
-        Mockito.doReturn(false).when(spy).delQos(anyString(),anyString(),anyString(),anyString());
-        PowerMockito.doReturn(false).when(spy,"delDnat",Mockito.anyString(),Mockito.anyString());
-        PowerMockito.doReturn(false).when(spy,"delSnat",Mockito.anyString(),Mockito.anyString());
-        spy.delNatAndQos(eipEntity);
+        eipEntity.setPipId("054576b5-a3eb-426e-acf7-6e713f7a88f0");
+        Mockito.doReturn("123").when(fireWallCommondService).execCustomCommand(Mockito.anyString(),Mockito.anyString(),Mockito.eq(null));
+
+        MethodReturn result = firewallService.delNatAndQos(eipEntity);
     }
 
     @Test
@@ -232,16 +200,15 @@ public class FirewallServiceTest {
     }
     @Test
     public void removeFipFromSbwQosCase2() throws Exception {
+        Mockito.doReturn("123").when(fireWallCommondService).execCustomCommand(Mockito.anyString(),Mockito.anyString(),Mockito.eq(null));
         Firewall firewall = new Firewall();
         firewall.setIp("id");
         firewall.setPort("port");
         firewall.setUser("user");
         firewall.setPasswd("password");
         PowerMockito.when(CommonUtil.class,"getFireWallById",anyString()).thenReturn(firewall);
-        FirewallService spy = PowerMockito.spy(firewallService);
-        PowerMockito.doReturn(false).when(spy,"cmdDelIpInSbwPipe",anyString(),anyString(),anyString());
         Mockito.doReturn(true).when(qosService).removeIpFromPipe(Mockito.anyString(),Mockito.anyString());
-        Boolean result = spy.removeFipFromSbwQos("11","22","33");
+        Boolean result = firewallService.removeFipFromSbwQos("11","22","33");
     }
 
     @Test
@@ -271,12 +238,12 @@ public class FirewallServiceTest {
         Boolean result = firewallService.cmdDelQos("11","22","33");
     }
 
-    @Test
-    public void cmdUpdateQosBandWidth() throws Exception {
-        FirewallService spy = PowerMockito.spy(firewallService);
-        PowerMockito.doReturn("66").when(spy,"getRootPipeName",Mockito.anyString());
-        Boolean result = spy.cmdUpdateQosBandWidth("11","22","33","44");
-    }
+//    @Test
+//    public void cmdUpdateQosBandWidth() throws Exception {
+//        FirewallService spy = PowerMockito.spy(firewallService);
+//        PowerMockito.doReturn("66").when(spy,"getRootPipeName",Mockito.anyString());
+//        Boolean result = spy.cmdUpdateQosBandWidth("11","22","33","44");
+//    }
 
     @Test
     public void getRootPipeName() throws InvocationTargetException, IllegalAccessException {
