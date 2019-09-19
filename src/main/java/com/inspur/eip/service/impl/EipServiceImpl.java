@@ -238,6 +238,7 @@ public class EipServiceImpl implements IEipService {
                 data.put(HsConstants.TOTAL_COUNT, page.getTotalElements());
                 data.put(HsConstants.PAGE_NO, currentPage);
                 data.put(HsConstants.PAGE_SIZE, limit);
+                log.debug("date:",data.toString());
             } else {
 
                 List<Eip> eipList = eipDaoService.findByProjectId(projcectId);
