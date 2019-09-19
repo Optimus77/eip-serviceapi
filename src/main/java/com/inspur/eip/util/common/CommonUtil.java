@@ -196,9 +196,8 @@ public class CommonUtil {
             errorMsg = "value must be 1-500.";
         }
         if (null != param.getChargeMode()) {
-            if (!param.getChargeMode().equalsIgnoreCase(HsConstants.BANDWIDTH) && !param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)
-                    && !param.getChargeMode().equals(HsConstants.CHARGE_MODE_TRAFFIC)) {
-                errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth,Traffic is allowed. ";
+            if (!param.getChargeMode().equalsIgnoreCase(HsConstants.BANDWIDTH) && !param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
+                errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
             }
             if (param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH) && (null == param.getSbwId())) {
                 errorMsg = errorMsg + "SharedBandwidth id is needed in SharedBandwidth charge mode and sbwId not null ";
@@ -206,8 +205,10 @@ public class CommonUtil {
         }
 
         if (null != param.getBillType()) {
-            if (!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                errorMsg = errorMsg + "Only monthly,hourlySettlement is allowed. ";
+            if (!param.getBillType().equals(HsConstants.MONTHLY)
+                    && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)
+                    && !HsConstants.HOURLYNETFLOW.equals(param.getBillType())) {
+                errorMsg = errorMsg + "Only monthly,hourlySettlement,hourlyNetFlow is allowed. ";
             }
         }
         if (param.getRegion().isEmpty()) {

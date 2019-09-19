@@ -6,6 +6,7 @@ import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.FlowService;
 import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HillStoneConfigConsts;
+import com.inspur.eip.util.constant.HsConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -38,7 +39,7 @@ public class FlowAccountScheduledTask {
     @Scheduled(cron = "0 0 0/1 * * *")
     public void oneHourReportFlowAccount(){
         try {
-            List<Eip> trafficEips = eipDaoService.findFlowAccountEipList("Traffic");
+            List<Eip> trafficEips = eipDaoService.findFlowAccountEipList(HsConstants.HOURLYNETFLOW);
             log.debug("Traffic eip List:{}",trafficEips);
             if (trafficEips!=null && trafficEips.size()>0){
                 for (Eip eip : trafficEips) {

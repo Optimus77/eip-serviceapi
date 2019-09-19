@@ -16,6 +16,7 @@ public class HsConstants {
 	public static final String CREATESUCCESS = "createSuccess";
 	public static final String HOURLYSETTLEMENT = "hourlySettlement";
 	public static final String MONTHLY = "monthly";
+	public static final String HOURLYNETFLOW = "hourlyNetFlow";
 	public static final String PROVIDER = "provider";
 	public static final String BANDWIDTH = "bandwidth";
 	public static final String TRANSFER = "transfer";
@@ -27,7 +28,6 @@ public class HsConstants {
 	public static final String RESUMESERVER = "resumeServer";
 	public static final String CHARGE_MODE_BANDWIDTH = "Bandwidth";
 	public static final String CHARGE_MODE_SHAREDBANDWIDTH = "SharedBandwidth";
-	public static final String CHARGE_MODE_TRAFFIC = "Traffic";
 	public static final String GROUP_ID = "groupId";
 	public static final String BIND = "bind";
 	public static final String UNBIND = "unbind";
