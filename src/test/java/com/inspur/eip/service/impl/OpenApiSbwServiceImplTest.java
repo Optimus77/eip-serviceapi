@@ -35,7 +35,7 @@ import java.util.*;
 import static org.mockito.ArgumentMatchers.eq;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({HttpsClientUtil.class, CommonUtil.class, HttpClientUtil.class, OpenApiSbwServiceImpl.class})
+@PrepareForTest({HttpsClientUtil.class, CommonUtil.class, HttpClientUtil.class})
 public class OpenApiSbwServiceImplTest {
 
     @InjectMocks
@@ -67,7 +67,7 @@ public class OpenApiSbwServiceImplTest {
         openCreateEip.setBandwidth("5");
         openCreateEip.setBillType(EipConstant.BILLTYPE_HOURLYSETTLEMENT);
         openCreateEip.setSbwName("openapitest-2");
-        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"SBW\"}]}}", HttpStatus.OK);
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"SBW\",\"productTypeList\":[{\"code\":\"SBW\",\"itemList\":[{\"code\":\"bandwidth\"},{\"code\":\"sbwName\"}]}]}]}}", HttpStatus.OK);
         PowerMockito.when(HttpClientUtil.doGet(Mockito.anyString(), Mockito.anyMap(), Mockito.anyMap())).thenReturn(responseEntity);
         PowerMockito.when(HttpClientUtil.doGet(eq(null), Mockito.anyMap(), Mockito.anyMap())).thenReturn(responseEntity);
         PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(), Mockito.anyString(), Mockito.anyMap())).thenReturn(responseEntity);
@@ -79,7 +79,7 @@ public class OpenApiSbwServiceImplTest {
     public void openapiDeleteSbw() throws IOException, URISyntaxException {
         OpenCreateEip openCreateEip = new OpenCreateEip();
         openCreateEip.setSbwId("sbwId");
-        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"SBW\"}]}}", HttpStatus.OK);
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"SBW\",\"productTypeList\":[{\"code\":\"SBW\",\"itemList\":[{\"code\":\"bandwidth\"},{\"code\":\"sbwName\"}]}]}]}}", HttpStatus.OK);
         PowerMockito.when(HttpClientUtil.doGet(eq(null), Mockito.anyMap(), Mockito.anyMap())).thenReturn(responseEntity);
         PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(), Mockito.anyString(), Mockito.anyMap())).thenReturn(responseEntity);
         ResponseEntity result = openApiSbwService.OpenapiDeleteSbw(openCreateEip,"token");
@@ -88,17 +88,23 @@ public class OpenApiSbwServiceImplTest {
 
     @Test
     public void openapiEipAddSbw() throws Exception {
-
         OpenCreateEip openCreateEip = new OpenCreateEip();
         openCreateEip.setSbwId("sbwId");
         openCreateEip.setEipId("eipId");
-        OpenApiSbwServiceImpl spy = PowerMockito.spy(openApiSbwService);
-        PowerMockito.doReturn("12").when(spy,"getSbwBandwidth",Mockito.any());
-        PowerMockito.doReturn("test").when(spy,"getSbwName",Mockito.any());
-        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"SBW\"}]}}", HttpStatus.OK);
+        Sbw sbw = Sbw.builder()
+                .id("sbwId")
+                .bandWidth(12)
+                .sbwName("test")
+                .build();
+        Optional<Sbw> optional = Optional.of(sbw);
+        Mockito.doReturn(optional).when(sbwRepository).findById(Mockito.anyString());
+        //OpenApiSbwServiceImpl spy = PowerMockito.spy(openApiSbwService);
+        //PowerMockito.doReturn("12").when(spy,"getSbwBandwidth",Mockito.any());
+        //PowerMockito.doReturn("test").when(spy,"getSbwName",Mockito.any());
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\",\"productTypeList\":[{\"code\":\"EIP\",\"itemList\":[{\"code\":\"bandwidth\"},{\"code\":\"transfer\"},{\"code\":\"IP\"},{\"code\":\"provider\"},{\"code\":\"is_SBW\"},{\"code\":\"sbwId\"}]}]}]}}", HttpStatus.OK);
         PowerMockito.when(HttpClientUtil.doGet(eq(null), Mockito.anyMap(), Mockito.anyMap())).thenReturn(responseEntity);
         PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(), Mockito.anyString(), Mockito.anyMap())).thenReturn(responseEntity);
-        ResponseEntity result = spy.OpenapiEipAddSbw(openCreateEip,"token");
+        ResponseEntity result = openApiSbwService.OpenapiEipAddSbw(openCreateEip,"token");
         Assert.assertEquals(200,result.getStatusCode().value());
     }
 
@@ -107,13 +113,20 @@ public class OpenApiSbwServiceImplTest {
         OpenCreateEip openCreateEip = new OpenCreateEip();
         openCreateEip.setSbwId("sbwId");
         openCreateEip.setEipId("eipId");
-        OpenApiSbwServiceImpl spy = PowerMockito.spy(openApiSbwService);
-        PowerMockito.doReturn("12").when(spy,"getSbwBandwidth",Mockito.any());
-        PowerMockito.doReturn("test").when(spy,"getSbwName",Mockito.any());
-        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"SBW\"}]}}", HttpStatus.OK);
+        Sbw sbw = Sbw.builder()
+                .id("sbwId")
+                .bandWidth(12)
+                .sbwName("test")
+                .build();
+        Optional<Sbw> optional = Optional.of(sbw);
+        Mockito.doReturn(optional).when(sbwRepository).findById(Mockito.anyString());
+        //OpenApiSbwServiceImpl spy = PowerMockito.spy(openApiSbwService);
+        //PowerMockito.doReturn("12").when(spy,"getSbwBandwidth",Mockito.any());
+        //PowerMockito.doReturn("test").when(spy,"getSbwName",Mockito.any());
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\",\"productTypeList\":[{\"code\":\"EIP\",\"itemList\":[{\"code\":\"bandwidth\"},{\"code\":\"transfer\"},{\"code\":\"IP\"},{\"code\":\"provider\"},{\"code\":\"is_SBW\"},{\"code\":\"sbwName\"},{\"code\":\"sbwId\"}]}]}]}}", HttpStatus.OK);
         PowerMockito.when(HttpClientUtil.doGet(eq(null), Mockito.anyMap(), Mockito.anyMap())).thenReturn(responseEntity);
         PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(), Mockito.anyString(), Mockito.anyMap())).thenReturn(responseEntity);
-        ResponseEntity result = spy.OpenapiEipRemoveSbw(openCreateEip,"token");
+        ResponseEntity result = openApiSbwService.OpenapiEipRemoveSbw(openCreateEip,"token");
         Assert.assertEquals(200,result.getStatusCode().value());
     }
 
@@ -123,7 +136,7 @@ public class OpenApiSbwServiceImplTest {
         openCreateEip.setSbwId("sbwId");
         openCreateEip.setBillType(EipConstant.BILLTYPE_MONTHLY);
         openCreateEip.setDuration("1");
-        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"SBW\"}]}}", HttpStatus.OK);
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"SBW\",\"productTypeList\":[{\"code\":\"SBW\",\"itemList\":[{\"code\":\"bandwidth\"}]}]}]}}", HttpStatus.OK);
         PowerMockito.when(HttpClientUtil.doGet(eq(null), Mockito.anyMap(), Mockito.anyMap())).thenReturn(responseEntity);
         PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(), Mockito.anyString(), Mockito.anyMap())).thenReturn(responseEntity);
         ResponseEntity result = openApiSbwService.OpenapiRenewSbw(openCreateEip,"token");
@@ -142,14 +155,14 @@ public class OpenApiSbwServiceImplTest {
                 .build();
         Optional<Sbw> optional = Optional.of(sbw);
         Mockito.doReturn(optional).when(sbwRepository).findById(Mockito.anyString());
-        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"SBW\"}]}}", HttpStatus.OK);
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"SBW\",\"productTypeList\":[{\"code\":\"SBW\",\"itemList\":[{\"code\":\"bandwidth\"}]}]}]}}", HttpStatus.OK);
         PowerMockito.when(HttpClientUtil.doGet(eq(null), Mockito.anyMap(), Mockito.anyMap())).thenReturn(responseEntity);
         PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(), Mockito.anyString(), Mockito.anyMap())).thenReturn(responseEntity);
         ResponseEntity result = openApiSbwService.OpenapiSbwUpdateBandwidth(openCreateEip,"token");
         Assert.assertEquals(200,result.getStatusCode().value());
     }
 
-    @Test
+    /*@Test
     public void getSbwBandwidth() throws InvocationTargetException, IllegalAccessException {
         OpenCreateEip openCreateEip = new OpenCreateEip();
         openCreateEip.setSbwId ("sbwId");
@@ -361,7 +374,7 @@ public class OpenApiSbwServiceImplTest {
         JSONArray jsonArray = new JSONArray(list2);
         Method method = PowerMockito.method(OpenApiSbwServiceImpl.class,"buildEipRemoveSbwItemList",List.class,JSONArray.class,int.class,String.class,String.class,String.class);
         method.invoke(openApiSbwService,list,jsonArray,0,"bandwidth","sbwName","sbwId");
-    }
+    }*/
 
 
 }
