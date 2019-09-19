@@ -249,8 +249,8 @@ public class EipControllerAtomTest  {
     @Test
     public void atomDeleteEip()  {
         ResponseEntity result = new ResponseEntity(HttpStatus.BAD_REQUEST);
-        Mockito.when(eipService.atomDeleteEip(Mockito.anyString())).thenReturn(result);
-        ResponseEntity responseEntity = eipControllerAtom.atomDeleteEip("abc");
+        Mockito.when(eipService.atomDeleteEip(Mockito.anyString(),Mockito.anyString())).thenReturn(result);
+        ResponseEntity responseEntity = eipControllerAtom.atomDeleteEip("abc","def");
         Assert.assertEquals(responseEntity.getStatusCode().value() , 400);
 
     }
