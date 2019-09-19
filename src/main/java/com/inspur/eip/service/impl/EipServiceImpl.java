@@ -207,7 +207,7 @@ public class EipServiceImpl implements IEipService {
         String msg = null;
         String code = null;
         for(Eip eip:eipEntitys) {
-            ActionResponse actionResponse = eipDaoService.deleteEip(eip.getId(), CommonUtil.getKeycloackToken());
+            ActionResponse actionResponse = eipDaoService.deleteEip(eip.getId(),"ecs", CommonUtil.getKeycloackToken());
             if (actionResponse.isSuccess()) {
                 log.info("Atom delete eip successfully, id:{}", eip.getId());
             } else {

@@ -132,7 +132,7 @@ public class EipDaoService {
 
 
     @Transactional
-    public ActionResponse deleteEip(String eipid, String token) {
+    public ActionResponse deleteEip(String eipid, String userModel, String token) {
         String msg;
         Optional<Eip> optional = eipRepository.findById(eipid);
         if (optional.isPresent()) {
