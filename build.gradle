@@ -33,6 +33,27 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'cloud'
 apply plugin: 'jacoco'
 
+jacoco {
+    toolVersion = '0.8.1'
+    reportsDir = file("$buildDir/customJacocoReportDir")
+}
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.enabled true
+        xml.destination file("${buildDir}/reports/jacoco/jacocoReport/jacocoXml.xml")
+        csv.destination file("${buildDir}/reports/jacoco/jacocoReport/jacocoCsv.csv")
+        html.destination file("${buildDir}/reports/jacoco/jacocoReport/jacocoHtml")
+    }
+}
+test {
+    jacoco{
+        destinationFile = file("$buildDir/jacoco/test.exec")
+    }
+}
+
+
 group = 'com.inspur'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
@@ -97,24 +118,7 @@ dependencies {
 }
 
 
-jacoco {
-    toolVersion = '0.8.1'
-    reportsDir = file("$buildDir/customJacocoReportDir")
-}
-jacocoTestReport {
-    reports {
-        xml.enabled false
-        csv.enabled false
-        html.enabled true
-        xml.destination file("${buildDir}/reports/jacoco/jacocoReport/jacocoXml.xml")
-        csv.destination file("${buildDir}/reports/jacoco/jacocoReport/jacocoCsv.csv")
-        html.destination file("${buildDir}/reports/jacoco/jacocoReport/jacocoHtml")
-    }
-}
-test {
-    jacoco{
-        destinationFile = file("$buildDir/jacoco/test.exec")
-    }
-}
+
+
 
 

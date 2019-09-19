@@ -90,10 +90,6 @@ public class RabbitMqServiceImpl {
         ActionResponse ret = null;
         log.info("Recive create mq:{}", JSONObject.toJSONString(eipOrder));
         try {
-            if (!(eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) ){
-                log.warn("Order must by payed successfully.");
-                return null;
-            }
             List<OrderProduct> orderProducts = eipOrder.getProductList();
             String groupId = null;
             if(eipOrder.getConsoleCustomization().containsKey("groupId")){
@@ -131,7 +127,7 @@ public class RabbitMqServiceImpl {
         } catch (Exception e) {
             log.error(ConstantClassField.EXCEPTION_EIP_CREATE, e);
             if (null != eipId) {
-                eipDaoService.deleteEip(eipId, eipOrder.getToken());
+                eipDaoService.deleteEip(eipId, "ecs",eipOrder.getToken());
                 ret = ActionResponse.actionFailed("create eip success", HttpStatus.SC_EXPECTATION_FAILED);
 //                eipId = null;
             }
@@ -156,43 +152,35 @@ public class RabbitMqServiceImpl {
         ActionResponse response = null;
         String deleteResult = HsConstants.FAIL;
 
-
         log.info("Recive delete eip order:{}", JSONObject.toJSONString(eipOrder));
-        if (eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
-            List<OrderProduct> orderProducts = eipOrder.getProductList();
-            for (OrderProduct orderProduct : orderProducts) {
-                if(!orderProduct.getProductLineCode().equalsIgnoreCase(HsConstants.EIP)){
-                    continue;
-                }
-                eipId = orderProduct.getInstanceId();
-                if(CommonUtil.isSuperAccount(eipOrder.getToken())){
-                    response = eipDaoService.adminDeleteEip(eipId);
-                }else {
-                    //软删除实例，用户主动发起，必须带token
-                    response = eipDaoService.deleteEip(eipId, eipOrder.getToken());
-                }
-                if (response.isSuccess()) {
-                    if (null != eipOrder.getConsoleCustomization() && eipOrder.getConsoleCustomization().containsKey("operateType") &&
-                            eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")) {
-                        webService.returnsIpv6Websocket("Success", "deleteNatWithEip", eipOrder.getToken());
-                    }
-//                    else {
-                       // webService.returnsWebsocket(eipId, eipOrder, "delete");
-//                    }
-                    deleteResult = HsConstants.UNSUBSCRIBE;
-                } else {
-                    log.warn(ConstantClassField.DELETE_EIP_CONFIG_FAILED, response.getFault() + ReturnStatus.SC_INTERNAL_SERVER_ERROR);
-                }
-                updateOrderResult(orderProduct, eipId, null,eipOrder.getStatusTime(), null,deleteResult);
+        List<OrderProduct> orderProducts = eipOrder.getProductList();
+        for (OrderProduct orderProduct : orderProducts) {
+            if(!orderProduct.getProductLineCode().equalsIgnoreCase(HsConstants.EIP)){
+                continue;
             }
-//                sendOrderMessageToBss(eipOrder, deleteResult);
-            return response;
-        } else {
-            log.error(ConstantClassField.ORDER_STATUS_NOT_CORRECT + eipOrder.getOrderStatus());
+            eipId = orderProduct.getInstanceId();
+            if(CommonUtil.isSuperAccount(eipOrder.getToken())){
+                response = eipDaoService.adminDeleteEip(eipId);
+            }else {
+                //软删除实例，用户主动发起，必须带token
+                response = eipDaoService.deleteEip(eipId, null,eipOrder.getToken());
+            }
+            if (response.isSuccess()) {
+                if (null != eipOrder.getConsoleCustomization() && eipOrder.getConsoleCustomization().containsKey("operateType") &&
+                        eipOrder.getConsoleCustomization().getString("operateType").equalsIgnoreCase("deleteNatWithEip")) {
+                    webService.returnsIpv6Websocket("Success", "deleteNatWithEip", eipOrder.getToken());
+                }
+//                    else {
+                   // webService.returnsWebsocket(eipId, eipOrder, "delete");
+//                    }
+                deleteResult = HsConstants.UNSUBSCRIBE;
+            } else {
+                log.warn(ConstantClassField.DELETE_EIP_CONFIG_FAILED, response.getFault() + ReturnStatus.SC_INTERNAL_SERVER_ERROR);
+            }
+            updateOrderResult(orderProduct, eipId, null,eipOrder.getStatusTime(), null,deleteResult);
         }
-
-        log.warn(ConstantClassField.UPDATE_EIP_CONFIG_FAILED, response);
-//        sendOrderMessageToBss(eipOrder, HsConstants.FAIL);
+//                sendOrderMessageToBss(eipOrder, deleteResult);
+//        log.warn(ConstantClassField.UPDATE_EIP_CONFIG_FAILED, response);
         return response;
     }
 
@@ -206,55 +194,48 @@ public class RabbitMqServiceImpl {
         String eipId = null;
         ActionResponse response = null;
         String result = HsConstants.FAIL;
-        int failedCount=0;
 
         log.info("Recive update Eip order:{}", JSONObject.toJSONString(eipOrder));
 
-        if ((eipOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS))) {
-            List<OrderProduct> orderProducts = eipOrder.getProductList();
-            for (OrderProduct orderProduct : orderProducts) {
-                if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
-                    continue;
-                }
-                eipId = orderProduct.getInstanceId();
-                EipUpdateParam eipUpdate = getUpdateParmByOrder(orderProduct, eipOrder.getBillType(), eipOrder.getDuration());
-                //更配操作
-                if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
-                    if (eipUpdate.getSbwId() != null) {
-                        if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
-                            response = sbwDaoService.addEipIntoSbw(eipId, eipUpdate, eipOrder.getToken());
-                            log.info("add eip to sbw:{}", response);
-                        } else if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_BANDWIDTH)) {
-                            response = sbwDaoService.removeEipFromSbw(eipId, eipUpdate, eipOrder.getToken());
-                            log.info("remove eip from sbw:{}", response);
-                        }
-                    } else if (eipUpdate.getBillType().equals(HsConstants.MONTHLY) ||
-                            eipUpdate.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                        response = eipDaoService.updateEipEntity(eipId, eipUpdate, eipOrder.getToken());
-                    } else {
-                        log.error(ConstantClassField.BILL_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
+        List<OrderProduct> orderProducts = eipOrder.getProductList();
+        for (OrderProduct orderProduct : orderProducts) {
+            response = null;
+            if (!orderProduct.getProductLineCode().equals(HsConstants.EIP)) {
+                continue;
+            }
+            eipId = orderProduct.getInstanceId();
+            EipUpdateParam eipUpdate = getUpdateParmByOrder(orderProduct, eipOrder.getBillType(), eipOrder.getDuration());
+            //更配操作
+            if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
+                if (eipUpdate.getSbwId() != null) {
+                    if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
+                        response = sbwDaoService.addEipIntoSbw(eipId, eipUpdate, eipOrder.getToken());
+                        log.info("add eip to sbw:{}", response);
+                    } else if (eipUpdate.getChargemode().equalsIgnoreCase(HsConstants.CHARGE_MODE_BANDWIDTH)) {
+                        response = sbwDaoService.removeEipFromSbw(eipId, eipUpdate, eipOrder.getToken());
+                        log.info("remove eip from sbw:{}", response);
                     }
-                    //用户主动发起的包年包月实例续费操作
-                } else if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
-                    response = eipDaoService.reNewEipEntity(eipId, eipOrder.getDuration(), eipOrder.getToken());
-                    //不支持的订单类型
+                } else if (eipUpdate.getBillType().equals(HsConstants.MONTHLY) ||
+                        eipUpdate.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                    response = eipDaoService.updateEipEntity(eipId, eipUpdate, eipOrder.getToken());
                 } else {
-                    log.error(ConstantClassField.ORDER_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
+                    log.error(ConstantClassField.BILL_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
                 }
-                if (response == null || !response.isSuccess()) {
-                    failedCount += 1;
-                }else {
-                    result = HsConstants.SUCCESS;
-                }
-                updateOrderResult(orderProduct,eipId,null,eipOrder.getStatusTime(), null, result);
+                //用户主动发起的包年包月实例续费操作
+            } else if (eipOrder.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && eipOrder.getBillType().equals(HsConstants.MONTHLY)) {
+                response = eipDaoService.reNewEipEntity(eipId, eipOrder.getDuration(), eipOrder.getToken());
+                //不支持的订单类型
+            } else {
+                log.error(ConstantClassField.ORDER_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
             }
-            if (failedCount == 0) {
-                return response;
+            if (response == null || !response.isSuccess()) {
+                log.warn(ConstantClassField.UPDATE_EIP_CONFIG_FAILED, response);
+            }else {
+                result = HsConstants.SUCCESS;
             }
-        } else {
-            log.error(ConstantClassField.ORDER_STATUS_NOT_CORRECT + eipOrder.getOrderStatus());
+            updateOrderResult(orderProduct,eipId,null,eipOrder.getStatusTime(), null, result);
         }
-        log.warn(ConstantClassField.UPDATE_EIP_CONFIG_FAILED, response);
+
         return response;
     }
 
@@ -331,39 +312,34 @@ public class RabbitMqServiceImpl {
         ResponseEntity<SbwReturnBase> response = null;
         SbwReturnBase sbwReturn;
         String sbwId = null;
-        ActionResponse ret = null;
+        ActionResponse ret = ActionResponse.actionFailed("create sbw failed ", HttpStatus.SC_INTERNAL_SERVER_ERROR);
         String result = HsConstants.STATUS_ERROR;
         try {
             log.info("Recive create sbw order:{}", JSONObject.toJSONString(reciveOrder));
-            //订单状态，必须支付成功
-            if (reciveOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
-                for (OrderProduct orderProduct : reciveOrder.getProductList()) {
-                    if (!orderProduct.getProductLineCode().equalsIgnoreCase(HsConstants.SBW)) {
-                        continue;
-                    }
-                    SbwUpdateParam sbwConfig = getSbwConfigByOrder(orderProduct, reciveOrder.getBillType(), reciveOrder.getDuration(), reciveOrder.getConsoleCustomization());
-                    ReturnMsg checkRet = preSbwCheckParam(sbwConfig);
-                    if (checkRet.getCode().equals(ReturnStatus.SC_OK)) {
-                        response = sbwService.atomCreateSbw(sbwConfig, reciveOrder.getToken());
-                        if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
-                            log.warn("create sbw failed, return code:{}", response.getStatusCodeValue());
-                            ret = ActionResponse.actionFailed("create sbw failed ", HttpStatus.SC_INTERNAL_SERVER_ERROR);
-                        } else {
-                            sbwReturn = response.getBody();
-                            if (null != sbwReturn) {
-                                sbwId = sbwReturn.getId();
-                            }
-                            result = HsConstants.STATUS_ACTIVE;
-                            ret = ActionResponse.actionSuccess();
-                            //webService.returnSbwWebsocket(sbwId, reciveOrder, "create");
-                        }
-                    } else {
-                        log.warn(checkRet.getMessage());
-                    }
-                    updateOrderResult(orderProduct, sbwId, null, orderProduct.getStatusTime(), null, result);
+
+            for (OrderProduct orderProduct : reciveOrder.getProductList()) {
+                if (!orderProduct.getProductLineCode().equalsIgnoreCase(HsConstants.SBW)) {
+                    continue;
                 }
-            } else {
-                log.warn(ConstantClassField.ORDER_STATUS_NOT_CORRECT);
+                SbwUpdateParam sbwConfig = getSbwConfigByOrder(orderProduct, reciveOrder.getBillType(), reciveOrder.getDuration(), reciveOrder.getConsoleCustomization());
+                ReturnMsg checkRet = preSbwCheckParam(sbwConfig);
+                if (checkRet.getCode().equals(ReturnStatus.SC_OK)) {
+                    response = sbwService.atomCreateSbw(sbwConfig, reciveOrder.getToken());
+                    if (response.getStatusCodeValue() != HttpStatus.SC_OK) {
+                        log.warn("create sbw failed, return code:{}", response.getStatusCodeValue());
+                    } else {
+                        sbwReturn = response.getBody();
+                        if (null != sbwReturn) {
+                            sbwId = sbwReturn.getId();
+                        }
+                        result = HsConstants.STATUS_ACTIVE;
+                        ret = ActionResponse.actionSuccess();
+                        //webService.returnSbwWebsocket(sbwId, reciveOrder, "create");
+                    }
+                } else {
+                    log.warn(checkRet.getMessage());
+                }
+                updateOrderResult(orderProduct, sbwId, null, orderProduct.getStatusTime(), null, result);
             }
         } catch (Exception e) {
             if (sbwId != null) {
@@ -371,13 +347,7 @@ public class RabbitMqServiceImpl {
             }
             ret = ActionResponse.actionFailed("create sbw failed ", HttpStatus.SC_EXPECTATION_FAILED);
             log.error(ConstantClassField.EXCEPTION_SBW_CREATE, e);
-        }// finally {
-//            if (null == sbwId) {
-//                sendOrderMessageToBss(reciveOrder,  HsConstants.STATUS_ERROR);
-//            } else {
-//                sendOrderMessageToBss(reciveOrder,HsConstants.STATUS_ACTIVE);
-//            }
-//        }
+        }
         return ret;
     }
 
@@ -393,25 +363,23 @@ public class RabbitMqServiceImpl {
         String result = HsConstants.STATUS_ERROR;
 
         log.info("Recive delete sbw order:{}", JSONObject.toJSONString(reciveOrder));
-        if (reciveOrder.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
-            List<OrderProduct> productList = reciveOrder.getProductList();
-            for (OrderProduct product : productList) {
-                sbwId = product.getInstanceId();
-                //业务侧执行软删操作，即按需退订，用户主动发起，带token
-                response = sbwService.deleteSbwInfo(sbwId, reciveOrder.getToken());
-                if (response.isSuccess() || HsConstants.STATUS_CODE_404==response.getCode()) {
-                    result = HsConstants.STATUS_DELETE;
+
+        List<OrderProduct> productList = reciveOrder.getProductList();
+        for (OrderProduct product : productList) {
+            sbwId = product.getInstanceId();
+            //业务侧执行软删操作，即按需退订，用户主动发起，带token
+            response = sbwService.deleteSbwInfo(sbwId, reciveOrder.getToken());
+            if (response.isSuccess() || HsConstants.STATUS_CODE_404==response.getCode()) {
+                result = HsConstants.STATUS_DELETE;
 //                        webService.returnSbwWebsocket(sbwId, reciveOrder, "delete");
 //                        sendOrderMessageToBss(reciveOrder, result);
 //                        return response;
-                } else {
-                    log.warn("delete sbw failed, return code:{}" + response.getFault());
-                }
-                updateOrderResult(product, sbwId, null, reciveOrder.getStatusTime(),null, result);
+            } else {
+                log.warn("delete sbw failed, return code:{}" + response.getFault());
             }
-        } else {
-            log.warn(ConstantClassField.ORDER_STATUS_NOT_CORRECT);
+            updateOrderResult(product, sbwId, null, reciveOrder.getStatusTime(),null, result);
         }
+
 
 //        webService.returnSbwWebsocket(sbwId, reciveOrder, "delete");
 //        sendOrderMessageToBss(reciveOrder,  result);
@@ -431,37 +399,37 @@ public class RabbitMqServiceImpl {
         ActionResponse response = ActionResponse.actionFailed(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage(), HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
         log.info("Update sbw config:{}", JSONObject.toJSONString(recive));
-        if (recive.getOrderStatus().equals(HsConstants.PAYSUCCESS)) {
-            List<OrderProduct> productList = recive.getProductList();
-            for (OrderProduct product : productList) {
-                sbwId = product.getInstanceId();
-                SbwUpdateParam sbwUpdate = getSbwConfigByOrder(product, recive.getBillType(), recive.getDuration(), recive.getConsoleCustomization());
-                //sbw 实例更配操作，目前只支持更配带宽
-                if (recive.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
-                    response = sbwService.updateSbwConfig(sbwId, sbwUpdate, recive.getToken());
-                    //续费操作，用户主动发起，即包年包月实例，用户可以主动发起续费请求，带token
-                } else if (recive.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && recive.getBillType().equals(HsConstants.MONTHLY)) {
-                    response = sbwService.restartSbwService(sbwId, sbwUpdate, recive.getToken());
-                    //不支持的订单类型
-                } else {
-                    log.warn(ConstantClassField.ORDER_STATUS_NOT_CORRECT, recive.getOrderType());
-                }
-                if (response.isSuccess()) {
-                    retStr = HsConstants.STATUS_ACTIVE;
+
+        List<OrderProduct> productList = recive.getProductList();
+        for (OrderProduct product : productList) {
+            sbwId = product.getInstanceId();
+            SbwUpdateParam sbwUpdate = getSbwConfigByOrder(product, recive.getBillType(), recive.getDuration(), recive.getConsoleCustomization());
+            //sbw 实例更配操作，目前只支持更配带宽
+            if (recive.getOrderType().equalsIgnoreCase(HsConstants.CHANGECONFIGURE_ORDERTYPE)) {
+                response = sbwService.updateSbwConfig(sbwId, sbwUpdate, recive.getToken());
+                //续费操作，用户主动发起，即包年包月实例，用户可以主动发起续费请求，带token
+            } else if (recive.getOrderType().equalsIgnoreCase(HsConstants.RENEW_ORDERTYPE) && recive.getBillType().equals(HsConstants.MONTHLY)) {
+                response = sbwService.restartSbwService(sbwId, sbwUpdate, recive.getToken());
+                //不支持的订单类型
+            } else {
+                log.warn(ConstantClassField.ORDER_STATUS_NOT_CORRECT, recive.getOrderType());
+            }
+            if (response.isSuccess()) {
+                retStr = HsConstants.STATUS_ACTIVE;
 //                        webService.returnSbwWebsocket(sbwId, recive, "update");
 //                        sendOrderMessageToBss(recive, retStr, sbwId);
-                    log.info(ConstantClassField.UPDATE_SBW_CONFIG_SUCCESS, response);
+                log.info(ConstantClassField.UPDATE_SBW_CONFIG_SUCCESS, response);
 //                        return response;
-                } else {
-                    log.warn(ConstantClassField.OPERATION_RESULT_NOT_OK, response);
-                }
-                updateOrderResult(product,sbwId, null, recive.getStatusTime(), null, retStr);
+            } else {
+                log.warn(ConstantClassField.OPERATION_RESULT_NOT_OK, response);
             }
+            updateOrderResult(product,sbwId, null, recive.getStatusTime(), null, retStr);
         }
+
 
 //        webService.returnSbwWebsocket(sbwId, recive, "update");
 //        sendOrderMessageToBss(recive, retStr);
-        log.warn(ConstantClassField.SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT, response);
+//        log.warn(ConstantClassField.SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT, response);
         return response;
     }
 
@@ -512,9 +480,7 @@ public class RabbitMqServiceImpl {
         }
         sendChangeMessageToBss(softDown);
         log.info(ConstantClassField.SOFTDOWN_OR_DELETE_SBW_CONFIG_RESULT, response);
-//        } catch (Exception e) {
-//            log.error(ConstantClassField.EXCEPTION_SBW_SOFTDOWN_OR_DELETE, e);
-//        }
+
         return response;
     }
 
