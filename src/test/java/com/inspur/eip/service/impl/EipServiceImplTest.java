@@ -424,7 +424,7 @@ public class EipServiceImplTest {
     public void atomCreateEip() {
         EipAllocateParam eipConfig = new EipAllocateParam();
         eipConfig.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
-        eipConfig.setBandwidth(100);
+        eipConfig.setBandwidth(10);
         eipConfig.setBillType(HsConstants.HOURLYSETTLEMENT);
         eipConfig.setIpType("BGP");
         eipConfig.setIpv6("no");
@@ -436,7 +436,7 @@ public class EipServiceImplTest {
         //token of xinjing
         //String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJlNWZiMmEyZC03ZWViLTQ1YzEtOGUyMi0wZDdhYmQxN2MyODQiLCJleHAiOjE1NjEzNDI0NDAsIm5iZiI6MCwiaWF0IjoxNTYxMzM3MDQwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImM2ODQ2ZmNkLTcyMmEtNGMyMi04MTQ4LWY1YWE5ODdhZWU5OSIsImF1dGhfdGltZSI6MTU2MTMzNzAzOSwic2Vzc2lvbl9zdGF0ZSI6ImIyZDFmZDFjLTgyN2QtNDhiOS04ZWI5LWIwOWVjMGI4MWFjYSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsImludml0ZWRfcmVnaW9uIjoiW1wiY24tc291dGgtMVwiXSIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.KNuL_ucWbqN4S8QuoRQvQdKWaUy2wB38X8HmNESsGmVgbFmFoSf-wSftJPWK5QzGBu6WfBbj9_LqQDYv2h10bvsZFVupwvQTuQyo_16Cjhx7fQrFbUXxyFd7THME2QnbifhwwX7ka7ieNy8wh5h_Q_7fNZzup6uQ8dhEz3zfS6GR6H3gtsiofieUtMYccD_u3PdsnZ0AUecOxMyLG2fFLjYCjYdfICwU3AKne1IxLozIcrN9vSXd0qZl3ktnqqItPaaWpwvliAtwXN6ixpg8gJ-A2253zg2SQaGXDmMpOCTMycMhLMgOW6Tmok3zyHMlfjhqKDf4Pc14_JR_PhGWjA";
         String operater = "unitTest";
-        if (eipPoolRepository.getEipByRandom("BGP") == null) {
+        if (eipPoolRepository.getEipByRandom(eipConfig.getIpType()) == null) {
             ResponseEntity responseEntity = eipServiceImpl.atomCreateEip(eipConfig, token, operater);
             assertEquals(HttpStatus.FAILED_DEPENDENCY, responseEntity.getStatusCode());
         } else {
@@ -513,7 +513,7 @@ public class EipServiceImplTest {
     public void eipMonthlyDelete() throws Exception {
         Eip eip = creatEip(HsConstants.MONTHLY, null);
         //String eipId = "e72da25a-f1e6-4603-8432-d0de7edf3d87";
-        ResponseEntity responseEntity = eipServiceImpl.atomDeleteEip(eip.getId(),"");
+        ResponseEntity responseEntity = eipServiceImpl.atomDeleteEip(eip.getId(),null);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
 
