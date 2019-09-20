@@ -1,0 +1,19 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <changeSet author="zerah" id="2019092001">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="eip" columnName="net_flow"></columnExists>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="eip" schemaName="public" catalogName="icp_eip">
+            <column name="net_flow" type="bigint(20) " remarks="同一账期内流量统计数据" defaultValueNumeric="0"></column>
+        </addColumn>
+        <comment>eip表增加net_flow</comment>
+    </changeSet>
+</databaseChangeLog>

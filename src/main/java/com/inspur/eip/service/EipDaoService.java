@@ -13,6 +13,7 @@ import com.inspur.eip.repository.ExtNetRepository;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.common.DateUtils4Jdk8;
 import com.inspur.eip.util.common.MethodReturnUtil;
+import com.inspur.eip.util.constant.HillStoneConfigConsts;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
 import lombok.extern.slf4j.Slf4j;
@@ -184,6 +185,12 @@ public class EipDaoService {
             }
             //删除 监控集和地址簿，需保证关联的监控集已经删掉，否则无法删除地址簿
             if(HsConstants.HOURLYNETFLOW.equalsIgnoreCase(eipEntity.getBillType())){
+                //释放前向bss发送流量统计数据
+                int i = DateUtils4Jdk8.countMinuteFromPoint();
+                //如果释放时不是整点时刻，即向bss测推送绑定解绑期间统计的流量数据，如果是整点，则以定时任务为准
+                if (i !=0){
+                    flowService.reportNetFlowByDbBeforeRelease(eipEntity);
+                }
                 if( providerService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false)){
                     if(!providerService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false)){
                         log.error("The address book user delete failed eip:{}",eipEntity.getEipAddress());
@@ -192,6 +199,8 @@ public class EipDaoService {
                     log.error("The statistics book user delete failed eip:{}",eipEntity.getEipAddress());
                 }
             }
+            //释放后清零流量统计数据
+            eipEntity.setNetFlow(0L);
             eipEntity.setIsDelete(1);
             eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
             eipEntity.setEipV6Id(null);
@@ -260,6 +269,12 @@ public class EipDaoService {
             }
             //删除监控集和地址簿，需保证先后顺序，否则删除异常
             if(HsConstants.HOURLYNETFLOW.equalsIgnoreCase(eipEntity.getBillType())){
+                //释放前向bss发送流量统计数据
+                int i = DateUtils4Jdk8.countMinuteFromPoint();
+                //如果释放时不是整点时刻，即向bss测推送绑定解绑期间统计的流量数据，如果是整点，则以定时任务为准
+                if (i !=0){
+                    flowService.reportNetFlowByDbBeforeRelease(eipEntity);
+                }
                 if( providerService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false)){
                     if(!providerService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false)){
                         log.error("The address book admin delete failed eip:{}",eipEntity.getEipAddress());
@@ -268,6 +283,8 @@ public class EipDaoService {
                     log.error("The statistics book admin deleted failed eip:{}",eipEntity.getEipAddress());
                 }
             }
+            //释放后清零流量统计数据
+            eipEntity.setNetFlow(0L);
             eipEntity.setIsDelete(1);
             eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
             eipEntity.setEipV6Id(null);
@@ -434,7 +451,6 @@ public class EipDaoService {
     public ActionResponse disassociateInstanceWithEip(Eip eipEntity) {
 
         String msg = null;
-
         if (null == eipEntity) {
             log.error("disassociateInstanceWithEip In disassociate process,failed to find the eip ");
             return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
@@ -481,11 +497,15 @@ public class EipDaoService {
             }
             //从地址簿中删除匹配条件--floating ip
             if (HsConstants.HOURLYNETFLOW.equalsIgnoreCase(eipEntity.getBillType())){
-                //解绑前向bss发送流量统计数据
+
+                //释放保存防火墙历史流量数据
                 int i = DateUtils4Jdk8.countMinuteFromPoint();
-                //如果是整点，则以定时任务为准
+                //如果是整点，则以定时任务为准，不是准点则将流量保存在数据库
                 if (i !=0){
-                    flowService.releaseReportFlowAccount(i,eipEntity);
+                    Map<String, Long> map = flowService.staticsFlowByPeriod(i, eipEntity.getEipAddress(), "lasthour", eipEntity.getFirewallId());
+                    if (map != null && map.containsKey(HillStoneConfigConsts.UP_TYPE)){
+                        eipEntity.setNetFlow(eipEntity.getNetFlow() + map.get(HillStoneConfigConsts.UP_TYPE));
+                    }
                 }
                 //从地址簿中移出fip
                 boolean removeResult = providerService.cmdInsertOrRemoveParamInAddressBook(eipEntity.getEipAddress(),

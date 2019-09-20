@@ -95,18 +95,16 @@ public class FlowService {
     }
 
     /**
-     * 释放前统计流量数据
+     * 解绑时候向bss发送流量数据
      *
      * @param minute
      */
-    public void releaseReportFlowAccount(int minute, Eip eip) {
+    public void reportNetFlowByFirewallOclock(int minute, Eip eip) {
         try {
             Map<String, Long> map = this.staticsFlowByPeriod(minute, eip.getEipAddress(), "lasthour", eip.getFirewallId());
-            if (map.containsKey(HillStoneConfigConsts.UP_TYPE)) {
+            if (map !=null && map.containsKey(HillStoneConfigConsts.UP_TYPE)) {
                 Long up = map.get(HillStoneConfigConsts.UP_TYPE);
-                Long down = map.get(HillStoneConfigConsts.DOWN_TYPE);
-                Long sum = map.get(HillStoneConfigConsts.SUM_TYPE);
-                FlowAccount2Bss flowBean = getFlowAccount2BssBean(eip, up, down, false);
+                FlowAccount2Bss flowBean = this.getFlowAccount2BssBean(eip, up, false);
 
                 this.sendOrderMessageToBss(flowBean);
             }
@@ -116,22 +114,34 @@ public class FlowService {
     }
 
     /**
+     *  释放前发送数据库统计数据
+     * @param eip
+     */
+    public void reportNetFlowByDbBeforeRelease(Eip eip){
+        try{
+            FlowAccount2Bss flowBean = this.getFlowAccount2BssBean(eip, eip.getNetFlow(), false);
+            this.sendOrderMessageToBss(flowBean);
+        }catch (Exception e){
+            log.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage() + ":{}", e.getMessage());
+        }
+    }
+
+    /**
      * 构造给订单的报文
      *
      * @param eip
      * @param up
-     * @param down
      * @param isOclock 是否整点
      * @return
      */
-    public synchronized FlowAccount2Bss getFlowAccount2BssBean(Eip eip, Long up, Long down,boolean isOclock) {
+    public synchronized FlowAccount2Bss getFlowAccount2BssBean(Eip eip, Long up, boolean isOclock) {
 
         FlowAccount2Bss flowBean = new FlowAccount2Bss();
         flowBean.setSubpackage("false");
         flowBean.setPackageNo("1");
         flowBean.setPackageCount("1");
         String timeStamp = DateUtils4Jdk8.getDefaultUnsignedDateHourPattern();
-        //不是整点则将当前整点
+        //不是整点则将取当前时间的下一个整点
         if(!isOclock){
             timeStamp = DateUtils4Jdk8.getDefaultUnsignedDateHourPattern(1L);
         }
@@ -174,18 +184,11 @@ public class FlowService {
         }else {
             isSbw.setValue("yes");
         }
-
-//        OrderProductItem downItem = new OrderProductItem();
-//        upItem.setCode(HillStoneConfigConsts.DOWN_TYPE);
-//        upItem.setValue(String.valueOf(down));
-
-
         itemList.add(bandwidth);
         itemList.add(upItem);
         itemList.add(provider);
         itemList.add(ip);
         itemList.add(isSbw);
-//        itemList.add(downItem);
         product.setItemList(itemList);
         productLists.add(product);
         flowBean.setProductList(productLists);

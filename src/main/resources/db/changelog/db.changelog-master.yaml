@@ -9,8 +9,10 @@ databaseChangeLog:
 #      file: db/changelog/eip/mysql/t201905/2019050901-dml-change-sbwName_and_sbwId-zerah.xml
 #  初始化liquibase changeset 避免没有修改的liquibase 脚本引起报错
   - include:
-#       file: db/changelog/eip/mysql/t201906/2019062706-ddl-init-zerah.xml
-      file: db/changelog/eip/mysql/t201908/2019080201-ddl-eip-sbw-ipts-create-name-sangxinjing.xml
+      file: db/changelog/eip/mysql/t201906/2019062706-ddl-init-zerah.xml
+  - include:
+      file: db/changelog/eip/mysql/t201909/2019092001-ddl-eip-add-netFlow-zerah.xml
+        #      file: db/changelog/eip/mysql/t201908/2019080201-ddl-eip-sbw-ipts-create-name-sangxinjing.xml
 #  字段名称，字段长度规范
 #  - include:
         ##      file: db/changelog/eip/mysql/t201906/2019062701-ddl-eip-modify-filed-name-zerah.xml
@@ -27,4 +29,5 @@ databaseChangeLog:
   #- include:
        #file: db\changelog\eip\mysql\t201908\2019082103-ddl-eip-sbw-eipv6-add-columName-modify-filed-name-liuyesheng.xml
   - include:
-       file: db\changelog\eip\mysql\t201908\2019082210-ddl-eip-sbw-eippool-add-columName-modify-filed-name-lhl.xml
+      file: db\changelog\eip\mysql\t201908\2019082210-ddl-eip-sbw-eippool-add-columName-modify-filed-name-lhl.xml
+
