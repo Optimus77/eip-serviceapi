@@ -16,7 +16,7 @@ public class HsConstants {
 	public static final String CREATESUCCESS = "createSuccess";
 	public static final String HOURLYSETTLEMENT = "hourlySettlement";
 	public static final String MONTHLY = "monthly";
-	public static final String HOURLYNETFLOW = "hourlyNetFlow";
+	public static final String HOURLYNETFLOW = "hourlyNetflow";
 	public static final String PROVIDER = "provider";
 	public static final String BANDWIDTH = "bandwidth";
 	public static final String TRANSFER = "transfer";

@@ -16,7 +16,7 @@ public class EipAllocateParam implements Serializable {
     @TypeConstraint(allowedValues = {"cn-north-3","cn-south-1","cn-north-3-gov-1"}, message = "Only cn-north-3,cn-south-1 is allowed. ")
     private String region;
 
-    @TypeConstraint(allowedValues = {"monthly","hourlySettlement","hourlyNetflow"}, message = "Only monthly,hourlySettlement is allowed. ")
+    @TypeConstraint(allowedValues = {"monthly","hourlySettlement","hourlyNetflow"}, message = "Only monthly,hourlySettlement,hourlyNetflow is allowed. ")
     private String billType = "hourlySettlement";
 
     @Pattern(regexp="[0-9-]{1,2}", message="param purchase time error.")

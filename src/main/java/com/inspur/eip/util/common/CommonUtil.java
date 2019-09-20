@@ -208,7 +208,7 @@ public class CommonUtil {
             if (!param.getBillType().equals(HsConstants.MONTHLY)
                     && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)
                     && !HsConstants.HOURLYNETFLOW.equals(param.getBillType())) {
-                errorMsg = errorMsg + "Only monthly,hourlySettlement,hourlyNetFlow is allowed. ";
+                errorMsg = errorMsg + "Only monthly,hourlySettlement,hourlyNetflow is allowed. ";
             }
         }
         if (param.getRegion().isEmpty()) {
