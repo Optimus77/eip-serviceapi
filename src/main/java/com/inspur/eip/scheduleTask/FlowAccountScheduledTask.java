@@ -39,10 +39,10 @@ public class FlowAccountScheduledTask {
     @Scheduled(cron = "0 0 0/1 * * *")
     public void oneHourReportFlowAccount(){
         try {
-            List<Eip> trafficEips = eipDaoService.findFlowAccountEipList(HsConstants.HOURLYNETFLOW);
-            log.debug("Traffic eip List:{}",trafficEips);
-            if (trafficEips!=null && trafficEips.size()>0){
-                for (Eip eip : trafficEips) {
+            List<Eip> flowEipList = eipDaoService.findFlowAccountEipList(HsConstants.HOURLYNETFLOW);
+            log.debug("Traffic eip List:{}",flowEipList);
+            if (flowEipList!=null && flowEipList.size()>0){
+                for (Eip eip : flowEipList) {
                     Map<String, Long> map = flowService.staticsFlowByPeriod(60, eip.getEipAddress(),  "lasthour", eip.getFirewallId());
                     if (map.containsKey(HillStoneConfigConsts.UP_TYPE)){
                         Long up = map.get(HillStoneConfigConsts.UP_TYPE);

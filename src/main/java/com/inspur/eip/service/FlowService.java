@@ -169,7 +169,11 @@ public class FlowService {
 
         OrderProductItem isSbw = new OrderProductItem();
         isSbw.setCode(HsConstants.IS_SBW);
-        isSbw.setValue("no");
+        if (HsConstants.CHARGE_MODE_BANDWIDTH.equals(eip.getChargeMode())){
+            isSbw.setValue("no");
+        }else {
+            isSbw.setValue("yes");
+        }
 
 //        OrderProductItem downItem = new OrderProductItem();
 //        upItem.setCode(HillStoneConfigConsts.DOWN_TYPE);
