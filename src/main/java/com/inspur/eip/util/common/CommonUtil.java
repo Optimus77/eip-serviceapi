@@ -456,9 +456,14 @@ public class CommonUtil {
             log.error("User has no token.");
             return false;
         }
+        String projectIdInToken=null;
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-        String projectIdToken = (String) jsonObject.get("sub");
-        if(projectIdToken.equals(projectId)){
+        if(jsonObject.has("project_id")){
+            projectIdInToken = (String) jsonObject.get("project_id");
+        } else {
+            projectIdInToken = (String) jsonObject.get("sub");
+        }
+        if(projectIdInToken != null && projectIdInToken.equals(projectId)){
             return true;
         }
 
@@ -503,7 +508,7 @@ public class CommonUtil {
             log.info("admin account, realmAccess:{}", realmAccess);
             return true;
         }else{
-            log.error("Not admin account.{}", jsonObject.toString());
+            log.info("Not admin account.{}", jsonObject.toString());
             return false;
         }
     }

@@ -118,6 +118,7 @@ public class HsConstants {
 	//Url constant
 	public static final String EIP_NUMBERS = "eipNumbers";
 	public static final String UUID_LENGTH = "9dea38f8-f59c-4847-ba43-f0ef61a6986c";
+	public static final String PIPE_ID_LENGTH = "1563205723075033629";
 	public static final String LIST_EIP_PAGE_SQL_MAIN_PREFIX ="select * from eip where is_delete = 0 and ";
 	public static final String LIST_EIP_PAGE_SQL_EQUAL="='";
 	public static final String LIST_EIP_PAGE_SQL_AND="' and ";
@@ -129,6 +130,10 @@ public class HsConstants {
 	public static final String DELETE_SBE="DeleteSbw";
 	public static final String CHILD_ENTITY="ChildEntity";
 	public static final String OTHER_ENTITY="otherEntity";
+
+
+	//Sql String
+	public static final String ORDER_BY_CREATED_TIME_DESC=" ORDER BY created_time DESC";
 
 
 }

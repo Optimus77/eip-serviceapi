@@ -54,4 +54,6 @@ public class Sbw implements Serializable {
     private String ipType;
 
     private String description;
+
+    private String availabilityZone;
 }

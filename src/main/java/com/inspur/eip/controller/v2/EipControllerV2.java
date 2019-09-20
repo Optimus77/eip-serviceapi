@@ -49,7 +49,7 @@ public class EipControllerV2 {
     private SbwServiceImpl sbwService;
 
     private String authScret = "kitlv7i2";
-    
+
 
     @PermissionContext(
             service="eip",
@@ -102,7 +102,6 @@ public class EipControllerV2 {
      * get number of user
      * @return response
      */
-    //@PermissionContext(loginAccess=true)
     @PermissionContext(
             service="eip",
             action="ListEip",
@@ -218,7 +217,7 @@ public class EipControllerV2 {
                 break;
             case HsConstants.UNBIND:
                 log.info("unbind operate, eipid:{}, param:{} ", eipId, updateParam);
-                return eipService.eipUnbindWithInstacnce(eipId);
+                return eipService.eipUnbindWithInstacnce(eipId, null);
             default:
                 msg="Param error, unknow action type"+action+"";
                 log.error("Param error, unknow action type. eipid:{}, param:{} ", eipId, updateParam);

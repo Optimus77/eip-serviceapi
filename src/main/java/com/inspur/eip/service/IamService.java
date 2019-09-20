@@ -54,12 +54,9 @@ public class IamService {
             }
 
             String action = getAction(reciveOrder.getOrderType(), reciveOrder.getOrderRoute());
-            if (StringUtils.isBlank(action)) {
-                log.error("Failed to get action");
-                return ActionResponse.actionFailed("action can not be blank", HttpStatus.SC_BAD_REQUEST);
-            }
             iamParam.setRegion(region);
             iamParam.setAction(action);
+            iamParam.setInstanceId(id);
             if (action.equals(HsConstants.CREATE_EIP) || action.equals(HsConstants.CREATE_SBW)) {
                 if(action.equals(HsConstants.CREATE_EIP)){
                     iamParam.setService(HsConstants.LOWERCASE_EIP);
@@ -98,7 +95,7 @@ public class IamService {
         if (orderRoute.equals(HsConstants.EIP)) {
             if (orderType.equals(HsConstants.NEW_ORDERTYPE)) {
                 action = HsConstants.CREATE_EIP;
-            } else if (orderType.equals(HsConstants.UNSUBSCRIBE_ORDERTYPE)) {
+            } else if (orderType.equals(HsConstants.UNSUBSCRIBE)) {
                 action = HsConstants.DELETE_EIP;
             } else {
                 action = HsConstants.UPDATE_EIP;
@@ -106,7 +103,7 @@ public class IamService {
         } else {
             if (orderType.equals(HsConstants.NEW_ORDERTYPE)) {
                 action = HsConstants.CREATE_SBW;
-            } else if (orderType.equals(HsConstants.UNSUBSCRIBE_ORDERTYPE)) {
+            } else if (orderType.equals(HsConstants.UNSUBSCRIBE)) {
                 action = HsConstants.DELETE_SBE;
             } else {
                 action = HsConstants.UPDATE_SBW;
@@ -123,12 +120,15 @@ public class IamService {
             if (eip == null) {
                 return HsConstants.NOTFOUND;
             }
-            if (eip.getUserId() != null && (CommonUtil.getUserId().equals(eip.getUserId()))){
+            if (eip.getUserId() != null && (CommonUtil.getUserId(reciveOrder.getToken()).equals(eip.getUserId()))){
                 log.info(HsConstants.CHILD_ENTITY);
                 return HsConstants.CHILD_ENTITY;
             }
-            if(eip.getUserId() != null && (!CommonUtil.getUserId().equals(eip.getUserId()))){
+            if(eip.getUserId() != null && (!CommonUtil.getUserId(reciveOrder.getToken()).equals(eip.getUserId()))){
                 iamParam.setResourceCreator(eip.getUserId());
+                iamParam.setResourceAccountId(eip.getProjectId());
+            } else {
+                iamParam.setResourceCreator(eip.getProjectId());
                 iamParam.setResourceAccountId(eip.getProjectId());
             }
             iamParam.setService(HsConstants.LOWERCASE_EIP);
@@ -138,11 +138,11 @@ public class IamService {
             if (sbw == null) {
                 return HsConstants.NOTFOUND;
             }
-            if (sbw.getUserId() != null && (CommonUtil.getUserId().equals(sbw.getUserId()))){
+            if (sbw.getUserId() != null && (CommonUtil.getUserId(reciveOrder.getToken()).equals(sbw.getUserId()))){
                 log.info(HsConstants.CHILD_ENTITY);
                 return HsConstants.CHILD_ENTITY;
             }
-            if(sbw.getUserId() != null && (!CommonUtil.getUserId().equals(sbw.getUserId()))){
+            if(sbw.getUserId() != null && (!CommonUtil.getUserId(reciveOrder.getToken()).equals(sbw.getUserId()))){
                 iamParam.setResourceCreator(sbw.getUserId());
                 iamParam.setResourceAccountId(sbw.getProjectId());
             } else {
@@ -168,6 +168,7 @@ public class IamService {
         List<IamParam> list = new ArrayList();
         list.add(iamParam);
         String orderStr = JSONObject.toJSONString(list);
+        log.info("--------------Iam authentication parameters :{}",orderStr);
         ReturnResult returnResult = HttpUtil.post(iamUrl, header, orderStr);
         String message= returnResult.getMessage().replace("[","");
         message = message.replace("]","");

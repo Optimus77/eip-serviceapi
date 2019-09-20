@@ -147,7 +147,7 @@ public class EipDaoService {
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
-            if (eipEntity.getBillType().equals(HsConstants.MONTHLY)) {
+            if (eipEntity.getBillType().equals(HsConstants.MONTHLY) && null == userModel) {
                 msg = "Failed to delete ,monthly eip can not delete by user." + eipEntity.toString();
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_FORBIDDEN);
@@ -552,7 +552,7 @@ public class EipDaoService {
                 log.error("renew eip error {}", fireWallReturn.getMessage());
                 return ActionResponse.actionFailed("firewall error when renew eip", HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
-        }else {
+        } else {
             log.info("renew eip entity status.  ", eipEntity);
             eipEntity.setStatus(HsConstants.DOWN);
             eipEntity.setDuration(addTime);
@@ -560,8 +560,8 @@ public class EipDaoService {
             eipRepository.saveAndFlush(eipEntity);
             return ActionResponse.actionSuccess();
         }
+        return ActionResponse.actionSuccess();
     }
-
 
     @Transactional
     public ActionResponse reNewEipEntity(String eipId, String addTime, String token) {

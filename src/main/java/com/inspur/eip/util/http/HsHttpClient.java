@@ -405,7 +405,7 @@ public class HsHttpClient {
 			}
 			String loginUrl = gson.toJson(login);
 			if (!login(ip, port, loginUrl, 0)) {
-				return "";
+				return new JSONObject().toString();
 			}
 		}
 		StringBuffer url = new StringBuffer();
@@ -440,8 +440,7 @@ public class HsHttpClient {
 				e.printStackTrace();
 			}
 		}
-
-		return "";
+		return new JSONObject().toString();
 
 	}
 

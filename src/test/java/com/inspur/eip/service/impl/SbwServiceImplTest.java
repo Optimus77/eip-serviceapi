@@ -626,8 +626,10 @@ public class SbwServiceImplTest {
 
     @Test
     public void sbwListEip() throws Exception {
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        Sbw sbw = null;
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
+        if(null != eip)
+            sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
         addEipToSbw(eip.getId(), sbw.getId());
         Integer currentPage = 20;
         Integer limit = 50;

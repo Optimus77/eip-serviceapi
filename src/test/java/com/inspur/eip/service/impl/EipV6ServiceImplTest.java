@@ -467,10 +467,12 @@ public class EipV6ServiceImplTest {
     public void eipErrorCreateEipV6WithSbw() throws Exception {
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        Sbw sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
-        addEipToSbw(eip.getId(),sbw.getId());
+        Sbw sbw = null;
+        if (null != eip)
+            sbw = creatSbw(HsConstants.HOURLYSETTLEMENT, null);
+        addEipToSbw(eip.getId(), sbw.getId());
         ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
-        removeEipFromSbw(eip.getId(),sbw.getId());
+        removeEipFromSbw(eip.getId(), sbw.getId());
         deleteSbw(sbw.getId());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
@@ -479,7 +481,7 @@ public class EipV6ServiceImplTest {
     public void eipErrorCreateEipV6WithV6() throws Exception {
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        eipV6ServiceImpl.atomCreateEipV6(eip.getId(),token);
+        eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
         ResponseEntity responseEntity = eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
         eipV6ServiceImpl.atomDeleteEipV6(eip.getEipV6Id());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -525,7 +527,7 @@ public class EipV6ServiceImplTest {
     public void atomDeleteEipV6() throws Exception {
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        eipV6ServiceImpl.atomCreateEipV6(eip.getId(),token);
+        eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
         ResponseEntity responseEntity = eipV6ServiceImpl.atomDeleteEipV6(eip.getEipV6Id());
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
@@ -561,7 +563,7 @@ public class EipV6ServiceImplTest {
     public void getEipV6Detail() throws Exception {
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        eipV6ServiceImpl.atomCreateEipV6(eip.getId(),token);
+        eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
         ResponseEntity responseEntity = eipV6ServiceImpl.getEipV6Detail(eip.getEipV6Id());
         eipV6ServiceImpl.atomDeleteEipV6(eip.getEipV6Id());
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -586,7 +588,7 @@ public class EipV6ServiceImplTest {
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         Eip eip1 = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        eipV6ServiceImpl.atomCreateEipV6(eip.getId(),token);
+        eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
         ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eip.getEipV6Id(), eip1.getEipAddress());
         eipV6ServiceImpl.atomDeleteEipV6(eip1.getEipV6Id());
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -609,7 +611,7 @@ public class EipV6ServiceImplTest {
     public void eipV6bindPortV4Null() throws Exception {
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        eipV6ServiceImpl.atomCreateEipV6(eip.getId(),token);
+        eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
         ResponseEntity responseEntity = eipV6ServiceImpl.eipV6bindPort(eip.getEipV6Id(), null);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
     }
@@ -646,7 +648,7 @@ public class EipV6ServiceImplTest {
     public void getEipv6ById() throws Exception {
         Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, null);
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
-        eipV6ServiceImpl.atomCreateEipV6(eip.getId(),token);
+        eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
         EipV6 eipV6 = eipV6DaoService.getEipV6ById(eip.getEipV6Id());
         EipV6 eipV6Entity = eipV6ServiceImpl.getEipv6ById(eip.getEipV6Id());
         assertEquals(eipV6, eipV6Entity);
@@ -693,7 +695,7 @@ public class EipV6ServiceImplTest {
     public void deleteSbw(String sbwId) throws Exception {
         String token = TokenUtil.getToken("lishenghao", "1qaz2wsx3edc");
         Sbw sbw = sbwDaoService.getSbwById(sbwId);
-        if(sbw.getBillType().equals("hourlySettlement"))
+        if (sbw.getBillType().equals("hourlySettlement"))
             sbwDaoService.deleteSbw(sbwId, token);
         else
             sbwDaoService.adminDeleteSbw(sbwId);

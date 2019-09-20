@@ -22,7 +22,7 @@ public class SbwReturnBase implements Serializable {
     private String sbwName;
 
     @JsonProperty("createTime")
-    @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "UTC", pattern="yyyy-MM-dd'T'HH:mm:ss'Z'")
+    @JsonFormat(shape= JsonFormat.Shape.STRING, timezone = "GMT+8", pattern="yyyy-MM-dd'T'HH:mm:ss'Z'")
     private Date createdTime;
 
     @JsonProperty("status")

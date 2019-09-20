@@ -22,7 +22,6 @@ keycloak:
   enabled: true
   disable-trust-manager: true
   auth-server-url: https://iopdev.10.110.25.123.xip.io/auth
-  #auth-server-url: https://auth.inspurtest.com/auth
   realm: picp
   public-client: false
   credentials:
@@ -107,14 +106,15 @@ spring:
 
 # IAM
 iam:
-  #url: http://service.inspurtest.com/auth
+  #研发环境
+  url: http://service.10.110.25.123.xip.io/auth
 #  测试/staging/生产 配置
-  url: http://iam-apiserver.iam.svc.cluster.local:9101/auth
+#  url: http://iam-apiserver.iam.svc.cluster.local:9101/auth
   ladon:
-    #url: http://10.110.25.71:48156/auth
+    #研发环境
+    url: http://10.110.25.71:41840/auth/
 #  测试/staging/生产 配置
-    url: http://iam-auth-ladon.iam.svc.cluster.local:8090/auth
-
+#    url: http://iam-auth-ladon.iam.svc.cluster.local:8090/auth
 
 common:
   region: cn-north-3

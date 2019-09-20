@@ -16,8 +16,7 @@ import com.inspur.eip.util.constant.HillStoneConfigConsts;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.http.HsHttpClient;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.extern.slf4j.Slf4j;
@@ -48,35 +47,40 @@ public class QosService {
         this.fwPwd = fwPwd;
     }
 
-
-    HashMap<String, String> delQosPipe(String pipeId) {
-        HashMap<String, String> res = new HashMap();
+    /**
+     * 根据管道id/或者Sbw管道的name删除管道
+     * @param pipeId
+     * @return
+     */
+    boolean delQosPipe(String pipeId) {
+        // 根据管道名称获取管道Id
+        if (HsConstants.PIPE_ID_LENGTH.length() != pipeId.length()){
+            pipeId = this.getQosPipeIdByName(pipeId);
+        }
         String json = "[{\"target\":\"root\",\"node\":{\"name\":\"first\",\"root\":{\"id\":\"" + pipeId + "\"}}}]";
-
+        boolean flag = false;
         try {
             String retr = HsHttpClient.hsHttpDelete(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos", json);
             JSONObject jo = new JSONObject(retr);
-            boolean success = jo.getBoolean(HsConstants.SUCCESS);
-            if (success) {
-                res.put(HsConstants.SUCCESS, "true");
-            } else if ("Error: The root pipe dose not exist".equals(jo.getJSONObject(HsConstants.EXCEPTION).getString("message"))) {
-                res.put(HsConstants.SUCCESS, "true");
-                res.put("msg", "pip not found.");
-            } else {
-                res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-                res.put("msg", jo.getString(HsConstants.EXCEPTION));
+            Iterator<String> keys = jo.keys();
+            while (keys.hasNext()){
+                String successKey = keys.next();
+                if (HsConstants.SUCCESS.equalsIgnoreCase(successKey) && jo.getBoolean(successKey)){
+                    flag =true;
+                }else if (HsConstants.EXCEPTION.equalsIgnoreCase(successKey) && jo.getJSONObject(successKey).getString("message").contains("not exist")) {
+                    // {"success":false, "result":[], "exception":{"code":"", "message":"Error: The root pipe dose not exist", "stack":""}}
+                    log.warn("Error: The root pipe dose not exist,pipeId:{}",pipeId);
+                    flag =true;
+                }
             }
-            return res;
         } catch (Exception var7) {
             log.error(var7.getMessage());
-            res.put(HsConstants.SUCCESS, HsConstants.FALSE);
-            res.put("msg", var7.getMessage());
-            return res;
         }
+        return flag;
     }
 
     /*根据管道名称获取管道id*/
-    String getQosPipeId(String pipeName) throws EipInternalServerException {
+    String getQosPipeIdByName(String pipeName) throws EipInternalServerException {
         try {
             String id = "";
             String params = "/rest/iQos?query=%7B%22conditions%22%3A%5B%7B%22f%22%3A%22name%22%2C%22v%22%3A%22first%22%7D%5D%7D&target=root&node=root&id=%7B%22node%22%3A%22root%22%7D";
@@ -101,19 +105,19 @@ public class QosService {
      * remove
      *
      * @param floatIp 入参不能为空
-     * @param sbwId 管道名称
+     * @param pipeName 管道名称:UUID/floating ipAddress
      * @return ret
      */
-    Boolean removeIpFromPipe(String floatIp, String sbwId) {
+    Boolean removeIpFromPipe(String floatIp, String pipeName) {
         String IP32 = IpUtil.ipToLong(floatIp);
         if (StringUtils.isBlank(IP32)) {
             return false;
         }
         Gson gson = new Gson();
         try {
-            String pipeId = getQosPipeId(sbwId);
+            String pipeId = getQosPipeIdByName(pipeName);
             if (StringUtils.isBlank(pipeId)){
-                log.error("can not find pipeId by qosName, sbwId:{}",sbwId);
+                log.error("can not find pipeId by qosName, sbwId:{}",pipeName);
                 return false;
             }
             //query qos pipeId(eg:1563535650434929525) by pipeId
@@ -131,14 +135,9 @@ public class QosService {
                     }
                 }
                 for (String id : map.keySet()) {
-                    Boolean result = deleteIpFromPipe(pipeId, id);
-                    if (result){
-                        log.info("Rest remove floating ip success :{}", result);
-                        return true;
-                    }else {
-                        log.warn("Rest remove floating ip success :{}", result);
-                        return false;
-                    }
+                    if (StringUtils.isBlank(id))
+                        continue;
+                    return deleteConditionFromPipe(pipeId, id);
                 }
             }
         } catch (Exception e) {
@@ -151,15 +150,19 @@ public class QosService {
      * @param sequence ip序号
      * @return ret
      */
-    private Boolean deleteIpFromPipe(String pipeId, String sequence) {
+    public Boolean deleteConditionFromPipe(String pipeId, String sequence) {
         String param = "[{\"target\":\"root.rule\",\"node\":{\"name\":\"first\",\"root\":{\"id\":\"" + pipeId + "\",\"rule\":[{\"id\":\"" + sequence + "\"}]}}}]";
         try {
             String retr = HsHttpClient.hsHttpDelete(this.fwIp, this.fwPort, this.fwUser, this.fwPwd, "/rest/iQos?target=root.rule", param);
             JSONObject jo = new JSONObject(retr);
-            log.info("hsHttpDelete  result{}", retr);
-            boolean success = jo.getBoolean(HsConstants.SUCCESS);
-            if (success) {
-                return true;
+            if (jo.has(HsConstants.SUCCESS)){
+                if (jo.getBoolean(HsConstants.SUCCESS)){
+                    log.info("rest delete ip result{}", retr);
+                    return true;
+                }else if (jo.has(HsConstants.EXCEPTION) && jo.getJSONObject(HsConstants.EXCEPTION).getString("message").contains("condition does not exists")){
+                    log.info("rest delete ip warn, id condition dose not exists :{}",sequence);
+                    return true;
+                }
             }
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -257,5 +260,10 @@ public class QosService {
         this.fwPwd = fwPwd;
     }
 
+    public static void main(String[] args) {
+         QosService qosService = new QosService("10.110.29.206","443","hillstone","hillstone");
+        Boolean aBoolean = qosService.removeIpFromPipe("192.168.11.34", "5b664f1a-ba29-4026-9422-5b7480907dbe");
+        System.out.println(aBoolean);
+    }
 
 }

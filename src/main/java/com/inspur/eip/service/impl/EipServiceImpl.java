@@ -282,9 +282,9 @@ public class EipServiceImpl implements IEipService {
             JSONObject data = new JSONObject();
             JSONArray eips = new JSONArray();
             if (currentPage != 0) {
-                Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
-                Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
-                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"'";
+                //Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
+                Pageable pageable = PageRequest.of(currentPage - 1, limit);
+                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"'" + HsConstants.ORDER_BY_CREATED_TIME_DESC;
                 Page<Eip> page =
                         ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);
 
@@ -311,6 +311,7 @@ public class EipServiceImpl implements IEipService {
                 data.put(HsConstants.TOTAL_COUNT, page.getTotalElements());
                 data.put(HsConstants.PAGE_NO, currentPage);
                 data.put(HsConstants.PAGE_SIZE, limit);
+                log.debug("date:",data.toString());
             } else {
 
                 List<Eip> eipList = eipDaoService.findByProjectId(projcectId);
@@ -929,7 +930,6 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 
     public ResponseEntity getEipStatistics() {
         JSONObject data=new JSONObject();

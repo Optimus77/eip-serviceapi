@@ -1,0 +1,31 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <changeSet author="zerah" id="201909160101">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="eip" columnName="region"></columnExists>
+        </preConditions>
+        <modifyDataType catalogName="icp_eip" columnName="region" newDataType="varchar(255)" schemaName="public" tableName="eip" remarks="所在区域"/>
+        <comment>修改region 字段长度</comment>
+    </changeSet>
+
+    <changeSet author="zerah" id="201909160102">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="sbw" columnName="region"></columnExists>
+        </preConditions>
+        <modifyDataType catalogName="icp_eip" columnName="region" newDataType="varchar(255)" schemaName="public" tableName="sbw" remarks="所在区域"/>
+        <comment>修改region 字段长度</comment>
+    </changeSet>
+
+    <changeSet author="zerah" id="201909160103">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="eipv6" columnName="region"></columnExists>
+        </preConditions>
+        <modifyDataType catalogName="icp_eip" columnName="region" newDataType="varchar(255)" schemaName="public" tableName="eipv6" remarks="所在区域"/>
+        <comment>修改region 字段长度</comment>
+    </changeSet>
+
+</databaseChangeLog>

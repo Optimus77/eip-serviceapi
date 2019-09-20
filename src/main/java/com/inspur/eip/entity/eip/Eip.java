@@ -85,4 +85,6 @@ public class Eip implements Serializable {
 
     private String groupId;
 
+    private String availabilityZone;
+
 }
