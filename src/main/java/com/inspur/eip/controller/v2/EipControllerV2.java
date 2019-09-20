@@ -217,7 +217,7 @@ public class EipControllerV2 {
                 break;
             case HsConstants.UNBIND:
                 log.info("unbind operate, eipid:{}, param:{} ", eipId, updateParam);
-                return eipService.eipUnbindWithInstacnce(eipId, null);
+                return eipService.eipUnbindWithInstacnce(eipId);
             default:
                 msg="Param error, unknow action type"+action+"";
                 log.error("Param error, unknow action type. eipid:{}, param:{} ", eipId, updateParam);

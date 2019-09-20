@@ -560,7 +560,6 @@ public class EipDaoService {
             eipRepository.saveAndFlush(eipEntity);
             return ActionResponse.actionSuccess();
         }
-        return ActionResponse.actionSuccess();
     }
 
     @Transactional

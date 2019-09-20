@@ -665,33 +665,7 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-//    /* V1 Controller use  will be deleted*/
-//    @Override
-//    public ResponseEntity getEipByInstanceId(String instanceId) {
-//
-//        try {
-//            Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
-//
-//            if (null != eipEntity) {
-//                EipReturnDetail eipReturnDetail = new EipReturnDetail();
-//
-//                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
-//                eipReturnDetail.setResourceset(Resourceset.builder()
-//                        .resourceId(eipEntity.getInstanceId())
-//                        .resourceType(eipEntity.getInstanceType()).build());
-//                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
-//            } else {
-//                log.debug("Failed to find eip by instance id, instanceId:{}", instanceId);
-//                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
-//                        "can not find instance by this id:" + instanceId + ""),
-//                        HttpStatus.NOT_FOUND);
-//            }
-//
-//        } catch (Exception e) {
-//            log.error("Exception in getEipByInstanceId", e);
-//            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
+
 
     public ResponseEntity getEipGroupByIpAddress(String eip) {
         try {
