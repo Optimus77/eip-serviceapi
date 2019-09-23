@@ -75,10 +75,10 @@ public class QosServiceTest {
         Boolean result = qosService.removeIpFromPipe("111","xiaoming");
     }
     @Test
-    public void deleteIpFromPipe() throws Exception {
+    public void deleteConditionFromPipe() throws Exception {
         String str = "{\"target\":\"root\",\"success\":\"true\"}";
         PowerMockito.when(HsHttpClient.hsHttpDelete(Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString())).thenReturn(str);
-        Method method = PowerMockito.method(QosService.class,"deleteIpFromPipe",String.class,String.class);
+        Method method = PowerMockito.method(QosService.class,"deleteConditionFromPipe",String.class,String.class);
         Boolean result =(Boolean) method.invoke(qosService,"11","22");
     }
 
