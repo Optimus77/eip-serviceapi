@@ -2,16 +2,24 @@ package com.inspur.eip.scheduleTask;
 
 import com.inspur.eip.entity.bss.FlowAccount2Bss;
 import com.inspur.eip.entity.eip.Eip;
+import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.service.EipDaoService;
 import com.inspur.eip.service.FlowService;
 import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HillStoneConfigConsts;
+import com.inspur.eip.util.constant.HsConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -22,33 +30,30 @@ import java.util.Map;
  **/
 @Component
 @Slf4j
-//@EnableScheduling
+@EnableScheduling
+@EnableAsync
 public class FlowAccountScheduledTask {
 
     @Autowired
     private FlowService flowService;
 
     @Autowired
-    private EipDaoService eipDaoService;
+    private EipRepository eipRepository;
 
-
-//    每分钟统计
-//    @Scheduled(cron = "0 0/1 * * * * ")
-    //    每小时统计
-//    @Scheduled(cron = "0 0 0/1 * * *")
+    //    异步统计每小时流量数据,并发送给Bss侧
+    @Scheduled(cron = "0 0 0/1 * * *")
+    @Async
     public void oneHourReportFlowAccount(){
         try {
-            List<Eip> trafficEips = eipDaoService.findFlowAccountEipList("Traffic");
-            log.info("start to report flow eip to bss:{}",trafficEips);
-            if (trafficEips!=null && trafficEips.size()>0){
-                for (Eip eip : trafficEips) {
+            List<Eip> flowEipList = eipRepository.findByBillTypeAndIsDelete(HsConstants.HOURLYNETFLOW,0);
+            log.debug("Traffic eip List:{}",flowEipList);
+            if (flowEipList!=null && flowEipList.size()>0){
+                for (Eip eip : flowEipList) {
                     Map<String, Long> map = flowService.staticsFlowByPeriod(60, eip.getEipAddress(),  "lasthour", eip.getFirewallId());
                     if (map.containsKey(HillStoneConfigConsts.UP_TYPE)){
                         Long up = map.get(HillStoneConfigConsts.UP_TYPE);
-                        Long down = map.get(HillStoneConfigConsts.DOWN_TYPE);
-                        Long sum = map.get(HillStoneConfigConsts.SUM_TYPE);
-                        FlowAccount2Bss flowBean = flowService.getFlowAccount2BssBean(eip, up, down, sum);
-
+                        FlowAccount2Bss flowBean = flowService.getFlowAccount2BssBean(eip, up, true);
+                        //给 Bss发送报文
                         flowService.sendOrderMessageToBss(flowBean);
                     }
                 }

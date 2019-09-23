@@ -203,7 +203,7 @@ public class QosService {
             cmd = noDisablePipe(pipeName);
         }
         if (fwCmdService.execCustomCommand(fireWallId, cmd, null) ==null){
-            log.info("Control pipeline successful ,action:{}",cmd);
+            log.debug("Control pipeline successful ,action:{}",cmd);
             return true;
         }
         //管道不存在 | 禁用或者启用管道失败

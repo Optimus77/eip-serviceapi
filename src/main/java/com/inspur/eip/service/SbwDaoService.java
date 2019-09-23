@@ -482,7 +482,7 @@ public class SbwDaoService {
         }
         //1.ensure eip is billed on hourlySettlement
         if (eipEntity.getBillType().equals(HsConstants.MONTHLY)) {
-            log.error("The eip billType isn't hourlySettment!", eipEntity.getBillType());
+            log.error("The eip billType is monthly!", eipEntity.getBillType());
             return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_BILLTYPE_NOT_HOURLYSETTLEMENT), HttpStatus.SC_BAD_REQUEST);
         }
         //3.check eip had not adding any Shared bandWidth
@@ -558,6 +558,10 @@ public class SbwDaoService {
         if (!CommonUtil.verifyToken(token, eipEntity.getProjectId())) {
             log.error("User have no write to delete eip:{}", eipid);
             return ActionResponse.actionFailed(ErrorStatus.SC_FORBIDDEN.getMessage(), HttpStatus.SC_FORBIDDEN);
+        }
+        if (eipEntity.getBillType().equals(HsConstants.MONTHLY)) {
+            log.error("The eip billType is monthly!", eipEntity.getBillType());
+            return ActionResponse.actionFailed(CodeInfo.getCodeMessage(CodeInfo.EIP_BILLTYPE_NOT_HOURLYSETTLEMENT), HttpStatus.SC_BAD_REQUEST);
         }
         Optional<Sbw> optionalSbw = sbwRepository.findById(sbwId);
         if (!optionalSbw.isPresent()) {
