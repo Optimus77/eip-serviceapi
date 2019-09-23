@@ -461,6 +461,14 @@ public class CommonUtil {
         if(projectIdToken.equals(projectId)){
             return true;
         }
+        String clientId = null;
+        if(jsonObject.has("clientId")) {
+            clientId = jsonObject.getString("clientId");
+        }
+        if(null != clientId && clientId.equalsIgnoreCase("iaas-server")) {
+            log.info("Client token, User has right to operation, client:{}", clientId);
+            return true;
+        }
 
         log.error("User has no right to operation.{}", jsonObject.toString());
         return false;
