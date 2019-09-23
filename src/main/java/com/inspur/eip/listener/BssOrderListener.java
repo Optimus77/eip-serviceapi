@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inspur.eip.entity.bss.Console2BssResult;
+import com.inspur.eip.entity.bss.OrderProduct;
 import com.inspur.eip.entity.bss.ReciveOrder;
 import com.inspur.eip.exception.EipBadRequestException;
 import com.inspur.eip.exception.EipInternalServerException;
@@ -31,6 +32,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -111,54 +113,49 @@ public class BssOrderListener {
                     return;
                 }
                 ActionResponse actionResponse = iamService.isIamAuthority(reciveOrder);
-                if (actionResponse != null) {
-                    if (actionResponse.isSuccess()) {
-                        switch (orderType) {
-                            case HsConstants.NEW_ORDERTYPE:
-                                if (HsConstants.EIP.equalsIgnoreCase(orderRoute) || HsConstants.IPTS.equalsIgnoreCase(orderRoute)) {
-                                    response = rabbitMqService.createEipInfo(reciveOrder);
-                                } else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)) {
-                                    response = rabbitMqService.createSbwInfo(reciveOrder);
-                                }
-                                break;
-                            case HsConstants.CHANGECONFIGURE_ORDERTYPE:
-                            case HsConstants.RENEW_ORDERTYPE:
-                                if (HsConstants.EIP.equalsIgnoreCase(orderRoute)) {
-                                    response = rabbitMqService.updateEipInfoConfig(reciveOrder);
-                                } else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)) {
-                                    response = rabbitMqService.updateSbwInfoConfig(reciveOrder);
-                                }
-                                break;
-                            case HsConstants.UNSUBSCRIBE_ORDERTYPE:
-                                if (HsConstants.EIP.equalsIgnoreCase(orderRoute) || HsConstants.IPTS.equalsIgnoreCase(orderRoute)) {
-                                    response = rabbitMqService.deleteEipConfig(reciveOrder);
-                                } else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)) {
-                                    response = rabbitMqService.deleteSbwConfig(reciveOrder);
-                                }
-                                break;
-                            default:
-                                log.error(ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getMessage(), orderType);
-                                throw new EipBadRequestException(ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getCode(), ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getMessage());
-                        }
-
-                    } else {
-                        if (response.getCode() == 400) {
-                            log.error(response.getFault());
-                            throw new EipBadRequestException(ErrorStatus.ENTITY_BADREQUEST_ERROR.getCode(), ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getMessage());
-                        } else if (response.getCode() == 403) {
-                            log.error(response.getFault());
-                            throw new EipUnauthorizedException(HttpStatus.SC_FORBIDDEN, ErrorStatus.SC_FORBIDDEN.getCode(), ErrorStatus.SC_FORBIDDEN.getMessage(), CommonUtil.getProjectId());
-                        } else if (response.getCode() == 404) {
-                            log.error(response.getFault());
-                            throw new EipNotFoundException(ErrorStatus.ENTITY_NOT_FOND_IN_DB.getCode(), ErrorStatus.ENTITY_NOT_FOND_IN_DB.getMessage());
-                        } else {
-                            log.error(response.getFault());
-                            throw new EipInternalServerException(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage());
-                        }
+                if (actionResponse == null) {
+                    List<OrderProduct> orderProducts = reciveOrder.getProductList();
+                    for (OrderProduct orderProduct : orderProducts) {
+                        orderProduct.setStatusTime(reciveOrder.getStatusTime());
+                        orderProduct.setInstanceStatus("fail");
                     }
-                } else {
-                    log.error(ConstantClassField.IAM_AUTHENTICATION_ERROR, message);
+                    return;
+                }
+                if(!actionResponse.isSuccess()){
+                    List<OrderProduct> orderProducts = reciveOrder.getProductList();
+                    for (OrderProduct orderProduct : orderProducts) {
+                        orderProduct.setStatusTime(reciveOrder.getStatusTime());
+                        orderProduct.setInstanceStatus("fail");
+                    }
+                    log.error(actionResponse.getFault());
                     throw new EipInternalServerException(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getCode(), ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage());
+                }
+                switch (orderType) {
+                    case HsConstants.NEW_ORDERTYPE:
+                        if (HsConstants.EIP.equalsIgnoreCase(orderRoute) || HsConstants.IPTS.equalsIgnoreCase(orderRoute)) {
+                            response = rabbitMqService.createEipInfo(reciveOrder);
+                        } else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)) {
+                            response = rabbitMqService.createSbwInfo(reciveOrder);
+                        }
+                        break;
+                    case HsConstants.CHANGECONFIGURE_ORDERTYPE:
+                    case HsConstants.RENEW_ORDERTYPE:
+                        if (HsConstants.EIP.equalsIgnoreCase(orderRoute)) {
+                            response = rabbitMqService.updateEipInfoConfig(reciveOrder);
+                        } else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)) {
+                            response = rabbitMqService.updateSbwInfoConfig(reciveOrder);
+                        }
+                        break;
+                    case HsConstants.UNSUBSCRIBE_ORDERTYPE:
+                        if (HsConstants.EIP.equalsIgnoreCase(orderRoute) || HsConstants.IPTS.equalsIgnoreCase(orderRoute)) {
+                            response = rabbitMqService.deleteEipConfig(reciveOrder);
+                        } else if (HsConstants.SBW.equalsIgnoreCase(orderRoute)) {
+                            response = rabbitMqService.deleteSbwConfig(reciveOrder);
+                        }
+                        break;
+                    default:
+                        log.error(ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getMessage(), orderType);
+                        throw new EipBadRequestException(ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getCode(), ErrorStatus.NOT_SUPPORT_ORDER_TYPE.getMessage());
                 }
             }
         } catch (JsonParseException |JsonMappingException  e) {

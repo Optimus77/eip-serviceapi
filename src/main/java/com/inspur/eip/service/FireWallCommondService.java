@@ -83,7 +83,7 @@ public class FireWallCommondService {
                 Firewall firewall = CommonUtil.getFireWallById(fireWallId);
 //                initConnection("10.110.29.206", "test", "test");
                 initConnection(firewall.getIp(), firewall.getUser(), firewall.getPasswd());
-                log.info("firewall connection reinit.");
+                log.info("firewall connection Reconnection.");
             }
             printWriter.write(cmd + "\r\n");
             printWriter.flush();

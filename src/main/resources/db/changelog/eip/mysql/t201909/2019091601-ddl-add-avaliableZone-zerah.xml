@@ -1,0 +1,43 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <changeSet author="zerah" id="201909160101">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="eip" columnName="availability_zone"></columnExists>
+            </not>
+        </preConditions>
+        <addColumn catalogName="icp_eip" schemaName="public" tableName="eip">
+            <column name="availability_zone" type="varchar(255)" remarks="所在可用区"/>
+        </addColumn>
+        <comment> eip表增加availability_zone 字段</comment>
+    </changeSet>
+
+    <changeSet author="zerah" id="201909160102">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="sbw" columnName="availability_zone"></columnExists>
+            </not>
+        </preConditions>
+        <addColumn catalogName="icp_eip" schemaName="public" tableName="sbw">
+            <column name="availability_zone" type="varchar(255)" remarks="所在可用区"/>
+        </addColumn>
+        <comment> sbw表增加availability_zone 字段</comment>
+    </changeSet>
+
+    <changeSet author="zerah" id="201909160103">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="eipv6" columnName="availability_zone"></columnExists>
+            </not>
+        </preConditions>
+        <addColumn catalogName="icp_eip" schemaName="public" tableName="eipv6">
+            <column name="availability_zone" type="varchar(255)" remarks="所在可用区"/>
+        </addColumn>
+        <comment> eipv6表增加availability_zone 字段</comment>
+    </changeSet>
+
+</databaseChangeLog>

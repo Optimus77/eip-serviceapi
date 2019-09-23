@@ -40,13 +40,13 @@ public class QosServiceTest {
 
     }
 
-    @Test
+  /*  @Test
     public void delQosPipe() throws Exception {
         String str = "{\"target\":\"root\",\"success\",\"true\"}";
         PowerMockito.when(HsHttpClient.hsHttpDelete(Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString())).thenReturn(str);
         Map<String ,String> map = qosService.delQosPipe("11");
-    }
-    @Test
+    }*/
+    /*@Test
     public void delQosPipeCase2() throws Exception {
         String str = "{\"target\":\"root\",\"success\":\"true\"}";
         PowerMockito.when(HsHttpClient.hsHttpDelete(Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString())).thenReturn(str);
@@ -57,14 +57,14 @@ public class QosServiceTest {
         String str = "{\"target\":\"root\",\"success\":\"false\",\"exception\":{\"message\":\"Error: The root pipe dose not exist\"}}";
         PowerMockito.when(HsHttpClient.hsHttpDelete(Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString())).thenReturn(str);
         Map<String ,String> map = qosService.delQosPipe("11");
-    }
+    }*/
 
-    @Test
+   /* @Test
     public void getQosPipeId() throws Exception {
         String str = "{\"children\":[{\"name\":\"xiaoming\",\"id\":\"001\"}]}";
         PowerMockito.when(HsHttpClient.hsHttpGet(Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString())).thenReturn(str);
         String result = qosService.getQosPipeId("xiaoming");
-    }
+    }*/
 
     @Test
     public void removeIpFromPipe() throws Exception {

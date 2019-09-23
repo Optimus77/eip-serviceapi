@@ -49,7 +49,7 @@ public class EipControllerV2 {
     private SbwServiceImpl sbwService;
 
     private String authScret = "kitlv7i2";
-    
+
 
     @PermissionContext(
             service="eip",
@@ -102,7 +102,6 @@ public class EipControllerV2 {
      * get number of user
      * @return response
      */
-    //@PermissionContext(loginAccess=true)
     @PermissionContext(
             service="eip",
             action="ListEip",

@@ -133,7 +133,7 @@ public class IamServiceTest {
                 .productList(orderProducts)
                 .build();
         ReturnResult returnResult = ReturnResult.actionSuccess("false");
-        PowerMockito.when(CommonUtil.getUserId()).thenReturn("33");
+        PowerMockito.when(CommonUtil.getUserId(Mockito.anyString())).thenReturn("33");
         PowerMockito.when(CommonUtil.isParentOrChildAccount(Mockito.anyString())).thenReturn(false);
         PowerMockito.when(HttpUtil.post(Mockito.anyString(),Mockito.anyMap(),Mockito.anyString())).thenReturn(returnResult);
         ActionResponse actionResponse = iamService.isIamAuthority(reciveOrder);
@@ -229,7 +229,7 @@ public class IamServiceTest {
                 .orderType("new")
                 .productList(orderProducts)
                 .build();
-        PowerMockito.when(CommonUtil.getUserId()).thenReturn("23");
+        PowerMockito.when(CommonUtil.getUserId(Mockito.anyString())).thenReturn("23");
         String isParentOrChildEntity = iamService.isParentOrChildEntity(reciveOrder,Id,iamParam);
         assertEquals("ChildEntity", isParentOrChildEntity);
     }
@@ -240,7 +240,7 @@ public class IamServiceTest {
         IamParam iamParam = new IamParam();
         OrderProduct orderProduct = OrderProduct.builder()
                 .region("cn-north-3")
-                .instanceId("eipId")
+                .instanceId("sbwId")
                 .build();
         List<OrderProduct> orderProducts = new ArrayList<>();
         orderProducts.add(orderProduct);
@@ -250,7 +250,7 @@ public class IamServiceTest {
                 .orderType("new")
                 .productList(orderProducts)
                 .build();
-        PowerMockito.when(CommonUtil.getUserId()).thenReturn("23");
+        PowerMockito.when(CommonUtil.getUserId(Mockito.anyString())).thenReturn("23");
         String isParentOrChildEntity = iamService.isParentOrChildEntity(reciveOrder,Id,iamParam);
         assertEquals("NOT_FOUND", isParentOrChildEntity);
     }
@@ -271,7 +271,7 @@ public class IamServiceTest {
                 .orderType("new")
                 .productList(orderProducts)
                 .build();
-        PowerMockito.when(CommonUtil.getUserId()).thenReturn("23");
+        PowerMockito.when(CommonUtil.getUserId(Mockito.anyString())).thenReturn("23");
         String isParentOrChildEntity = iamService.isParentOrChildEntity(reciveOrder,Id,iamParam);
         assertEquals("ChildEntity", isParentOrChildEntity);
     }
@@ -292,7 +292,7 @@ public class IamServiceTest {
                 .orderType("new")
                 .productList(orderProducts)
                 .build();
-        PowerMockito.when(CommonUtil.getUserId()).thenReturn("33");
+        PowerMockito.when(CommonUtil.getUserId(Mockito.anyString())).thenReturn("33");
         String isParentOrChildEntity = iamService.isParentOrChildEntity(reciveOrder,Id,iamParam);
         assertEquals("otherEntity", isParentOrChildEntity);
     }
@@ -313,7 +313,7 @@ public class IamServiceTest {
                 .orderType("new")
                 .productList(orderProducts)
                 .build();
-        PowerMockito.when(CommonUtil.getUserId()).thenReturn("33");
+        PowerMockito.when(CommonUtil.getUserId(Mockito.anyString())).thenReturn("33");
         String isParentOrChildEntity = iamService.isParentOrChildEntity(reciveOrder,Id,iamParam);
         assertEquals("otherEntity", isParentOrChildEntity);
     }

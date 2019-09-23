@@ -282,9 +282,9 @@ public class EipServiceImpl implements IEipService {
             JSONObject data = new JSONObject();
             JSONArray eips = new JSONArray();
             if (currentPage != 0) {
-                Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
-                Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
-                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"'";
+                //Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
+                Pageable pageable = PageRequest.of(currentPage - 1, limit);
+                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"'" + HsConstants.ORDER_BY_CREATED_TIME_DESC;
                 Page<Eip> page =
                         ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);
 
@@ -311,6 +311,7 @@ public class EipServiceImpl implements IEipService {
                 data.put(HsConstants.TOTAL_COUNT, page.getTotalElements());
                 data.put(HsConstants.PAGE_NO, currentPage);
                 data.put(HsConstants.PAGE_SIZE, limit);
+                log.debug("date:",data.toString());
             } else {
 
                 List<Eip> eipList = eipDaoService.findByProjectId(projcectId);
@@ -365,9 +366,10 @@ public class EipServiceImpl implements IEipService {
             JSONObject data = new JSONObject();
 
             if (currentPage != 0) {
-                Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
-                Pageable pageable = PageRequest.of(currentPage - 1, limit, sort);
-                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"' order by group_id";
+                //Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
+                Pageable pageable = PageRequest.of(currentPage - 1, limit);
+                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"' " +
+                        "order by created_time desc,field(ip_type,'mobile','unicom','telecom','radiotv')";
                 Page<Eip> page =
                         ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);
                 List<String> groupids = new ArrayList<String>();
@@ -413,7 +415,7 @@ public class EipServiceImpl implements IEipService {
 
                 data.put("data",datas);
 //                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
-                data.put(HsConstants.TOTAL_COUNT, page.getTotalElements());
+                data.put(HsConstants.TOTAL_COUNT, groupids.size());
                 data.put(HsConstants.PAGE_NO, currentPage);
                 data.put(HsConstants.PAGE_SIZE, limit);
             } else {
@@ -462,7 +464,7 @@ public class EipServiceImpl implements IEipService {
                 }
                 data.put("data",datas);
 //                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
-                data.put(HsConstants.TOTAL_COUNT, dataList.size());
+                data.put(HsConstants.TOTAL_COUNT, groupids.size());
                 data.put(HsConstants.PAGE_NO, 1);
                 data.put(HsConstants.PAGE_SIZE, limit);
 
@@ -664,33 +666,7 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-//    /* V1 Controller use  will be deleted*/
-//    @Override
-//    public ResponseEntity getEipByInstanceId(String instanceId) {
-//
-//        try {
-//            Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
-//
-//            if (null != eipEntity) {
-//                EipReturnDetail eipReturnDetail = new EipReturnDetail();
-//
-//                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
-//                eipReturnDetail.setResourceset(Resourceset.builder()
-//                        .resourceId(eipEntity.getInstanceId())
-//                        .resourceType(eipEntity.getInstanceType()).build());
-//                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
-//            } else {
-//                log.debug("Failed to find eip by instance id, instanceId:{}", instanceId);
-//                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
-//                        "can not find instance by this id:" + instanceId + ""),
-//                        HttpStatus.NOT_FOUND);
-//            }
-//
-//        } catch (Exception e) {
-//            log.error("Exception in getEipByInstanceId", e);
-//            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
+
 
     public ResponseEntity getEipGroupByIpAddress(String eip) {
         try {
@@ -929,7 +905,6 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(ReturnMsgUtil.msg(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 
     public ResponseEntity getEipStatistics() {
         JSONObject data=new JSONObject();

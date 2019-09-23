@@ -28,4 +28,10 @@ public interface IDevProvider {
     boolean cmdDelSbwQos(String name, String fireWallId);
 
     JSONObject cmdShowStatisticsByAddressBook(String entryName, String period, String fireWallId);
+
+    boolean cmdCreateOrDeleteAddressBook(String entryName, String fireWallId, boolean control);
+
+    boolean cmdOperateStatisticsBook(String entryName, String firewallId, boolean control);
+
+    boolean cmdInsertOrRemoveParamInAddressBook(String entryName, String param, String addressType, String fireWallId, boolean control);
 }

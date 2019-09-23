@@ -444,7 +444,7 @@ public class RabbitMqServiceImpl {
         String instanceStatus = HsConstants.STATUS_ERROR;
         ActionResponse response = null;
 
-        log.info("Recive soft down or delete EIP order:{}", JSONObject.toJSONString(softDown));
+        log.info("Recive soft down or delete SBW order:{}", JSONObject.toJSONString(softDown));
         List<SoftDownInstance> instanceList = softDown.getInstanceList();
         for (SoftDownInstance instance : instanceList) {
             String operateType = instance.getOperateType();
@@ -505,9 +505,6 @@ public class RabbitMqServiceImpl {
                 eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
             } else if (orderProductItem.getCode().equals(HsConstants.PROVIDER)) {
                 eipAllocateParam.setIpType(orderProductItem.getValue());
-            }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER) && orderProductItem.getValue().equals("1")){
-                //  流量计费
-                eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_TRAFFIC);
             } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
                     orderProductItem.getValue().equals(HsConstants.YES)) {
                 eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
@@ -542,9 +539,6 @@ public class RabbitMqServiceImpl {
                 eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
             } else if (orderProductItem.getCode().equals(HsConstants.SBW_ID)) {
                 eipUpdateParam.setSbwId(orderProductItem.getValue());
-            }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER) && orderProductItem.getValue().equals("1")){
-                //  流量计费
-                eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_TRAFFIC);
             }
         }
 

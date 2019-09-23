@@ -3,11 +3,10 @@ package com.inspur.eip.service;
 import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.entity.bss.FlowAccount2Bss;
 import com.inspur.eip.entity.bss.FlowAccountProductList;
-import com.inspur.eip.entity.bss.OrderProduct;
 import com.inspur.eip.entity.bss.OrderProductItem;
 import com.inspur.eip.entity.eip.Eip;
 import com.inspur.eip.exception.EipBadRequestException;
-import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.common.DateUtils4Jdk8;
 import com.inspur.eip.util.constant.ErrorStatus;
 import com.inspur.eip.util.constant.HillStoneConfigConsts;
 import com.inspur.eip.util.constant.HsConstants;
@@ -18,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +44,7 @@ public class FlowService {
     private String exchange;
 
     // 发送订单消息的routingKey
-    @Value("${bss.queues.order.binding.returnRoutingKey}")
+    @Value("${bss.queues.order.binding.returnFlowRoutingKey}")
     private String orderKey;
 
 
@@ -95,18 +95,16 @@ public class FlowService {
     }
 
     /**
-     * 释放前统计流量数据
+     * 解绑时候向bss发送流量数据
      *
      * @param minute
      */
-    public void releaseReportFlowAccount(int minute, Eip eip) {
+    public void reportNetFlowByFirewallOclock(int minute, Eip eip) {
         try {
             Map<String, Long> map = this.staticsFlowByPeriod(minute, eip.getEipAddress(), "lasthour", eip.getFirewallId());
-            if (map.containsKey(HillStoneConfigConsts.UP_TYPE)) {
+            if (map !=null && map.containsKey(HillStoneConfigConsts.UP_TYPE)) {
                 Long up = map.get(HillStoneConfigConsts.UP_TYPE);
-                Long down = map.get(HillStoneConfigConsts.DOWN_TYPE);
-                Long sum = map.get(HillStoneConfigConsts.SUM_TYPE);
-                FlowAccount2Bss flowBean = getFlowAccount2BssBean(eip, up, down, sum);
+                FlowAccount2Bss flowBean = this.getFlowAccount2BssBean(eip, up, false);
 
                 this.sendOrderMessageToBss(flowBean);
             }
@@ -116,21 +114,39 @@ public class FlowService {
     }
 
     /**
+     *  释放前发送数据库统计数据
+     * @param eip
+     */
+    public void reportNetFlowByDbBeforeRelease(Eip eip){
+        try{
+            FlowAccount2Bss flowBean = this.getFlowAccount2BssBean(eip, eip.getNetFlow(), false);
+            this.sendOrderMessageToBss(flowBean);
+        }catch (Exception e){
+            log.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage() + ":{}", e.getMessage());
+        }
+    }
+
+    /**
      * 构造给订单的报文
      *
      * @param eip
      * @param up
-     * @param down
-     * @param sum
+     * @param isOclock 是否整点
      * @return
      */
-    public FlowAccount2Bss getFlowAccount2BssBean(Eip eip, Long up, Long down, Long sum) {
+    public synchronized FlowAccount2Bss getFlowAccount2BssBean(Eip eip, Long up, boolean isOclock) {
 
         FlowAccount2Bss flowBean = new FlowAccount2Bss();
-        flowBean.setSubpackage("flase");
+        flowBean.setSubpackage("false");
         flowBean.setPackageNo("1");
-        flowBean.setBillCycle("1");
-        flowBean.setSettleCycle("H");
+        flowBean.setPackageCount("1");
+        String timeStamp = DateUtils4Jdk8.getDefaultUnsignedDateHourPattern();
+        //不是整点则将取当前时间的下一个整点
+        if(!isOclock){
+            timeStamp = DateUtils4Jdk8.getDefaultUnsignedDateHourPattern(1L);
+        }
+        flowBean.setBillCycle(timeStamp);
+        flowBean.setSettleCycle("HOUR");
         flowBean.setCount("1");
         flowBean.setIndex("1");
         flowBean.setUserId(eip.getUserId());
@@ -150,8 +166,8 @@ public class FlowService {
         bandwidth.setValue(String.valueOf(eip.getBandWidth()));
         //暂时只传上行流量
         OrderProductItem upItem = new OrderProductItem();
-        upItem.setCode(HillStoneConfigConsts.UP_TYPE);
-        upItem.setValue(String.valueOf(up));
+        upItem.setCode(HsConstants.TRANSFER);
+        upItem.setValue(getByteTransToGB(up));
 
         OrderProductItem provider = new OrderProductItem();
         provider.setCode(HsConstants.PROVIDER);
@@ -163,19 +179,16 @@ public class FlowService {
 
         OrderProductItem isSbw = new OrderProductItem();
         isSbw.setCode(HsConstants.IS_SBW);
-        isSbw.setValue("no");
-
-//        OrderProductItem downItem = new OrderProductItem();
-//        upItem.setCode(HillStoneConfigConsts.DOWN_TYPE);
-//        upItem.setValue(String.valueOf(down));
-
-
+        if (HsConstants.CHARGE_MODE_BANDWIDTH.equals(eip.getChargeMode())){
+            isSbw.setValue("no");
+        }else {
+            isSbw.setValue("yes");
+        }
         itemList.add(bandwidth);
         itemList.add(upItem);
         itemList.add(provider);
         itemList.add(ip);
         itemList.add(isSbw);
-//        itemList.add(downItem);
         product.setItemList(itemList);
         productLists.add(product);
         flowBean.setProductList(productLists);
@@ -188,4 +201,59 @@ public class FlowService {
         rabbitTemplate.convertAndSend(exchange, orderKey, obj);
     }
 
+    /**
+     * 流量单位转换 带单位，精度一位小数
+     * @param size
+     * @return
+     */
+    public static String getNetFileSizeDescription(long size) {
+        StringBuffer bytes = new StringBuffer();
+        DecimalFormat format = new DecimalFormat("###.0");
+        if (size >= 1024 * 1024 * 1024) {
+            double i = (size / (1024.0 * 1024.0 * 1024.0));
+            bytes.append(format.format(i)).append("GB");
+        }
+        else if (size >= 1024 * 1024) {
+            double i = (size / (1024.0 * 1024.0));
+            bytes.append(format.format(i)).append("MB");
+        }
+        else if (size >= 1024) {
+            double i = (size / (1024.0));
+            bytes.append(format.format(i)).append("KB");
+        }
+        else if (size < 1024) {
+            if (size <= 0) {
+                bytes.append("0B");
+            }
+            else {
+                bytes.append((int) size).append("B");
+            }
+        }
+        return bytes.toString();
+    }
+
+    /**
+     * 字节大小转换为GB
+     * @param size
+     * @return
+     */
+    public static String getByteTransToGB(long size){
+        StringBuffer bytes = new StringBuffer();
+        // 精度
+        DecimalFormat format = new DecimalFormat("0.000000000");
+        if (size < 1024) {
+                bytes.append("0.000000000");
+        }else {
+            double i = (size / (1024.0 * 1024.0 * 1024.0));
+            bytes.append(format.format(i));
+        }
+        return bytes.toString();
+    }
+
+    public static void main(String[] args) {
+        String description = getNetFileSizeDescription(704722555418L);
+        System.out.println(description);
+        String gb = getByteTransToGB(704722555418L);
+        System.out.println(gb);
+    }
 }

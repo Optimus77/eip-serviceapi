@@ -105,20 +105,6 @@ public class CommonUtil {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         return new Date();
     }
-
-    /**
-     * 计算当前时间与上一个整点时间的分钟差
-     * @return
-     */
-    public static int countMinuteFromPoint() {
-        Date currentTime = new Date();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String dateString = formatter.format(currentTime);
-        String min;
-        min = dateString.substring(14, 16);
-        return Integer.parseInt(min);
-    }
-
     /**
      * get the Keycloak authorization token  from httpHeader;
      *
@@ -218,9 +204,8 @@ public class CommonUtil {
             errorMsg = "value must be 1-500.";
         }
         if (null != param.getChargeMode()) {
-            if (!param.getChargeMode().equalsIgnoreCase(HsConstants.BANDWIDTH) && !param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)
-                    && !param.getChargeMode().equals(HsConstants.CHARGE_MODE_TRAFFIC)) {
-                errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth,Traffic is allowed. ";
+            if (!param.getChargeMode().equalsIgnoreCase(HsConstants.BANDWIDTH) && !param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
+                errorMsg = errorMsg + "Only Bandwidth,SharedBandwidth is allowed. ";
             }
             if (param.getChargeMode().equals(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH) && (null == param.getSbwId())) {
                 errorMsg = errorMsg + "SharedBandwidth id is needed in SharedBandwidth charge mode and sbwId not null ";
@@ -228,8 +213,10 @@ public class CommonUtil {
         }
 
         if (null != param.getBillType()) {
-            if (!param.getBillType().equals(HsConstants.MONTHLY) && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
-                errorMsg = errorMsg + "Only monthly,hourlySettlement is allowed. ";
+            if (!param.getBillType().equals(HsConstants.MONTHLY)
+                    && !param.getBillType().equals(HsConstants.HOURLYSETTLEMENT)
+                    && !HsConstants.HOURLYNETFLOW.equals(param.getBillType())) {
+                errorMsg = errorMsg + "Only monthly,hourlySettlement,hourlyNetflow is allowed. ";
             }
         }
         if (param.getRegion().isEmpty()) {
@@ -456,9 +443,14 @@ public class CommonUtil {
             log.error("User has no token.");
             return false;
         }
+        String projectIdInToken=null;
         org.json.JSONObject jsonObject = Base64Util.decodeUserInfo(token);
-        String projectIdToken = (String) jsonObject.get("sub");
-        if(projectIdToken.equals(projectId)){
+        if(jsonObject.has("project_id")){
+            projectIdInToken = (String) jsonObject.get("project_id");
+        } else {
+            projectIdInToken = (String) jsonObject.get("sub");
+        }
+        if(projectIdInToken != null && projectIdInToken.equals(projectId)){
             return true;
         }
         String clientId = null;
@@ -511,7 +503,7 @@ public class CommonUtil {
             log.info("admin account, realmAccess:{}", realmAccess);
             return true;
         }else{
-            log.error("Not admin account.{}", jsonObject.toString());
+            log.info("Not admin account.{}", jsonObject.toString());
             return false;
         }
     }

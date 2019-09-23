@@ -18,7 +18,7 @@ import java.util.Optional;
 public interface EipRepository extends JpaRepository<Eip,String> {
 
     @Override
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Lock(LockModeType.PESSIMISTIC_READ)
     Optional<Eip> findById(String id);
 
     Eip findByIdAndIsDelete(String id, int isDelete);
@@ -46,8 +46,9 @@ public interface EipRepository extends JpaRepository<Eip,String> {
 
     List<Eip> findByProjectIdAndIsDeleteAndBillType(String projectId, int isDelete,String billType);
 
-    List<Eip> findByChargeModeAndIsDelete(String chargeMode, int isDelete);
+    List<Eip> findByBillTypeAndIsDelete(String chargeMode, int isDelete);
 
     List<Eip> findByGroupIdAndIsDelete(String groupId,int isDelete);
+
     List<Eip> findByChargeModeAndStatusAndIsDelete(String chargeMode,String status, int isDelete);
 }
