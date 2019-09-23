@@ -414,7 +414,7 @@ public class EipServiceImpl implements IEipService {
 
                 data.put("data",datas);
 //                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
-                data.put(HsConstants.TOTAL_COUNT, page.getTotalElements());
+                data.put(HsConstants.TOTAL_COUNT, groupids.size());
                 data.put(HsConstants.PAGE_NO, currentPage);
                 data.put(HsConstants.PAGE_SIZE, limit);
             } else {
@@ -463,7 +463,7 @@ public class EipServiceImpl implements IEipService {
                 }
                 data.put("data",datas);
 //                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
-                data.put(HsConstants.TOTAL_COUNT, dataList.size());
+                data.put(HsConstants.TOTAL_COUNT, groupids.size());
                 data.put(HsConstants.PAGE_NO, 1);
                 data.put(HsConstants.PAGE_SIZE, limit);
 
