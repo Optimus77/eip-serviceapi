@@ -129,6 +129,7 @@ public class EipDaoService {
         eipMo.setUserId(CommonUtil.getUserId(token));
         eipMo.setUserName(CommonUtil.getUsername(token));
         eipMo.setIsDelete(0);
+        eipMo.setNetFlow(0L);
         if (null != operater) {
             eipMo.setName(operater);
         }
@@ -504,7 +505,9 @@ public class EipDaoService {
                 if (i !=0){
                     Map<String, Long> map = flowService.staticsFlowByPeriod(i, eipEntity.getEipAddress(), "lasthour", eipEntity.getFirewallId());
                     if (map != null && map.containsKey(HillStoneConfigConsts.UP_TYPE)){
-                        eipEntity.setNetFlow(eipEntity.getNetFlow() + map.get(HillStoneConfigConsts.UP_TYPE));
+                        Long netFlow = eipEntity.getNetFlow();
+                        netFlow = netFlow ==null ?0L :netFlow;
+                        eipEntity.setNetFlow( netFlow+ map.get(HillStoneConfigConsts.UP_TYPE));
                     }
                 }
                 //从地址簿中移出fip
