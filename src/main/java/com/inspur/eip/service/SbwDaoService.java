@@ -279,7 +279,7 @@ public class SbwDaoService {
             return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
         }
         if (!sbw.getBillType().equals(HsConstants.MONTHLY)) {
-            msg = "BillType is not monthly SBW cannot be renewed:{}" + sbwId;
+            msg = "BillType is not monthly SBW cannot be renewed:{}" +sbw.getBillType();
             log.error(msg);
             return ActionResponse.actionFailed(msg, HttpStatus.SC_BAD_REQUEST);
         }
