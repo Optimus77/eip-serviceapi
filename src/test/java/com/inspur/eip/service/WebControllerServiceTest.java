@@ -49,17 +49,17 @@ public class WebControllerServiceTest {
         webControllerService.returnsIpv6Websocket("11","createNatWithEip","33");
 
     }
-//    @Test
-//    public void returnSbwWebsocket(){
-//        ReciveOrder reciveOrder = ReciveOrder.builder().token("123").build();
-//        webControllerService.returnSbwWebsocket("11",reciveOrder,"22");
-//    }
+    /*@Test
+    public void returnSbwWebsocket(){
+        ReciveOrder reciveOrder = ReciveOrder.builder().token("123").build();
+        webControllerService.returnSbwWebsocket("11",reciveOrder,"22");
+    }
 
-//    @Test
-//    public void returnsWebsocket(){
-//        ReciveOrder reciveOrder = ReciveOrder.builder().token("123").build();
-//        webControllerService.returnsWebsocket("11",reciveOrder,"22");
-//    }
+    @Test
+    public void returnsWebsocket(){
+        ReciveOrder reciveOrder = ReciveOrder.builder().token("123").build();
+        webControllerService.returnsWebsocket("11",reciveOrder,"22");
+    }*/
 
     @Test
     public void returnsWebsocketV2(){
