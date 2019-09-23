@@ -390,12 +390,12 @@ public class EipServiceImpl implements IEipService {
                         //groupInfo.put("oldBandwidth",eip.getOldBandWidth());
                         groupInfo.put("region",eip.getRegion());
                         groupInfo.put("billType",eip.getBillType());
-                        groupInfo.put("chargMode",eip.getChargeMode());
+                        groupInfo.put("chargeMode",eip.getChargeMode());
                         groupInfo.put("privateIpAddress",eip.getPrivateIpAddress());
                         Resourceset res = Resourceset.builder()
                                 .resourceId(eip.getInstanceId())
                                 .resourceType(eip.getInstanceType()).build();
-                        groupInfo.put("resourceset",res);
+                        groupInfo.put("resourceSet",res);
                         if((eip.getGroupId()== null && groupid == null)||
                                 eip.getGroupId()!=null&&groupid!=null&&((eip.getGroupId()).equals(groupid))) {
                             EipGroup eipGroup = new EipGroup();
@@ -444,12 +444,12 @@ public class EipServiceImpl implements IEipService {
                         //groupInfo.put("oldBandwidth",eip.getOldBandWidth());
                         groupInfo.put("region",eip.getRegion());
                         groupInfo.put("billType",eip.getBillType());
-                        groupInfo.put("chargMode",eip.getChargeMode());
-                        groupInfo.put("privateIpAddress",eip.getPrivateIpAddress());
+                        groupInfo.put("chargeMode",eip.getChargeMode());
+                        groupInfo.put("privateIpzAddress",eip.getPrivateIpAddress());
                         Resourceset res = Resourceset.builder()
                                 .resourceId(eip.getInstanceId())
                                 .resourceType(eip.getInstanceType()).build();
-                        groupInfo.put("resourceset",res);
+                        groupInfo.put("resourceSet",res);
                         if((eip.getGroupId()== null && groupid == null)||
                                 eip.getGroupId()!=null&&groupid!=null&&((eip.getGroupId()).equals(groupid))) {
                             EipGroup eipGroup = new EipGroup();
