@@ -399,6 +399,10 @@ public class EipServiceImpl implements IEipService {
                         if((eip.getGroupId()== null && groupid == null)||
                                 eip.getGroupId()!=null&&groupid!=null&&((eip.getGroupId()).equals(groupid))) {
                             EipGroup eipGroup = new EipGroup();
+                            if (eip.getSbwId()!=null) {
+                                Sbw sbw = sbwDaoService.getSbwById(eip.getSbwId());
+                                eipGroup.setSbwName(sbw.getSbwName());
+                            }
                             BeanUtils.copyProperties(eip,eipGroup);
                             if (StringUtils.isNotBlank(eip.getEipV6Id())) {
                                 EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
@@ -449,6 +453,10 @@ public class EipServiceImpl implements IEipService {
                         if((eip.getGroupId()== null && groupid == null)||
                                 eip.getGroupId()!=null&&groupid!=null&&((eip.getGroupId()).equals(groupid))) {
                             EipGroup eipGroup = new EipGroup();
+                            if (eip.getSbwId()!=null) {
+                                Sbw sbw = sbwDaoService.getSbwById(eip.getSbwId());
+                                eipGroup.setSbwName(sbw.getSbwName());
+                            }
                             BeanUtils.copyProperties(eip,eipGroup);
                             if (StringUtils.isNotBlank(eip.getEipV6Id())) {
                                 EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
@@ -667,6 +675,46 @@ public class EipServiceImpl implements IEipService {
         }
     }
 
+    public ResponseEntity getEipGroupByInstanceIdV2(String instanceId) {
+
+        try {
+            // Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
+            List<Eip> eipList = eipRepository.findByInstanceIdAndIsDelete(instanceId, 0);
+            JSONObject data = new JSONObject(new HashMap<>());
+            JSONArray eips = new JSONArray();
+            if (!eipList.isEmpty()) {
+                data.put("groupId",eipList.get(0).getGroupId());
+                data.put("region",eipList.get(0).getRegion());
+                data.put("billType",eipList.get(0).getBillType());
+                data.put("chargeMode",eipList.get(0).getChargeMode());
+                data.put("privateIpAddress",eipList.get(0).getPrivateIpAddress());
+                Resourceset res = Resourceset.builder()
+                        .resourceId(eipList.get(0).getInstanceId())
+                        .resourceType(eipList.get(0).getInstanceType()).build();
+                data.put("resourceSet",res);
+                for (Eip eip:eipList) {
+                    EipGroup eipReturnDetail = new EipGroup();
+                    BeanUtils.copyProperties(eipList.get(0), eipReturnDetail);
+                    if(eip.getSbwId()!=null) {
+                        Sbw sbw = sbwDaoService.getSbwById(eip.getSbwId());
+                        eipReturnDetail.setSbwName(sbw.getSbwName());
+                    }
+                    eips.add(eipReturnDetail);
+                }
+                data.put("data",eips);
+                return new ResponseEntity<>(data, HttpStatus.OK);
+            } else {
+                log.debug("Failed to find eip by instance id, instanceId:{}", instanceId);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "can not find instance by this id:" + instanceId + ""),
+                        HttpStatus.NOT_FOUND);
+            }
+
+        } catch (Exception e) {
+            log.error("Exception in getEipGroupByInstanceIdV2", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     public ResponseEntity getEipGroupByIpAddress(String eip) {
         try {
@@ -681,14 +729,25 @@ public class EipServiceImpl implements IEipService {
                 }
                 JSONArray eipinfo = new JSONArray();
                 List<Eip> eipEntitys = eipDaoService.getEipListByGroupId(groupId);
+                JSONObject data = new JSONObject(new LinkedHashMap());
+                data.put("groupId",groupId);
                 for(Eip eips: eipEntitys)
                 {
-                    if(null != eip){
-                        EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                    data.put("region",eips.getRegion());
+                    data.put("billType",eips.getBillType());
+                    data.put("chargeMode",eips.getChargeMode());
+                    data.put("privateIpAddress",eips.getPrivateIpAddress());
+                    Resourceset res = Resourceset.builder()
+                            .resourceId(eips.getInstanceId())
+                            .resourceType(eips.getInstanceType()).build();
+                    data.put("resourceSet",res);
+                    if(null != eips){
+                        EipGroup eipReturnDetail = new EipGroup();
+                        if(eips.getSbwId()!=null) {
+                            Sbw sbw = sbwDaoService.getSbwById(eips.getSbwId());
+                            eipReturnDetail.setSbwName(sbw.getSbwName());
+                        }
                         BeanUtils.copyProperties(eips, eipReturnDetail);
-                        eipReturnDetail.setResourceset(Resourceset.builder()
-                                .resourceId(eips.getInstanceId())
-                                .resourceType(eips.getInstanceType()).build());
                         if (StringUtils.isNotBlank(eips.getEipV6Id())) {
                             EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eips.getEipV6Id());
                             if (eipV6 != null) {
@@ -698,8 +757,8 @@ public class EipServiceImpl implements IEipService {
                         eipinfo.add(eipReturnDetail);
                     }
                 }
-                JSONObject data = new JSONObject();
-                data.put("data",eipinfo);
+                //JSONObject data = new JSONObject();
+                data.put("eips",eipinfo);
                 return new ResponseEntity<>(data,HttpStatus.OK);
             } else {
                 log.warn("Failed to find eip by eip, eip:{}", eip);
@@ -708,7 +767,7 @@ public class EipServiceImpl implements IEipService {
                         HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            log.error("Exception in getEipByIpAddressV2", e);
+            log.error("Exception in getEipGroupByIpAddressV2", e);
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
