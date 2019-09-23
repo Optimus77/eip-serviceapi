@@ -680,7 +680,8 @@ public class EipServiceImpl implements IEipService {
         try {
             // Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
             List<Eip> eipList = eipRepository.findByInstanceIdAndIsDelete(instanceId, 0);
-            JSONObject data = new JSONObject(new HashMap<>());
+            JSONObject eipInfo = new JSONObject();
+            JSONObject data = new JSONObject(new LinkedHashMap());
             JSONArray eips = new JSONArray();
             if (!eipList.isEmpty()) {
                 data.put("groupId",eipList.get(0).getGroupId());
@@ -701,8 +702,9 @@ public class EipServiceImpl implements IEipService {
                     }
                     eips.add(eipReturnDetail);
                 }
-                data.put("data",eips);
-                return new ResponseEntity<>(data, HttpStatus.OK);
+                data.put("eips",eips);
+                eipInfo.put("data",data);
+                return new ResponseEntity<>(eipInfo, HttpStatus.OK);
             } else {
                 log.debug("Failed to find eip by instance id, instanceId:{}", instanceId);
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
@@ -757,9 +759,10 @@ public class EipServiceImpl implements IEipService {
                         eipinfo.add(eipReturnDetail);
                     }
                 }
-                //JSONObject data = new JSONObject();
+                JSONObject dataInfo = new JSONObject();
                 data.put("eips",eipinfo);
-                return new ResponseEntity<>(data,HttpStatus.OK);
+                dataInfo.put("data",data);
+                return new ResponseEntity<>(dataInfo,HttpStatus.OK);
             } else {
                 log.warn("Failed to find eip by eip, eip:{}", eip);
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
