@@ -83,7 +83,6 @@ public final class ConstantClassField {
     public static final String FIREWALL_DNAT_DELETE_ERROR = "Firewall dnat delete error";
     public static final String FIREWALL_DNAT_UPDATE_ERROR = "Firewall dnat update error";
 
-
     /**
      * Fire wall
      */

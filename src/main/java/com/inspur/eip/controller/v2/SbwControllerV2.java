@@ -9,6 +9,7 @@ import com.inspur.iam.adapter.annotation.PermissionContext;
 import com.inspur.eip.util.constant.ReturnStatus;
 import com.inspur.iam.adapter.annotation.ResourceContext;
 import com.inspur.icp.common.util.annotation.ICPControllerLog;
+import io.netty.util.internal.StringUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -179,24 +180,19 @@ public class SbwControllerV2 {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "sbw_id", value = "the id of sbw", required = true, dataType = "String"),
     })
-    public ResponseEntity renameSbw(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param , BindingResult result){
-        log.info("Atom rename sbw param:{}",param.getSbw().toString());
+    public ResponseEntity renameSbw(@PathVariable("sbw_id") String sbwId, @Valid @RequestBody SbwUpdateParamWrapper param , BindingResult result) {
+        log.info("Atom rename sbw param:{}", param.getSbw().toString());
         if (result.hasErrors()) {
             StringBuilder builder = new StringBuilder();
             List<FieldError> fieldErrors = result.getFieldErrors();
             for (FieldError fieldError : fieldErrors) {
                 builder.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
             }
-            log.info("{}",builder);
+            log.info("{}", builder);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, builder.toString()), HttpStatus.BAD_REQUEST);
         }
-        String msg;
-        if (StringUtils.isNotBlank(param.getSbw().getSbwName())){
-            return sbwService.renameSbw(sbwId, param.getSbw());
-        }else {
-            msg="The new sbw name must not be blank";
-        }
-        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.BAD_REQUEST);
+        return sbwService.renameSbw(sbwId, param.getSbw());
+
     }
 
 //

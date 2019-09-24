@@ -2,7 +2,11 @@ package com.inspur.eip.service;
 
 
 import com.google.gson.Gson;
-
+import com.inspur.eip.util.TrustAnyHostnameVerifier;
+import com.inspur.eip.util.TrustAnyTrustManager;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
@@ -14,7 +18,11 @@ public class TokenUtil {
     private static final Object POST = "POST";
 
     public static String getToken(String userName, String passWord) throws Exception {
-
+        String tokenForException = null;
+        if(userName.equals("lishenghao"))
+            tokenForException = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJmZDM1NGNmNC01YmQ4LTRlOTEtYjk1Zi01ZTEyZGRiNDkyYzYiLCJleHAiOjE1Njc2NTk0NjgsIm5iZiI6MCwiaWF0IjoxNTY3NjU0MDY4LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImlhYXMtc2VydmVyIiwiYXV0aF90aW1lIjowLCJzZXNzaW9uX3N0YXRlIjoiYjEwNTNhMGItMDIzYS00ZDA1LWI3NmItNjBjNThmOGQ4NTM4IiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJBQ0NPVU5UX0FETUlOIiwib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfSwicmRzLW15c3FsLWFwaSI6eyJyb2xlcyI6WyJ1c2VyIl19fSwic2NvcGUiOiIiLCJwcm9qZWN0IjoibGlzaGVuZ2hhbyIsImdyb3VwcyI6WyIvZ3JvdXAtbGlzaGVuZ2hhbyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJsaXNoZW5naGFvIiwiZW1haWwiOiJsaXNoZW5naGFvQGluc3B1ci5jb20ifQ.moVKbtzVGaEH_b3anCS3jHvvX8hJPVdofx1WWFyKljYIK9VwkiYZxKsnelJyFVAKBon3BXE0jCkl3DVzBIE3mB_R_f_s5dtF_JCouFUEx03XgePoia-YcFwSlOaImbffPjVyOj1z4x9XNsfI87J_a2lD2NO0K4o0LwvqTJDmU2NdVpqFF5gHs3NfkvoLVHh2InesfYFwNmsZ7kZX1IwwN9wl-kDAI-7byRIGHL-SZjMBaN5VPOkfBgPvFGqkMOyJtlG5bojbnQXXFfPo1aevAvKThuhIuxTYnaK-NGTjLc-wqEYobPSWIcOAhMfNW5fjBUauOVmCZSGmzLlhfnmXfg";
+        else
+            tokenForException = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJiMzNjMzc2Ni1iZDNkLTRkNmEtYjUyOC1iNzQ1ZWJlMDM1MjMiLCJleHAiOjE1Njg3OTc3OTksIm5iZiI6MCwiaWF0IjoxNTY4NzkyMzk5LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImlhYXMtc2VydmVyIiwiYXV0aF90aW1lIjowLCJzZXNzaW9uX3N0YXRlIjoiZDgzYzMyMTQtMGY5Ny00MjhhLTkyNzctYWRjMzEzZDA4MmNjIiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJBQ0NPVU5UX0FETUlOIiwib2ZmbGluZV9hY2Nlc3MiLCJPUEVSQVRFX0FETUlOIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoiIiwicHJvamVjdCI6InhpbmppbmciLCJncm91cHMiOlsiL2dyb3VwLXhpbmppbmciXSwicHJlZmVycmVkX3VzZXJuYW1lIjoieGluamluZyJ9.kIf-hWI6ziIZOLHSaN-YOCebz3rISHG5_9oPTSMsJlZ6mta09t7bYh6eeS1uZxmD8gcHPiYTxfSWpBiJjunwPkbzl0Od-3y23FvCxrqDWsxp3ffbKypD6wSxKA8h5fRZ8Z4EEsfM0ACZPN3Ujf_As-MwLT4YAV00dWuBgQV2NLTZVy2Te2dKhWUua38gdl5-WytdLareqE8Sa54K576yI296bgCwfVEjHolRNqM1eC04KjmTeBLF6c_iVIoYaTTvEIS0-EQLSIq40QnmlzWa3bq2WMyly1qvQw6n3ea9zmweIODwLP69Ek22zEUiOVPgth2zqB9nUT_z05thrzX4UA";
         try {
             String postMessage = post(userName, passWord);
             Gson gson = new Gson();
@@ -23,17 +31,12 @@ public class TokenUtil {
             String token = map.get("access_token");
             return token;
         } catch (Exception e) {
-            String token;
-            if(userName == "lishenghao")
-                token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIyNDIxZGQxZS00MDhkLTRhZDYtOGQyNS03NjIzNzFmZTNiZTciLCJleHAiOjE1NjY5MDc5NDAsIm5iZiI6MCwiaWF0IjoxNTY2OTAyNTQwLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMGI2N2NkLTIwY2ItNDBiNC04ZGM0LWIwNDE1Y2EyNWQ3MiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImYyNjc3ZGViLTVmZjUtNDAwMS04NzY0LTJmYWQzODdjMzk2YiIsImF1dGhfdGltZSI6MTU2NjkwMjUyOSwic2Vzc2lvbl9zdGF0ZSI6IjkxOTNkZjlhLWFlZTUtNDRjMS04OTY4LWY0ZWJjMGZjN2M0MyIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX0sInJkcy1teXNxbC1hcGkiOnsicm9sZXMiOlsidXNlciJdfX0sInNjb3BlIjoib3BlbmlkIiwicGhvbmUiOiIxNzY4NjQwNjI5NSIsInByb2plY3QiOiJsaXNoZW5naGFvIiwiZ3JvdXBzIjpbIi9ncm91cC1saXNoZW5naGFvIl0sInByZWZlcnJlZF91c2VybmFtZSI6Imxpc2hlbmdoYW8iLCJlbWFpbCI6Imxpc2hlbmdoYW9AaW5zcHVyLmNvbSJ9.j5n_4ywpou1KuVrmAb3TjVz5nnD2SzAM7iwZz_bpUCdyZ2LvMN40m3cLLsnGCaendZ9139E9-klvzJLNveDF13IP3_y9xuRY3KVdrbzZXjfMHS2ONvQNe87SlgtgBvQnBqWOBIHL4ZF9mDJH0AjXClJjX9DUUoBD37cd0E9h7XxKuEaFwaqHKOvc_scGUAb1LWwmgag-Z02RttSk4M7hOWt_j0mBooEp8xQOpy-0fX28nDpVUBgG8lObi936LPT_cfFj3MXFXrOVu7Hahtu_a_6DqboenubrepiFE1YXXqbpHzblEYYBA1EEbCXJqgCXZO4wtUe05mqrdFH6VS97Xw";
-            else
-                token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiJhNmZmOTIyYS00Y2IwLTQwYWMtODVmNC0wYzVlMzRlZjYxYTUiLCJleHAiOjE1NjcwNjkwMzUsIm5iZiI6MCwiaWF0IjoxNTY3MDYzNjM1LCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImE4YWY5NTQ2LWNhZDEtNGI2YS1hMmE2LTMyMDNjOGYxY2JmYSIsImF1dGhfdGltZSI6MTU2NzA2MzYzMCwic2Vzc2lvbl9zdGF0ZSI6ImFhZTM4ZmI3LTA1MTctNDVjYi1iYWZjLTZmMmY0MjE0OTcxNSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.EgG0_W2OVAH6UI3u39N_sl05fG98C6otxlyz76K5UhmhUmbxndph7_UyvnL_gugIVzIfDR7cqD4U9iPggfJy9xIRNLWyljfWkXKffG7bTauhP4UjoZwcQvSPQwGcrjAh2fvBUthBt7O9Wq9uiS1qFXwHkOzEbDoUXz86Om0WijTzELMO-S9_OWpx6bu-52Go8Ega_xP_PUdn4IxWWPsCVSC9MSwXDuf16u3WfQWWzTPfGOLV03jNFDabN3fLUzpvoZSj6VJBNeLn51CRIceNCg0sCSTLMAPib728GIcgDioHwhKTs1k8BDQ_u0voUGhr-3OATz-dNlzLTWvsxZc10w";
-            return token;
+            return tokenForException;
         }
     }
 
     public static String post(String userName, String passWord) throws Exception{
-        String strURL = "http://iopdev.10.110.25.123.xip.io/auth/realms/picp/protocol/openid-connect/token";
+        String strURL = "https://iopdev.10.110.25.123.xip.io/auth/realms/picp/protocol/openid-connect/token";
         Map<String, String> paramMap = new HashMap<String, String>();
         paramMap.put("grant_type", "password");
         paramMap.put("username", userName);
@@ -41,12 +44,19 @@ public class TokenUtil {
         paramMap.put("client_id", "iaas-server");
         paramMap.put("client_secret", "3da8fb1c-97d7-4627-8c4c-b002942e820f");
         paramMap.put("response_type", "code id_token");
-        HttpURLConnection conn = null;
+        HttpsURLConnection conn = null;
         PrintWriter writer = null;
         try{
+            SSLContext sc = SSLContext.getInstance("SSL","SunJSSE");
+            sc.init(null, new TrustManager[] { new TrustAnyTrustManager()},
+                    new java.security.SecureRandom());
             URL url = new URL(strURL);
             String param = getParamString(paramMap);
-            conn = (HttpURLConnection) url.openConnection();
+            conn = (HttpsURLConnection) url.openConnection();
+            conn.setSSLSocketFactory(sc.getSocketFactory());
+            conn.setHostnameVerifier(new TrustAnyHostnameVerifier());
+            conn.setSSLSocketFactory(sc.getSocketFactory());
+            conn.setHostnameVerifier(new TrustAnyHostnameVerifier());
             setHttpUrlConnection(conn, (String) POST);
             conn.connect();
             writer = new PrintWriter(conn.getOutputStream());
@@ -93,9 +103,15 @@ public class TokenUtil {
         conn.setRequestProperty("Accept-Language", "zh-CN");
         conn.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
         conn.setRequestProperty("Proxy-Connection", "Keep-Alive");
+        conn.setInstanceFollowRedirects(false);
+        conn.setUseCaches(false);
+        conn.setConnectTimeout(30000);
+        conn.setReadTimeout(30000);
         if(null!=requestMethod && POST.equals(requestMethod)){
             conn.setDoOutput(true);
             conn.setDoInput(true);
         }
     }
+
+
 }

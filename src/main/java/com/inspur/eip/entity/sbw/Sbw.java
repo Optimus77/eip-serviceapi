@@ -51,5 +51,9 @@ public class Sbw implements Serializable {
     @ContextKey("creator")
     private String userId;
 
+    private String ipType;
+
+    private String description;
+
     private String availabilityZone;
 }

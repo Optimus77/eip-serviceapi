@@ -2,7 +2,9 @@ package com.inspur.eip.controller;
 
 
 import com.inspur.eip.config.VersionConstant;
+import com.inspur.eip.entity.eip.EipAllocateParam;
 import com.inspur.eip.entity.eip.EipAllocateParamWrapper;
+import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.service.impl.EipServiceImpl;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.ReturnMsgUtil;
@@ -59,7 +61,6 @@ public class EipControllerAtom {
         return eipService.atomCreateEip(eipConfig.getEipAllocateParam(),CommonUtil.getKeycloackToken(), "ECS");
     }
 
-
     /**
      * Atome delete eip
      * @param eipId
@@ -78,6 +79,39 @@ public class EipControllerAtom {
 
     }
 
+    @PermissionContext(whitelist=true)
+    @PostMapping(value = "/groups")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity atomCreateEipGroup(@Valid @RequestBody List<EipAllocateParam> eipConfig, BindingResult result) throws KeycloakTokenException {
+        //log.info("Allocate a eip:{}.",eipConfig.getEipAllocateParam().toString());
+        if (result.hasErrors()){
+            StringBuffer msgBuffer = new StringBuffer();
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            for (FieldError fieldError : fieldErrors){
+                msgBuffer.append(fieldError.getField() + ":" + fieldError.getDefaultMessage());
+            }
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,msgBuffer.toString()),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        return eipService.atomCreateEipGroup(eipConfig,CommonUtil.getKeycloackToken(), "ECS");
+    }
+
+    /**
+     * Atome delete eip
+     * @param groupId
+     * @return
+     */
+
+    @PermissionContext(whitelist=true)
+    @DeleteMapping(value = "/groups/{group_id}")
+    @CrossOrigin(origins = "*",maxAge = 3000)
+    public ResponseEntity atomDeleteEipGroup(@PathVariable("group_id") String groupId) {
+        //Check the parameters
+        log.info("Atom delete the Eip:{} ",groupId);
+        return eipService.atomDeleteEipGroup(groupId);
+
+    }
 
 
 

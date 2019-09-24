@@ -511,6 +511,7 @@ public class SbwDaoServiceTest {
         param.setType(null);
 
         ActionResponse actionResponse = sbwDaoService.addEipIntoSbw(eip.getId(), param, token);
+
         removeEipFromSbw(eip.getId(),sbw.getId());
         deleteSbw(sbw.getId());
         assertEquals(ActionResponse.actionSuccess().getCode(), actionResponse.getCode());

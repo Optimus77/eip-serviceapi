@@ -31,7 +31,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.BufferedReader;
@@ -39,7 +38,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.*;
-
 import static org.junit.Assert.*;
 
 @Slf4j
@@ -549,13 +547,17 @@ public class EipV6ServiceImplTest {
 
     @Test
     public void atomDeleteEipV6OfOtherUser() throws Exception {
-        Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, "other");
-        String token = TokenUtil.getToken("xinjing", "1qaz2wsx3edc");
-        eipV6ServiceImpl.atomCreateEipV6(eip.getId(), token);
-        ResponseEntity responseEntity = eipV6ServiceImpl.atomDeleteEipV6(eip.getEipV6Id());
-        eipV6DaoService.deleteEipV6(eip.getEipV6Id(), token);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-    }
+        try {
+            Eip eip = creatEip(HsConstants.HOURLYSETTLEMENT, "other");
+            String token = TokenUtil.getToken("xinjing", "1qaz2wsx3edc");
+            eipV6ServiceImpl.atomCreateEipV6(eip.getId(),token);
+            ResponseEntity responseEntity = eipV6ServiceImpl.atomDeleteEipV6(eip.getEipV6Id());
+            eipV6DaoService.deleteEipV6(eip.getEipV6Id(),token);
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+            }
 
     @Test
     public void getEipV6Detail() throws Exception {

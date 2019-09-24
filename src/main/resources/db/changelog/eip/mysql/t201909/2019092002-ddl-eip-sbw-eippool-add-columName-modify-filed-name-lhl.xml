@@ -1,0 +1,105 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <changeSet author="lhl" id="201909200201">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="eip" columnName="group_id"></columnExists>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="eip" schemaName="public" catalogName="icp_eip">
+            <column name="group_id" type="varchar(36) " remarks="group id"></column>
+        </addColumn>
+        <comment>eip表增加group_id</comment>
+    </changeSet>
+
+    <changeSet author="lhl" id="201909200202">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="eipv6" columnName="group_id"></columnExists>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="eipv6" schemaName="public" catalogName="icp_eip">
+            <column name="group_id" type="varchar(36) " remarks="group id"></column>
+        </addColumn>
+        <comment>eipv6表增加group_id</comment>
+    </changeSet>
+
+    <changeSet author="lhl" id="201909200203">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="sbw" columnName="ip_type"></columnExists>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="sbw" catalogName="icp_eip" schemaName="public">
+            <column name="ip_type" type="varchar(32)" remarks="线路类型"></column>
+        </addColumn>
+        <comment>sbw 表增加ip_type</comment>
+    </changeSet>
+
+    <changeSet author="zerah" id="201909200204">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="sbw" columnName="description"></columnExists>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="sbw" catalogName="icp_eip" schemaName="public">
+            <column name="description" type="varchar(50)" remarks="共享带宽描述"></column>
+        </addColumn>
+        <comment>sbw 表增加 description</comment>
+    </changeSet>
+
+    <changeSet author="lhl" id="201909200205">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="eip_poolv6" columnName="type"></columnExists>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="eip_poolv6" schemaName="public" catalogName="icp_eip">
+            <column name="type" type="varchar(32)" remarks="线路类型"></column>
+        </addColumn>
+        <sql>UPDATE eip_poolv6 SET type = 'BGP' WHERE type IS NULL</sql>
+        <comment>eip_poolv6 增加type并设值BGP</comment>
+    </changeSet>
+
+    <changeSet author="lhl" id="201909200206">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="eip_pool" columnName="type"></columnExists>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="eip_pool" schemaName="public" catalogName="icp_eip">
+            <column name="type" type="varchar(32)" remarks="线路类型"></column>
+        </addColumn>
+        <sql>UPDATE eip_pool SET type = 'BGP' WHERE type IS NULL</sql>
+        <comment>eip_pool增加type 并设值BGP</comment>
+    </changeSet>
+
+    <changeSet author="lhl" id="201909200207">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="eip_pool" columnName="type"></columnExists>
+        </preConditions>
+
+        <sql>UPDATE eip_pool SET type = 'BGP' WHERE type IS NULL</sql>
+        <comment>eip_pool在type设值BGP</comment>
+    </changeSet>
+
+    <changeSet author="lhl" id="201909200208">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="eip_poolv6" columnName="type"></columnExists>
+        </preConditions>
+
+        <sql>UPDATE eip_poolv6 SET type = 'BGP' WHERE type IS NULL</sql>
+        <comment>eip_poolv6 中type设值BGP</comment>
+    </changeSet>
+
+</databaseChangeLog>

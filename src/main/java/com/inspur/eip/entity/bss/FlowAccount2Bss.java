@@ -16,6 +16,8 @@ public class FlowAccount2Bss {
     //包序号，不需要分包，则传1
     private String packageNo;
     //分包数，如果不需要分包，则传1
+    private String packageCount;
+    // 账期小时：2018112108  天：20181121
     private String billCycle;
     //计费周期，天:Day    小时：H    月：M
     private String settleCycle;

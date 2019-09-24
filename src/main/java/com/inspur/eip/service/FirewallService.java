@@ -30,7 +30,8 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-public class FirewallService {
+@ConditionalOnProperty(value = "firewall.type",havingValue = "hillstone")
+public class FirewallService implements IDevProvider{
 
     @Autowired
     private QosService qosService;
@@ -78,7 +79,7 @@ public class FirewallService {
 
     }
 
-
+    @Override
     public String addQos(String fip, String eip, String bandwidth, String fireWallId) {
         String pipid;
         String inBandWidth = "50";
@@ -124,7 +125,7 @@ public class FirewallService {
      * @param firewallId firewall id
      * @param bindwidth  bind width
      */
-
+    @Override
     public boolean updateQosBandWidth(String firewallId, String pipId, String pipNmae, String bindwidth, String fip, String eip) {
 
         Firewall fwBean = CommonUtil.getFireWallById(firewallId);
@@ -167,7 +168,7 @@ public class FirewallService {
      * @param devId devid
      * @return ret
      */
-
+    @Override
     public boolean delQos(String pipid, String eip, String fip, String devId) {
         if (StringUtils.isNotEmpty(pipid)) {
             if (null != eip && null != fip && pipid.equals(getRootPipeName(fip))) {
@@ -191,7 +192,7 @@ public class FirewallService {
     }
 
 
-
+    @Override
     public MethodReturn addNatAndQos(Eip eip, String fipAddress, String eipAddress, int bandWidth, String firewallId) {
         String pipId = null;
         String dnatRuleId = null;
@@ -249,7 +250,7 @@ public class FirewallService {
         return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
     }
 
-
+    @Override
     public MethodReturn delNatAndQos(Eip eipEntity) {
 
         String msg = null;
@@ -301,7 +302,7 @@ public class FirewallService {
      * @param firewallId id
      * @return ret
      */
-
+    @Override
     public String addFipToSbwQos(String firewallId, String fip, String sbwId) {
         if (sbwId.length() != HsConstants.UUID_LENGTH.length()) {
             return null;
@@ -341,7 +342,7 @@ public class FirewallService {
      * @param floatIp    fip
      * @return ret
      */
-
+    @Override
     public boolean removeFipFromSbwQos(String firewallId, String floatIp, String sbwId) {
         if (StringUtils.isBlank(floatIp)){
             log.error("floating ip is null,floatIp:{}",floatIp);
@@ -367,7 +368,7 @@ public class FirewallService {
         return false;
     }
 
-
+    @Override
     public boolean ping(String ipAddress, String fireWallId) {
         try {
 
@@ -497,7 +498,7 @@ public class FirewallService {
      * @param fireWallId
      * @return
      */
-
+    @Override
     public synchronized boolean cmdAddSbwQos(String name, String bandwidth, String fireWallId) throws EipInternalServerException {
         Boolean flag = Boolean.TRUE;
         String inBandWidth = "50";
@@ -522,7 +523,7 @@ public class FirewallService {
         }
         return flag;
     }
-
+    @Override
     public synchronized boolean cmdDelSbwQos(String name, String fireWallId) {
 
         String strResult = fireWallCommondService.execCustomCommand(fireWallId,

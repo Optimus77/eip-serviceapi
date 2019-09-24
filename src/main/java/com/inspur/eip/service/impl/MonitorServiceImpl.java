@@ -5,7 +5,7 @@ import com.inspur.cloud.cloudmonitormetric.entity.MetricEntity;
 import com.inspur.cloud.cloudmonitormetric.handler.ProducerHandler;
 import com.inspur.eip.entity.fw.Firewall;
 import com.inspur.eip.service.EipDaoService;
-import com.inspur.eip.service.FirewallService;
+import com.inspur.eip.service.IDevProvider;
 import com.inspur.eip.service.MonitorService;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.HsConstants;
@@ -37,17 +37,17 @@ public class MonitorServiceImpl implements MonitorService {
     @Value("${minEipNum}")
     private String minEipNum;
 
-    private final FirewallService firewallService;
+    private IDevProvider firewallService;
     private final ProducerHandler producerHandler;
     private final EipDaoService eipDaoService;
 
     @Autowired
     public MonitorServiceImpl(EipDaoService eipDaoService,
-                              FirewallService firewallService,
+                              IDevProvider firewallService,
                               ProducerHandler producerHandler) {
-        this.firewallService = firewallService;
         this.producerHandler = producerHandler;
         this.eipDaoService = eipDaoService;
+        this.firewallService = firewallService;
     }
 
 

@@ -12,7 +12,6 @@ import com.inspur.eip.util.constant.ErrorStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -26,10 +25,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 public class FireWallCommondService {
-
-
-    @Autowired
-    private FirewallService firewallService;
 
     private Connection connection;
     private Session session;
@@ -74,6 +69,13 @@ public class FireWallCommondService {
         TimeUnit.MILLISECONDS.sleep(1000);
     }
 
+    /**
+     *
+     * @param fireWallId
+     * @param cmd
+     * @param expectStr  表示期望返回的字符串，如果返回的这行没有Error字段，可以通过该参数控制额外的异常情况
+     * @return
+     */
     synchronized String execCustomCommand(String fireWallId, String cmd, String expectStr) {
 
         try {
@@ -81,7 +83,7 @@ public class FireWallCommondService {
                 Firewall firewall = CommonUtil.getFireWallById(fireWallId);
 //                initConnection("10.110.29.206", "test", "test");
                 initConnection(firewall.getIp(), firewall.getUser(), firewall.getPasswd());
-                log.info("firewall connection reinit.");
+                log.info("firewall connection Reconnection.");
             }
             printWriter.write(cmd + "\r\n");
             printWriter.flush();

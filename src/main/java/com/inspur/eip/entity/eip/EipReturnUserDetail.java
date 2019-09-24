@@ -30,4 +30,7 @@ public class EipReturnUserDetail implements Serializable {
 
     @JsonProperty("status")
     private String status;
+
+    @JsonProperty("groupId")
+    private String groupId;
 }

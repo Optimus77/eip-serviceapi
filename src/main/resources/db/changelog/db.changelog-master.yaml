@@ -10,14 +10,15 @@ databaseChangeLog:
 #  初始化liquibase changeset 避免没有修改的liquibase 脚本引起报错
   - include:
       file: db/changelog/eip/mysql/t201906/2019062706-ddl-init-zerah.xml
-      # 新环境创建表初始化
-#  - include:
-#      file: db\changelog\eip\mysql\t201908\2019082103-ddl-eip-sbw-eipv6-add-columName-modify-filed-name-liuyesheng.xml
-#      file: db/changelog/eip/mysql/t201908/2019080201-ddl-eip-sbw-ipts-create-name-sangxinjing.xml
   - include:
       file: db/changelog/eip/mysql/t201909/2019091601-ddl-add-avaliableZone-zerah.xml
   - include:
       file: db/changelog/eip/mysql/t201909/2019091602-dml-add-alter-region-length-zerah.xml
+#  - include:
+#      file: db\changelog\eip\mysql\t201908\2019082103-ddl-eip-sbw-eipv6-add-columName-modify-filed-name-liuyesheng.xml
+#      file: db/changelog/eip/mysql/t201908/2019080201-ddl-eip-sbw-ipts-create-name-sangxinjing.xml
+  - include:
+      file: db/changelog/eip/mysql/t201909/2019092001-ddl-eip-add-netFlow-zerah.xml
 #  字段名称，字段长度规范
 #  - include:
         ##      file: db/changelog/eip/mysql/t201906/2019062701-ddl-eip-modify-filed-name-zerah.xml
@@ -31,7 +32,9 @@ databaseChangeLog:
         ##      file: db/changelog/eip/mysql/t201906/2019062705-ddl-eip_poolv6-modify-filed-name-zerah.xml
       ##  - include:
       ##      file: db/changelog/eip/mysql/t201906/2019070401-ddl-alter-table-engine-zerah.xml
-#  - include:
-#      file: db/changelog/eip/mysql/t201908/2019082002-dml-sbw-filed-update-zerah.xml
-
-
+  #- include:
+       #file: db\changelog\eip\mysql\t201908\2019082103-ddl-eip-sbw-eipv6-add-columName-modify-filed-name-liuyesheng.xml
+  - include:
+      file: db/changelog/eip/mysql/t201909/2019092002-ddl-eip-sbw-eippool-add-columName-modify-filed-name-lhl.xml
+  - include:
+      file: db/changelog/eip/mysql/t201909/2019092003-ddl-eip-delete-serviceendtime-servicestarttime-modify-filed-name-liuys.xml

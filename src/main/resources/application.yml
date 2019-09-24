@@ -109,12 +109,12 @@ iam:
   #研发环境
   url: http://service.10.110.25.123.xip.io/auth
 #  测试/staging/生产 配置
-#  url: http://iam-apiserver.iam.svc.cluster.local:9101/auth
+  #url: http://iam-apiserver.iam.svc.cluster.local:9101/auth
   ladon:
     #研发环境
     url: http://10.110.25.71:41840/auth/
 #  测试/staging/生产 配置
-#    url: http://iam-auth-ladon.iam.svc.cluster.local:8090/auth
+   #url: http://iam-auth-ladon.iam.svc.cluster.local:8090/auth
 
 common:
   region: cn-north-3
@@ -138,6 +138,7 @@ bss:
           sbw: key.sbw.order
           ipts: key.ipts.order
         returnRoutingKey: key.return.order
+        returnFlowRoutingKey: key.return.bill
       deadLetterExchange: exchange.dlx
       deadLetterRoutingKey: key.dlx
     change:
@@ -180,11 +181,14 @@ openstack:
 
 #Firewall configuration
 firewall:
+  type: hillstone
   id: 3f26960e-6ac3-4636-aae7-822ef3579288
   ip: 10.110.29.206
   port: 443
   user: iojHL/UrEMTtZ3Ec3YtV1/0NdjZmNE14
   password: dNe9QCSE9S8AgSEshlpAXsklH8yW0vlE
+#  硬件设备插网线的端口
+  interface: 6
 
 #Flpnetwork configuration
 fipNetworkId: f4790efe-5df0-4f04-991b-a3c105e63b71
@@ -198,5 +202,9 @@ regionCode: cn-north-3
 scheduleTime: 0 0/5 * * * ?
 minEipNum: 0
 
-iamUrl: http://service.inspurtest.com/auth/v1/has-permissions
+bssUrl:
+  quota: http://10.221.2.6.xip.io:9080/quota/user/quota
+  product: http://10.221.2.6:9080/product/detail
+  submit: http://10.221.2.6:9080/order/submitpay
 
+iamUrl: http://service.inspurtest.com/auth/v1/has-permissions

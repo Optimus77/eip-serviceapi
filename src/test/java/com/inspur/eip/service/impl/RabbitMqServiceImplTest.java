@@ -1,5 +1,6 @@
 package com.inspur.eip.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.inspur.eip.EipServiceApplicationTests;
 import com.inspur.eip.service.TokenUtil;
 import com.inspur.eip.entity.bss.*;
@@ -20,15 +21,12 @@ import org.junit.runner.RunWith;
 import org.openstack4j.model.common.ActionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.BufferedReader;
@@ -37,7 +35,6 @@ import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 import static org.junit.Assert.*;
 @Slf4j
 @RunWith(SpringRunner.class)
@@ -457,13 +454,15 @@ public class RabbitMqServiceImplTest {
         List<OrderProduct> orderProducts = new ArrayList<>();
         orderProducts.add(orderProduct);
 
+        JSONObject consoleJson = new JSONObject();
+
         ReciveOrder reciveOrder = ReciveOrder.builder()
                 .consoleOrderFlowId("06efa8b8-0d2a-8f29-eb32-868eacb00288")
                 .orderStatus("paySuccess")
                 .statusTime(simpleDateFormat.format(new Date()))
                 .token("eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsY2hRX2ZrNFdHN0hCZFpmdkdRLUxxWTUwTWxVQVUwb1ZYUU1KcVF0UjNzIn0.eyJqdGkiOiIzNTFiZDAyNi0yMDVlLTRmZWQtYjQ5MC05NjAxYzRlYzg5MjEiLCJleHAiOjE1NjI1NzU0NDMsIm5iZiI6MCwiaWF0IjoxNTYyNTcwMDQzLCJpc3MiOiJodHRwczovL2lvcGRldi4xMC4xMTAuMjUuMTIzLnhpcC5pby9hdXRoL3JlYWxtcy9waWNwIiwiYXVkIjpbImFjY291bnQiLCJyZHMtbXlzcWwtYXBpIl0sInN1YiI6IjlkMWE4YjdiLTBiYTQtNDZjMS05MjM5LWEzOTc2YzJhZWRmZiIsInR5cCI6IkJlYXJlciIsImF6cCI6ImNvbnNvbGUiLCJub25jZSI6ImM3NDdiMzU4LTQ2NjUtNDIzZi04ZWRiLTcwZmIzYzUwZjY5NSIsImF1dGhfdGltZSI6MTU2MjU3MDA0Miwic2Vzc2lvbl9zdGF0ZSI6IjQzNTE4MzE4LWQ1NjItNGYzZi04MTcxLThkNWMzNTYzZjliZCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiQUNDT1VOVF9BRE1JTiIsIm9mZmxpbmVfYWNjZXNzIiwiT1BFUkFURV9BRE1JTiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19LCJyZHMtbXlzcWwtYXBpIjp7InJvbGVzIjpbInVzZXIiXX19LCJzY29wZSI6Im9wZW5pZCIsImludml0ZWRfcmVnaW9uIjoiW1wiY24tc291dGgtMVwiXSIsInBob25lIjoiMTU5NjU4MTE2OTYiLCJwcm9qZWN0IjoieGluamluZyIsImdyb3VwcyI6WyIvZ3JvdXAteGluamluZyJdLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ4aW5qaW5nIn0.bYy8UiPv_zFydZHhsHw6umc9IO2Qvukfdf5waiqb8QZ1zKd6XE0mTkJbSxhsafVISq5D2hqb1yQjgcMI1oGggmi8HfMIcCosT73NXuPf4LX2LO8ClqvXuQtEp8-_0O5rJ9AyVNOvJEEZ4LuDvnipVNQPsOPjstB2QpKXf51-VsNibFwYmiF4BL73ND3--g_Jx22WaVdtQfw1Uip46PfaISc5pLL79Ev6UlSHOc4B7bGsQ2JAw4F_mc7GfJCWtOcUAhdFrrdn-J_fgZxI0G76FBS5NLs0R_7cI8DM5nej8vFf3se8fjEYnRGyRZu8Br6nEsPJ0P3RmuXPGwys0AD7mg")
                 .orderRoute("EIP")
-                .consoleCustomization(null)
+                .consoleCustomization(consoleJson)
                 .userId("9d1a8b7b-0ba4-46c1-9239-a3976c2aedff")
                 .setCount("1")
                 .billType("hourlySettlement")

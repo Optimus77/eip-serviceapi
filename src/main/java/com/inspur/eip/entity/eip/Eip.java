@@ -7,6 +7,7 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.util.Date;
 
 @Entity
@@ -82,6 +83,10 @@ public class Eip implements Serializable {
     private String eipV6Id;
 
     private String userName;
+
+    private String groupId;
+    //同一账期内流量统计数据
+    private Long netFlow;
 
     private String availabilityZone;
 

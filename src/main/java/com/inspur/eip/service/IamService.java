@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-
 @Slf4j
 @Service
 public class IamService {
@@ -115,7 +114,7 @@ public class IamService {
 
 
 
-    public String isParentOrChildEntity(ReciveOrder reciveOrder, String id, IamParam iamParam) throws KeycloakTokenException {
+    public String isParentOrChildEntity(ReciveOrder reciveOrder,String id,IamParam iamParam) throws KeycloakTokenException {
         if (reciveOrder.getOrderRoute().equals(HsConstants.EIP)) {
             Eip eip = eipRepository.findByIdAndIsDelete(id, 0);
             if (eip == null) {

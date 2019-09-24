@@ -16,14 +16,14 @@ buildscript {
         classpath group: 'com.inspur.cloud', name: 'cloud-gradle-plugin', version: '3.0.0-SNAPSHOT'
     }
     // if you need to use test by junit4 delete is code
-    gradle.taskGraph.whenReady {
+    /*gradle.taskGraph.whenReady {
         tasks.each { task ->
             if (task.name.contains("Test"))
             {
                 task.enabled = false
             }
         }
-    }
+    }*/
 }
 
 apply plugin: 'java'
@@ -32,6 +32,8 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'cloud'
 apply plugin: 'jacoco'
+
+
 
 jacoco {
     toolVersion = '0.8.1'
@@ -52,6 +54,12 @@ test {
         destinationFile = file("$buildDir/jacoco/test.exec")
     }
 }
+
+/*task coverage {
+    dependsOn 'test'
+    dependsOn 'jacocoTestReport'
+    tasks.findByName('jacocoTestReport').mustRunAfter('test')
+}*/
 
 
 group = 'com.inspur'
@@ -85,7 +93,7 @@ dependencies {
         exclude(module: 'servlet-api')
         exclude(module: 'logback-classic')
     }
-    compile('com.inspur.iam:iam-adapter-java:1.0.3-SNAPSHOT')
+    compile('com.inspur.iam:iam-adapter-java:1.0.4-SNAPSHOT')
     compile('com.inspur.cloudframework:common-utils:0.2.1-SNAPSHOT')
     compile('com.inspur.cloud:cloud-monitor-metric:0.0.2-SNAPSHOT')
     compile('com.github.ulisesbocchio:jasypt-spring-boot-starter:2.1.0')
@@ -96,10 +104,11 @@ dependencies {
     runtime('org.springframework.boot:spring-boot-devtools')
     runtime('mysql:mysql-connector-java')
 
-    compile group: 'ch.ethz.ganymed', name: 'ganymed-ssh2', version: '262'
     compileOnly('org.projectlombok:lombok')
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('org.springframework.security:spring-security-test')
+    testCompile group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.2'
+    testCompile group: 'org.powermock', name: 'powermock-api-mockito2', version: '2.0.2'
     // https://mvnrepository.com/artifact/org.liquibase/liquibase-core
     runtimeOnly('org.liquibase:liquibase-core:3.6.2') {
         exclude(module: 'logback-classic')
@@ -111,6 +120,7 @@ dependencies {
         compile('org.springframework.boot:spring-boot-starter-amqp:2.0.5.RELEASE')
         compile('org.springframework.boot:spring-boot-autoconfigure:2.0.5.RELEASE')
         // other dependencies
+        compile fileTree(dir:'lib',includes:['*jar'])
     }
 
 }

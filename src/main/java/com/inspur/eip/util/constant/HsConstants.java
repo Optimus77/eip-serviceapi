@@ -16,6 +16,7 @@ public class HsConstants {
 	public static final String CREATESUCCESS = "createSuccess";
 	public static final String HOURLYSETTLEMENT = "hourlySettlement";
 	public static final String MONTHLY = "monthly";
+	public static final String HOURLYNETFLOW = "hourlyNetflow";
 	public static final String PROVIDER = "provider";
 	public static final String BANDWIDTH = "bandwidth";
 	public static final String TRANSFER = "transfer";
@@ -27,8 +28,9 @@ public class HsConstants {
 	public static final String RESUMESERVER = "resumeServer";
 	public static final String CHARGE_MODE_BANDWIDTH = "Bandwidth";
 	public static final String CHARGE_MODE_SHAREDBANDWIDTH = "SharedBandwidth";
-	public static final String CHARGE_MODE_TRAFFIC = "Traffic";
-
+	public static final String GROUP_ID = "groupId";
+	public static final String BIND = "bind";
+	public static final String UNBIND = "unbind";
 	//	orderType
 	public static final String NEW_ORDERTYPE = "new";
 	public static final String CHANGECONFIGURE_ORDERTYPE = "changeConfigure";
@@ -53,7 +55,6 @@ public class HsConstants {
 	//SBW
 	public static final String SBW_NAME= "sbwName";
 	public static final String SBW_ID= "sbwId";
-	public static final String GROUP_ID= "groupId";
 
 	//product route
 	public static final String EIP = "EIP";
@@ -61,6 +62,7 @@ public class HsConstants {
 	public static final String IPTS = "IPTS";
 	public static final String LOWERCASE_EIP = "eip";
 	public static final String LOWERCASE_SBW = "sbw";
+
 
 
 	public static final String STATUS_ACTIVE = "ACTIVE";

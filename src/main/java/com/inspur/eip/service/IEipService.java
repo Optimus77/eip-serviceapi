@@ -49,20 +49,15 @@ public interface IEipService {
     /**
      *  unbind
      * @param eipId eipid
-     * @param instanceId  instanceId
      * @return ret
      */
-    ResponseEntity eipUnbindWithInstacnce(String eipId, String instanceId);
+    ResponseEntity eipUnbindWithInstacnce(String eipId);
 
 
     /**
      * get eip by floating ip
      */
     ResponseEntity getEipByInstanceIdV2(String instanceId);
-
-
-    ResponseEntity getEipByInstanceId(String instanceId);
-
 
 
     ResponseEntity getEipByIpAddressV2(String eip);
@@ -88,5 +83,23 @@ public interface IEipService {
     ResponseEntity getEipDetailsByIpAddress(String eipAddress);
 
     Eip getEipById(String id);
+
+    /**
+     * eip bind with port
+     * @param id      id
+     * @param serverId  server id
+     * @param type   //1：ecs // 2：cps // 3：slb
+     * @param portId   port id
+     * @return        result
+     */
+    ResponseEntity eipGroupBindWithInstance(String id,String type, String serverId, String portId, String slbIp);
+
+    /**
+     *  unbind
+     * @param groupId eipid
+     * @param instanceId  instanceId
+     * @return ret
+     */
+    ResponseEntity eipGroupUnbindWithInstacnce(String groupId, String instanceId);
 
 }

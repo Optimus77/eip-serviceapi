@@ -63,7 +63,6 @@ public class EipServiceImpl implements IEipService {
     private String regionCode;
 
 
-
     /**
      * create a eip
      *
@@ -123,6 +122,58 @@ public class EipServiceImpl implements IEipService {
     }
 
     /**
+     * create a eip group
+     *
+     * @param eipconfig          config
+     * @return                   json info of eip group
+     */
+    public ResponseEntity atomCreateEipGroup(List<EipAllocateParam> eipconfig,String token,String operater) throws KeycloakTokenException {
+        JSONArray data = new JSONArray();
+        String groupid = CommonUtil.getUUID();
+        for(EipAllocateParam eipAllocateParam:eipconfig) {
+            String code;
+            String msg;
+            String sbwId = eipAllocateParam.getSbwId();
+            if (StringUtils.isNotBlank(sbwId)) {
+                Sbw sbwEntity = sbwDaoService.getSbwById(sbwId);
+                if (null == sbwEntity || (!sbwEntity.getProjectId().equalsIgnoreCase(CommonUtil.getProjectId(token)))) {
+                    log.warn(CodeInfo.getCodeMessage(CodeInfo.EIP_FORBIDEN_WITH_ID), sbwId);
+                    return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_RESOURCE_NOTENOUGH,
+                            "Can not find sbw"), HttpStatus.FAILED_DEPENDENCY);
+                }
+            }
+            eipAllocateParam.setGroupId(groupid);
+            EipPool eip = eipDaoService.getOneEipFromPool(eipAllocateParam.getIpType());
+            if (null == eip) {
+                msg = "Failed, no eip in eip pool.";
+                log.error(msg);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_RESOURCE_NOTENOUGH, msg),
+                        HttpStatus.FAILED_DEPENDENCY);
+            }
+            Eip eipMo = eipDaoService.allocateEip(eipAllocateParam, eip, operater, token);
+            if (null != eipMo) {
+                EipReturnBase eipInfo = new EipReturnBase();
+                //eipMo.setGroupId(groupid);
+                BeanUtils.copyProperties(eipMo, eipInfo);
+                log.info("Atom create a eip success:{}", eipMo);
+                if (eipAllocateParam.getIpv6().equalsIgnoreCase("yes")) {
+                    ResponseEntity responseEntity = eipV6Service.atomCreateEipV6(eipMo.getId(), token);
+                    if(responseEntity.getStatusCodeValue() != org.apache.http.HttpStatus.SC_OK){
+                        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_IPV6_CREATE_FALSE, "ipv6 create false"), HttpStatus.METHOD_FAILURE);
+                    }
+                }
+                //eipInfo.setGroupId(groupid);
+                data.add(eipInfo);
+            } else {
+                code = ReturnStatus.SC_OPENSTACK_FIPCREATE_ERROR;
+                msg = "Failed to create floating ip in external network:" + eipAllocateParam.getRegion();
+                log.error(msg);
+            }
+        }
+        return new ResponseEntity<>(data, HttpStatus.OK);
+    }
+
+    /**
      * delete eip
      *
      * @param eipId eipid
@@ -148,6 +199,28 @@ public class EipServiceImpl implements IEipService {
             msg = e.getMessage() + "";
         }
         return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    public ResponseEntity atomDeleteEipGroup(String groupId) {
+        List<Eip> eipEntitys = eipDaoService.getEipListByGroupId(groupId);
+        String msg = null;
+        String code = null;
+        for(Eip eip:eipEntitys) {
+            ActionResponse actionResponse = eipDaoService.deleteEip(eip.getId(),"ecs", CommonUtil.getKeycloackToken());
+            if (actionResponse.isSuccess()) {
+                log.info("Atom delete eip successfully, id:{}", eip.getId());
+            } else {
+                msg = actionResponse.getFault();
+                code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+                log.info("Atom delete eip failed,{}", msg);
+                break;
+            }
+        }
+        if(code!=null) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(code,"delete eip group failed."), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(ReturnMsgUtil.success(), HttpStatus.OK);
     }
 
     /**
@@ -274,7 +347,144 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    /**
+     * listShareBandWidth the eipv1.1
+     *
+     * @param currentPage the current page
+     * @param limit       element of per page
+     * @return result
+     */
+    public ResponseEntity listEipsByGroup(int currentPage, int limit, String status) {
 
+        try {
+            String projcectId = CommonUtil.getProjectId();
+            log.debug("listEips  of user, userId:{}", projcectId);
+            if (projcectId == null) {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ErrorStatus.ENTITY_UNAUTHORIZED.getCode(),
+                        ErrorStatus.ENTITY_UNAUTHORIZED.getMessage()), HttpStatus.BAD_REQUEST);
+            }
+            JSONObject data = new JSONObject();
+
+            if (currentPage != 0) {
+                //Sort sort = new Sort(Sort.Direction.DESC, "createdTime");
+                Pageable pageable = PageRequest.of(currentPage - 1, limit);
+                String querySql="select * from eip where is_delete='0' and project_id= '"+projcectId+"' " +
+                        "order by created_time desc,field(ip_type,'mobile','unicom','telecom','radiotv')";
+                Page<Eip> page =
+                        ListFilterUtil.filterPageDataBySql(entityManager, querySql, pageable, Eip.class);
+                List<String> groupids = new ArrayList<String>();
+                for (Eip eip : page.getContent()) {
+                    if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
+                        continue;
+                    }
+                    if (!groupids.contains(eip.getGroupId())) {
+                        groupids.add(eip.getGroupId());
+                    }
+                }
+                JSONArray datas = new JSONArray();
+                for (String groupid : groupids) {
+                    JSONArray eips = new JSONArray();
+                    JSONObject groupInfo = new JSONObject(new LinkedHashMap());
+                    groupInfo.put("groupId",groupid);
+                    for (Eip eip : page.getContent()) {
+                        //groupInfo.put("oldBandwidth",eip.getOldBandWidth());
+                        groupInfo.put("region",eip.getRegion());
+                        groupInfo.put("billType",eip.getBillType());
+                        groupInfo.put("chargeMode",eip.getChargeMode());
+                        groupInfo.put("privateIpAddress",eip.getPrivateIpAddress());
+                        Resourceset res = Resourceset.builder()
+                                .resourceId(eip.getInstanceId())
+                                .resourceType(eip.getInstanceType()).build();
+                        groupInfo.put("resourceSet",res);
+                        if((eip.getGroupId()== null && groupid == null)||
+                                eip.getGroupId()!=null&&groupid!=null&&((eip.getGroupId()).equals(groupid))) {
+                            EipGroup eipGroup = new EipGroup();
+                            if (eip.getSbwId()!=null) {
+                                Sbw sbw = sbwDaoService.getSbwById(eip.getSbwId());
+                                eipGroup.setSbwName(sbw.getSbwName());
+                            }
+                            BeanUtils.copyProperties(eip,eipGroup);
+                            if (StringUtils.isNotBlank(eip.getEipV6Id())) {
+                                EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                                if (eipV6 != null) {
+                                    eipGroup.setIpv6(eipV6.getIpv6());
+                                }
+                            }
+                            eips.add(eipGroup);
+                        }
+                    }
+                    groupInfo.put("eips",eips);
+                    datas.add(groupInfo);
+                }
+
+                data.put("data",datas);
+//                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
+                data.put(HsConstants.TOTAL_COUNT, groupids.size());
+                data.put(HsConstants.PAGE_NO, currentPage);
+                data.put(HsConstants.PAGE_SIZE, limit);
+            } else {
+
+                List<Eip> eipList = eipDaoService.findByProjectId(projcectId);
+                List<Eip> dataList = ListFilterUtil.filterListData(eipList, Eip.class);
+                List<String> groupids = new ArrayList<String>();
+                for (Eip eip : dataList) {
+                    if ((StringUtils.isNotBlank(status)) && (!eip.getStatus().trim().equalsIgnoreCase(status))) {
+                        continue;
+                    }
+                    if (!groupids.contains(eip.getGroupId())) {
+                        groupids.add(eip.getGroupId());
+                    }
+                }
+                JSONArray datas = new JSONArray();
+                for (String groupid : groupids) {
+                    JSONArray eips = new JSONArray();
+                    JSONObject groupInfo = new JSONObject(new LinkedHashMap());
+                    groupInfo.put("groupId",groupid);
+                    for (Eip eip : dataList) {
+                        //groupInfo.put("oldBandwidth",eip.getOldBandWidth());
+                        groupInfo.put("region",eip.getRegion());
+                        groupInfo.put("billType",eip.getBillType());
+                        groupInfo.put("chargeMode",eip.getChargeMode());
+                        groupInfo.put("privateIpzAddress",eip.getPrivateIpAddress());
+                        Resourceset res = Resourceset.builder()
+                                .resourceId(eip.getInstanceId())
+                                .resourceType(eip.getInstanceType()).build();
+                        groupInfo.put("resourceSet",res);
+                        if((eip.getGroupId()== null && groupid == null)||
+                                eip.getGroupId()!=null&&groupid!=null&&((eip.getGroupId()).equals(groupid))) {
+                            EipGroup eipGroup = new EipGroup();
+                            if (eip.getSbwId()!=null) {
+                                Sbw sbw = sbwDaoService.getSbwById(eip.getSbwId());
+                                eipGroup.setSbwName(sbw.getSbwName());
+                            }
+                            BeanUtils.copyProperties(eip,eipGroup);
+                            if (StringUtils.isNotBlank(eip.getEipV6Id())) {
+                                EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                                if (eipV6 != null) {
+                                    eipGroup.setIpv6(eipV6.getIpv6());
+                                }
+                            }
+                            eips.add(eipGroup);
+                        }
+                    }
+                    groupInfo.put("eips",eips);
+                    datas.add(groupInfo);
+                }
+                data.put("data",datas);
+//                data.put(HsConstants.TOTAL_PAGES, page.getTotalPages());
+                data.put(HsConstants.TOTAL_COUNT, groupids.size());
+                data.put(HsConstants.PAGE_NO, 1);
+                data.put(HsConstants.PAGE_SIZE, limit);
+
+            }
+            return new ResponseEntity<>(data, HttpStatus.OK);
+        } catch (KeycloakTokenException e) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_FORBIDDEN, e.getMessage()), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            log.error("Exception in listEips", e);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     /**
      * listShareBandWidth the eipV1.0
@@ -355,16 +565,6 @@ public class EipServiceImpl implements IEipService {
         }
     }
 
-
-
-
-
-
-
-
-
-
-
     /**
      * get detail of the eip
      *
@@ -402,6 +602,47 @@ public class EipServiceImpl implements IEipService {
     }
 
     /**
+     * get detail of the eip
+     *
+     * @param groupId the id of the eip instance
+     * @return the json result
+     */
+    public ResponseEntity getEipGroupDetail(String groupId) {
+
+        try {
+            JSONArray eipinfo = new JSONArray();
+            List<Eip> eipEntitys = eipDaoService.getEipListByGroupId(groupId);
+            if(eipEntitys.size() == 0) {
+                return new ResponseEntity<>("not found.", HttpStatus.NOT_FOUND);
+            }
+            for(Eip eip: eipEntitys)
+            {
+                if(null != eip){
+                    EipReturnDetail eipReturnDetail = new EipReturnDetail();
+                    BeanUtils.copyProperties(eip, eipReturnDetail);
+                    eipReturnDetail.setResourceset(Resourceset.builder()
+                            .resourceId(eip.getInstanceId())
+                            .resourceType(eip.getInstanceType()).build());
+                    if (StringUtils.isNotBlank(eip.getEipV6Id())) {
+                        EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eip.getEipV6Id());
+                        if (eipV6 != null) {
+                            eipReturnDetail.setIpv6(eipV6.getIpv6());
+                        }
+                    }
+                    eipinfo.add(eipReturnDetail);
+                }
+            }
+            JSONObject data = new JSONObject();
+            data.put("data",eipinfo);
+            return new ResponseEntity<>(data,HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Exception in getEipDetail", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    /**
      * get eip by instance id
      *
      * @param instanceId the instance id
@@ -411,15 +652,15 @@ public class EipServiceImpl implements IEipService {
     public ResponseEntity getEipByInstanceIdV2(String instanceId) {
 
         try {
-            Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
-
-            if (null != eipEntity) {
+           // Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
+            List<Eip> eipList = eipRepository.findByInstanceIdAndIsDelete(instanceId, 0);
+            if (!eipList.isEmpty()) {
                 EipReturnDetail eipReturnDetail = new EipReturnDetail();
 
-                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
+                BeanUtils.copyProperties(eipList.get(0), eipReturnDetail);
                 eipReturnDetail.setResourceset(Resourceset.builder()
-                        .resourceId(eipEntity.getInstanceId())
-                        .resourceType(eipEntity.getInstanceType()).build());
+                        .resourceId(eipList.get(0).getInstanceId())
+                        .resourceType(eipList.get(0).getInstanceType()).build());
                 return new ResponseEntity<>(eipReturnDetail, HttpStatus.OK);
             } else {
                 log.debug("Failed to find eip by instance id, instanceId:{}", instanceId);
@@ -433,21 +674,39 @@ public class EipServiceImpl implements IEipService {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    /* V1 Controller use  will be deleted*/
-    @Override
-    public ResponseEntity getEipByInstanceId(String instanceId) {
+
+    public ResponseEntity getEipGroupByInstanceIdV2(String instanceId) {
 
         try {
-            Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
-
-            if (null != eipEntity) {
-                EipReturnDetail eipReturnDetail = new EipReturnDetail();
-
-                BeanUtils.copyProperties(eipEntity, eipReturnDetail);
-                eipReturnDetail.setResourceset(Resourceset.builder()
-                        .resourceId(eipEntity.getInstanceId())
-                        .resourceType(eipEntity.getInstanceType()).build());
-                return new ResponseEntity<>(ReturnMsgUtil.success(eipReturnDetail), HttpStatus.OK);
+            // Eip eipEntity = eipDaoService.findByInstanceId(instanceId);
+            List<Eip> eipList = eipRepository.findByInstanceIdAndIsDelete(instanceId, 0);
+            JSONArray eipInfo = new JSONArray();
+            JSONObject data = new JSONObject(new LinkedHashMap());
+            JSONArray eips = new JSONArray();
+            if (!eipList.isEmpty()) {
+                data.put("groupId",eipList.get(0).getGroupId());
+                data.put("region",eipList.get(0).getRegion());
+                data.put("billType",eipList.get(0).getBillType());
+                data.put("chargeMode",eipList.get(0).getChargeMode());
+                data.put("privateIpAddress",eipList.get(0).getPrivateIpAddress());
+                Resourceset res = Resourceset.builder()
+                        .resourceId(eipList.get(0).getInstanceId())
+                        .resourceType(eipList.get(0).getInstanceType()).build();
+                data.put("resourceSet",res);
+                for (Eip eip:eipList) {
+                    EipGroup eipReturnDetail = new EipGroup();
+                    BeanUtils.copyProperties(eipList.get(0), eipReturnDetail);
+                    if(eip.getSbwId()!=null) {
+                        Sbw sbw = sbwDaoService.getSbwById(eip.getSbwId());
+                        eipReturnDetail.setSbwName(sbw.getSbwName());
+                    }
+                    eips.add(eipReturnDetail);
+                }
+                data.put("eips",eips);
+                eipInfo.add(data);
+                JSONObject datas = new JSONObject();
+                datas.put("data",eipInfo);
+                return new ResponseEntity<>(datas, HttpStatus.OK);
             } else {
                 log.debug("Failed to find eip by instance id, instanceId:{}", instanceId);
                 return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
@@ -456,7 +715,66 @@ public class EipServiceImpl implements IEipService {
             }
 
         } catch (Exception e) {
-            log.error("Exception in getEipByInstanceId", e);
+            log.error("Exception in getEipGroupByInstanceIdV2", e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public ResponseEntity getEipGroupByIpAddress(String eip) {
+        try {
+            Eip eipEntity = eipDaoService.findByEipAddress(eip);
+            if (null != eipEntity) {
+                String groupId = eipEntity.getGroupId();
+                if(groupId == null) {
+                    log.warn("Failed to find group by eip, eip:{}", eip);
+                    return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                            "can not find group by this eip address:" + eip + ""),
+                            HttpStatus.NOT_FOUND);
+                }
+                JSONArray eipinfo = new JSONArray();
+                List<Eip> eipEntitys = eipDaoService.getEipListByGroupId(groupId);
+                JSONObject data = new JSONObject(new LinkedHashMap());
+                data.put("groupId",groupId);
+                for(Eip eips: eipEntitys)
+                {
+                    data.put("region",eips.getRegion());
+                    data.put("billType",eips.getBillType());
+                    data.put("chargeMode",eips.getChargeMode());
+                    data.put("privateIpAddress",eips.getPrivateIpAddress());
+                    Resourceset res = Resourceset.builder()
+                            .resourceId(eips.getInstanceId())
+                            .resourceType(eips.getInstanceType()).build();
+                    data.put("resourceSet",res);
+                    if(null != eips){
+                        EipGroup eipReturnDetail = new EipGroup();
+                        if(eips.getSbwId()!=null) {
+                            Sbw sbw = sbwDaoService.getSbwById(eips.getSbwId());
+                            eipReturnDetail.setSbwName(sbw.getSbwName());
+                        }
+                        BeanUtils.copyProperties(eips, eipReturnDetail);
+                        if (StringUtils.isNotBlank(eips.getEipV6Id())) {
+                            EipV6 eipV6 = eipV6Service.findEipV6ByEipV6Id(eips.getEipV6Id());
+                            if (eipV6 != null) {
+                                eipReturnDetail.setIpv6(eipV6.getIpv6());
+                            }
+                        }
+                        eipinfo.add(eipReturnDetail);
+                    }
+                }
+                JSONArray dataInfo = new JSONArray();
+                data.put("eips",eipinfo);
+                dataInfo.add(data);
+                JSONObject datas = new JSONObject();
+                datas.put("data",dataInfo);
+                return new ResponseEntity<>(datas,HttpStatus.OK);
+            } else {
+                log.warn("Failed to find eip by eip, eip:{}", eip);
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_NOT_FOUND,
+                        "can not find eip by this eip address:" + eip + ""),
+                        HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            log.error("Exception in getEipGroupByIpAddressV2", e);
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -539,8 +857,8 @@ public class EipServiceImpl implements IEipService {
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_PARA_SERVERID_ERROR)), HttpStatus.BAD_REQUEST);
         }
 
-        Eip eipCheck = eipRepository.findByInstanceIdAndIsDelete(serverId, 0);
-        if (eipCheck != null) {
+        List<Eip> eipChecks = eipRepository.findByInstanceIdAndIsDelete(serverId, 0);
+        if (!eipChecks.isEmpty()) {
             log.error("The binding failed,  the instanceid  has already bind  eip,instanceid", serverId);
             return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.EIP_BIND_HAS_BAND,
                     CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND)), HttpStatus.BAD_REQUEST);
@@ -579,7 +897,7 @@ public class EipServiceImpl implements IEipService {
     }
 
     @Override
-    public ResponseEntity eipUnbindWithInstacnce(String eipId, String instanceId) {
+    public ResponseEntity eipUnbindWithInstacnce(String eipId) {
         String code = ReturnStatus.SC_PARAM_ERROR;
         String msg = "param error";
         ActionResponse actionResponse = null;
@@ -587,8 +905,8 @@ public class EipServiceImpl implements IEipService {
         try {
             if (!StringUtils.isEmpty(eipId)) {
                 eipEntity = eipDaoService.getEipById(eipId);
-            } else if (!StringUtils.isEmpty(instanceId)) {
-                eipEntity = eipRepository.findByInstanceIdAndIsDelete(instanceId, 0);
+//            } else if (!StringUtils.isEmpty(instanceId)) {
+//                eipEntity = eipRepository.findByInstanceIdAndIsDelete(instanceId, 0);
             }
             if (null != eipEntity) {
                 String instanceType = eipEntity.getInstanceType();
@@ -796,5 +1114,145 @@ public class EipServiceImpl implements IEipService {
     public Eip getEipById(String id) {
         return eipRepository.findByIdAndIsDelete(id,0);
     }
+
+
+    /**
+     * eip bind with port
+     *
+     * @param groupId       id
+     * @param serverId server id
+     * @return result
+     */
+    //@Override
+    public ResponseEntity eipGroupBindWithInstance(String groupId, String type, String serverId, String portId, String addrIp) {
+
+        MethodReturn result = null;
+
+        if (StringUtils.isEmpty(serverId)) {
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_PARA_SERVERID_ERROR)), HttpStatus.BAD_REQUEST);
+        }
+
+        //Eip eipCheck = eipRepository.findByInstanceIdAndIsDelete(serverId, 0);
+       /* if (eipCheck != null) {
+            log.error("The binding failed,  the instanceid  has already bind  eip,instanceid", serverId);
+            return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.EIP_BIND_HAS_BAND,
+                    CodeInfo.getCodeMessage(CodeInfo.EIP_BIND_HAS_BAND)), HttpStatus.BAD_REQUEST);
+        }
+*/
+        switch (type) {
+            case HsConstants.ECS:
+                log.debug("bind a server:{} port:{} with id:{}", serverId, portId, groupId);
+                // 1：ecs
+                if (!StringUtils.isEmpty(portId)) {
+                    result = eipDaoService.associateInstanceWithEipGroup(groupId, serverId, type, portId, null);
+                }
+                break;
+            case HsConstants.CPS:
+            case HsConstants.SLB:
+                if (!StringUtils.isEmpty(addrIp)) {
+                    result = eipDaoService.associateInstanceWithEipGroup(groupId, serverId, type, null, addrIp);
+                }
+                break;
+            default:
+                log.warn("no support type param： " + type);
+                break;
+        }
+
+
+        if (null != result) {
+            if (result.getInnerCode().equals(ReturnStatus.SC_OK)) {
+                return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_OK, "success"), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(ReturnMsgUtil.error(result.getInnerCode(), result.getMessage()), HttpStatus.valueOf(result.getHttpCode()));
+            }
+        }
+        String msg = "Can not get bind responds when bind eip with server" + serverId;
+        log.error(msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(ReturnStatus.SC_PARAM_ERROR, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    //@Override
+    public ResponseEntity eipGroupUnbindWithInstacnce(String groupId, String instanceId) {
+        String code ;
+        String msg ;
+        ActionResponse actionResponse = null;
+        List<Eip> eipEntitys = null;
+        String flag = "success";
+        try {
+            if (!StringUtils.isEmpty(groupId)) {
+                eipEntitys = eipDaoService.getEipListByGroupId(groupId);
+            } else if (!StringUtils.isEmpty(instanceId)) {
+                eipEntitys = eipDaoService.findByInstanceIdAndIsDelete(instanceId);
+            }
+            if (null != eipEntitys && !eipEntitys.isEmpty()) {
+                for(Eip eip : eipEntitys){
+                    String instanceType = eip.getInstanceType();
+                    if (null != instanceType) {
+                        switch (instanceType) {
+                            case HsConstants.ECS:
+                                // 1：ecs
+                                actionResponse = eipDaoService.disassociateInstanceWithEip(eip);
+                                if(actionResponse != null){
+                                    if(!actionResponse.isSuccess()){
+                                        flag="failed";
+                                    }
+                                } else {
+                                    flag="failed";
+                                }
+                                break;
+                            case HsConstants.CPS:
+                            case HsConstants.SLB:
+                                actionResponse = eipDaoService.disassociateInstanceWithEip(eip);
+                                if(actionResponse != null){
+                                    if(actionResponse.isSuccess()){
+                                        flag="success";
+                                    }
+                                } else {
+                                    flag="failed";
+                                }
+                                break;
+                            default:
+                                //default ecs
+                                log.error("no support instance type " + instanceType);
+                                break;
+                        }
+                    } else {
+                        log.error("Failed to get instance type."+eip.getId());
+                    }
+                }
+
+            } else {
+                code = ReturnStatus.SC_NOT_FOUND;
+                msg = "can not find eip id ：" + groupId;
+                return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            log.error("Exception in unBindPort", e);
+            code = ReturnStatus.SC_INTERNAL_SERVER_ERROR;
+            msg = e.getMessage() + "";
+            return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        if(flag.equals("success")){
+            code = ReturnStatus.SC_OK;
+            msg = ("unbind successfully");
+            log.info(code);
+            log.info(msg);
+            return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.OK);
+        } else {
+            code = ReturnStatus.SC_OPENSTACK_SERVER_ERROR;
+            if(null != actionResponse ) {
+                msg = actionResponse.getFault();
+                log.error(msg);
+            }else{
+                msg="no response";
+            }
+            log.error(code);
+        }
+
+        log.error(msg);
+        return new ResponseEntity<>(ReturnMsgUtil.error(code, msg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
 }

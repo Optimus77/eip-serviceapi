@@ -92,7 +92,7 @@ public class RabbitMqServiceImpl {
         try {
             List<OrderProduct> orderProducts = eipOrder.getProductList();
             String groupId = null;
-            if( null != eipOrder.getConsoleCustomization() && eipOrder.getConsoleCustomization().containsKey("groupId")){
+            if(eipOrder.getConsoleCustomization().containsKey("groupId")){
                 groupId = CommonUtil.getUUID();
             }
 
@@ -127,7 +127,7 @@ public class RabbitMqServiceImpl {
         } catch (Exception e) {
             log.error(ConstantClassField.EXCEPTION_EIP_CREATE, e);
             if (null != eipId) {
-                eipDaoService.deleteEip(eipId,"eip", eipOrder.getToken());
+                eipDaoService.deleteEip(eipId, "ecs",eipOrder.getToken());
                 ret = ActionResponse.actionFailed("create eip success", HttpStatus.SC_EXPECTATION_FAILED);
 //                eipId = null;
             }
@@ -215,8 +215,9 @@ public class RabbitMqServiceImpl {
                         response = sbwDaoService.removeEipFromSbw(eipId, eipUpdate, eipOrder.getToken());
                         log.info("remove eip from sbw:{}", response);
                     }
-                } else if (eipUpdate.getBillType().equals(HsConstants.MONTHLY) ||
-                        eipUpdate.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                } else if (HsConstants.MONTHLY.equals(eipUpdate.getBillType())
+                        || HsConstants.HOURLYSETTLEMENT.equals(eipUpdate.getBillType())
+                        || HsConstants.HOURLYNETFLOW.equals(eipUpdate.getBillType())) {
                     response = eipDaoService.updateEipEntity(eipId, eipUpdate, eipOrder.getToken());
                 } else {
                     log.error(ConstantClassField.BILL_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
@@ -339,7 +340,7 @@ public class RabbitMqServiceImpl {
                 } else {
                     log.warn(checkRet.getMessage());
                 }
-                updateOrderResult(orderProduct, sbwId, null, reciveOrder.getStatusTime(), null, result);
+                updateOrderResult(orderProduct, sbwId, null, orderProduct.getStatusTime(), null, result);
             }
         } catch (Exception e) {
             if (sbwId != null) {
@@ -444,7 +445,7 @@ public class RabbitMqServiceImpl {
         String instanceStatus = HsConstants.STATUS_ERROR;
         ActionResponse response = null;
 
-        log.info("Recive soft down or delete EIP order:{}", JSONObject.toJSONString(softDown));
+        log.info("Recive soft down or delete SBW order:{}", JSONObject.toJSONString(softDown));
         List<SoftDownInstance> instanceList = softDown.getInstanceList();
         for (SoftDownInstance instance : instanceList) {
             String operateType = instance.getOperateType();
@@ -505,9 +506,6 @@ public class RabbitMqServiceImpl {
                 eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
             } else if (orderProductItem.getCode().equals(HsConstants.PROVIDER)) {
                 eipAllocateParam.setIpType(orderProductItem.getValue());
-            }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER) && orderProductItem.getValue().equals("1")){
-                //  流量计费
-                eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_TRAFFIC);
             } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
                     orderProductItem.getValue().equals(HsConstants.YES)) {
                 eipAllocateParam.setChargeMode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
@@ -518,7 +516,7 @@ public class RabbitMqServiceImpl {
                 eipAllocateParam.setSbwId(orderProductItem.getValue());
             }
         }
-        //eipAllocateParam.setGroupId(groupId);
+        eipAllocateParam.setGroupId(groupId);
 
         log.info("Get eip param from order:{}", JSONObject.toJSONString(eipAllocateParam));
         return eipAllocateParam;
@@ -542,9 +540,6 @@ public class RabbitMqServiceImpl {
                 eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
             } else if (orderProductItem.getCode().equals(HsConstants.SBW_ID)) {
                 eipUpdateParam.setSbwId(orderProductItem.getValue());
-            }else if (orderProductItem.getCode().equals(HsConstants.TRANSFER) && orderProductItem.getValue().equals("1")){
-                //  流量计费
-                eipUpdateParam.setChargemode(HsConstants.CHARGE_MODE_TRAFFIC);
             }
         }
 
@@ -619,7 +614,7 @@ public class RabbitMqServiceImpl {
         if (customization!=null){
             String description = customization.getString("description");
             if (StringUtils.isNotBlank(description)){
-                //updateParam.setDescription(description);
+                updateParam.setDescription(description);
             }
         }
 
@@ -632,7 +627,7 @@ public class RabbitMqServiceImpl {
             } else if (sbwItem.getCode().equals(HsConstants.SBW_NAME)) {
                 updateParam.setSbwName(sbwItem.getValue());
             }else if (sbwItem.getCode().equals(HsConstants.PROVIDER)){
-                //updateParam.setIpType(sbwItem.getValue());
+                updateParam.setIpType(sbwItem.getValue());
             }
         }
 

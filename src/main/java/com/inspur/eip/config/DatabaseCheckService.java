@@ -15,7 +15,7 @@ public class DatabaseCheckService implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args)  {
-        log.info("***************************init 9.19***********************");
+        log.info("***************************init 9.20***********************");
 
     }
 
