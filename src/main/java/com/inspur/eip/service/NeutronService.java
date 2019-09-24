@@ -235,6 +235,34 @@ public  class NeutronService {
     }
 
     synchronized ActionResponse disassociateAndDeleteFloatingIp(String floatingIp, String fipId, String serverId,
+                                                   String region, String token) {
+        boolean inUser = slbService.isFipInUse(serverId);
+        if(null == serverId || null == fipId || inUser){
+            if(null != fipId && !inUser){
+                deleteFloatingIp(region, fipId, serverId, token);
+            }
+            return ActionResponse.actionSuccess();
+        }
+        try {
+            OSClientV3 osClientV3 = CommonUtil.getOsClientV3Util(region, token);
+            Server server = osClientV3.compute().servers().get(serverId);
+            if (server == null) {
+                log.info("Can not found serverid:{}", serverId);
+            } else {
+                ActionResponse actionResponse = osClientV3.compute().floatingIps().removeFloatingIP(server, floatingIp);
+                log.info("Remove fip from server: serverid:{}, fip:{}, result:{}",
+                        serverId, floatingIp, actionResponse.toString());
+            }
+
+            boolean result = osClientV3.networking().floatingip().delete(fipId).isSuccess();
+            log.info("disassociate and delete fip:{}, fipid:{}, serverid:{}, deleteResult:{}",
+                    floatingIp, fipId, serverId, result);
+        }catch (Exception e){
+            log.error("Exception  when disassociateInstanceWithEip", e);
+        }
+        return  ActionResponse.actionSuccess();
+    }
+    synchronized ActionResponse disassociateAndDeleteFloatingIp(String floatingIp, String fipId, String serverId,
                                                                 String region) throws KeycloakTokenException {
 
         if(null == serverId || null == fipId || slbService.isFipInUse(serverId)){

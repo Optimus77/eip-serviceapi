@@ -215,8 +215,9 @@ public class RabbitMqServiceImpl {
                         response = sbwDaoService.removeEipFromSbw(eipId, eipUpdate, eipOrder.getToken());
                         log.info("remove eip from sbw:{}", response);
                     }
-                } else if (eipUpdate.getBillType().equals(HsConstants.MONTHLY) ||
-                        eipUpdate.getBillType().equals(HsConstants.HOURLYSETTLEMENT)) {
+                } else if (HsConstants.MONTHLY.equals(eipUpdate.getBillType())
+                        || HsConstants.HOURLYSETTLEMENT.equals(eipUpdate.getBillType())
+                        || HsConstants.HOURLYNETFLOW.equals(eipUpdate.getBillType())) {
                     response = eipDaoService.updateEipEntity(eipId, eipUpdate, eipOrder.getToken());
                 } else {
                     log.error(ConstantClassField.BILL_TYPE_NOT_SUPPORT, eipOrder.getOrderType());
