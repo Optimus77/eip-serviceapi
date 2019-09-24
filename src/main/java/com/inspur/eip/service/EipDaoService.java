@@ -147,7 +147,7 @@ public class EipDaoService {
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_NOT_FOUND);
             }
-            if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE)){
+            if (eipEntity.getStatus().equalsIgnoreCase(HsConstants.ACTIVE) && (null == userModel)){
                 msg = "Failed to delete eip,please unbind eip first." + eipEntity.toString();
                 log.error(msg);
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
@@ -162,15 +162,25 @@ public class EipDaoService {
                 return ActionResponse.actionFailed(HsConstants.FORBIDEN, HttpStatus.SC_FORBIDDEN);
             }
             if (null != eipEntity.getFloatingIpId() ) {
-
-                if(neutronService.deleteFloatingIp(eipEntity.getRegion(), eipEntity.getFloatingIpId(), eipEntity.getInstanceId(), token)){
+                ActionResponse actionResponse = neutronService.disassociateAndDeleteFloatingIp(eipEntity.getFloatingIp(),
+                        eipEntity.getFloatingIpId(),
+                        eipEntity.getInstanceId(), eipEntity.getRegion(), token);
+                if (actionResponse.isSuccess()) {
                     eipEntity.setFloatingIp(null);
                     eipEntity.setFloatingIpId(null);
-                } else {
+                }else{
                     msg = "Failed to delete floating ip, floatingIpId:" + eipEntity.getFloatingIpId();
                     log.error(msg);
                 }
 
+                MethodReturn fireWallReturn = providerService.delNatAndQos(eipEntity);
+                if (fireWallReturn.getHttpCode() != HttpStatus.SC_OK) {
+                    msg = fireWallReturn.getMessage();
+                    log.error(msg);
+                    eipEntity.setStatus(HsConstants.ERROR);
+                } else {
+                    eipEntity.setStatus(HsConstants.DOWN);
+                }
             }
             if(eipEntity.getEipV6Id() != null){
                 ActionResponse delV6Ret = eipV6DaoService.deleteEipV6(eipEntity.getEipV6Id(), token);
@@ -390,7 +400,7 @@ public class EipDaoService {
                 eip.setFloatingIp(floatingIP.getFloatingIpAddress());
                 eip.setFloatingIpId(floatingIP.getId());
             } else {
-                eip.setPrivateIpAddress(fip);
+                eip.setFloatingIp(fip);
             }
             fireWallReturn = providerService.addNatAndQos(eip, eip.getFloatingIp(), eip.getEipAddress(),
                     eip.getBandWidth(), eip.getFirewallId());
