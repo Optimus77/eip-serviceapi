@@ -63,13 +63,77 @@ public class OpenApiEipServiceImplTest {
         OpenCreateEip openCreateEip = new OpenCreateEip();
         openCreateEip.setBillType ("monthly");
         openCreateEip.setDuration("notnull");
-        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\"}]}}",HttpStatus.OK);
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\",\"productTypeList\":[{\"code\":\"EIP\",\"itemList\":[{\"code\":\"bandwidth\"},{\"code\":\"sbwName\"}]}]}]}}", HttpStatus.OK);
         PowerMockito.when(HttpClientUtil.doGet(Mockito.anyString(),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
         PowerMockito.when(HttpClientUtil.doGet(eq(null),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
         PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(),Mockito.anyString(),Mockito.anyMap())).thenReturn(responseEntity);
         ResponseEntity result = openApiEipService.OpenapiCreateEip(openCreateEip,"23");
         Assert.assertEquals(result.getStatusCode().value(),200);
+    }
 
+    @Test
+    public void openapiCreateEip1() throws IOException, URISyntaxException {
+        OpenCreateEip openCreateEip = new OpenCreateEip();
+        openCreateEip.setBillType ("monthly");
+        openCreateEip.setDuration("notnull");
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\"}]}}",HttpStatus.OK);
+        PowerMockito.when(HttpClientUtil.doGet(Mockito.anyString(),Mockito.anyMap(),Mockito.anyMap())).thenReturn(null);
+        PowerMockito.when(HttpClientUtil.doGet(eq(null),Mockito.anyMap(),Mockito.anyMap())).thenReturn(null);
+        PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(),Mockito.anyString(),Mockito.anyMap())).thenReturn(responseEntity);
+        ResponseEntity result = openApiEipService.OpenapiCreateEip(openCreateEip,"23");
+        Assert.assertEquals(result.getStatusCode().value(),200);
+    }
+
+    @Test
+    public void openapiCreateEip2() throws IOException, URISyntaxException {
+        OpenCreateEip openCreateEip = new OpenCreateEip();
+        openCreateEip.setBillType ("monthly");
+        openCreateEip.setDuration("notnull");
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\"}]}}",HttpStatus.CREATED);
+        PowerMockito.when(HttpClientUtil.doGet(Mockito.anyString(),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doGet(eq(null),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(),Mockito.anyString(),Mockito.anyMap())).thenReturn(responseEntity);
+        ResponseEntity result = openApiEipService.OpenapiCreateEip(openCreateEip,"23");
+        Assert.assertEquals(result.getStatusCode().value(),201);
+    }
+
+    @Test
+    public void openapiCreateEip3() throws IOException, URISyntaxException {
+        OpenCreateEip openCreateEip = new OpenCreateEip();
+        openCreateEip.setBillType ("monthly");
+        openCreateEip.setDuration("notnull");
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[]}}",HttpStatus.OK);
+        PowerMockito.when(HttpClientUtil.doGet(Mockito.anyString(),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doGet(eq(null),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(),Mockito.anyString(),Mockito.anyMap())).thenReturn(responseEntity);
+        ResponseEntity result = openApiEipService.OpenapiCreateEip(openCreateEip,"23");
+        Assert.assertEquals(result.getStatusCode().value(),200);
+    }
+
+    @Test
+    public void openapiCreateEip4() throws IOException, URISyntaxException {
+        OpenCreateEip openCreateEip = new OpenCreateEip();
+        openCreateEip.setBillType ("monthly");
+        openCreateEip.setDuration("notnull");
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"eip\"}]}}",HttpStatus.OK);
+        PowerMockito.when(HttpClientUtil.doGet(Mockito.anyString(),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doGet(eq(null),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(),Mockito.anyString(),Mockito.anyMap())).thenReturn(responseEntity);
+        ResponseEntity result = openApiEipService.OpenapiCreateEip(openCreateEip,"23");
+        Assert.assertEquals(result.getStatusCode().value(),200);
+    }
+
+    @Test
+    public void openapiCreateEip5() throws IOException, URISyntaxException {
+        OpenCreateEip openCreateEip = new OpenCreateEip();
+        openCreateEip.setBillType ("monthly");
+        openCreateEip.setDuration("notnull");
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\"}",HttpStatus.OK);
+        PowerMockito.when(HttpClientUtil.doGet(Mockito.anyString(),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doGet(eq(null),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(),Mockito.anyString(),Mockito.anyMap())).thenReturn(responseEntity);
+        ResponseEntity result = openApiEipService.OpenapiCreateEip(openCreateEip,"23");
+        Assert.assertEquals(result.getStatusCode().value(),200);
     }
 
     @Test
@@ -97,11 +161,35 @@ public class OpenApiEipServiceImplTest {
     }
 
     @Test
+    public void openapiCreateEipAddSbw1() throws Exception {
+        OpenCreateEip openCreateEip = new OpenCreateEip();
+        openCreateEip.setSbwId("sbw");
+        Sbw sbw = Sbw.builder().bandWidth(50).build();
+        Optional<Sbw> optional = Optional.of(sbw);
+        Mockito.doReturn(optional).when(sbwRepository).findById(Mockito.anyString());
+
+        PowerMockito.mockStatic(HttpsClientUtil.class);
+        Map<String, String> map = new HashMap<>();
+        map.put("name", "alien");
+        PowerMockito.when(HttpsClientUtil.getHeader()).thenReturn(map);
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\"}]}}",HttpStatus.OK);
+        PowerMockito.when(HttpClientUtil.doGet(Mockito.anyString(),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+
+        ResponseEntity responseEntity1 = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\",\"productTypeList\":[{\"code\":\"eip\",\"itemList\":[{\"code\":\"bandwidth\"},{\"code\":\"IP\"},{\"code\":\"transfer\"},{\"code\":\"provider\"},{\"code\":\"is_SBW\"},{\"code\":\"sbwName\"},{\"code\":\"sbwId\"}]}]}]}}",HttpStatus.OK);
+        PowerMockito.when(HttpClientUtil.doGet(eq(null),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity1);
+
+//        PowerMockito.when(HttpClientUtil.doGet(eq(null),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
+        PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(),Mockito.anyString(),Mockito.anyMap())).thenReturn(responseEntity);
+        ResponseEntity result = openApiEipService.OpenapiCreateEipAddSbw(openCreateEip, "token");
+        Assert.assertEquals(result.getStatusCode().value(),200);
+    }
+
+    @Test
     public void openapiDeleteEip() throws IOException, URISyntaxException {
         OpenCreateEip openCreateEip = new OpenCreateEip();
         openCreateEip.setSbwId("sbw");
         openCreateEip.setEipId("eipId");
-        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\"},{\"productTypeList\":\"abc\"}]}}",HttpStatus.OK);
+        ResponseEntity responseEntity = new ResponseEntity("{\"code\":\"0\",\"result\":{\"productLineList\":[{\"code\":\"EIP\",\"productTypeList\":[{\"code\":\"EIP\",\"itemList\":[{\"code\":\"bandwidth\"},{\"code\":\"sbwName\"}]}]}]}}", HttpStatus.OK);
         PowerMockito.when(HttpClientUtil.doGet(eq(null),Mockito.anyMap(),Mockito.anyMap())).thenReturn(responseEntity);
         PowerMockito.when(HttpClientUtil.doPost(Mockito.anyString(),Mockito.anyString(),Mockito.anyMap())).thenReturn(responseEntity);
         ResponseEntity result = openApiEipService.OpenapiDeleteEip(openCreateEip,"token");
