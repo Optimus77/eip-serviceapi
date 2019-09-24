@@ -134,7 +134,7 @@ public class EipGroupController {
             return new ResponseEntity<>("To be wrong.", HttpStatus.FORBIDDEN);
         } else if(resourceId != null) {
             log.debug("EipGroupController get eip by instance id:{} ", resourceId);
-            return eipService.getEipByInstanceIdV2(resourceId);
+            return eipService.getEipGroupByInstanceIdV2(resourceId);
         } else if (null != eipAddress){
             log.debug("EipGroupController get eip by ip:{} ", eipAddress);
 

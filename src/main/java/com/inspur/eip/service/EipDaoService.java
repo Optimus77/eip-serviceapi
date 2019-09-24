@@ -400,7 +400,7 @@ public class EipDaoService {
                 eip.setFloatingIp(floatingIP.getFloatingIpAddress());
                 eip.setFloatingIpId(floatingIP.getId());
             } else {
-                eip.setPrivateIpAddress(fip);
+                eip.setFloatingIp(fip);
             }
             fireWallReturn = providerService.addNatAndQos(eip, eip.getFloatingIp(), eip.getEipAddress(),
                     eip.getBandWidth(), eip.getFirewallId());
