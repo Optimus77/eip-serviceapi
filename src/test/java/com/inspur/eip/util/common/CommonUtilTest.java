@@ -27,11 +27,6 @@ public class CommonUtilTest {
     }
 
     @Test
-    public void countMinuteFromPoint(){
-        int result = CommonUtil.countMinuteFromPoint();
-    }
-
-    @Test
     public void getUserId() throws KeycloakTokenException {
         try {
             String result = CommonUtil.getUserId();

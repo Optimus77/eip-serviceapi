@@ -10,7 +10,9 @@ import com.inspur.eip.exception.KeycloakTokenException;
 import com.inspur.eip.repository.EipPoolRepository;
 import com.inspur.eip.repository.EipRepository;
 import com.inspur.eip.util.common.CommonUtil;
+import com.inspur.eip.util.common.DateUtils4Jdk8;
 import com.inspur.eip.util.common.MethodReturnUtil;
+import com.inspur.eip.util.constant.HillStoneConfigConsts;
 import com.inspur.eip.util.constant.HsConstants;
 import com.inspur.eip.util.constant.ReturnStatus;
 import lombok.extern.slf4j.Slf4j;
@@ -19,9 +21,7 @@ import org.apache.http.HttpStatus;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -93,14 +93,18 @@ public class EipDaoService {
                     eipEntity.getEipAddress(), eipEntity.getId());
             return null;
         }
-        //按需 且 计费模式为流量计费
-//        if (HsConstants.HOURLYSETTLEMENT.equalsIgnoreCase(eipConfig.getBillType()) &&
-//                HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipConfig.getChargeMode())){
-//            //创建地址簿 和 监控地址簿
-//            if (providerService.cmdCreateOrDeleteAddressBook(eip.getIp(), eip.getFireWallId(), true)){
-//                providerService.cmdOperateStatisticsBook(eip.getIp(), eip.getFireWallId(), true);
-//            }
-//        }
+        //计费方式为流量计费
+        if (HsConstants.HOURLYNETFLOW.equals(eipConfig.getBillType())){
+            //创建地址簿 和 监控地址簿
+            if (providerService.cmdCreateOrDeleteAddressBook(eip.getIp(), eip.getFireWallId(), true)){
+                boolean statisticsBook = providerService.cmdOperateStatisticsBook(eip.getIp(), eip.getFireWallId(), true);
+                if (!statisticsBook){
+                    log.error("The statistics book created failed eip:{}",eip.getIp());
+                }
+            }else {
+                log.error("The address book was failed eip:{}",eip.getIp());
+            }
+        }
 
         Eip eipMo = new Eip();
         eipMo.setEipAddress(eip.getIp());
@@ -121,6 +125,7 @@ public class EipDaoService {
         eipMo.setUserId(CommonUtil.getUserId(token));
         eipMo.setUserName(CommonUtil.getUsername(token));
         eipMo.setIsDelete(0);
+        eipMo.setNetFlow(0L);
         if (null != operater) {
             eipMo.setName(operater);
         }
@@ -176,9 +181,23 @@ public class EipDaoService {
                 }
             }
             //删除 监控集和地址簿，需保证关联的监控集已经删掉，否则无法删除地址簿
-//            if(HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
-//                providerService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(),eipEntity.getFirewallId(),false);
-//            }
+            if(HsConstants.HOURLYNETFLOW.equalsIgnoreCase(eipEntity.getBillType())){
+                //释放前向bss发送流量统计数据
+                int i = DateUtils4Jdk8.countMinuteFromPoint();
+                //如果释放时不是整点时刻，即向bss测推送绑定解绑期间统计的流量数据，如果是整点，则以定时任务为准
+                if (i !=0){
+                    flowService.reportNetFlowByDbBeforeRelease(eipEntity);
+                }
+                if( providerService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false)){
+                    if(!providerService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false)){
+                        log.error("The address book user delete failed eip:{}",eipEntity.getEipAddress());
+                    }
+                }else {
+                    log.error("The statistics book user delete failed eip:{}",eipEntity.getEipAddress());
+                }
+            }
+            //释放后清零流量统计数据
+            eipEntity.setNetFlow(0L);
             eipEntity.setIsDelete(1);
             eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
             eipEntity.setEipV6Id(null);
@@ -245,10 +264,24 @@ public class EipDaoService {
                     return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 }
             }
-            //删除地址簿，需保证关联的监控集已经删掉
-//            if(HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
-//                providerService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(),eipEntity.getFirewallId(),false);
-//            }
+            //删除监控集和地址簿，需保证先后顺序，否则删除异常
+            if(HsConstants.HOURLYNETFLOW.equalsIgnoreCase(eipEntity.getBillType())){
+                //释放前向bss发送流量统计数据
+                int i = DateUtils4Jdk8.countMinuteFromPoint();
+                //如果释放时不是整点时刻，即向bss测推送绑定解绑期间统计的流量数据，如果是整点，则以定时任务为准
+                if (i !=0){
+                    flowService.reportNetFlowByDbBeforeRelease(eipEntity);
+                }
+                if( providerService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false)){
+                    if(!providerService.cmdCreateOrDeleteAddressBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false)){
+                        log.error("The address book admin delete failed eip:{}",eipEntity.getEipAddress());
+                    }
+                }else {
+                    log.error("The statistics book admin deleted failed eip:{}",eipEntity.getEipAddress());
+                }
+            }
+            //释放后清零流量统计数据
+            eipEntity.setNetFlow(0L);
             eipEntity.setIsDelete(1);
             eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
             eipEntity.setEipV6Id(null);
@@ -357,7 +390,7 @@ public class EipDaoService {
                 eip.setFloatingIp(floatingIP.getFloatingIpAddress());
                 eip.setFloatingIpId(floatingIP.getId());
             } else {
-                eip.setPrivateIpAddress(fip);
+                eip.setFloatingIp(fip);
             }
             fireWallReturn = providerService.addNatAndQos(eip, eip.getFloatingIp(), eip.getEipAddress(),
                     eip.getBandWidth(), eip.getFirewallId());
@@ -375,9 +408,14 @@ public class EipDaoService {
                     return MethodReturnUtil.error(HttpStatus.SC_INTERNAL_SERVER_ERROR, returnStat, returnMsg);
                 }
                 //流量计费类型的eip,从地址簿中删除匹配条件--floating ip
-//                if (HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eip.getChargeMode())){
-//                    providerService.cmdInsertOrRemoveParamInAddressBook(eip.getEipAddress(),eip.getFloatingIp(),"ip",eip.getFirewallId(),true);
-//                }
+                if (HsConstants.HOURLYNETFLOW.equalsIgnoreCase(eip.getBillType())){
+                    boolean insertResult = providerService.cmdInsertOrRemoveParamInAddressBook(eip.getEipAddress(),
+                            eip.getFloatingIp(),
+                            HsConstants.IP.toLowerCase(),
+                            eip.getFirewallId(),
+                            true);
+                    log.info("insert ip to address book result:{}",insertResult);
+                }
                 eip.setInstanceId(serverId);
                 eip.setInstanceType(instanceType);
                 eip.setPortId(portId);
@@ -410,7 +448,6 @@ public class EipDaoService {
     public ActionResponse disassociateInstanceWithEip(Eip eipEntity) {
 
         String msg = null;
-
         if (null == eipEntity) {
             log.error("disassociateInstanceWithEip In disassociate process,failed to find the eip ");
             return ActionResponse.actionFailed("Not found.", HttpStatus.SC_NOT_FOUND);
@@ -456,16 +493,27 @@ public class EipDaoService {
                 return ActionResponse.actionFailed(msg, HttpStatus.SC_INTERNAL_SERVER_ERROR);
             }
             //从地址簿中删除匹配条件--floating ip
-//            if (HsConstants.CHARGE_MODE_TRAFFIC.equalsIgnoreCase(eipEntity.getChargeMode())){
-//                //解绑前向bss发送流量统计数据
-//                int i = CommonUtil.countMinuteFromPoint();
-//                //如果是整点，则以定时任务为准
-//                if (i !=0){
-//                    flowService.releaseReportFlowAccount(i,eipEntity);
-//                }
-//                //删除监控集地址本
-//                boolean statistics = providerService.cmdOperateStatisticsBook(eipEntity.getEipAddress(), eipEntity.getFirewallId(), false);
-//            }
+            if (HsConstants.HOURLYNETFLOW.equalsIgnoreCase(eipEntity.getBillType())){
+
+                //释放保存防火墙历史流量数据
+                int i = DateUtils4Jdk8.countMinuteFromPoint();
+                //如果是整点，则以定时任务为准，不是准点则将流量保存在数据库
+                if (i !=0){
+                    Map<String, Long> map = flowService.staticsFlowByPeriod(i, eipEntity.getEipAddress(), "lasthour", eipEntity.getFirewallId());
+                    if (map != null && map.containsKey(HillStoneConfigConsts.UP_TYPE)){
+                        Long netFlow = eipEntity.getNetFlow();
+                        netFlow = netFlow ==null ?0L :netFlow;
+                        eipEntity.setNetFlow( netFlow+ map.get(HillStoneConfigConsts.UP_TYPE));
+                    }
+                }
+                //从地址簿中移出fip
+                boolean removeResult = providerService.cmdInsertOrRemoveParamInAddressBook(eipEntity.getEipAddress(),
+                        eipEntity.getFloatingIp(),
+                        HsConstants.IP.toLowerCase(),
+                        eipEntity.getFirewallId(),
+                        false);
+                log.info("remove ip from address book result:{}",removeResult);
+            }
             eipEntity.setInstanceId(null);
             eipEntity.setInstanceType(null);
             eipEntity.setPrivateIpAddress(null);
@@ -696,8 +744,8 @@ public class EipDaoService {
 
 
     @Transactional
-    public List<Eip> findFlowAccountEipList(String chargeMode){
-        return eipRepository.findByChargeModeAndIsDelete(chargeMode, 0);
+    public List<Eip> findFlowAccountEipList(String billType){
+        return eipRepository.findByBillTypeAndIsDelete(billType, 0);
     }
 
     @Transactional(rollbackFor = Exception.class)
