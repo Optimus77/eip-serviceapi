@@ -32,5 +32,5 @@ databaseChangeLog:
       ##      file: db/changelog/eip/mysql/t201906/2019070401-ddl-alter-table-engine-zerah.xml
   #- include:
        #file: db\changelog\eip\mysql\t201908\2019082103-ddl-eip-sbw-eipv6-add-columName-modify-filed-name-liuyesheng.xml
-   - include:
+  - include:
       file: db\changelog\eip\mysql\t201909\2019092002-ddl-eip-sbw-eippool-add-columName-modify-filed-name-lhl.xml
