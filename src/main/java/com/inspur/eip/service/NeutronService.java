@@ -149,6 +149,13 @@ public  class NeutronService {
         NetFloatingIPBuilder builder = new NeutronFloatingIP.FloatingIPConcreteBuilder();
         builder.floatingNetworkId(networkId);
         builder.portId(portId);
+/*        NeutronFloatingIP neutronFloatingIP=new NeutronFloatingIP();
+        neutronFloatingIP.setFixedIpAddress("");
+        neutronFloatingIP.setPortId(portId);
+        neutronFloatingIP.setFloatingNetworkId(networkId);
+        netFloatingIP = osClientV3.networking().floatingip().create(neutronFloatingIP);*/
+
+
 
         netFloatingIP = osClientV3.networking().floatingip().create(builder.build());
         if (netFloatingIP != null) {

@@ -1,0 +1,25 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <changeSet author="liuys" id="201909200101" context="staging-cn-south-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="eip" columnName="service_end_time"></columnExists>
+        </preConditions>
+
+        <dropColumn tableName="eip" columnName="service_end_time"/>
+        <comment>staging数据库eip表删除service_end_time</comment>
+    </changeSet>
+
+    <changeSet author="liuys" id="201909200102" context="staging-cn-south-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="eip" columnName="service_start_time"></columnExists>
+        </preConditions>
+
+        <dropColumn tableName="eip" columnName="service_start_time"/>
+        <comment>staging数据库eip表删除service_start_time</comment>
+    </changeSet>
+
+</databaseChangeLog>

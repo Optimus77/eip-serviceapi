@@ -87,11 +87,11 @@ public class EipGroupControllerTest {
         ResponseEntity responseEntity = eipGroupController.getEipByIPAddress("11","22");
         Assert.assertEquals(responseEntity.getStatusCode().value(),403);
     }
-    @Test
+    /*@Test
     public void getEipByIPAddressCase2(){
         ResponseEntity responseEntity = eipGroupController.getEipByIPAddress("11",null);
         Assert.assertEquals(responseEntity.getStatusCode().value(),200);
-    }
+    }*/
     @Test
     public void getEipByIPAddressCase3(){
         ResponseEntity responseEntity = eipGroupController.getEipByIPAddress(null,"22");
