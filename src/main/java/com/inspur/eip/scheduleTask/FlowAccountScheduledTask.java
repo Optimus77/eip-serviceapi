@@ -41,7 +41,7 @@ public class FlowAccountScheduledTask {
     private EipRepository eipRepository;
 
     //    异步统计每小时流量数据,并发送给Bss侧
-    @Scheduled(cron = "0 0/5 * * * *")
+    @Scheduled(cron = "0 0 0/1 * * *")
     @Async
     public void oneHourReportFlowAccount(){
         try {
