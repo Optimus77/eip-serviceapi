@@ -166,7 +166,7 @@ public class LbService implements IDevProvider {
                 if (snatId != null) {
                     eip.setSnatId(snatId);
                     log.info("add nat and  successfully. snat:{}, dnat:{}", eip.getSnatId(), eip.getDnatId());
-                    if (eip.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
+                    if (eip.getChargeMode().equalsIgnoreCase(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
                         Optional<Sbw> optional = sbwRepository.findById(eip.getSbwId());
                         if (optional.isPresent()) {
                             pipId = this.addFipToSbwQos(eip.getFirewallId(), fipAddress, optional.get().getId());
@@ -226,7 +226,7 @@ public class LbService implements IDevProvider {
         }
         String innerIp = eip.getFloatingIp();
         boolean removeRet = false;
-        if (eip.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH) && eip.getSbwId() != null) {
+        if (eip.getChargeMode().equalsIgnoreCase(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH) && eip.getSbwId() != null) {
             removeRet = this.removeFipFromSbwQos(eip.getFirewallId(), innerIp, eip.getSbwId());
         } else if (innerIp != null && eip.getPipId() != null) {
             removeRet = this.delQos(eip.getPipId(), eip.getEipAddress(), innerIp, eip.getFirewallId());

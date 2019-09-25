@@ -64,33 +64,36 @@ public class FlowService {
         }
 // flowStr not null
         JSONObject json = firewallService.cmdShowStatisticsByAddressBook(entryName, period, firewallId);
-        String[] upArrs = json.getString(HillStoneConfigConsts.UP_TYPE).replace("UP  :", " ").trim().split(SPACE_REGEX);
-        String[] downArrs = json.getString(HillStoneConfigConsts.DOWN_TYPE).replace("DOWN:", " ").trim().split(SPACE_REGEX);
+        if (json!=null){
+            String[] upArrs = json.getString(HillStoneConfigConsts.UP_TYPE).replace("UP  :", " ").trim().split(SPACE_REGEX);
+            String[] downArrs = json.getString(HillStoneConfigConsts.DOWN_TYPE).replace("DOWN:", " ").trim().split(SPACE_REGEX);
 
-        int[] upInt = new int[upArrs.length];
-        int[] downInt = new int[downArrs.length];
-        if (upInt.length == downInt.length) {
-            for (int i = 0; i < upInt.length; i++) {
-                upInt[i] = Integer.parseInt(upArrs[i]);
-                downInt[i] = Integer.parseInt(downArrs[i]);
+            int[] upInt = new int[upArrs.length];
+            int[] downInt = new int[downArrs.length];
+            if (upInt.length == downInt.length) {
+                for (int i = 0; i < upInt.length; i++) {
+                    upInt[i] = Integer.parseInt(upArrs[i]);
+                    downInt[i] = Integer.parseInt(downArrs[i]);
+                }
             }
-        }
-        long upFlow = 0;
-        long downFlow = 0;
+            long upFlow = 0;
+            long downFlow = 0;
 //  1：每分钟统计  5：每五分钟统计  0:统计所有
-        if (lineNum <= 60 && lineNum >= 1) {
-            for (int i = 0; i < lineNum * 2; i++) {
-                upFlow = upFlow + upInt[i];
-                downFlow = downFlow + downInt[i];
-            }
+            if (lineNum <= 60 && lineNum >= 1) {
+                for (int i = 0; i < lineNum * 2; i++) {
+                    upFlow = upFlow + upInt[i];
+                    downFlow = downFlow + downInt[i];
+                }
 
-            flowMap.put(HillStoneConfigConsts.UP_TYPE, upFlow);
-            flowMap.put(HillStoneConfigConsts.DOWN_TYPE, downFlow);
-            flowMap.put(HillStoneConfigConsts.SUM_TYPE, upFlow + downFlow);
-        } else {
-            log.error(ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage() + "lineNum:{}", lineNum);
-            throw new EipBadRequestException(ErrorStatus.ENTITY_BADREQUEST_ERROR.getCode(), ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage());
+                flowMap.put(HillStoneConfigConsts.UP_TYPE, upFlow);
+                flowMap.put(HillStoneConfigConsts.DOWN_TYPE, downFlow);
+                flowMap.put(HillStoneConfigConsts.SUM_TYPE, upFlow + downFlow);
+            } else {
+                log.error(ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage() + "lineNum:{}", lineNum);
+                throw new EipBadRequestException(ErrorStatus.ENTITY_BADREQUEST_ERROR.getCode(), ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage());
+            }
         }
+        log.debug("Statistics json:{}",json);
         return flowMap;
     }
 
@@ -162,7 +165,7 @@ public class FlowService {
         List<OrderProductItem> itemList = new ArrayList<>();
 
         OrderProductItem bandwidth = new OrderProductItem();
-        bandwidth.setCode(HsConstants.BANDWIDTH);
+        bandwidth.setCode(HsConstants.ITEM_BANDWIDTH);
         bandwidth.setValue(String.valueOf(eip.getBandWidth()));
         //暂时只传上行流量
         OrderProductItem upItem = new OrderProductItem();

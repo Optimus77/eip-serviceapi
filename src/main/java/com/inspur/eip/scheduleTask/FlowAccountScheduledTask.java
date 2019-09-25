@@ -55,12 +55,16 @@ public class FlowAccountScheduledTask {
                         FlowAccount2Bss flowBean = flowService.getFlowAccount2BssBean(eip, up, true);
                         //给 Bss发送报文
                         flowService.sendOrderMessageToBss(flowBean);
+                    }else {
+                        log.warn("This eip cant statitics from firewall ,eip:{}",eip );
+                        FlowAccount2Bss flowBean = flowService.getFlowAccount2BssBean(eip, 0L, true);
+                        flowService.sendOrderMessageToBss(flowBean);
                     }
                 }
             }
             return;
         } catch (Exception e) {
-            log.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()+":{}",e.getMessage());
+            log.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()+":{}",e);
         }
     }
 }

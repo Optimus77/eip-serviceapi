@@ -9,6 +9,7 @@ import com.inspur.eip.entity.fw.Firewall;
 import com.inspur.eip.exception.EipInternalServerException;
 import com.inspur.eip.util.common.CommonUtil;
 import com.inspur.eip.util.constant.ErrorStatus;
+import com.inspur.eip.util.constant.HsConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -155,13 +156,16 @@ public class FireWallCommondService {
                         json.put("DOWN",downLine.append(line.substring(line.lastIndexOf("\b")+1)));
                     } else if (line.contains("^-----")){
                         log.error(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND+":{}",line);
-                        throw new EipInternalServerException(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getCode(),ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getMessage());
+                        JSONObject object = new JSONObject();
+                        object.put(HsConstants.SUCCESS,"false");
+                        return object;
+//                        throw new EipInternalServerException(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getCode(),line);
                     }
                 }
             }
             if (json.size()<2 ){
                 log.error(ErrorStatus.SC_FIREWALL_SERVER_ERROR +"show result:{}",json);
-                throw new EipInternalServerException(ErrorStatus.SC_FIREWALL_SERVER_ERROR.getCode(),ErrorStatus.SC_FIREWALL_SERVER_ERROR.getMessage());
+                throw new EipInternalServerException(ErrorStatus.SC_FIREWALL_SERVER_ERROR.getCode(),json.toJSONString());
             }
             return json;
         } catch (Exception e) {

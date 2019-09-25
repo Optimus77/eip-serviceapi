@@ -204,7 +204,7 @@ public class FirewallService implements IDevProvider{
             if (dnatRuleId != null) {
                 snatRuleId = addSnat(fipAddress, eipAddress, firewallId);
                 if (snatRuleId != null) {
-                    if (eip.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH)) {
+                    if (eip.getChargeMode().equalsIgnoreCase(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH)) {
                         Optional<Sbw> optional = sbwRepository.findById(eip.getSbwId());
                         if (optional.isPresent()) {
                             pipId = addFipToSbwQos(eip.getFirewallId(), fipAddress, optional.get().getId());
@@ -274,7 +274,7 @@ public class FirewallService implements IDevProvider{
 
         String innerIp = eipEntity.getFloatingIp();
         boolean removeRet;
-        if (eipEntity.getChargeMode().equalsIgnoreCase(HsConstants.SHAREDBANDWIDTH) && eipEntity.getSbwId() != null) {
+        if (eipEntity.getChargeMode().equalsIgnoreCase(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH) && eipEntity.getSbwId() != null) {
             removeRet = removeFipFromSbwQos(eipEntity.getFirewallId(), innerIp, eipEntity.getSbwId());
         } else {
             removeRet = delQos(eipEntity.getPipId(), eipEntity.getEipAddress(), innerIp, eipEntity.getFirewallId());
@@ -694,12 +694,20 @@ public class FirewallService implements IDevProvider{
         //        configure\rshow statistics address 192.168.1.11 lasthour\rend
         JSONObject json = fireWallCommondService.cmdShowStasiticsAddress(fireWallId, sb.toString());
         if (json !=null){
-            log.debug("success show :{}",json);
-            return json;
+            if (json.size()==2){
+                log.debug("success show :{}",json);
+                return json;
+            }else if(!Boolean.valueOf(json.getString(HsConstants.SUCCESS))){
+                log.info("retry to create address book and statistics book entryName:{} ",entryName);
+                if (this.cmdCreateOrDeleteAddressBook(entryName,fireWallId ,true)){
+                    this.cmdOperateStatisticsBook(entryName,fireWallId,true);
+                }
+            }
         }else {
             log.error(ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage() + "param not correct,entryName:{},period;{}", entryName,period);
             throw new EipBadRequestException(ErrorStatus.ENTITY_BADREQUEST_ERROR.getCode(), ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage());
         }
+        return null;
     }
 
 

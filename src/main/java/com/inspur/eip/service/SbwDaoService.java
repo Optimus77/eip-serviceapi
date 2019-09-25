@@ -520,7 +520,7 @@ public class SbwDaoService {
             eipEntity.setUpdatedTime(CommonUtil.getGmtDate());
             eipEntity.setSbwId(sbwId);
             eipEntity.setOldBandWidth(eipEntity.getBandWidth());
-            eipEntity.setChargeMode(HsConstants.SHAREDBANDWIDTH);
+            eipEntity.setChargeMode(HsConstants.CHARGE_MODE_SHAREDBANDWIDTH);
             eipEntity.setBandWidth(eipUpdateParam.getBandwidth());
             eipRepository.saveAndFlush(eipEntity);
 
@@ -588,7 +588,7 @@ public class SbwDaoService {
             eipEntity.setPipId(newPipId);
             eipEntity.setSbwId(null);
             eipEntity.setBandWidth(eipUpdateParam.getBandwidth());
-            eipEntity.setChargeMode(HsConstants.BANDWIDTH);
+            eipEntity.setChargeMode(HsConstants.CHARGE_MODE_BANDWIDTH);
             eipRepository.saveAndFlush(eipEntity);
 
             sbw.setUpdatedTime(CommonUtil.getGmtDate());
