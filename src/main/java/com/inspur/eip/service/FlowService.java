@@ -73,21 +73,22 @@ public class FlowService {
             if (upInt.length == downInt.length) {
                 for (int i = 0; i < upInt.length; i++) {
                     upInt[i] = Integer.parseInt(upArrs[i]);
-                    downInt[i] = Integer.parseInt(downArrs[i]);
+//                    downInt[i] = Integer.parseInt(downArrs[i]);
                 }
             }
             long upFlow = 0;
             long downFlow = 0;
+            int netFlow = lineNum * 2<= upInt.length ? lineNum *2 : upInt.length;
 //  1：每分钟统计  5：每五分钟统计  0:统计所有
             if (lineNum <= 60 && lineNum >= 1) {
-                for (int i = 0; i < lineNum * 2; i++) {
+                for (int i = 0; i < netFlow; i++) {
                     upFlow = upFlow + upInt[i];
-                    downFlow = downFlow + downInt[i];
+//                    downFlow = downFlow + downInt[i];
                 }
 
                 flowMap.put(HillStoneConfigConsts.UP_TYPE, upFlow);
-                flowMap.put(HillStoneConfigConsts.DOWN_TYPE, downFlow);
-                flowMap.put(HillStoneConfigConsts.SUM_TYPE, upFlow + downFlow);
+//                flowMap.put(HillStoneConfigConsts.DOWN_TYPE, downFlow);
+//                flowMap.put(HillStoneConfigConsts.SUM_TYPE, upFlow + downFlow);
             } else {
                 log.error(ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage() + "lineNum:{}", lineNum);
                 throw new EipBadRequestException(ErrorStatus.ENTITY_BADREQUEST_ERROR.getCode(), ErrorStatus.ENTITY_BADREQUEST_ERROR.getMessage());
