@@ -6,6 +6,7 @@ import com.inspur.eip.entity.fw.FwLogin;
 import com.inspur.eip.entity.fw.FwLoginResponseBody;
 import com.inspur.eip.util.constant.HsConstants;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -273,7 +274,7 @@ public class HsHttpClient {
 				jo.put("user",((FwLogin) userpw).getUserName());
 				String loginResult = loginCookieParser(jo);
 
-				if (loginResult != null && loginResult != "") {
+				if(StringUtils.isNotBlank(loginResult)){
 					// loginCookieParser
 					log.debug("httpLogin： COOKIE  IP:{} logingResult:{}",ip, loginResult );
 					putCookie(ip, loginResult);

@@ -367,7 +367,10 @@ public class DateUtils4Jdk8 {
         try {
             Date dat1 = parseStringToDate(strdat1, format);
             Date dat2 = parseStringToDate(strdat2, format);
-            return dat1.before(dat2);
+            if (dat1!= null){
+                return dat1.before(dat2);
+            }
+            return false;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -380,7 +383,10 @@ public class DateUtils4Jdk8 {
         try {
             Date dat1 = parseStringToDate(strdat1, format);
             Date dat2 = parseStringToDate(strdat2, format);
-            return dat2.getTime() - dat1.getTime();
+            if (dat1 != null && dat2 != null){
+                return dat2.getTime() - dat1.getTime();
+            }
+            return result;
         } catch (Exception e) {
             e.printStackTrace();
         }
