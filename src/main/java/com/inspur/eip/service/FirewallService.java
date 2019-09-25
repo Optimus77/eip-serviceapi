@@ -697,7 +697,7 @@ public class FirewallService implements IDevProvider{
             if (json.size()==2){
                 log.debug("success show :{}",json);
                 return json;
-            }else if(!json.getBoolean(HsConstants.SUCCESS)){
+            }else if(!Boolean.valueOf(json.getString(HsConstants.SUCCESS))){
                 log.info("retry to create address book and statistics book entryName:{} ",entryName);
                 if (this.cmdCreateOrDeleteAddressBook(entryName,fireWallId ,true)){
                     this.cmdOperateStatisticsBook(entryName,fireWallId,true);

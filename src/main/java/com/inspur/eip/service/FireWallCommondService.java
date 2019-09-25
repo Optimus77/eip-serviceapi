@@ -157,7 +157,7 @@ public class FireWallCommondService {
                     } else if (line.contains("^-----")){
                         log.error(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND+":{}",line);
                         JSONObject object = new JSONObject();
-                        object.put(HsConstants.SUCCESS,false);
+                        object.put(HsConstants.SUCCESS,"false");
                         return object;
 //                        throw new EipInternalServerException(ErrorStatus.FIREWALL_UNRECOGNIZED_COMMAND.getCode(),line);
                     }
