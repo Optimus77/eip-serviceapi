@@ -502,7 +502,7 @@ public class RabbitMqServiceImpl {
         List<OrderProductItem> orderProductItems = orderProduct.getItemList();
 
         for (OrderProductItem orderProductItem : orderProductItems) {
-            if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
+            if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.ITEM_BANDWIDTH)) {
                 eipAllocateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
             } else if (orderProductItem.getCode().equals(HsConstants.PROVIDER)) {
                 eipAllocateParam.setIpType(orderProductItem.getValue());
@@ -533,7 +533,7 @@ public class RabbitMqServiceImpl {
         List<OrderProductItem> orderProductItems = orderProduct.getItemList();
 
         for (OrderProductItem orderProductItem : orderProductItems) {
-            if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
+            if (orderProductItem.getCode().equalsIgnoreCase(HsConstants.ITEM_BANDWIDTH)) {
                 eipUpdateParam.setBandwidth(Integer.parseInt(orderProductItem.getValue()));
             } else if (orderProductItem.getCode().equals(HsConstants.IS_SBW) &&
                     orderProductItem.getValue().equalsIgnoreCase(HsConstants.YES)) {
@@ -622,7 +622,7 @@ public class RabbitMqServiceImpl {
         List<OrderProductItem> orderProductItemList = orderProduct.getItemList();
 
         for (OrderProductItem sbwItem : orderProductItemList) {
-            if (sbwItem.getCode().equalsIgnoreCase(HsConstants.BANDWIDTH)) {
+            if (sbwItem.getCode().equalsIgnoreCase(HsConstants.ITEM_BANDWIDTH)) {
                 updateParam.setBandwidth(Integer.parseInt(sbwItem.getValue()));
             } else if (sbwItem.getCode().equals(HsConstants.SBW_NAME)) {
                 updateParam.setSbwName(sbwItem.getValue());

@@ -41,7 +41,7 @@ public class FlowAccountScheduledTask {
     private EipRepository eipRepository;
 
     //    异步统计每小时流量数据,并发送给Bss侧
-    @Scheduled(cron = "0 0 0/1 * * *")
+    @Scheduled(cron = "0 0/5 * * * *")
     @Async
     public void oneHourReportFlowAccount(){
         try {
@@ -55,12 +55,16 @@ public class FlowAccountScheduledTask {
                         FlowAccount2Bss flowBean = flowService.getFlowAccount2BssBean(eip, up, true);
                         //给 Bss发送报文
                         flowService.sendOrderMessageToBss(flowBean);
+                    }else {
+                        log.warn("This eip cant statitics from firewall ,eip:{}",eip );
+                        FlowAccount2Bss flowBean = flowService.getFlowAccount2BssBean(eip, 0L, true);
+                        flowService.sendOrderMessageToBss(flowBean);
                     }
                 }
             }
             return;
         } catch (Exception e) {
-            log.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()+":{}",e.getMessage());
+            log.error(ErrorStatus.ENTITY_INTERNAL_SERVER_ERROR.getMessage()+":{}",e);
         }
     }
 }

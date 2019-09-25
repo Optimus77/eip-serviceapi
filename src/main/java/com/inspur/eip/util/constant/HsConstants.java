@@ -18,7 +18,8 @@ public class HsConstants {
 	public static final String MONTHLY = "monthly";
 	public static final String HOURLYNETFLOW = "hourlyNetflow";
 	public static final String PROVIDER = "provider";
-	public static final String BANDWIDTH = "bandwidth";
+	// item中带宽值 code
+	public static final String ITEM_BANDWIDTH = "bandwidth";
 	public static final String TRANSFER = "transfer";
 	public static final String IP = "IP";
 	public static final String FAIL = "fail";
@@ -26,6 +27,7 @@ public class HsConstants {
 	public static final String UNSUBSCRIBE = "unsubscribe";
 	public static final String STOPSERVER = "stopServer";
 	public static final String RESUMESERVER = "resumeServer";
+	// chargeMode Bandwidth
 	public static final String CHARGE_MODE_BANDWIDTH = "Bandwidth";
 	public static final String CHARGE_MODE_SHAREDBANDWIDTH = "SharedBandwidth";
 	public static final String GROUP_ID = "groupId";
@@ -91,7 +93,6 @@ public class HsConstants {
 	/////////////////////////R2P2 version/////////////////////////
 
 	public static final String COLON = ":";
-	public static final String SHAREDBANDWIDTH = "SharedBandwidth";
 	public static final String FORBIDEN = "Forbiden";
 	public static final String EXCEPTION = "exception";
 	public static final String ACTIVE = "ACTIVE";
@@ -108,7 +109,6 @@ public class HsConstants {
 	public static final String PIPE_NAME= "pipeName";
 	public static final String FALSE = "false";
 	public static final String TRUE = "true";
-	public static final String BAND_WIDTH = "bandWidth";
 	public static final String IN_BAND_WIDTH = "inBandWidth";
 	public static final String REASON = "reason";
 	public static final String HTTP_CODE = "httpCode";
