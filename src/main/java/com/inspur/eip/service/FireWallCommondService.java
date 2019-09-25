@@ -150,8 +150,10 @@ public class FireWallCommondService {
                 if (StringUtils.isNotBlank(line)){
                     if (line.startsWith("UP")) {
                         json.put("UP",upLine.append(line));
-                    }else if (line.startsWith("DOWN")){
-                        json.put("DOWN",downLine.append(line));
+                    }else if (line.startsWith("DOWN")) {
+                        json.put("DOWN", downLine.append(line));
+                    }else if (line.startsWith(" --More--") &&line.contains("\b") && line.contains("UP")) {
+                        json.put("UP",upLine.append(line.substring(line.lastIndexOf("\b")+1)));
                     } else if (line.startsWith(" --More--") &&line.contains("\b") && line.contains("DOWN")){
                         json.put("DOWN",downLine.append(line.substring(line.lastIndexOf("\b")+1)));
                     } else if (line.contains("^-----")){
